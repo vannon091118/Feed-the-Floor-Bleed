@@ -11,7 +11,7 @@
 | `combat/role` | `hero`, `monster`, `boss` |
 | `combat/side` | `heroes`, `monsters` |
 | `grid/64x64` | Etagen-Größe, Zellen-Array |
-| `grid/hard-block` | Letzte freie Route nicht zumauerbar |
+| `grid/hard-block` | Letzte freie Route darf nicht zugemauert werden |
 | `combat/tick-rate` | Vorläufig 20 Ticks/s, 1800 Ticks maximal (`[K]`) |
 | `combat/timeout` | Kampf-Timeout: `stage: 'timeout'` in einem erfolgreichen Ergebnis |
 | `job/timeout` | Auftrags-Timeout: `status: 'expired'` mit `code: 'timeout'` |
