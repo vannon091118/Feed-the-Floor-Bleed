@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+# Shinon pre-push — Full Test-Suite (alle Plugins, letzte Sicherung)
+set -e
+echo "🦊 Shinon pre-push — Full Test-Suite..."
+node scripts/shinon/engine.mjs --full

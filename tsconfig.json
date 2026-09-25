@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "@floor/contracts": ["packages/contracts/src"],
+      "@floor/sim-core": ["packages/sim-core/src"],
+      "@floor/client/*": ["packages/client/src/*"],
+      "@floor/server/*": ["packages/server/src/*"],
+      "@maze/contracts": ["packages/contracts/src"],
+      "@maze/sim-core": ["packages/sim-core/src"],
+      "@maze/client/*": ["packages/client/src/*"],
+      "@maze/server/*": ["packages/server/src/*"]
+    }
+  },
+  "include": ["packages/*/src/**/*", "scripts/**/*.mjs", "scripts/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

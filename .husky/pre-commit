@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+# Shinon pre-commit — Slice Test-Suite (sicher + performant)
+# Base-Tests laufen IMMER: loc-gate, hygiene-gate, version-gate, commit-gate
+# Core-Tests laufen nur bei relevantem Slice: core-determinism, schema-contract, false-positive
+# Full-Run ist NICHT der Standard — nur der Slicer entscheidet
+set -e
+echo "🦊 Shinon pre-commit — Slice Test-Suite läuft..."
+node scripts/shinon/engine.mjs

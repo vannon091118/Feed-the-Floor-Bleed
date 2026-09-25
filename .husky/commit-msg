@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+# Shinon commit-msg — Commit-Gate (Prosa + Footer + Bullet + Datei-Nennung)
+set -e
+node scripts/shinon/commit-msg.mjs "$1"
