@@ -13,7 +13,7 @@ T1.0 ist abgeschlossen. T1.1 ist als Fixture-Shell mit Tag/Nacht-Umschaltung und
 ### Grün
 
 - `pnpm run -s typecheck` bestanden.
-- `pnpm test -- --run` bestanden: 16 Testdateien, 79 Tests (inklusive 5 Client-Tests und 19 neuen Core-Tests).
+- `pnpm test -- --run` bestanden: 16 Testdateien, 80 Tests (inklusive 5 Client-Tests und 20 neuen Core-Tests).
 - `pnpm run -s check` bestanden: LOC, Hygiene und alle Shinon-Gates.
 - `pnpm audit --prod --json | jq` meldet keine bekannten Schwachstellen.
 - Grid, Contracts, D1-Raid-Freeze sowie Combat-, Hash- und Replay-Core sind durch Tests abgedeckt.
