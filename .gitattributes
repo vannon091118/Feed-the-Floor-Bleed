@@ -1,0 +1,34 @@
+# Zeilenenden erzwingen — das Repo wurde auf Ubuntu entwickelt, CI laeuft auf ubuntu-latest.
+# Ohne diese Regeln schreibt core.autocrlf=true unter Windows CRLF in die Worktree.
+# Shebang-Dateien mit CRLF brechen Vitest (SyntaxError, 0 collectete Tests),
+# CRLF erzeugt zusaetzlich ~110 reine Formatfehler in Biome.
+#
+# Bewusst KEIN '* text=auto': scripts/shinon/tests/fixtures/*.fixture werden
+# byteweise verglichen und duerfen nicht normalisiert werden.
+* text=auto
+
+*.md   text eol=lf
+*.mjs  text eol=lf
+*.mts  text eol=lf
+*.ts   text eol=lf
+*.tsx  text eol=lf
+*.js   text eol=lf
+*.css  text eol=lf
+*.html text eol=lf
+*.json text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.sql  text eol=lf
+VERSION          text eol=lf
+.env.example     text eol=lf
+.husky/*         text eol=lf
+
+# Binaries und Byte-Vergleich-Fixtures: niemals anfassen.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.woff binary
+*.woff2 binary
+*.fixture -text

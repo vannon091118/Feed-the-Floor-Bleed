@@ -2,7 +2,8 @@
 
 | Pfad | Job |
 |------|-----|
-| `Agents.md` | Einzige kanonische Governance für Agenten und Contributor (Gesetz) |
+| `Agents.md` | Einzige kanonische Governance für Agenten und Contributor (Gesetz), inkl. §6.9 Session-Learnings |
+| `.gitattributes` | Erzwingt LF-Zeilenenden je Dateityp; Fixtures und Binaries ausgenommen |
 | `VERSION` | Repo-Version (X.Y.Z, PATCH 0..99), Single Source of Truth |
 | `pnpm-lock.yaml` | Reproduzierbare pnpm-Auflösung für alle Workspace-Projekte |
 | `.github/workflows/shinon.yml` | Pflichtprüfung `Shinon Gate` bei jedem Push auf `main` |

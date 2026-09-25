@@ -1,5 +1,13 @@
 # docs/CHANGELOG.md — Global
 
+## 2026-09-25 — Case-Kollision `AGENTS.md`/`Agents.md` und CRLF-Bruch unter Windows aufgelöst
+
+- Git trackte zwei Pfade, die sich nur im Groß-/Kleinschreibungsfall unterscheiden: `AGENTS.md` als Session-Learning-Stub und `Agents.md` als kanonische Governance. Auf case-insensitiven Dateisystemen überlebt nur einer; Folge war ein `git status`, der dauerhaft einen Diff zeigte, den niemand geschrieben hatte, und ein `commit-msg`-Gate, das die Datei namentlich im Commit-Body verlangte. `AGENTS.md` ist jetzt aus dem Index entfernt.
+- Der Stub behauptete, `Agents.md` enthalte die relevanten Erkenntnisse bereits. Das traf nicht zu: neun Learnings fehlten, darunter der Commit-Amend über einen temporären `GIT_INDEX_FILE`, der SSH-Signatur-Nachweis über `gpg.ssh.allowedSignersFile` sowie die read-only-Abfrage von `gh api user/ssh_signing_keys`. Sie sind jetzt in `Agents.md` §6.9 zusammengeführt.
+- `.gitattributes` neu: erzwingt LF je Dateityp und für `VERSION`, `.env.example` sowie `.husky/*`. Ohne diese Regeln schrieb `core.autocrlf=true` unter Windows CRLF in die Worktree. Empirisch belegt: CRLF ließ vier `scripts/shinon/tests/*.test.mjs` beim Modul-Laden mit `SyntaxError: Invalid or unexpected token` und null collecteten Tests scheitern, weil Vitest 2.1.8 die Shebang-Zeile nur bei LF-Zeilenende parst, und erzeugte rund 110 reine CRLF-Fehler in Biome. Nach LF-Normalisierung: 20 von 20 Testdateien und 104 von 104 Tests grün, `lint` und `check` ohne Befund.
+- `* text=auto` ist bewusst mit `*.fixture -text` und Binär-Markern kombiniert, weil die Test-Fixtures unter `scripts/shinon/tests/fixtures/` byteweise verglichen werden und keine Normalisierung vertragen.
+- Der Changelog-Eintrag vom selben Tag behauptete, die parallele Session-Learning-Datei sei bereits entfernt worden. Das war falsch; der Eintrag ist durch diesen hier überholt.
+
 ## 2026-09-25 — T1.3 Contract-v2-Ergebnislog und lokale Fixture-Job-Ausführung
 
 - `packages/contracts/src/combat-log.ts` und `src/job.ts` neu: strikte Wire-Form für Config, Einheiten, Events, Log und Summary sowie ein Auftrag als Diskriminated Union über `status`. Ergebnis, Fehler und Auftrags-Timeout sind damit nicht verwechselbar.
@@ -55,7 +63,7 @@
 
 ## 2026-09-25 — Governance-Konsolidierung
 
-- Die parallele Session-Learning-Datei und der GitHub-Governance-Spiegel wurden entfernt; `Agents.md` bleibt die einzige kanonische Agent-Governance und enthält die relevanten Erkenntnisse bereits.
+- Die parallele Session-Learning-Datei und der GitHub-Governance-Spiegel wurden entfernt; `Agents.md` bleibt die einzige kanonische Agent-Governance und enthält die relevanten Erkenntnisse bereits. Korrigiert am selben Tag: Die Learning-Datei war zum Zeitpunkt dieses Eintrags noch getrackt und enthielt neun nicht übertragene Erkenntnisse; erst der spätere Eintrag „Case-Kollision" hat sie wirklich entfernt und ihren Inhalt übernommen.
 - `docs/REPOINDEX.md` und die Shinon-Dokumentation verweisen nicht mehr auf eigenständige Governance-Duplikate.
 
 ## 2026-09-25 — Offizieller Initialstand

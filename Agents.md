@@ -208,6 +208,16 @@ Jeder Task wird als eigener, in sich abgeschlossener Slice durch die Shinon-Kett
 - Der Post-Commit-Bump staged ganze `package.json`- und `VERSION`-Dateien; ungestagte Änderungen in diesen Dateien werden in den laufenden Slice gesogen. `package.json`-Änderungen deshalb vor dem Task-Commit vollständig stagen oder als eigenen Slice führen.
 - Landet dadurch eine neue Dependency im Slice, während `pnpm-lock.yaml` erst im Folgeslice kommt, bricht der Remote-Lauf mit `ERR_PNPM_OUTDATED_LOCKFILE` ab. Dependency- und Lockfile-Änderungen gehören deshalb zwingend in denselben Slice.
 - README bleibt reine Verkaufsbühne; technische Verträge und Governance gehören in `docs/` bzw. `Agents.md`.
+- Bei fremden staged oder untracked Änderungen darf ein Commit-Amend über einen temporären `GIT_INDEX_FILE` laufen, der mit `git read-tree HEAD` initialisiert wurde; dadurch bleiben fremde Änderungen weder gestaged noch committed.
+- Ein Rebase ist ein No-op, wenn `origin/main` bereits Ancestor von `HEAD` ist; erst `git rev-list --left-right --count origin/main...HEAD` prüfen, dann keinen Stash für einen unnötigen Rebase anlegen.
+- GitHub kann einen gültig SSH-signierten Commit als unverifiziert ablehnen, wenn der Committer eine nicht verifizierte Adresse wie `vannon@local` nutzt; Repository-Identität auf die verifizierte Noreply-Adresse setzen und neu signieren.
+- `git verify-commit --verbose HEAD` benötigt für SSH-Signaturen `gpg.ssh.allowedSignersFile`; ein gültiger Key allein beweist ohne Allowlist keine lokale Git-Verifikation.
+- Ob ein öffentlicher SSH-Signing-Key bei GitHub registriert ist, prüft read-only `gh api user/ssh_signing_keys`; der private Key wird niemals hochgeladen.
+- Ein lokaler Pre-Push-Pass erfüllt keinen auf GitHub verlangten Status-Check; `GH013` bei geschütztem `main` bedeutet, dass der Remote-Stand vor dem Commit-Update nicht akzeptiert wurde.
+- Nach `git push -u` immer `git branch -vv` prüfen, weil ein Push vom lokalen `main` versehentlich einen Feature-Branch als Upstream setzen kann; für `main` explizit `origin/main` als Upstream verwenden.
+- Verlangt der Nutzer ausdrücklich „alles lokal", werden keine Push-, PR- oder sonstigen Remote-Aktionen ausgeführt und die lokale Shinon-Verifikation als Ziel dokumentiert.
+- Zwei Git-Pfade, die sich nur im Groß-/Kleinschreibungsfall unterscheiden, überleben auf case-insensitiven Dateisystemen nicht beide. Das betraf `AGENTS.md` gegen `Agents.md`; Learnings gehöhen in diese Datei, ein zweiter Governance-Pfad wird nicht geführt.
+- Das Repo braucht ein Root-`.gitattributes` mit expliziten `text eol=lf`-Einträgen je Dateityp. Ohne sie schreibt `core.autocrlf=true` unter Windows CRLF in die Worktree; das bricht Vitest bei Shebang-Dateien mit `SyntaxError: Invalid or unexpected token` und null collecteten Tests und erzeugt rund 110 reine CRLF-Fehler in Biome. `* text=auto` ist zu breit, weil `scripts/shinon/tests/fixtures/*.fixture` Byte-Vergleiche trägt.
 
 ## 7. Umsetzung & Durchsetzung
 
