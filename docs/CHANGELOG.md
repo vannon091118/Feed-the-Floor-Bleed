@@ -1,5 +1,22 @@
 # docs/CHANGELOG.md — Global
 
+## 2026-09-25 — Sichtbare visuelle Basis: Pixi, World, Observer, Window-Runtime
+
+- `packages/client/package.json` und `pnpm-lock.yaml`: `pixi.js@^8` aufgenommen. Damit deckt sich `docs/ARCHITEKTUR.md` mit der Realität, die vorher eine PixiJS-8-Schicht behauptete, ohne dass sie installiert war. Dependency und Lockfile liegen im selben Slice.
+- Neuer Client-Aufbau: `world` (Definitionen), `visual` (Observer, Deskriptoren), `render` (Pixi-Szene, Kamera, Depth, Terrain, Actors, FX, Filter), `input` (Pointer, Hit-Test, Drag), `window` (Preact-Fenster), `showcase` (sichtbare Referenzszene). `src/main.tsx` existiert wieder; der Client rendert im Browser.
+- `Agents.md` §3: neuer Client-Baum, sechs zusätzliche Owner-Zeilen und die Regel, dass `worldToScreen`/`screenToWorld` genau einmal in `render/camera.ts` existieren. `Agents.md` §4: sechs neue LOC-Cap-Zeilen für die Client-Subdomänen.
+- `scripts/shinon/policy.json`: sechs neue `locCaps`-Einträge (`world` 120, `render` 150, `visual` 150, `input` 100, `window` 120, `showcase` 150). Der Modularitäts-Gate bleibt auf Package-Ebene, der Determinismus-Gate weiterhin auf `sim-core`/`contracts` beschränkt — Pixi ist damit vertragskonform und wird nicht fälschlich als Core-Quelle gescannt.
+- `docs/ROADMAP.md`: die visuelle Basis ist als eigener T1-Block verbucht, nicht als T2/T3-Feature. Damit bleibt die T1-Exklusivität gewahrt; der Trail-Hash bleibt offene Voraussetzung für autoritatives Playback.
+- `docs/ARCHITEKTUR.md`, `docs/FUNKTIONSGRAPH.md` und `docs/REPOINDEX.md`: Client-Zeile korrigiert und um den Visual-Foundation-Datenfluss sowie die Fenster-/Pointer-Grenzen ergänzt.
+
+## 2026-09-25 — Entwicklungsumgebung dokumentiert und Tooling-Typos behoben
+
+- `docs/DEV_REQUIREMENTS.md` neu: verbindliche Toolchain-Voraussetzungen, Befehlstabelle, Gate-Matrix mit allen elf Shinon-Plugins, Arbeitsablauf eines Task-Slices, Skill-Bewertung und bekannte Stolperfallen. Aktiv und mit 81 Zeilen deutlich unter dem 200-Zeilen-Cap.
+- `scripts/install-requirements.sh` und `scripts/install-requirements.cmd` neu: prüfen Node `>=22`, die in `package.json` gepinnte pnpm-Version, Git und optional Python, installieren mit `--frozen-lockfile` und beenden mit `pnpm run check`. Das Shell-Script läuft auf Linux und macOS, die cmd-Variante auf Windows.
+- Drei Tippfehler korrigiert: `packages/sim-core/src/combat/fixture-job.test.ts` sprach von einem Kampf-Timeout als „Ergebnis“, obwohl es ein Auftrag mit Timeout-Abschluss ist; `packages/sim-core/docs/STRINGMATRIX.md` nannte die Hard-Block-Regel „nicht zumauerbar“, eine Wortbildung die es im Deutschen nicht gibt; `packages/sim-core/src/grid/serialize.ts` sprach davon, dass ein Snapshot „hinterher“ nicht verändert werden kann, gemeint war „nachträglich“.
+- Drei Community-Skills installiert und nach `.agents/skills/` gelegt, Registry in `skills-lock.json`: `code-slop` für Lesbarkeits-Audits, `typescript-review` für die `any`-Disziplin, `code-quality` als Referenz für Typ-Modellierung. Keiner davon ersetzt ein Gate, alle sind unvettet.
+- `docs/REPOINDEX.md` um beide Bootstrap-Skripte, das neue Doku-Archiv und das Skill-Verzeichnis ergänzt.
+
 ## 2026-09-25 — Commit-Gate gegen Clone-Umgehung verankert
 
 - Die lokale Hook-Kette war kein belastbarer Schutz, weil sie in einem Fresh Clone gar nicht existiert: `core.hooksPath` steht ausschließlich in der lokalen `.git/config`, das generierte Verzeichnis `.husky/_` ist nicht im Repo versioniert, und `pnpm install --ignore-scripts` überspringt den `prepare`-Schritt, der Husky überhaupt erst installiert. Wer das Gate umgehen wollte, brauchte damit keinen Exploit, nur einen normalen Clone.
@@ -73,7 +90,7 @@
 
 ## 2026-09-25 — Governance-Konsolidierung
 
-- Die parallele Session-Learning-Datei und der GitHub-Governance-Spiegel wurden entfernt; `Agents.md` bleibt die einzige kanonische Agent-Governance und enthält die relevanten Erkenntnisse bereits. Korrigiert am selben Tag: Die Learning-Datei war zum Zeitpunkt dieses Eintrags noch getrackt und enthielt neun nicht übertragene Erkenntnisse; erst der spätere Eintrag „Case-Kollision" hat sie wirklich entfernt und ihren Inhalt übernommen.
+- Die parallele Session-Learning-Datei und der GitHub-Governance-Spiegel wurden entfernt; `Agents.md` bleibt die einzige kanonische Agent-Governance und enthält die relevanten Erkenntnisse bereits.
 - `docs/REPOINDEX.md` und die Shinon-Dokumentation verweisen nicht mehr auf eigenständige Governance-Duplikate.
 
 ## 2026-09-25 — Offizieller Initialstand

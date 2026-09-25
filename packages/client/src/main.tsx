@@ -2,7 +2,7 @@ import { render } from 'preact'
 import { Shell } from './ui/shell'
 import './ui/styles.css'
 
-const app = document.getElementById('app')
-if (!app) throw new Error('Client-Mountpunkt #app fehlt')
+const root = document.getElementById('app')
+if (!root) throw new Error('Mountpunkt #app fehlt in index.html')
 
-render(<Shell />, app)
+render(<Shell />, root)

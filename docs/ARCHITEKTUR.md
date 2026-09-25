@@ -8,7 +8,7 @@ Deterministisches Async-Spiel mit geteiltem Core. Der Server nutzt `sim-core` (F
 
 - `contracts` besitzt Zod-Schemas, Protokoll-Versionen (`sim_version`), Hash-Verträge, Ergebnislog und den Auftragsautomaten. Keine Logik.
 - `sim-core` besitzt reine Funktionen ohne I/O/Zeit/Zufall von außen. PRNG via Seed, A* mit festem Tie-Break, Combat-Ticks, kanonischer Log-Hash, Replay und die lokale Fixture-Ausführung eines Auftrags.
-- `client` besitzt UI, Rendering (PixiJS 8), PWA, Dexie, Net (Upload/Results sequenziell pro Etage). T1.3 zeigt dort einen echten Core-Lauf, entscheidet aber nichts selbst.
+- `client` besitzt UI (Preact/Signals) und die laufende Szene (PixiJS 8). Die visuelle Basis ist geschichtet: `world` definiert Tiles, Materialien und Deskriptoren, `visual` übersetzt Spielzustand in Präsentationsdeskriptoren, `render` besitzt die Pixi-Szene, `input` den Pointer-Pfad, `window` die Kontextfenster. PWA, Dexie und Net bleiben Zielmodule. Der Client entscheidet nichts selbst.
 - `server` besitzt D1, Queues, Pool, Defender-State und Replay-Validierung; MMR-Matching und Ghost-Fallback sind geplante Zielmodule, aber keine bestätigten Spielregeln (siehe `docs/CONCEPT_REVIEW.md`).
 - `scripts/shinon` besitzt Commit-Gate + Test-Suite, slice-basiert nach `git diff`. Full-Run nur in `pre-push`.
 
@@ -17,6 +17,10 @@ Deterministisches Async-Spiel mit geteiltem Core. Der Server nutzt `sim-core` (F
 Editor-Grid plus Fixture-Aufstellung → `buildFixtureUpload` erzeugt einen Contract-v2-Upload → `toDungeonGrid` übersetzt die 4096 Zellen in das Laufzeit-Grid → `runFixtureRaid` prüft Schema, Auftragsfrist und Route, rechnet den Kampf, replayt den geparsten Log und gibt einen durch `RaidJobSchema` validierten Auftrag zurück → `RaidPanel` rendert Stufe, Hash und Kennzahlen. Kein Netz, keine Uhr, kein Serverentscheid.
 
 Ergebnis und vollständiger Log sind zwei Payloads: `ResultPayloadSchema` trägt `token`, `floor`, `hash` und die typisierte Summary, `RaidLogPayloadSchema` zusätzlich den Log. Das hält die D1-Zeile klein und lässt den Log bei Bedarf nachladen.
+
+## Datenfluss Visual Foundation (belegter Ist-Stand)
+
+`dungeon-editor/state` hält `grid` und die daraus abgeleitete `route`. Der `visual/observer` liest beide und erzeugt Deskriptoren; er kopiert das Grid nicht, sondern meldet Terrain nur bei geänderter Grid-Referenz. `render` konsumiert die Deskriptoren als persistente Pixi-Views. `worldToScreen` und `screenToWorld` existieren genau einmal in `render/camera` und werden von Renderer, Hit-Test, Drag und Kamera gemeinsam genutzt. `showcase` baut die sichtbare Referenzszene aus `grid`, `route.value.path` und dem echten Core-Log aus `resolveSnapshotRaid`; die Combat-Positionen entstehen aus `routeIndex`/`fromIndex`/`toIndex` abgebildet auf die Route. Der Log trägt noch keinen Trail-Hash, deshalb bleibt der Trail eine offene T1-Aufgabe.
 
 ## Datenfluss Etagen-Loop (geplanter Zielpfad, technisch)
 

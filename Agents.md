@@ -33,13 +33,19 @@ packages/
     src/hash/         # Snapshot-Hash, Replay-Hash
     src/ghost/        # Ghost-Generator (deterministisch)
   client/
-    src/dungeon-editor/ # PixiJS 8, Pinsel 1/2/4, Drag
+    src/world/          # Einzige Tile-/Material-/Deskriptor-Wahrheit (Editor + Pixi)
+    src/render/         # Pixi 8: Kamera, Ebenen, Depth, Terrain, Actors, FX, Filter
+    src/visual/         # Visual Observer + Combat-Frame, ohne Pixi-Kopplung
+    src/input/          # Pointer, Hit-Test, Drag (emittiert nur Commands)
+    src/window/         # Preact Window-Runtime: Registry, Fokus, Z-Order, Drag, Resize
+    src/showcase/       # Sichtbare Referenzszene aus Grid, Route und Core-Log
+    src/dungeon-editor/ # DOM/Preact-Editorraster, Pinsel, State-Owner des Grids
     src/village/      # Gebäude, Attraktivität, Arbeiter
     src/inventory/    # Loot, Zerlegen, Ausrüstung (9 Slots)
     src/raid/         # Tactic-Board (3 Regeln/Held), Playback
     src/net/          # Upload/Results, Token, Retry
     src/storage/      # Dexie/IndexedDB, Editor-Stand lokal
-    src/ui/           # Preact + Signals, PWA Shell, Tabs
+    src/ui/           # Preact + Signals, PWA Shell, Host der Pixi-Welt
   server/
     src/db/           # D1, Snapshots, Scores, Jobstatus
     src/matchmaking/  # MMR-Band, Ghost-Fallback, lokale Sperre
@@ -65,6 +71,14 @@ docs/historisch/      # Append-only Historie (nie kürzen)
 | `raid-sim` | Kampf, Hash, Tactic-Eval | I/O, Zeit, externer Zufall |
 | `matchmaking` | Pool, Zuweisung, Sperren | Kampfergebnisse ändern |
 | `sync` | Upload/Results, Schutz, Log | Spielregeln enthalten |
+| `world` | Tile-, Material- und Deskriptor-Definitionen | Grid-Zellen ändern, Spielregeln |
+| `render` | Pixi-Szene, Kamera, Depth, Occlusion, FX, Filter | Spielzustand besitzen, Grid schreiben |
+| `visual` | Visual Observer und Präsentationsdeskriptoren | zweite Grid-Wahrheit, Spielentscheid |
+| `input` | Pointer, Hit-Test, Drag-Commands | Spielregeln im Drop |
+| `window` | Fensterzustand, Fokus, Z-Order | Welt- oder Gridzustand |
+| `showcase` | sichtbare Referenzszene | Core entscheiden, Grid schreiben |
+
+- **Räumliche Wahrheit:** `grid` und `findPath`-Route bleiben die einzigen Positionsquellen. `worldToScreen` und `screenToWorld` existieren genau einmal in `packages/client/src/render/camera.ts`; Renderer, Hit-Test und Drag benutzen dieselbe Implementierung.
 
 - **Single Responsibility:** Eine Datei = ein Job. Kein God-File, kein Util-Sumpf.
 
@@ -89,6 +103,12 @@ Kommentare (`//`, `/* */`, `/** */`) und Leerzeilen zählen nicht. Gemessen wird
 | `packages/client/src/village` | **150** | Gebäude je File |
 | `packages/client/src/inventory` | **120** | Inventar/Shop/Zerlegen getrennt |
 | `packages/client/src/raid` | **150** | Tactic-Board + Playback getrennt |
+| `packages/client/src/world` | **120** | Definitionen, keine Logik |
+| `packages/client/src/render` | **150** | Szene je Concern splitten |
+| `packages/client/src/visual` | **150** | Observer/Frame getrennt von Pixi |
+| `packages/client/src/input` | **100** | Pointer-Pfad, kein UI |
+| `packages/client/src/window` | **120** | Fenster-Runtime klein halten |
+| `packages/client/src/showcase` | **150** | Treiber, Controls, Combat-Quelle getrennt |
 | `packages/client/src/ui` | **120** | Komponenten klein halten |
 | `packages/server/src/db` | **120** | Query-Module klein |
 | `packages/server/src/matchmaking` | **150** | Pool/Sperre/Score getrennt |

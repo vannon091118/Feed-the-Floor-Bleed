@@ -1,93 +1,91 @@
-import { useSignal } from '@preact/signals'
-import { EditorPanel } from '../dungeon-editor/editor'
-import { fixture } from '../fixture-data'
-import { RaidPanel } from '../raid/raid-panel'
-import { TeamPanel } from '../raid/team-panel'
-import { VillagePanel } from '../village/village-panel'
+import { signal } from '@preact/signals'
+import { useCallback, useState } from 'preact/hooks'
+import type { DragDropCommand } from '../input'
+import { WindowLayer, openWindow } from '../window'
+import type { ActorKind } from '../world'
+import { EditorControls } from './editor-controls'
+import { EditorPanel } from './editor-panel'
+import { ActorPanel, LegendPanel, RoutePanel, TeamPanel } from './panels'
+import { WorldHost } from './world-host'
 
-type Phase = 'day' | 'night'
+const lastDrop = signal('Noch kein Drop.')
+
+function renderContent(id: string) {
+  if (id.startsWith('actor:')) return <ActorPanel windowId={id} />
+  if (id === 'team') return <TeamPanel />
+  if (id === 'route') return <RoutePanel />
+  if (id === 'legend') return <LegendPanel />
+  return <p class="hint">Kein Inhalt hinterlegt.</p>
+}
 
 export function Shell() {
-  const phase = useSignal<Phase>('day')
-  const isNight = phase.value === 'night'
-  const { resources, team } = fixture
+  const [night, setNight] = useState(false)
+
+  const handleActorClick = useCallback((actorId: string, kind: ActorKind) => {
+    openWindow({
+      id: `actor:${kind}:${actorId}`,
+      title: `${kind} · ${actorId}`,
+      x: 320,
+      y: 180,
+      width: 240,
+      height: 150,
+    })
+  }, [])
+
+  const handleDrop = useCallback((command: DragDropCommand) => {
+    lastDrop.value = `${command.source} ${command.id} → Zelle ${command.cell.x},${command.cell.y}`
+  }, [])
 
   return (
-    <main className="app-shell">
-      <header className="topbar">
-        <div className="brand-lockup">
-          <span className="brand-mark">FF</span>
-          <div>
-            <p className="eyebrow">Feed the Floor</p>
-            <h1>Meet Your Fate</h1>
-          </div>
-        </div>
-        <nav className="phase-switch" aria-label="Tagesphase">
-          <button
-            type="button"
-            className={!isNight ? 'is-active' : ''}
-            onClick={() => {
-              phase.value = 'day'
-            }}
-          >
-            ☀ Tag
+    <main class={night ? 'app is-night' : 'app is-day'}>
+      <header class="topbar">
+        <h1>Feed the Floor · Visual Foundation</h1>
+        <div class="topbar__actions">
+          <button type="button" class="chip" onClick={() => setNight(!night)}>
+            {night ? 'Nacht' : 'Tag'}
           </button>
           <button
             type="button"
-            className={isNight ? 'is-active' : ''}
-            onClick={() => {
-              phase.value = 'night'
-            }}
+            class="chip"
+            onClick={() =>
+              openWindow({ id: 'team', title: 'Team', x: 24, y: 24 })
+            }
           >
-            ☾ Nacht
+            Team
           </button>
-        </nav>
-        <div className="resource-strip">
-          <span>
-            <b>{resources.gold}</b> Gold
-          </span>
-          <span>
-            <b>{resources.materials}</b> Material
-          </span>
+          <button
+            type="button"
+            class="chip"
+            onClick={() =>
+              openWindow({ id: 'route', title: 'Route', x: 300, y: 24 })
+            }
+          >
+            Route
+          </button>
+          <button
+            type="button"
+            class="chip"
+            onClick={() =>
+              openWindow({ id: 'legend', title: 'Legende', x: 576, y: 24 })
+            }
+          >
+            Legende
+          </button>
         </div>
       </header>
-
-      <div className="content-layout">
-        <div className="main-column">
-          {isNight ? (
-            <>
-              <EditorPanel resources={resources} />
-              <RaidPanel />
-            </>
-          ) : (
-            <VillagePanel
-              village={fixture.village}
-              day={fixture.day}
-              workers={fixture.workers}
-              attractiveness={fixture.attractiveness}
-              materials={resources.materials}
-            />
-          )}
+      <section class="stage">
+        <div class="viewport">
+          <WorldHost onActorClick={handleActorClick} onDrop={handleDrop} />
+          <WindowLayer renderContent={renderContent} />
         </div>
-        <aside className="side-column">
-          <TeamPanel team={team} isNight={isNight} />
-          <section className="signal-card">
-            <span className="signal-icon">⌁</span>
-            <div>
-              <span className="metric-label">Systemsignal</span>
-              <strong>Alles deterministisch.</strong>
-              <p>
-                Ein späterer Raid bekommt nur den Snapshot, den du hier
-                zusammenbaust.
-              </p>
-            </div>
-          </section>
+        <aside class="side">
+          <EditorControls />
+          <EditorPanel />
+          <p class="hint" aria-live="polite">
+            {lastDrop.value}
+          </p>
         </aside>
-      </div>
-      <footer className="footer-note">
-        <span>T1.3 · Fixture-Job</span>
-        <span>Keine Verbindung · Kein Serverentscheid</span>
-      </footer>
+      </section>
     </main>
   )
 }

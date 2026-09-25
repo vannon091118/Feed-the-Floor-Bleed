@@ -66,6 +66,16 @@
       "owner": "inventory"
     },
     { "prefix": "packages/client/src/raid", "cap": 150, "owner": "raid" },
+    { "prefix": "packages/client/src/world", "cap": 120, "owner": "world" },
+    { "prefix": "packages/client/src/render", "cap": 150, "owner": "render" },
+    { "prefix": "packages/client/src/visual", "cap": 150, "owner": "visual" },
+    { "prefix": "packages/client/src/input", "cap": 100, "owner": "input" },
+    { "prefix": "packages/client/src/window", "cap": 120, "owner": "window" },
+    {
+      "prefix": "packages/client/src/showcase",
+      "cap": 150,
+      "owner": "showcase"
+    },
     { "prefix": "packages/client/src/ui", "cap": 120, "owner": "ui" },
     { "prefix": "packages/client/src", "cap": 150, "owner": "client/fallback" },
     { "prefix": "packages/server/src/db", "cap": 120, "owner": "db" },

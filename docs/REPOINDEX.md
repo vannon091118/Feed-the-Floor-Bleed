@@ -11,16 +11,20 @@
 | `docs/CONCEPT_REVIEW.md` | Kanonische ODT-Festlegungen (`[N]`/`[K]`/`[O]`) zu Sync, Snapshot, Matching, Beute und Pathfinding |
 | `docs/CONCEPT_REVIEW_SECURITY.md` | Abgegrenzte manuelle Invalid-Request-/Account-Prüfmarke |
 | `docs/ROADMAP.md` | Audit-basierte Produkt- und Technik-Roadmap mit T1/T2/T3-Promotion |
+| `docs/DEV_REQUIREMENTS.md` | Toolchain-Voraussetzungen, Befehle, Gate-Matrix, Arbeitsablauf und Skills |
 | `docs/historisch/` | Append-only Archiv |
 | `packages/contracts/src` | Zod-Schemas, sim_version, Ergebnislog, Auftragsunion |
 | `packages/sim-core/src/*` | Deterministischer Core (PRNG, Math, Grid, Combat, Genome, Items, Hash, Ghost) |
-| `packages/client/src/*` | PWA Client (Editor, Village, Raid inkl. lokalem Fixture-Auftrag, Inventory, Net, Storage, UI) |
+| `packages/client/src/*` | PWA Client: `world`/`visual`/`render`/`input`/`window`/`showcase` als sichtbare visuelle Basis, `dungeon-editor` als Grid-Owner, `ui` als Shell und Pixi-Host, `raid` als lokaler Fixture-Auftrag |
 | `packages/server/src/*` | Server (DB, Matchmaking, Sync) |
 | `scripts/bump-version.mjs` | Mechanischer Version bump (PATCH→MINOR→MAJOR) |
 | `.github/workflows/shinon.yml` | Pflichtprüfung für Pull Requests und `main` |
 | `packages/contracts/src/index.ts` | Öffentliche Contract-v2-Exports mit Raid-Freeze, Grid, Handshakes und `sim_version` |
+| `.agents/skills/` | Installierte Review-Skills (`code-slop`, `typescript-review`, `code-quality`), Registry in `skills-lock.json` |
 | `scripts/shinon/engine.mjs` | Shinon Slicer + Runner (Base immer, Core nach Bedarf) |
 | `scripts/shinon/lib/commit-text.mjs` | Einzige Quelle der Commit-Regeln, geteilt von lokalem Hook und CI-Plugin |
 | `scripts/shinon/plugins/*` | Blockierende Governance-Module (global-loc, contract, modularity, dead-code, redundancy, commit-integrity) plus Slice-Plugins |
 | `scripts/check-loc.mjs` | LOC-Cap Check |
 | `scripts/check-hygiene.mjs` | Hygiene Check |
+| `scripts/install-requirements.sh` | Bootstrap unter Linux/macOS: prüft Node, pnpm, Git, Python, installiert Dependencies, ruft Gate |
+| `scripts/install-requirements.cmd` | Derselbe Bootstrap unter Windows |

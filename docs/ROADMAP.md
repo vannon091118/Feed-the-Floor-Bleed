@@ -8,19 +8,21 @@ Diese Roadmap ist die einzige aktive Reihenfolge für Produkt- und Technikarbeit
 
 T1.0 ist abgeschlossen. T1.1 ist als Fixture-Shell mit Tag/Nacht-Umschaltung und Dungeon-Editor in `packages/client` vorhanden; die Ende-zu-Ende-Abnahme bleibt offen. T1.2 ist abgeschlossen: `packages/sim-core` besitzt jetzt deterministische `prng`-, `math`-, `hash`- und `combat`-Module, und gleicher Seed plus Snapshot liefern denselben Hash und identischen Log. T1.3 ist abgeschlossen: Contract-v2 besitzt strikte Schemas für Ergebnislog, typisierte Summary und den Auftrag als Diskriminated Union, `packages/sim-core` führt Aufträge lokal ohne Netz und ohne Uhr aus, und der Client zeigt das Ergebnis eines echten Core-Laufs. Der nächste aktive Block ist T1.4: Raid-Playback. Parallel wurde `docs/CONCEPT_REVIEW.md` auf den ODT-Stand zurückgeschnitten; KI-Vorschläge sind dort als `[K]` markiert und keine Implementierungsfreigabe.
 
+Nachtrag: Die sichtbare visuelle Basis ist als T1.3b gebaut und im Browser lauffähig (`pnpm --filter @floor/client dev`). Sie liegt ausdrücklich innerhalb von T1, nicht in T2/T3: T1.4 soll auf einer fertigen Visual Runtime aufsetzen, statt sie Schritt für Schritt nachzuziehen. Die Szene rechnet einen lokalen Fixture-Lauf und entscheidet nichts; autoritatives, an den Server gebundenes Playback bleibt T1.4. Der Hash sieht weiterhin nur `route.path.length`.
+
 ## Audit-Snapshot — 2026-09-25
 
 ### Grün
 
 - `pnpm run -s typecheck` bestanden.
-- `pnpm test -- --run` bestanden: 20 Testdateien, 104 Tests (inklusive Client-, Contract-, Server- und Core-Tests).
+- `pnpm test -- --run` bestanden: 21 Testdateien, 114 Tests (inklusive Client-, Contract-, Server- und Core-Tests).
 - `pnpm run -s check` bestanden: LOC, Hygiene und alle Shinon-Gates.
 - `pnpm audit --prod --json | jq` meldet keine bekannten Schwachstellen.
 - Grid, Contracts, D1-Raid-Freeze, Combat-, Hash- und Replay-Core sowie der lokale Fixture-Auftrag sind durch Tests abgedeckt.
 
 ### Befunde mit Priorität
 
-- **P1 — Client nur als Fixture-Shell:** `packages/client` besitzt Shell, Tag/Nacht-Umschaltung und Dungeon-Editor, aber weder Storage noch Net oder Raid-Playback.
+- **P1 — Client ohne echten Spielfluss:** `packages/client` besitzt jetzt eine sichtbare visuelle Basis (Pixi-Szene, World, Kamera, Depth, Occlusion, Actors, FX, Observer, Window-Runtime, Showcase), aber weiterhin weder Storage noch Net oder ein an den Server gebundenes Raid-Playback. Die Showcase-Szene rechnet einen lokalen Fixture-Lauf, sie entscheidet nichts.
 - **P1 — Kein vollständiger Raid-Flow:** HTTP, Auth, Queue, Matching, Ghost und Ergebniskonsequenzen sind nicht implementiert; Combat-, Hash- und Replay-Core, Contract-v2-Ergebnislog und lokale Fixture-Ausführung stehen.
 - **P1 — Der Hash sieht den Dungeon nicht:** Aus dem 64×64-Grid fließt aktuell nur `route.path.length` in den Kampf. Zwei Dungeons mit gleich langer Route erzeugen denselben Hash, und Fallen haben keine Wirkung. `packages/client/test/raid-job.test.ts` pinnt das. Der Pfad muss als Trail mit Zelltyp und Koordinaten in den Hash eingehen, bevor T1.4 Fallenereignisse zeigen kann.
 - **P1 — Paketmanager uneinheitlich (behoben in T1.0):** `packageManager` und Workspace sind auf pnpm ausgelegt, CI nutzt jetzt `pnpm install --frozen-lockfile`, `pnpm-lock.yaml` ist vorhanden und das veraltete `package-lock.json` wurde entfernt.
@@ -45,7 +47,8 @@ T1.0 ist abgeschlossen. T1.1 ist als Fixture-Shell mit Tag/Nacht-Umschaltung und
 | T1.1 | Startbarer Client-Shell mit Fixture-Spielstand, Tag/Nacht-Umschaltung und Dungeon-Editor | T1.0 | Ein Nutzer erreicht den Editor auf Desktop und Touch ohne toten Screen |
 | T1.2 | Deterministischer Combat-, Hash- und Replay-Core auf Basis des vorhandenen Grids | T1.0 | Gleicher Snapshot und Seed erzeugen denselben Hash und identischen Log |
 | T1.3 | Contract-v2-Ergebnislog und lokale Fixture-Job-Ausführung | T1.2 | Snapshot, Taktiken, Ergebnis, Fehler und Timeout sind strikt serialisierbar — abgeschlossen: `CombatLogSchema`, `RaidLogPayloadSchema`, `RaidJobSchema` und `runFixtureRaid` |
-| T1.4 | Raid-Playback mit Timeline, Routen-/Fallenereignissen und Schlussfolgen | T1.1, T1.3 | Der Nutzer kann die drei entscheidenden Momente des Raids erklären |
+| T1.3b | Sichtbare visuelle Basis: Pixi-Szene, World, Kamera, Depth, Occlusion, Materials, Actors, Animation, FX, Observer, Window-Runtime, Pointer/Drag, Showcase | T1.1 | Client rendert im Browser eine Dungeon-Szene aus echtem Grid, echter Route und echtem Core-Log — abgeschlossen: `pixi.js@^8`, `src/world`, `src/render`, `src/visual`, `src/input`, `src/window`, `src/showcase`, `src/ui`, `src/main.tsx` |
+| T1.4 | Raid-Playback mit Timeline, Routen-/Fallenereignissen und Schlussfolgen | T1.1, T1.3, T1.3b | Der Nutzer kann die drei entscheidenden Momente des Raids erklären |
 | T1.5 | Ende-zu-Ende-Abnahme der Tag-/Nacht-/Raid-Schleife | T1.1–T1.4 | Ein Fixture-Loop läuft in unter fünf Minuten und erfüllt die Checkliste |
 
 **T1-Definition of Done:** Keine unbeabsichtigte Core-Lücke, keine nicht versionierte Payload, keine Cliententscheidung über den Raid-Ausgang, reproduzierbarer Fixture-Seed und ein dokumentierter lokaler Playback.
@@ -72,7 +75,7 @@ Diese Arbeit wird nach Abschluss von T1 zu T2 promoted. Sie startet nicht parall
 
 ## Nächster konkreter Schritt
 
-T1.4 beginnen: Raid-Playback mit Timeline und Schlussfolgen. Voraussetzung ist der Trail-Hash aus dem Befund oben, sonst hat eine Timeline nichts zu zeigen, das vom gebauten Dungeon stammt. T1.3 ist abgeschlossen, T1.2 im `sim-core` ebenfalls, T1.1 ist als Fixture-Shell in `packages/client` vorhanden.
+T1.4 beginnen: Raid-Playback mit Timeline und Schlussfolgen, jetzt auf der fertigen Visual Runtime aus T1.3b. Zuerst muss der Trail-Hash aus dem Befund oben stehen: Der Pfad muss als Trail mit Zelltyp und Koordinaten in den Hash eingehen, sonst zeigt die Timeline nichts, das vom gebauten Dungeon stammt, und Fallen bleiben wirkungslos. T1.3, T1.3b und T1.2 sind abgeschlossen, T1.1 ist als Fixture-Shell mit visueller Basis in `packages/client` vorhanden.
 
 ## Pflegeprotokoll
 
