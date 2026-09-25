@@ -9,7 +9,7 @@ const CELL_COUNT = GRID_SIZE * GRID_SIZE
  *
  * Der Contract transportiert `cells` als Array aus Zelltyp-Literalen, die
  * Engine rechnet in einem `Uint8Array`. Die Brücke kopiert bewusst, damit ein
- * eingefrorener Snapshot hinterher nicht verändert werden kann.
+ * eingefrorener Snapshot nachträglich nicht verändert werden kann.
  */
 export function toDungeonGrid(payload: DungeonGridPayload): DungeonGrid {
   if (payload.cells.length !== CELL_COUNT)

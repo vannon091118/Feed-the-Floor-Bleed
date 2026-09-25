@@ -121,7 +121,7 @@ describe('Lokale Fixture-Job-Ausführung', () => {
     expect(RaidJobSchema.safeParse(job).success).toBe(true)
   })
 
-  it('treatiert den Kampf-Timeout als erfolgreiches Ergebnis', () => {
+  it('behandelt den Kampf-Timeout als erfolgreichen Auftrag', () => {
     const job = runFixtureRaid({
       ...base,
       upload: upload(),

@@ -16,6 +16,7 @@
 | `error/timeout` | Auftragsfrist abgelaufen; ausschließlich bei `job/status = expired` | sync/db |
 | `job/status` | `accepted`, `queued`, `running`, `completed`, `failed`, `expired` | contracts |
 | `job/ttl` | 15 Minuten; Kampf-Timeout ist davon getrennt (`summary.stage`) | contracts |
+| `agent/critical-adversarial-reviewer` | Schreibgeschützter Tree-/Diff-Review; meldet ausschließlich belegte Governance-, KI-Code-, Contract- oder Scope-Befunde | root |
 
 Die Fehlercodes und Auftragsstatus werden seit T1.3 von `packages/contracts` definiert. Server, D1, Client und lokale Fixture-Ausführung lesen dieselbe Quelle; freie Strings sind nicht mehr zulässig.
 

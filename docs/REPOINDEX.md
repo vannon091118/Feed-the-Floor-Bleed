@@ -2,6 +2,7 @@
 
 | Pfad | Job |
 |------|-----|
+| `.github/agents/critical-adversarial-reviewer.agent.md` | Freigegebenes schreibgeschütztes Aufgabenprofil für belegbasierte Tree- und Diff-Reviews |
 | `Agents.md` | Einzige kanonische Governance für Agenten und Contributor (Gesetz), inkl. §6.9 Session-Learnings |
 | `.gitattributes` | Erzwingt LF-Zeilenenden je Dateityp; Fixtures und Binaries ausgenommen |
 | `VERSION` | Repo-Version (X.Y.Z, PATCH 0..99), Single Source of Truth |
