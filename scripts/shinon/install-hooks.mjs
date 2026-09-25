@@ -2,7 +2,8 @@
 import { execSync } from 'node:child_process'
 /**
  * Installiert Husky + Shinon Hooks. Läuft via `pnpm prepare`.
- * Kette: pre-commit (slice) → commit-msg (gate) → post-commit (bump+push) → pre-push (full)
+ * Kette: pre-commit (slice) → prepare-commit-msg (Integration) → commit-msg (gate) →
+ *        post-commit (bump+push) → pre-push (full)
  */
 import fs from 'node:fs'
 import path from 'node:path'
@@ -47,6 +48,15 @@ writeHook(
 # Shinon commit-msg — Commit-Gate (Prosa + Footer + Bullet + Datei-Nennung)
 set -e
 node scripts/shinon/commit-msg.mjs "$1"
+`,
+)
+
+writeHook(
+  'prepare-commit-msg',
+  `#!/usr/bin/env sh
+# Shinon prepare-commit-msg — füllt Merge-/Squash-Bodies gate-konform auf
+set -e
+node scripts/shinon/prepare-commit-msg.mjs "$1" "$2"
 `,
 )
 
@@ -109,8 +119,8 @@ node scripts/shinon/engine.mjs --full
 )
 
 console.log(
-  '✅ Shinon Hooks installiert (.husky/pre-commit, commit-msg, post-commit, pre-push)',
+  '✅ Shinon Hooks installiert (.husky/pre-commit, prepare-commit-msg, commit-msg, post-commit, pre-push)',
 )
 console.log(
-  '   Kette: pre-commit (slice) → commit-msg (gate) → post-commit (bump+push) → pre-push (full)',
+  '   Kette: pre-commit (slice) → prepare-commit-msg (Integration) → commit-msg (gate) → post-commit (bump+push) → pre-push (full)',
 )

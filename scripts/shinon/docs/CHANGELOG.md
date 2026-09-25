@@ -1,5 +1,13 @@
 # scripts/shinon/docs/CHANGELOG.md
 
+## 2026-09-25 — Merge- und Pull-Request-Pfad gate-fähig
+
+- Der Workflow triggerte ausschließlich auf `push: [main]`. Verlangt die Branch-Protection den Kontext `Shinon Gate`, entsteht für einen Pull Request damit nie ein Check, und über diesen Weg kann nichts landen. Der Workflow hat jetzt zusätzlich `pull_request` gegen `main`; die Range kommt per `github.event.pull_request.base.sha`.
+- `commit-integrity` scheiterte an GitHubs synthetischem Test-Merge `refs/pull/N/merge`, der keinen Body besitzt. Die Range wird nun mit `git log --no-merges` gelesen: Ein Merge trägt keinen eigenen Inhalt, geprüft werden die Inhalts-Commits, und der Merge bleibt über seine Eltern im Geltungsbereich.
+- `.husky/prepare-commit-msg` in Verbindung mit `lib/integration-text.mjs` erzeugt für Merge- und Squash-Vorgänge einen gate-konformen Body. `lib/integration-text.mjs` ist rein, ohne Git-Zugriff, und prüft seine eigene Erzeugung über dieselbe `checkMessage`-Funktion, die auch `commit-msg` und `commit-integrity` verwenden.
+- `scripts/shinon/install-hooks.mjs` installiert den zusätzlichen Hook, damit die Kette nach einem Fresh Clone vollständig ist und nicht nur auf dem Entwicklerrechner existiert.
+- Ein Rebase über fremde ungestagte Änderungen läuft mit `--autostash`, sonst verweigert Git den Start und fremde Arbeit müsste von Hand gesichert werden.
+
 ## 2026-09-25 — Gate gegen Clone-Umgehung verankert
 
 - Der lokale `commit-msg`-Hook allein war kein Schutz: `core.hooksPath` liegt nur in `.git/config`, `.husky/_` ist nicht im Repo, und `pnpm install --ignore-scripts` überspringt den `prepare`-Pfad, der Husky erst installiert. Ein Fresh Clone war damit gate-frei.

@@ -16,8 +16,13 @@
 | `gate/redundancy` | Duplizierte Codeblöcke in Package-Quellen (Base) |
 | `gate/version` | VERSION sync + 0..99 Range (Base) |
 | `gate/commit` | Commit-Gate Shim (Base, Detail in commit-msg) |
-| `gate/commit-integrity` | Fail-closed Fernprüfung der echten Commits einer Range (Base, CI) |
-| `gate/commit-integrity/--from` | Range-Basis für die Fernprüfung; in CI `github.event.before` |
+| `gate/commit-integrity` | Fail-closed Fernprüfung der echten Inhalts-Commits einer Range (Base, CI) |
+| `gate/commit-integrity/merges` | Merge-Commits werden übersprungen, weil sie keinen eigenen Inhalt tragen |
+| `gate/commit-integrity/--from` | Range-Basis der Fernprüfung; Push `github.event.before`, PR `github.event.pull_request.base.sha` |
+| `hook/prepare-commit-msg` | Ersetzt zu dünne Merge-/Squash-Bodies, normale Commits bleiben unberührt |
+| `shinon/integration` | Rebase-, Merge- und PR-Nachrichten aus `lib/integration-text.mjs` |
+| `gate/integration-text` | Generierte Integrations-Nachrichten werden über `checkMessage` nachgeprüft |
+| `ci/pull_request` | Der Workflow triggert auch auf PRs gegen `main`, sonst entsteht nie ein Status-Check |
 | `gate/determinism` | Bannt Math.random, crypto.random, Date, sin/pow (Core) |
 | `gate/prosa200` | ≥200 Wörter im Body |
 | `gate/bullet-ban` | Kein `* `, `- `, `• ` im Body |
