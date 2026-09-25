@@ -8,8 +8,8 @@
 | `proto/upload` | Contract-v2-Upload: vollständiger `RaidSnapshot` plus `tactics` | sync/net |
 | `proto/results` | Results-Payload: `token`, `floor`, `hash`, `summary` | sync/net |
 | `proto/match` | Match-Antwort: `seed`, `floor`, vollständiger `RaidSnapshot` als Ziel | matchmaking |
-| `error/blocked` | Ziel lokal gesperrt (7T) | matchmaking |
+| `error/blocked` | Ziel lokal für den Angreifer gesperrt (Dauer offen) | matchmaking |
 | `error/invalid-hash` | Replay-Hash mismatch | sync |
 | `error/protected` | Defender global geschützt (alle Moral 0) | sync |
 
-Platzhalter-Konstanten (Balancing, später `contracts/balance.ts`): `MAX_FLOORS=5..10`, `RECOVERY_H=1..12`, `LOCK_DAYS=7`, `WORKER_FACTOR`.
+Balancing-Konstanten sind offen. Werte wie `MAX_FLOORS`, `RECOVERY_H`, `LOCK_DAYS` oder `WORKER_FACTOR` sind KI-Vorschläge und keine Festlegung.

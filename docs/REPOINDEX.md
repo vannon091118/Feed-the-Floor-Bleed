@@ -7,7 +7,7 @@
 | `pnpm-lock.yaml` | Reproduzierbare pnpm-Auflösung für alle Workspace-Projekte |
 | `.github/workflows/shinon.yml` | Pflichtprüfung `Shinon Gate` bei jedem Push auf `main` |
 | `docs/*` | Globale Pflicht-Doku (aktiv ≤200 Zeilen) |
-| `docs/CONCEPT_REVIEW.md` | Kanonische allgemeine Sync-/Snapshot-/Matching-/Wett-/XP-/Pfadregeln |
+| `docs/CONCEPT_REVIEW.md` | Kanonische ODT-Festlegungen (`[N]`/`[K]`/`[O]`) zu Sync, Snapshot, Matching, Beute und Pathfinding |
 | `docs/CONCEPT_REVIEW_SECURITY.md` | Abgegrenzte manuelle Invalid-Request-/Account-Prüfmarke |
 | `docs/ROADMAP.md` | Audit-basierte Produkt- und Technik-Roadmap mit T1/T2/T3-Promotion |
 | `docs/historisch/` | Append-only Archiv |

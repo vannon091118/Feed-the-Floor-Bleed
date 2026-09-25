@@ -15,7 +15,7 @@ export function findPath(grid: DungeonGrid, maxDetourPoints = 5): PathResult {
       detourCost: Math.max(0, bounded.cost - baseline),
     }
   }
-  const fallback = search(grid, Number.POSITIVE_INFINITY, false)
+  const fallback = search(grid, Number.POSITIVE_INFINITY, true)
   if (!fallback)
     return {
       mode: 'unreachable',

@@ -6,21 +6,21 @@ Diese Roadmap ist die einzige aktive Reihenfolge für Produkt- und Technikarbeit
 
 ## Statusupdate — 2026-09-25
 
-T1.0 ist abgeschlossen. `pnpm@9.12.3` besitzt jetzt `pnpm-lock.yaml`, `package-lock.json` wurde entfernt, `package.json` ruft den Check über pnpm auf und die GitHub-Actions führen den vollständigen Gate-Lauf bei jedem Push auf `main` aus. Die verpflichtende lokale Hook-Kette bleibt unverändert. Der erste Remote-Lauf deckte einen Formatierungsfehler im Versionsbump auf; dieser wird als eigener Lifecycle-Task behoben, bevor T1.1 startet. Der nächste aktive Block ist T1.1: startbarer Client-Shell mit Fixture-Spielstand und Dungeon-Editor.
+T1.0 ist abgeschlossen. T1.1 ist als Fixture-Shell mit Tag/Nacht-Umschaltung und Dungeon-Editor in `packages/client` vorhanden; die Ende-zu-Ende-Abnahme bleibt offen. Der nächste aktive Block ist T1.2: deterministischer Combat-, Hash- und Replay-Core. Parallel wurde `docs/CONCEPT_REVIEW.md` auf den ODT-Stand zurückgeschnitten; KI-Vorschläge sind dort als `[K]` markiert und keine Implementierungsfreigabe.
 
 ## Audit-Snapshot — 2026-09-25
 
 ### Grün
 
 - `pnpm run -s typecheck` bestanden.
-- `pnpm test -- --run` bestanden: 11 Testdateien, 55 Tests.
+- `pnpm test -- --run` bestanden: 12 Testdateien, 60 Tests (inklusive 5 Client-Tests der Fixture-Shell).
 - `pnpm run -s check` bestanden: LOC, Hygiene und alle Shinon-Gates.
 - `pnpm audit --prod --json | jq` meldet keine bekannten Schwachstellen.
 - Grid, Contracts und D1-Raid-Freeze sind durch Tests abgedeckt.
 
 ### Befunde mit Priorität
 
-- **P1 — Kein spielbarer Client:** `packages/client/src` enthält nur `.gitkeep`; es gibt keine UI, keinen Editor, keinen Storage und keine Raid-Playback.
+- **P1 — Client nur als Fixture-Shell:** `packages/client` besitzt Shell, Tag/Nacht-Umschaltung und Dungeon-Editor, aber weder Storage noch Net oder Raid-Playback.
 - **P1 — Kein vollständiger Raid-Flow:** HTTP, Auth, Queue, Matching, Ghost, Combat, Replay und Ergebniskonsequenzen sind nicht implementiert.
 - **P1 — Paketmanager uneinheitlich (behoben in T1.0):** `packageManager` und Workspace sind auf pnpm ausgelegt, CI nutzt jetzt `pnpm install --frozen-lockfile`, `pnpm-lock.yaml` ist vorhanden und das veraltete `package-lock.json` wurde entfernt.
 - **P2 — Dokumentationsabstand:** Funktionsgraph und Architektur beschreiben Zielmodule, nicht den aktuellen Implementierungsstand. Ziel und Ist-Stand müssen bei jedem Arbeitspaket getrennt bleiben.
@@ -54,7 +54,7 @@ T1.0 ist abgeschlossen. `pnpm@9.12.3` besitzt jetzt `pnpm-lock.yaml`, `package-l
 Diese Arbeit wird erst nach Abschluss von T1 zu T1 promoted und anschließend einzeln abgearbeitet.
 
 - Dorfwirtschaft mit Arbeitern, Attraktivität und Materialbedarf.
-- Inventar, Ausrüstung und sichtbare Phantom-Loot-Entscheidungen.
+- Inventar, Ausrüstung und sichtbare Phantom-Loot-Umsetzung.
 - Zucht, Generationen, Mutationen und reproduzierbare Stammbäume.
 - Persistenter lokaler Spielstand und echter asynchroner Job-Status.
 - Erweiterte Taktiken mit sichtbaren Regeln und Risikoauswirkung.
@@ -63,7 +63,7 @@ Diese Arbeit wird erst nach Abschluss von T1 zu T1 promoted und anschließend ei
 
 Diese Arbeit wird nach Abschluss von T1 zu T2 promoted. Sie startet nicht parallel zum ersten T2-Block.
 
-- MMR-Matching mit dem bereits bestätigten ±10-%-Band und Ghost-Fallback.
+- MMR-Matching mit noch offenem Stärkeband und Ghost-Fallback (KI-Vorschlag, siehe `docs/CONCEPT_REVIEW.md`).
 - Vollständige Queue-, Reconnect-, Retry- und Timeout-Semantik.
 - Autorisierte Endpunkte, Rate-Limits, Audit-Log und Missbrauchserkennung.
 - PWA-Installierbarkeit, Offline-Editor-Stand und produktionsfähige Deployment-Konfiguration.
@@ -71,7 +71,7 @@ Diese Arbeit wird nach Abschluss von T1 zu T2 promoted. Sie startet nicht parall
 
 ## Nächster konkreter Schritt
 
-T1.1 beginnen: startbaren Client-Shell mit Fixture-Spielstand, Tag/Nacht-Umschaltung und minimalem Dungeon-Editor bauen. T1.0 ist durch den gepflegten pnpm-Lockfile-, CI- und Governance-Slice abgeschlossen.
+T1.2 beginnen: deterministischen Combat-, Hash- und Replay-Core auf dem vorhandenen Grid bauen. T1.1 ist als Fixture-Shell in `packages/client` vorhanden.
 
 ## Pflegeprotokoll
 

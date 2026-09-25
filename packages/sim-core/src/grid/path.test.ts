@@ -96,7 +96,7 @@ describe('dungeon grid', () => {
     expect(() => setCell(grid, point, CellType.Empty)).toThrow()
   })
 
-  it('optimizes the fallback for minimum cost, not minimum steps', () => {
+  it('optimizes the fallback for minimum steps, not minimum cost', () => {
     const grid = createDungeonGrid()
     carveStraightRoute(grid)
     setCell(grid, { x: 10, y: 0 }, CellType.Trap)
@@ -113,13 +113,13 @@ describe('dungeon grid', () => {
     expect(costFirst?.cost).toBe(127)
     expect(costFirst?.steps).toBe(128)
 
-    // Budget 1 lässt beide Wege im within-budget-Suchraum platzen — der
-    // Fallback muss die kostenminimale Route wählen, nicht die kürzeste.
+    // Budget 1 lässt beide Wege platzen. Der Fallback muss die Route mit den
+    // wenigsten Tiles nehmen (Trap-Route), nicht die billigere Umweg-Route.
     const result = findPath(grid, 1)
     expect(result.mode).toBe('trap-fallback')
-    expect(result.movementCost).toBe(127)
-    expect(result.detourCost).toBe(2)
-    expect(result.path).not.toContainEqual({ x: 10, y: 0 })
-    expect(result.path).not.toContainEqual({ x: 11, y: 0 })
+    expect(result.movementCost).toBe(131)
+    expect(result.detourCost).toBe(6)
+    expect(result.path).toContainEqual({ x: 10, y: 0 })
+    expect(result.path).toContainEqual({ x: 11, y: 0 })
   })
 })

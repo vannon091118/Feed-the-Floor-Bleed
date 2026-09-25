@@ -1,5 +1,14 @@
 # docs/CHANGELOG.md — Global
 
+## 2026-09-25 — Konzept-Realignment auf ODT-Stand
+
+- `docs/CONCEPT_REVIEW.md` neu strukturiert: `[N]` Nutzerfestlegung, `[K]` KI-Vorschlag, `[O]` offen; nur `[N]` ist fix.
+- Grid verbindlich 64×64 Logikzellen bei 16×16 sichtbaren Tiles; die ODT-Formulierung „4 Logiken pro Tile“ ist damit supersediert.
+- Phantom-Kopie als Beute-Regel bestätigt; MMR-/XP-/Shield-Zahlen, der globale Vier-Stunden-Shield und der Session-Lock sind als KI-Vorschläge `[K]` markiert.
+- `packages/sim-core/src/grid/path.ts` fällt wieder auf wenigste Tiles zurück; Golden-Test in `packages/sim-core/src/grid/path.test.ts` und `packages/sim-core/docs/CHANGELOG.md` angepasst.
+- `README.md` von der nicht belegten Extraktions-/Gier-Mechanik bereinigt.
+- Die frühere Formulierung „vier bestätigte Entscheidungen“ war zu weitgehend; fix ist nur, was im ODT belegt oder in dieser Session abgenickt wurde.
+
 ## 2026-09-25 — Lifecycle-Bug des Versionsbump behoben
 
 - `scripts/bump-version.mjs` erhält beim mechanischen Bump die bestehende JSON-Formatierung und verhindert damit, dass der Post-Commit-Hook den Biome-formatierten `package.json`-Zustand wieder zerstört.
@@ -62,4 +71,4 @@
 
 ## Vorher
 
-- Spiel-Design gelockt (8 V-Entscheidungen, 3 G-Entscheidungen, Etagen-Loop sequenziell, halbe Beute bei Gier-Tod).
+- Spiel-Design gelockt (8 V-Entscheidungen, 3 G-Entscheidungen, Etagen-Loop sequenziell). Die frühere „halbe Beute bei Gier-Tod“-Notiz ist nicht durch das ODT gedeckt und wurde am 2026-09-25 aus README/Konzept entfernt.
