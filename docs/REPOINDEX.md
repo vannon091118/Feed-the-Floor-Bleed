@@ -7,6 +7,7 @@
 | `docs/*` | Globale Pflicht-Doku (aktiv ≤200 Zeilen) |
 | `docs/CONCEPT_REVIEW.md` | Kanonische allgemeine Sync-/Snapshot-/Matching-/Wett-/XP-/Pfadregeln |
 | `docs/CONCEPT_REVIEW_SECURITY.md` | Abgegrenzte manuelle Invalid-Request-/Account-Prüfmarke |
+| `docs/ROADMAP.md` | Audit-basierte Produkt- und Technik-Roadmap mit T1/T2/T3-Promotion |
 | `docs/historisch/` | Append-only Archiv |
 | `packages/contracts/src` | Zod-Schemas, sim_version |
 | `packages/sim-core/src/*` | Deterministischer Core (PRNG, Math, Grid, Combat, Genome, Items, Hash, Ghost) |
