@@ -19,7 +19,7 @@ Je Plugin eine `.mjs` in `plugins/`, max 150 LOC, ein Job. Gemeinsame Source-Erk
 
 ## Hooks & Kette
 
-pre-commit → `engine.mjs` (slice: Base immer, Core nach Bedarf) → commit-msg → `commit-msg.mjs` (Prosa 200, Bullets, Footer, Datei-Nennung) → post-commit → Root-Commit-Erkennung bleibt `0.0.1`, danach `bump-version.mjs` (mechanisch 0.0.1→0.0.99→0.1.0) + `amend` mit aktiven Hooks + `version-gate` + Auto-Push → pre-push → `engine.mjs --full` (letzte Sicherung). GitHub Actions wiederholt den vollständigen Lauf als `Shinon Gate`; Branch-Protection verlangt diesen Status für `main`.
+pre-commit → `engine.mjs` (slice: Base immer, Core nach Bedarf) → commit-msg → `commit-msg.mjs` (Prosa 200, Bullets, Footer, Datei-Nennung) → post-commit → Root-Commit-Erkennung bleibt `0.0.1`, danach `bump-version.mjs` (mechanisch 0.0.1→0.0.99→0.1.0) + `amend` mit aktiven Hooks + `version-gate` + Auto-Push → pre-push → `engine.mjs --full` (letzte Sicherung). GitHub Actions wiederholt den vollständigen Lauf als `Shinon Gate` bei jedem Push auf `main`; der lokale Pre-Push-Gate bleibt die erste Sperre.
 
 ## Versionierung
 

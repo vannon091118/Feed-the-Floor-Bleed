@@ -151,7 +151,7 @@ Commit-Text wird gescannt. Sofortiger Fail bei Match (case-insensitive):
 
 ### 6.5 Shinon-Mandat & Test-Suite — Plugin-Slices
 
-Shinon ist die lokale Gate-Engine und testende Test-Suite in einem: Sie analysiert `git diff --cached`, startet nur die für den Slice notwendigen Plugins und behandelt jedes Gate als Hard-Fail. Globale Governance-Gates laufen bei jedem Commit; zusätzliche Core-Tests laufen nur bei relevantem Slice. Fehler in Contracts, Determinismus, Doku, Versionierung, Commit-Nachricht, Modularität, Dead Code, Redundanz oder Lifecycle blockieren den Commit beziehungsweise den Push; ein sichtbarer Fehlerpfad ist ein Ergebnis, kein Grund zum Umgehen. Full-Run nur in `pre-push` und im verpflichtenden GitHub-Check `Shinon Gate`.
+Shinon ist die lokale Gate-Engine und testende Test-Suite in einem: Sie analysiert `git diff --cached`, startet nur die für den Slice notwendigen Plugins und behandelt jedes Gate als Hard-Fail. Globale Governance-Gates laufen bei jedem Commit; zusätzliche Core-Tests laufen nur bei relevantem Slice. Fehler in Contracts, Determinismus, Doku, Versionierung, Commit-Nachricht, Modularität, Dead Code, Redundanz oder Lifecycle blockieren den Commit beziehungsweise den Push; ein sichtbarer Fehlerpfad ist ein Ergebnis, kein Grund zum Umgehen. Full-Run läuft lokal in `pre-push` und remote als `Shinon Gate` bei jedem Push auf `main`.
 
 **Base-Tests (laufen IMMER, bei jedem Commit):**
 
@@ -183,18 +183,22 @@ Ablauf: Diff-Analyse → Slice-Run (Base immer + Core nur bei Bedarf) → Prosa/
 - `.husky/commit-msg`: Commit-Gate — Prosa 200, Bullet-Verbot, Footer-Block, Datei-Nennung
 - `.husky/post-commit`: **Version bump** (`bump-version.mjs`) + `version-gate` Check + `amend` + **Auto-Push** (wenn `SHINON_AUTO_PUSH=1`, Loop-Schutz `SHINON_SKIP_BUMP=1`)
 - `.husky/pre-push`: Full Test-Suite — alle Plugins (letzte Sicherung)
-- GitHub Actions führt `Shinon Gate` bei Pull Requests und Pushes auf `main` aus; Branch-Protection verlangt diesen Status-Check, damit Direkt-Pushes ohne erfolgreichen Shinon-Lauf abgewiesen werden.
+- GitHub Actions führt `Shinon Gate` bei jedem Push auf `main` aus. Der direkte main-Push ist gewollt; der Remote-Lauf ist die verbindliche zweite Shinon-Ausführung nach dem lokalen Gate. Ein fehlgeschlagener Remote-Lauf wird nicht als Alternative zum lokalen Gate akzeptiert, sondern muss vor dem nächsten Task behoben werden.
+
+### 6.7 Task-Review, Commit und Body-Pflicht
+
+Jeder Task ist genau eine abgeschlossene, reviewbare Aufgabe. Vor dem Commit wird der staged Diff geprüft, der betroffene Scope gegen den Task abgeglichen, die lokale Testabdeckung ausgeführt und die Dokumentation auf Aktualität geprüft. Dieser Review ist verbindlich; ohne abgeschlossenen Review gibt keinen Commit, keinen Push und keine Ausweichalternative über `--no-verify`. Nach dem Commit prüft `commit-msg` den Body mit mindestens 200 Wörtern Fließtext, ohne Bullets und ohne verbotenen Footer, und verlangt die exakte Nennung jeder geänderten Datei. Nach dem Push muss der verpflichtende Remote-Lauf `Shinon Gate` erfolgreich abgeschlossen sein, bevor der nächste Task beginnt.
 
 Kein `--no-verify` ohne Arch-Freigabe. Wer bypassed, schreibt im nächsten Commit warum.
 
-### 6.7 Session-Learnings
+### 6.8 Session-Learnings
 
 - Leere `historisch/`- und Source-Domänenordner brauchen `.gitkeep`; Git tracked keine leeren Ordner, sonst brechen Fresh-Clone-Hygiene und `schema-contract` vor dem Commit.
 - Runtime-Hooks kommen aus `.husky/_`; Hooktext-Änderungen müssen `scripts/shinon/install-hooks.mjs` und die generierten `.husky/*` gemeinsam treffen.
 - `SHINON_SKIP_BUMP=1` verhindert Post-Commit-Recursion; `SHINON_AUTO_PUSH=0` ist der sichere lokale Lifecycle-Test, `1` ist der Default-Push.
 - `schema-contract` und `false-positive` können bei leerer Core-Source grün werden; ein grüner Full-Run ist erst mit echter Source-Abdeckung aussagekräftig.
-- `npm run -s typecheck` prüft die minimale `packages/contracts/src/index.ts`-Quelle und muss im offiziellen Initialstand TS18003 vermeiden.
-- GitHub-Branch-Protection auf `main` verlangt den Status-Check `Shinon Gate`; lokale Hooks allein sind keine ausreichende Absicherung gegen erzwungene Direkt-Pushes.
+- `pnpm run -s typecheck` prüft die minimale `packages/contracts/src/index.ts`-Quelle und muss im offiziellen Initialstand TS18003 vermeiden.
+- GitHub-Branch-Protection lässt direkte `main`-Pushes zu, verlangt aber keinen Required-Status-Check. Der verpflichtende Remote-Lauf `Shinon Gate` muss trotzdem bei jedem Push gestartet werden und sichtbar grün sein; die lokale Pre-Push-Suite bleibt unverzichtbar.
 - `.husky/post-commit` beendet Bump- oder Version-Gate-Fehler jetzt mit Exit != 0; `SHINON_SKIP_BUMP=1` bleibt ausschließlich der Recursion-Schutz.
 - Der Post-Commit-Amend läuft mit aktiven Hooks und ohne `--no-verify`; bei Staging-, Amend- oder Push-Fehlern muss der Hook sichtbar fehlschlagen.
 - README bleibt reine Verkaufsbühne; technische Verträge und Governance gehören in `docs/` bzw. `Agents.md`.

@@ -4,6 +4,8 @@
 |------|-----|
 | `Agents.md` | Einzige kanonische Governance für Agenten und Contributor (Gesetz) |
 | `VERSION` | Repo-Version (X.Y.Z, PATCH 0..99), Single Source of Truth |
+| `pnpm-lock.yaml` | Reproduzierbare pnpm-Auflösung für alle Workspace-Projekte |
+| `.github/workflows/shinon.yml` | Pflichtprüfung `Shinon Gate` bei jedem Push auf `main` |
 | `docs/*` | Globale Pflicht-Doku (aktiv ≤200 Zeilen) |
 | `docs/CONCEPT_REVIEW.md` | Kanonische allgemeine Sync-/Snapshot-/Matching-/Wett-/XP-/Pfadregeln |
 | `docs/CONCEPT_REVIEW_SECURITY.md` | Abgegrenzte manuelle Invalid-Request-/Account-Prüfmarke |

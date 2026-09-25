@@ -1,5 +1,11 @@
 # scripts/shinon/docs/CHANGELOG.md
 
+## 2026-09-25 — main-only Remote-Gate
+
+- GitHub Actions auf den verpflichtenden `main`-Push-Workflow umgestellt; der lokale Pre-Push-Full-Gate bleibt unverändert die erste Sperre.
+- pnpm wird als Installations- und Ausführungswerkzeug verwendet; `package-lock.json` ist nicht mehr Teil des aktuellen Toolchain-Pfads.
+- Review vor jedem Task-Commit, Body-Pflicht und das Verbot von Ausweichpfaden sind als kanonische Governance in `Agents.md` festgeschrieben.
+
 ## 2026-09-25 — Slicer-Grenzfälle gehärtet
 
 - `shouldRun` behandelt einen leeren Diff-Slice wie "kein relevanter Slice": Skip-Gates laufen im Commit nicht leer, Full-Run in Pre-Push und CI bleibt die letzte Instanz.

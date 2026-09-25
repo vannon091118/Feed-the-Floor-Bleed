@@ -10,7 +10,7 @@ client:storage ↔ client:dungeon-editor/village (lokal)
 client:net → server:sync/matchmaking (Upload/Results sequenziell)
 server:db ↔ server:sync/matchmaking (Defender-State, Pool, Sperren)
 scripts/shinon:engine → plugins/* → git hooks (pre-commit/commit-msg/pre-push)
-.github/workflows/shinon.yml → npm run check → Shinon Gate → Branch-Protection auf main
+.github/workflows/shinon.yml → pnpm install --frozen-lockfile + pnpm run check → Shinon Gate bei jedem main-Push
 ```
 
 - `sim-core` hat keine Kante zu `client`/`server` oder `fs`/`Date`.

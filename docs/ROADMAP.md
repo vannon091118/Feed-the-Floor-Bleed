@@ -4,6 +4,10 @@
 
 Diese Roadmap ist die einzige aktive Reihenfolge für Produkt- und Technikarbeit. Sie trennt den belegten Ist-Stand von der geplanten Zielarchitektur und verhindert, dass unimplementierte Systeme als bereits vorhanden behandelt werden.
 
+## Statusupdate — 2026-09-25
+
+T1.0 ist abgeschlossen. `pnpm@9.12.3` besitzt jetzt `pnpm-lock.yaml`, `package-lock.json` wurde entfernt, `package.json` ruft den Check über pnpm auf und die GitHub-Actions führen den vollständigen Gate-Lauf bei jedem Push auf `main` aus. Die verpflichtende lokale Hook-Kette bleibt unverändert. Der nächste aktive Block ist T1.1: startbarer Client-Shell mit Fixture-Spielstand und Dungeon-Editor.
+
 ## Audit-Snapshot — 2026-09-25
 
 ### Grün
@@ -18,7 +22,7 @@ Diese Roadmap ist die einzige aktive Reihenfolge für Produkt- und Technikarbeit
 
 - **P1 — Kein spielbarer Client:** `packages/client/src` enthält nur `.gitkeep`; es gibt keine UI, keinen Editor, keinen Storage und keine Raid-Playback.
 - **P1 — Kein vollständiger Raid-Flow:** HTTP, Auth, Queue, Matching, Ghost, Combat, Replay und Ergebniskonsequenzen sind nicht implementiert.
-- **P1 — Paketmanager uneinheitlich:** `packageManager` und Workspace sind auf pnpm ausgelegt, CI nutzt `npm ci`, `package-lock.json` ist auf Version `0.0.1`, während alle aktuellen Manifeste `0.0.2` sind. Es gibt keine `pnpm-lock.yaml`.
+- **P1 — Paketmanager uneinheitlich (behoben in T1.0):** `packageManager` und Workspace sind auf pnpm ausgelegt, CI nutzt jetzt `pnpm install --frozen-lockfile`, `pnpm-lock.yaml` ist vorhanden und das veraltete `package-lock.json` wurde entfernt.
 - **P2 — Dokumentationsabstand:** Funktionsgraph und Architektur beschreiben Zielmodule, nicht den aktuellen Implementierungsstand. Ziel und Ist-Stand müssen bei jedem Arbeitspaket getrennt bleiben.
 - **P2 — Testabdeckung:** Die vorhandenen Tests decken Contracts, Grid und D1-Persistenz ab, nicht Client-Verhalten, End-to-End-Raids, Replay-Determinismus oder Fehlerfälle des Netzwerks.
 
@@ -67,7 +71,7 @@ Diese Arbeit wird nach Abschluss von T1 zu T2 promoted. Sie startet nicht parall
 
 ## Nächster konkreter Schritt
 
-T1.0 beginnen: Toolchain und CI auf pnpm vereinheitlichen, Lockfile-Zustand entscheiden, den stale `package-lock.json`-Befund dokumentieren und danach den startbaren Client-Shell für T1.1 aufbauen.
+T1.1 beginnen: startbaren Client-Shell mit Fixture-Spielstand, Tag/Nacht-Umschaltung und minimalem Dungeon-Editor bauen. T1.0 ist durch den gepflegten pnpm-Lockfile-, CI- und Governance-Slice abgeschlossen.
 
 ## Pflegeprotokoll
 

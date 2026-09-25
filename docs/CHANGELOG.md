@@ -1,5 +1,12 @@
 # docs/CHANGELOG.md — Global
 
+## 2026-09-25 — main-only Governance und pnpm-CI
+
+- `pnpm-lock.yaml` als reproduzierbare Workspace-Auflösung eingeführt und das veraltete `package-lock.json` entfernt.
+- Root-Check auf pnpm umgestellt; `.github/workflows/shinon.yml` führt Typecheck, Tests, Biome und Full-Shinon für jeden Push auf `main` aus.
+- `Agents.md` verschärft die main-only-Regel: lokale Gates bleiben vor Commit/Push verpflichtend, Remote-`Shinon Gate` ist der zweite Pflichtlauf, Review vor jedem Task-Commit und Commit-Body-Pflicht bleiben hart.
+- Die Roadmap markiert T1.0 als abgeschlossen; T1.1 ist der nächste aktive Block.
+
 ## 2026-09-25 — Vollständiger Audit und priorisierte Roadmap
 
 - Vollständigen Ist-Stand mit `pnpm`, Typecheck, Vitest, Shinon, Biome, `jq` und Dependency-Audit geprüft; 55 Tests sowie Typecheck und Full-Gate waren grün, Biome meldete nur die Formatierung von `package.json`.
