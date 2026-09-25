@@ -191,7 +191,11 @@ Jeder Task ist genau eine abgeschlossene, reviewbare Aufgabe. Vor dem Commit wir
 
 Kein `--no-verify` ohne Arch-Freigabe. Wer bypassed, schreibt im nächsten Commit warum.
 
-### 6.8 Session-Learnings
+### 6.8 Task-Slice-Commit und Push
+
+Jeder Task wird als eigener, in sich abgeschlossener Slice durch die Shinon-Kette committet und gepusht. Ein Sammelcommit über mehrere Tasks ist verboten; fremde, unfertige oder nicht zum Task gehörende Änderungen bleiben unstaged und werden vom Slice nicht angefasst. Der Slice läuft vollständig über `pre-commit` (Slice-Tests), `commit-msg` (Prosa, Datei-Nennung, Footer-Verbot), `post-commit` (Version bump, Amend, Auto-Push) und `pre-push` (Full-Suite); `--no-verify` bleibt auch für Slice-Commits verboten. Ein Task gilt erst als abgeschlossen, wenn sein Slice lokal grün und der Remote-Lauf `Shinon Gate` grün ist. Erst danach beginnt der nächste Task; der Auto-Push ist der Pflichtpfad und kein optionaler Sonderfall.
+
+### 6.9 Session-Learnings
 
 - Leere `historisch/`- und Source-Domänenordner brauchen `.gitkeep`; Git tracked keine leeren Ordner, sonst brechen Fresh-Clone-Hygiene und `schema-contract` vor dem Commit.
 - Runtime-Hooks kommen aus `.husky/_`; Hooktext-Änderungen müssen `scripts/shinon/install-hooks.mjs` und die generierten `.husky/*` gemeinsam treffen.

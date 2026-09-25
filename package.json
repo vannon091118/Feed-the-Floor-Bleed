@@ -1,7 +1,7 @@
 {
   "name": "feed-the-floor",
   "private": true,
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Feed the Floor: Meet Your Fate — Dorf + Dungeon Keeper + Auto-Battler, deterministisch, async, PWA",
   "type": "module",
   "packageManager": "pnpm@9.12.3",
@@ -19,7 +19,8 @@
     "lint": "biome check .",
     "format": "biome check --write .",
     "test": "vitest run",
-    "dev": "echo 'dev via packages: pnpm --filter client dev etc.'"
+    "dev": "pnpm --filter @floor/client dev",
+    "build": "pnpm --filter @floor/client build"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
