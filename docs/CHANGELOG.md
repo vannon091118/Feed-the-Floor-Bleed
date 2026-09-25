@@ -1,5 +1,17 @@
 # docs/CHANGELOG.md — Global
 
+## 2026-09-25 — T1.3 Contract-v2-Ergebnislog und lokale Fixture-Job-Ausführung
+
+- `packages/contracts/src/combat-log.ts` und `src/job.ts` neu: strikte Wire-Form für Config, Einheiten, Events, Log und Summary sowie ein Auftrag als Diskriminated Union über `status`. Ergebnis, Fehler und Auftrags-Timeout sind damit nicht verwechselbar.
+- `ResultPayloadSchema.summary` war ein freies `record(json)` und ist jetzt typisiert. `RaidLogPayloadSchema` trägt den vollständigen Log als eigenes Artefakt, damit `result_json` klein bleibt.
+- `ErrorCodeSchema` von drei auf fünf Codes erweitert. `timeout` war in D1 möglich, im Contract aber nicht darstellbar — genau diese Drift ist jetzt geschlossen.
+- `packages/sim-core/src/grid/serialize.ts` und `src/combat/{summary,resolve-snapshot,fixture-job}.ts` neu: Contract-Payload zu Grid, typisierte Summary, Snapshot-Auflösung und lokale Auftragsausführung ohne Netz, ohne Uhr und ohne Zufall von außen.
+- `runFixtureRaid` prüft Upload-Schema, Auftragsfrist, Route und Replay-Hash, bevor er `completed` meldet. Der Rückgabewert ist durch `RaidJobSchema` validiert.
+- `packages/server/src/db/job-state.ts` übernimmt Status, TTL, Übergänge und Fehlercodes aus dem Contract. `raid-store.ts` erzwingt Übergänge vor dem Schreibzugriff.
+- `packages/client/src/raid/` neu: Fixture-Upload, Ergebnis-Panel und Team-Panel. `ui/shell.tsx` wurde unter seinem LOC-Cap gehalten, indem die Teamanzeige herausgelöst wurde.
+- Ein Client-Test pinnt die bekannte Lücke: Aus dem Grid fließt nur die Routenlänge in den Hash, daher erzeugen gleich lange Umwege denselben Wert. Der Folgeblock führt den Pfad als Trail in den Hash ein.
+- 24 neue Tests, Gesamtstand 20 Testdateien und 104 Tests. `CONTRACT_VERSION` bleibt 2.
+
 ## 2026-09-25 — T1.2 deterministischer Combat-, Hash- und Replay-Core
 
 - `packages/sim-core` implementiert `prng` (Mulberry32 plus Seed-Ableitung), `math` (Fixed-Point, isqrt), `hash` (FNV-1a) und `combat` (bounded Tick-Simulation, Event-Log, kanonischer Log-Hash, Replay).

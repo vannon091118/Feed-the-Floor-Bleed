@@ -1,16 +1,32 @@
+import {
+  ErrorCodeSchema,
+  RAID_JOB_STATUSES,
+  RAID_JOB_TTL_MS,
+  type RaidJobStatus,
+  canTransitionRaidJob,
+} from '@floor/contracts'
 import { RaidStoreError } from './errors'
 
-export const RAID_JOB_TTL_MS = 15 * 60 * 1000
-export const RAID_JOB_STATUSES = [
-  'accepted',
-  'queued',
-  'running',
-  'completed',
-  'failed',
-  'expired',
-] as const
-export type RaidJobStatus = (typeof RAID_JOB_STATUSES)[number]
+/**
+ * Status, TTL und Fehlercodes kommen aus `@floor/contracts`. Vor T1.3 standen
+ * dieselben Werte an drei Stellen: hier, in der D1-Check-Constraint und im
+ * Protokoll — mit der Folge, dass `timeout` in der Datenbank möglich, im
+ * Contract aber nicht darstellbar war. Jetzt gibt es genau eine Quelle.
+ */
+export { RAID_JOB_STATUSES, RAID_JOB_TTL_MS, canTransitionRaidJob }
+export type { RaidJobStatus }
+
 export type RequestedRaidJobStatus = Exclude<RaidJobStatus, 'expired'>
+
+const knownFailureCodes = new Set<string>(ErrorCodeSchema.options)
+
+export function assertFailureCode(failureCode: string): void {
+  if (!knownFailureCodes.has(failureCode))
+    throw new RaidStoreError(
+      'INVALID_INPUT',
+      `failureCode ${failureCode} gehört nicht zum Contract`,
+    )
+}
 
 export function assertTransitionPayload(
   target: RequestedRaidJobStatus,
@@ -37,6 +53,7 @@ export function assertTransitionPayload(
       'INVALID_INPUT',
       `${target} darf keinen failureCode tragen`,
     )
+  if (target === 'failed' && failureCode) assertFailureCode(failureCode)
 }
 
 function isJsonObject(value: string | null): value is string {

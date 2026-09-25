@@ -6,11 +6,17 @@ Deterministisches Async-Spiel mit geteiltem Core. Der Server nutzt `sim-core` (F
 
 ## Schichten
 
-- `contracts` besitzt Zod-Schemas, Protokoll-Versionen (`sim_version`), Hash-Verträge. Keine Logik.
-- `sim-core` besitzt reine Funktionen ohne I/O/Zeit/Zufall von außen. PRNG via Seed, A* mit festem Tie-Break, Combat-Ticks, kanonischer Log-Hash und Replay.
-- `client` besitzt UI, Rendering (PixiJS 8), PWA, Dexie, Net (Upload/Results sequenziell pro Etage).
+- `contracts` besitzt Zod-Schemas, Protokoll-Versionen (`sim_version`), Hash-Verträge, Ergebnislog und den Auftragsautomaten. Keine Logik.
+- `sim-core` besitzt reine Funktionen ohne I/O/Zeit/Zufall von außen. PRNG via Seed, A* mit festem Tie-Break, Combat-Ticks, kanonischer Log-Hash, Replay und die lokale Fixture-Ausführung eines Auftrags.
+- `client` besitzt UI, Rendering (PixiJS 8), PWA, Dexie, Net (Upload/Results sequenziell pro Etage). T1.3 zeigt dort einen echten Core-Lauf, entscheidet aber nichts selbst.
 - `server` besitzt D1, Queues, Pool, Defender-State und Replay-Validierung; MMR-Matching und Ghost-Fallback sind geplante Zielmodule, aber keine bestätigten Spielregeln (siehe `docs/CONCEPT_REVIEW.md`).
 - `scripts/shinon` besitzt Commit-Gate + Test-Suite, slice-basiert nach `git diff`. Full-Run nur in `pre-push`.
+
+## Datenfluss T1.3 (belegter Ist-Stand)
+
+Editor-Grid plus Fixture-Aufstellung → `buildFixtureUpload` erzeugt einen Contract-v2-Upload → `toDungeonGrid` übersetzt die 4096 Zellen in das Laufzeit-Grid → `runFixtureRaid` prüft Schema, Auftragsfrist und Route, rechnet den Kampf, replayt den geparsten Log und gibt einen durch `RaidJobSchema` validierten Auftrag zurück → `RaidPanel` rendert Stufe, Hash und Kennzahlen. Kein Netz, keine Uhr, kein Serverentscheid.
+
+Ergebnis und vollständiger Log sind zwei Payloads: `ResultPayloadSchema` trägt `token`, `floor`, `hash` und die typisierte Summary, `RaidLogPayloadSchema` zusätzlich den Log. Das hält die D1-Zeile klein und lässt den Log bei Bedarf nachladen.
 
 ## Datenfluss Etagen-Loop (geplanter Zielpfad, technisch)
 
@@ -22,4 +28,4 @@ Client `Upload(v2-Raid-Freeze + Taktiken)` → Server friert den vollständigen 
 
 ## Owner-Grenzen
 
-Siehe `Agents.md` §3. `village` ↔ `dungeon` isoliert, `raid-sim` kein I/O, `sync` keine Spielregeln.
+Siehe `Agents.md` §3. `village` ↔ `dungeon` isoliert, `raid-sim` kein I/O, `sync` keine Spielregeln. Der Auftragsstatus liegt seit T1.3 im Contract; Server und D1 dürfen ihn nur durchsetzen, nicht neu erfinden.

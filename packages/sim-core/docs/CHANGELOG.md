@@ -1,5 +1,16 @@
 # packages/sim-core/docs/CHANGELOG.md
 
+## 2026-09-25 — T1.3 Ergebnislog und lokale Fixture-Job-Ausführung
+
+- `src/grid/serialize.ts` ergänzt: `toDungeonGrid` und `fromDungeonGrid` als Brücke zwischen Contract-Payload (`cells` als Array) und Laufzeit-Grid (`Uint8Array`), jeweils kopierend und mit Zellzahl-Prüfung.
+- `src/combat/summary.ts` ergänzt: `summarizeCombat` verdichtet den Log zu Stufe, Ticks, Hash, Ereignis- und Angriffszahlen, Schaden und Überlebenden. Die Summary wird gegen den Contract geparst.
+- `src/combat/resolve-snapshot.ts` ergänzt: `resolveSnapshotRaid` liefert aus Grid und Aufstellung ein `ResultPayload` und ein `RaidLogPayload`. Der Envelope sitzt erst hier — die Engine kennt weiterhin keine Protokollversion.
+- `src/combat/fixture-job.ts` ergänzt: `runFixtureRaid` führt einen Auftrag lokal und ohne Uhr aus. `createdAt`/`observedAt` werden übergeben, nicht gelesen. Rückgabe ist ein durch `RaidJobSchema` validierter Auftrag.
+- Der Runner prüft die Auftragsfrist (`expired`/`timeout`), die Route (`blocked`), das Upload-Schema (`invalid-request`) und replayt den geparsten Log, bevor er `completed` meldet (`invalid-hash` bei Abweichung).
+- Der Kampf-Timeout bleibt ein erfolgreiches Ergebnis mit `stage: 'timeout'`; er ist damit vom Auftrags-Timeout getrennt.
+- 8 neue Tests in `src/combat/fixture-job.test.ts` decken Ergebnis, Roundtrip, Log-Artefakt, Fehler, Auftrags-Timeout, Kampf-Timeout und Block ab.
+- Der Test baut seinen Upload bewusst selbst und importiert keine Fremd-Domain-Fixture: das Modularity-Gate verbietet das Verlassen des eigenen Packages.
+
 ## 2026-09-25 — T1.2 deterministischer Combat-, Hash- und Replay-Core
 
 - `math` implementiert Fixed-Point (Skala 1000) mit `mulFixed`, `divFixed`, `clampInt`, `absInt` sowie `isqrt`/`sqrtFixed` ohne `Math.sqrt`.

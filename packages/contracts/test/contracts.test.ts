@@ -7,13 +7,20 @@ import {
 } from '../../sim-core/src'
 import {
   DungeonGridSchema,
+  ErrorCodeSchema,
   ErrorPayloadSchema,
   MatchResponseSchema,
   PathResultSchema,
   ResultPayloadSchema,
   UploadRequestSchema,
 } from '../src'
-import { dungeon, raidSnapshot, upload, versions } from './raid-fixtures'
+import {
+  dungeon,
+  raidSnapshot,
+  result as resultFixture,
+  upload,
+  versions,
+} from './raid-fixtures'
 
 function straightCorridor() {
   const grid = createDungeonGrid()
@@ -30,13 +37,7 @@ describe('Versionierte Contracts', () => {
   it('akzeptiert die dokumentierten Upload-, Match- und Result-Payloads', () => {
     const request = upload()
     const match = { ...versions, seed: 42, snapshot: raidSnapshot(), floor: 1 }
-    const result = {
-      ...versions,
-      token: 'job-1',
-      floor: 1,
-      hash: 'sha256:abc',
-      summary: { outcome: 'win', damage: { dealt: 12 } },
-    }
+    const result = resultFixture()
 
     expect(UploadRequestSchema.safeParse(request).success).toBe(true)
     expect(MatchResponseSchema.safeParse(match).success).toBe(true)
@@ -45,13 +46,7 @@ describe('Versionierte Contracts', () => {
 
   it('lehnt ungültige Match- und Result-Payloads ab', () => {
     const match = { ...versions, seed: 42, snapshot: raidSnapshot(), floor: 1 }
-    const result = {
-      ...versions,
-      token: 'job-1',
-      floor: 1,
-      hash: 'sha256:abc',
-      summary: {},
-    }
+    const result = resultFixture()
     expect(MatchResponseSchema.safeParse({ ...match, seed: -1 }).success).toBe(
       false,
     )
@@ -64,10 +59,19 @@ describe('Versionierte Contracts', () => {
     expect(
       ResultPayloadSchema.safeParse({ ...result, hash: 123 }).success,
     ).toBe(false)
+    expect(
+      ResultPayloadSchema.safeParse({ ...result, hash: 'A1B2C3D4' }).success,
+    ).toBe(false)
+    expect(
+      ResultPayloadSchema.safeParse({
+        ...result,
+        summary: { ...result.summary, gold: 12 },
+      }).success,
+    ).toBe(false)
   })
 
-  it('erkennt die drei dokumentierten Fehlerklassen und lehnt andere ab', () => {
-    for (const code of ['blocked', 'invalid-hash', 'protected'])
+  it('erkennt alle vom Contract dokumentierten Fehlerklassen und lehnt andere ab', () => {
+    for (const code of ErrorCodeSchema.options)
       expect(ErrorPayloadSchema.safeParse({ ...versions, code }).success).toBe(
         true,
       )

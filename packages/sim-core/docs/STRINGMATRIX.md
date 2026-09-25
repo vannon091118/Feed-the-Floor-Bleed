@@ -13,3 +13,10 @@
 | `grid/64x64` | Etagen-Größe, Zellen-Array |
 | `grid/hard-block` | Letzte freie Route nicht zumauerbar |
 | `combat/tick-rate` | Vorläufig 20 Ticks/s, 1800 Ticks maximal (`[K]`) |
+| `combat/timeout` | Kampf-Timeout: `stage: 'timeout'` in einem erfolgreichen Ergebnis |
+| `job/timeout` | Auftrags-Timeout: `status: 'expired'` mit `code: 'timeout'` |
+| `job/status` | `accepted`, `queued`, `running`, `completed`, `failed`, `expired` |
+| `job/failure-code` | `blocked`, `invalid-hash`, `invalid-request`, `protected`, `timeout` |
+| `job/detail` | Stabiler Feldpfad des ersten fehlgeschlagenen Upload-Feldes |
+| `summary/*` | Stufe, Ticks, Hash, Ereignisse, Angriffe, Schaden, Überlebende, Boss |
+| `grid/serialize` | Contract-Payload ↔ `Uint8Array`, 4096 Zellen, kopierend |

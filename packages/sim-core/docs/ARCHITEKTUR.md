@@ -17,6 +17,34 @@ und feste Tick-Reihenfolge. Kein Zugriff auf Client, Server, `fs` oder Zeit.
   nimmt den Weg mit den wenigsten Tiles.
 - `combat` bounded Tick-Simulation (`simulateCombat`) mit deterministischer
   Zielwahl, Seed-Varianz pro Angriff, Event-Log und kanonischem Log-Hash.
+- `combat/summary.ts` verdichtet den Log zu einer typisierten Kurzfassung.
+- `combat/resolve-snapshot.ts` setzt den Contract-Envelope und liefert
+  Ergebnis plus Log als zwei getrennte Payloads.
+- `combat/fixture-job.ts` führt einen Auftrag lokal aus: Schema, Frist, Route,
+  Kampf, Replay-Prüfung — und gibt einen validierten `RaidJob` zurück.
+- `grid/serialize.ts` übersetzt Contract-Payload und Laufzeit-Grid in beide Richtungen.
+
+## Vertrag und Version
+
+`sim-core` kennt keine Protokollversion. `combat/types.ts` bleibt ein reiner
+Engine-Typ; erst `resolve-snapshot.ts` hüllt das Ergebnis in den Envelope aus
+`@floor/contracts`. Der Core darf Contracts importieren, aber kein Contract
+darf vom Core abhängen.
+
+## Keine Uhr, keine Nebenwirkung
+
+`runFixtureRaid` liest weder `Date` noch einen globalen Zufallsgenerator. Zeit
+kommt als `createdAt` und `observedAt` von außen, der Seed ebenso. Damit ist
+jeder Fixture-Lauf im Test und im Browser wiederholbar. Das ist kein Zufalls-
+feature, sondern die Bedingung dafür, dass ein Replay-Hash überhaupt etwas
+aussagt.
+
+## Bekannte Grenze
+
+Aus dem Grid fließt aktuell nur `route.path.length` in den Kampf. Zwei Dungeons
+mit gleich langer Route erzeugen denselben Hash, obwohl sie sich unterscheiden.
+Der Client-Test `dokumentiert die bekannte Lücke` pinnt das bewusst. Der
+Folgeblock führt den Pfad als Trail mit Zelltyp und Koordinaten in den Hash ein.
   `resolveCombat` zieht die Route aus dem Grid, `replayCombat` und
   `verifyCombatLog` bestätigen einen gespeicherten Log.
 - `genome`, `items`, `ghost` sind weiterhin offen.

@@ -3,6 +3,7 @@ import { RaidStoreError } from './errors'
 import {
   type RequestedRaidJobStatus,
   assertTransitionPayload,
+  canTransitionRaidJob,
 } from './job-state'
 import { commitRaid } from './raid-commit'
 import {
@@ -42,6 +43,13 @@ export class D1RaidStore {
       throw new RaidStoreError('INVALID_TRANSITION', `Job ${id} ist abgelaufen`)
     }
     let changed: D1Result
+    // Der Übergangsgraph gehört `@floor/contracts`; der SQLite-Trigger bleibt
+    // nur die Datenbank-Sperre. So ist der Fehler vor dem Schreibzugriff klar.
+    if (!canTransitionRaidJob(current.status, target))
+      throw new RaidStoreError(
+        'INVALID_TRANSITION',
+        `Übergang ${current.status} → ${target} ist nicht erlaubt`,
+      )
     try {
       changed = await this.db
         .prepare(UPDATE_JOB_STATUS)

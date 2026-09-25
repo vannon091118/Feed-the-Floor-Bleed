@@ -8,7 +8,7 @@
 | `src/db/raid-store.ts` | Öffentliche Commit-/Transition-/Expiry-API |
 | `src/db/raid-records.ts` | D1-Zeilen, öffentliche Records, Snapshot-Mapping und Eingabeprüfung |
 | `src/db/raid-queries.ts` | Einziger Owner für D1-Statements und typisierte Reads |
-| `src/db/job-state.ts` | Statusnamen, terminale Datenregeln und 15-Minuten-TTL |
+| `src/db/job-state.ts` | Re-Exports des Contract-Vokabulars, terminale Datenregeln, Fehlercode-Prüfung |
 | `src/db/errors.ts` | Verständliche Persistenzfehler |
 | `src/db/*.test.*` | Vollständigkeits-, Commit-, Ziel-, Idempotenz-, Zustands-, TTL- und Migrationstests |
 | `test/sqlite-d1.mjs` | Schlanker transaktionaler SQLite-D1-Testadapter |

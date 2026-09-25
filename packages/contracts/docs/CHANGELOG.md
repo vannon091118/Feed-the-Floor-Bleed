@@ -1,5 +1,16 @@
 # packages/contracts/docs/CHANGELOG.md
 
+## 2026-09-25 — T1.3 Ergebnislog, Job-Union und Fehlercode-Vokabular
+
+- `packages/contracts/src/combat-log.ts` ergänzt: strikte Schemas für `CombatConfig`, `CombatUnitSpec`, `CombatEvent`, `CombatLog` und `CombatSummary`. Invarianten: eindeutige Einheiten-IDs, schließendes `end`-Ereignis in der Ergebnisstufe, keine unbekannten Einheiten, kein Tick hinter dem Log-Ende.
+- `CombatSummary` ersetzt das freie `record(json)` in `ResultPayloadSchema`. Ergebnislisten sind damit typisiert statt beliebig.
+- `RaidLogPayloadSchema` trägt den vollständigen Log als eigenes Artefakt mit Envelope, Token, Etage und Hash; `ResultPayloadSchema` bleibt klein.
+- `packages/contracts/src/job.ts` ergänzt: sechs Auftragsstatus, gerichteter Übergangsautomat und `RaidJobSchema` als Diskriminated Union. `completed` muss ein Ergebnis tragen, `failed`/`expired` einen Fehler, offene Zustände beides nicht.
+- `ErrorCodeSchema` von drei auf fünf Codes erweitert: `invalid-request` (Schema-/Protokollfehler) und `timeout` (abgelaufene Auftragsfrist). `ErrorPayloadSchema` bekommt ein optionales `detail` mit stabilem Feldpfad.
+- Kampf-Timeout und Auftrags-Timeout sind jetzt strukturell getrennt: Der Kampf-Timeout ist `summary.stage === 'timeout'` in einem erfolgreichen Ergebnis, der Auftrags-Timeout ist `status: 'expired'` mit `code: 'timeout'`.
+- Tests decken Log-Invarianten, JSON-Roundtrip, die sechs Zustände, die Übergänge und die Fehler/Timeout-Trennung ab.
+- `CONTRACT_VERSION` bleibt 2: keine bestehende Payload verliert eine Pflichtform, die akzeptierte Menge wird nur enger.
+
 ## 2026-09-25 — Vollständiger Raid-Freeze / Contract v2
 
 - `RaidSnapshotSchema` für Ressourcen, exakt fünf Monster-Slots, aktive Helden mit temporärer Müdigkeit und Verletzung sowie Dungeon ergänzt.

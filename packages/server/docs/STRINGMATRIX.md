@@ -23,6 +23,8 @@
 | `failed` | keiner | `failure_code` ist Pflicht |
 | `expired` | keiner | `failure_code = "timeout"` |
 
+Die Tabelle bildet `RAID_JOB_TRANSITIONS` aus `@floor/contracts` ab. `failed` akzeptiert nur `blocked`, `invalid-hash`, `invalid-request` oder `protected`; `timeout` ist ausschließlich `expired` vorbehalten. `assertFailureCode` erzwingt das vor dem Schreibzugriff.
+
 `expires_at = created_at + 900000`. Ein Commit mit abgelaufenem offenem Job setzt diesen im selben Batch auf `expired`, bevor der neue Slot belegt wird.
 
 ## Persistenzfehler

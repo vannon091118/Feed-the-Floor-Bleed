@@ -6,13 +6,14 @@ Autoritative Instanz für Defender-State, Pool, Validierung und Progression-Tor.
 
 ## `db` als Owner
 
-`src/db` besitzt das ausführbare D1-Migration-Schema, den strukturellen D1-Port, die Raid-Store-API und die Job-Statusdaten. `sync`, `matchmaking`, HTTP, Queue und Combat importieren diese Typen später über `@floor/server`; sie besitzen keine eigene Statuslogik.
+`src/db` besitzt das ausführbare D1-Migration-Schema, den strukturellen D1-Port, die Raid-Store-API und die Durchsetzung der Job-Datenregeln. Die *Definition* von Status, Übergängen, TTL und Fehlercodes liegt seit T1.3 in `@floor/contracts`; `job-state.ts` importiert und re-exportiert sie. `sync`, `matchmaking`, HTTP, Queue und Combat importieren diese Typen später über `@floor/server`; sie besitzen keine eigene Statuslogik.
 
 ### Resultierende Modulstruktur
 
 - `raid-commit.ts` besitzt nur den atomaren Upload-/Snapshot-Commit.
 - `raid-store.ts` besitzt die öffentliche Commit-/Transition-/Expiry-API.
 - `raid-queries.ts` ist der einzige Owner für D1-Statements und typisierte Reads.
+- `job-state.ts` re-exportiert das Contract-Vokabular und erzwingt die terminalen Datenregeln inklusive Fehlercode-Prüfung.
 - `raid-records.ts` übersetzt D1-Zeilen in öffentliche camelCase-Records und validiert Commit-Eingaben.
 - `job-state.ts` besitzt Statusnamen, TTL und Terminaldaten; die erlaubten DB-Übergänge besitzt ausschließlich der Migration-Trigger.
 - Tests verwenden einen schlanken transaktionalen SQLite-D1-Adapter statt eines zweiten Zustandsmodells.

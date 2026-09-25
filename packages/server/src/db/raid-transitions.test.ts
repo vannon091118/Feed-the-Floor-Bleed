@@ -26,7 +26,7 @@ describe('D1-Raid-Zustandsautomat', () => {
       resultJson: '{"outcome":"win"}',
     })
     await expect(
-      store.transition(job.id, 'failed', 104, { failureCode: 'late' }),
+      store.transition(job.id, 'failed', 104, { failureCode: 'blocked' }),
     ).rejects.toMatchObject({ code: 'INVALID_TRANSITION' })
   })
 
@@ -35,11 +35,11 @@ describe('D1-Raid-Zustandsautomat', () => {
     await store.transition(job.id, 'queued', 101)
     await store.transition(job.id, 'running', 102)
     const failed = await store.transition(job.id, 'failed', 103, {
-      failureCode: 'replay-invalid',
+      failureCode: 'invalid-hash',
     })
     expect(failed).toMatchObject({
       status: 'failed',
-      failureCode: 'replay-invalid',
+      failureCode: 'invalid-hash',
     })
   })
 

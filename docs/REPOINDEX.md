@@ -11,9 +11,9 @@
 | `docs/CONCEPT_REVIEW_SECURITY.md` | Abgegrenzte manuelle Invalid-Request-/Account-Prüfmarke |
 | `docs/ROADMAP.md` | Audit-basierte Produkt- und Technik-Roadmap mit T1/T2/T3-Promotion |
 | `docs/historisch/` | Append-only Archiv |
-| `packages/contracts/src` | Zod-Schemas, sim_version |
+| `packages/contracts/src` | Zod-Schemas, sim_version, Ergebnislog, Auftragsunion |
 | `packages/sim-core/src/*` | Deterministischer Core (PRNG, Math, Grid, Combat, Genome, Items, Hash, Ghost) |
-| `packages/client/src/*` | PWA Client (Editor, Village, Raid, Inventory, Net, Storage, UI) |
+| `packages/client/src/*` | PWA Client (Editor, Village, Raid inkl. lokalem Fixture-Auftrag, Inventory, Net, Storage, UI) |
 | `packages/server/src/*` | Server (DB, Matchmaking, Sync) |
 | `scripts/bump-version.mjs` | Mechanischer Version bump (PATCH→MINOR→MAJOR) |
 | `.github/workflows/shinon.yml` | Pflichtprüfung für Pull Requests und `main` |

@@ -524,6 +524,85 @@ h2 {
   background: #c47b65;
 }
 
+.raid-panel {
+  margin-top: 18px;
+  padding-bottom: 20px;
+}
+
+.raid-verdict {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 0 26px 14px;
+}
+
+.raid-stage {
+  font: 10px "DM Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--mint);
+}
+
+.raid-stage--timeout {
+  color: var(--accent);
+}
+
+.raid-stage--monsters-win,
+.raid-stage--error {
+  color: var(--danger);
+}
+
+.raid-hash {
+  color: var(--soft);
+  font: 13px "DM Mono", monospace;
+}
+
+.raid-stats {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0 26px;
+}
+
+.raid-stats div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.raid-stats dt {
+  color: var(--muted);
+  font: 9px "DM Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.raid-stats dd {
+  margin: 0;
+  color: var(--soft);
+  font-size: 15px;
+}
+
+.raid-idle,
+.raid-note {
+  margin: 0;
+  padding: 0 26px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.raid-note {
+  padding-top: 16px;
+  color: #687586;
+  font: 10px "DM Mono", monospace;
+}
+
 .footer-note {
   display: flex;
   justify-content: space-between;
@@ -622,6 +701,18 @@ h2 {
   .editor-resources {
     width: 100%;
     margin-left: 0;
+  }
+
+  .raid-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 0 16px;
+  }
+
+  .raid-verdict,
+  .raid-idle,
+  .raid-note {
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
   .footer-note {
