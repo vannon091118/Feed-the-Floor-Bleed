@@ -1,6 +1,7 @@
 import { signal } from '@preact/signals'
 import { useCallback, useState } from 'preact/hooks'
 import type { DragDropCommand } from '../input'
+import { RaidPanel } from '../raid/raid-panel'
 import { WindowLayer, openWindow } from '../window'
 import type { ActorKind } from '../world'
 import { EditorControls } from './editor-controls'
@@ -81,6 +82,7 @@ export function Shell() {
         <aside class="side">
           <EditorControls />
           <EditorPanel />
+          <RaidPanel />
           <p class="hint" aria-live="polite">
             {lastDrop.value}
           </p>

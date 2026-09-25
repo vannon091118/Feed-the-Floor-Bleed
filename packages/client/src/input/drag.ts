@@ -1,24 +1,16 @@
-import type { Point } from '@floor/sim-core'
-import type { CameraState, ScreenPoint } from '../render/camera'
+import type { CameraState } from '../render/camera'
 import type { ActorDescriptor } from '../world'
-import { actorAtWorld, cellAtScreen, worldAtScreen } from './hit-test'
+import {
+  type DragDropCommand,
+  type DragState,
+  advance,
+  dropCommand,
+  passedSlop,
+  resolveTarget,
+} from './drag-target'
 import type { PointerSample } from './pointer'
 
-export type DragKind = 'actor' | 'item' | 'tile'
-
-export interface DragDropCommand {
-  source: DragKind
-  id: string
-  cell: Point
-  screen: ScreenPoint
-}
-
-export interface DragState {
-  source: DragKind
-  id: string
-  cell: Point
-  screen: ScreenPoint
-}
+export type { DragDropCommand, DragKind, DragState } from './drag-target'
 
 export interface DragDependencies {
   actors: () => readonly ActorDescriptor[]
@@ -32,10 +24,9 @@ export interface DragController {
   onUp(sample: PointerSample): void
   cancel(): void
   active(): DragState | null
+  hasCandidate(): boolean
   subscribe(listener: (state: DragState | null) => void): () => void
 }
-
-const GRAB_RADIUS = 12
 
 /**
  * Einheitliche Drag-Schicht.
@@ -43,8 +34,14 @@ const GRAB_RADIUS = 12
  * Sie kennt nur Treffer, Ziel und Abschluss. Der Drop ruft `onDrop` mit einem
  * Command auf und enthält selbst keine Spielregel: Ob ein Monster in einen
  * Zuchtplatz darf, entscheidet weiterhin der bestehende Core-Aufruf.
+ *
+ * Ein Pointer-Down allein ist noch kein Drag. Er registriert nur einen
+ * Kandidaten; erst eine Bewegung über den Slop macht daraus einen aktiven Zug.
+ * Ohne diese Trennung wäre jeder Klick auf einen Actor gleichzeitig ein Drop,
+ * und der Klickpfad zum Kontextfenster käme nie zum Zug.
  */
 export function createDragController(deps: DragDependencies): DragController {
+  let candidate: DragState | null = null
   let state: DragState | null = null
   const listeners = new Set<(state: DragState | null) => void>()
 
@@ -52,48 +49,49 @@ export function createDragController(deps: DragDependencies): DragController {
     for (const listener of listeners) listener(state)
   }
 
+  const clear = (): void => {
+    candidate = null
+    if (state === null) return
+    state = null
+    notify()
+  }
+
   return {
     onDown(sample) {
-      const world = worldAtScreen(deps.camera(), sample.screen)
-      const id = actorAtWorld(deps.actors(), world, GRAB_RADIUS)
-      state = id
-        ? {
-            source: 'actor',
-            id,
-            cell: cellAtScreen(deps.camera(), sample.screen),
-            screen: sample.screen,
-          }
-        : null
-      if (state) notify()
+      candidate = resolveTarget(deps.camera(), deps.actors(), sample.screen)
+      if (state === null) return
+      state = null
+      notify()
     },
     onMove(sample) {
-      if (!state) return
-      state = {
-        ...state,
-        cell: cellAtScreen(deps.camera(), sample.screen),
-        screen: sample.screen,
+      const current = state
+      if (!candidate) return
+      if (current === null) {
+        if (!passedSlop(candidate.screen, sample.screen)) return
+        state = advance(candidate, deps.camera(), sample.screen)
+        notify()
+        return
       }
+      state = advance(current, deps.camera(), sample.screen)
       notify()
     },
     onUp(sample) {
-      if (!state) return
-      const command: DragDropCommand = {
-        source: state.source,
-        id: state.id,
-        cell: cellAtScreen(deps.camera(), sample.screen),
-        screen: sample.screen,
+      if (!state) {
+        clear()
+        return
       }
-      state = null
-      notify()
+      const command = dropCommand(state, deps.camera(), sample.screen)
+      clear()
       deps.onDrop(command)
     },
     cancel() {
-      if (!state) return
-      state = null
-      notify()
+      clear()
     },
     active() {
       return state
+    },
+    hasCandidate() {
+      return candidate !== null
     },
     subscribe(listener) {
       listeners.add(listener)

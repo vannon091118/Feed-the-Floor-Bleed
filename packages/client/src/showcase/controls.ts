@@ -3,6 +3,7 @@ import { actorAtWorld } from '../input/hit-test'
 import { type PointerSample, bindPointer } from '../input/pointer'
 import {
   type CameraState,
+  type ScreenPoint,
   panCamera,
   screenToWorld,
   zoomCamera,
@@ -25,16 +26,21 @@ export interface ViewportControls {
 const CLICK_SLOP = 5
 const GRAB_RADIUS = 12
 
+/** Vor dem Slop ist noch offen, ob die Geste ein Drag oder ein Pan wird. */
+type GestureMode = 'undecided' | 'drag' | 'pan'
+
 /**
  * Einheitliche Viewport-Steuerung.
  *
- * Treffer, Pan und Drag laufen alle über denselben Pointer-Pfad. Ein Klick ohne
- * Bewegung öffnet ein Fenster, ein Zug eines Actors endet als Drop-Command —
- * die Steuerung entscheidet keine Spielregel.
+ * Treffer, Pan und Drag laufen alle über denselben Pointer-Pfad. Die Richtung
+ * steht erst nach `CLICK_SLOP` fest: Auf einem Actor beginnt ein Drag, in der
+ * leeren Welt ein Pan. Ein Down ohne Weg bleibt ein Klick und öffnet ein
+ * Fenster, statt einen Drop auszulösen — die Steuerung entscheidet dabei keine
+ * Spielregel.
  */
 export function bindViewportControls(deps: ControlsDeps): ViewportControls {
-  let downScreen: { x: number; y: number } | null = null
-  let panning = false
+  let downScreen: ScreenPoint | null = null
+  let mode: GestureMode = 'undecided'
 
   const drag = createDragController({
     actors: deps.actors,
@@ -42,21 +48,25 @@ export function bindViewportControls(deps: ControlsDeps): ViewportControls {
     onDrop: (command) => deps.onDrop?.(command),
   })
 
-  const handleUp = (sample: PointerSample): void => {
-    const dragging = drag.active() !== null
-    const wasPanning = panning
-    panning = false
-    const origin = downScreen
+  const reset = (): void => {
     downScreen = null
-    drag.onUp(sample)
-    if (dragging || wasPanning || !origin) return
-    const moved = Math.hypot(
-      sample.screen.x - origin.x,
-      sample.screen.y - origin.y,
-    )
-    if (moved >= CLICK_SLOP) return
+    mode = 'undecided'
+  }
+
+  const handleUp = (sample: PointerSample): void => {
+    const ended = mode
+    reset()
+    if (ended === 'drag') {
+      drag.onUp(sample)
+      return
+    }
+    if (ended === 'pan') {
+      drag.cancel()
+      return
+    }
     const world = screenToWorld(deps.camera(), sample.screen)
     const id = actorAtWorld(deps.actors(), world, GRAB_RADIUS)
+    drag.cancel()
     if (!id) return
     const actor = deps.actors().find((entry) => entry.id === id)
     if (actor) deps.onActorClick?.(id, actor.kind)
@@ -65,24 +75,36 @@ export function bindViewportControls(deps: ControlsDeps): ViewportControls {
   const unbindPointer = bindPointer(deps.element, {
     onDown(sample) {
       downScreen = sample.screen
+      mode = 'undecided'
       drag.onDown(sample)
-      panning = drag.active() === null
     },
     onMove(sample) {
-      if (!panning || !downScreen) return
+      const origin = downScreen
+      if (!origin) return
+      if (mode === 'undecided') {
+        const moved = Math.hypot(
+          sample.screen.x - origin.x,
+          sample.screen.y - origin.y,
+        )
+        if (moved < CLICK_SLOP) return
+        mode = drag.hasCandidate() ? 'drag' : 'pan'
+      }
+      if (mode === 'drag') {
+        drag.onMove(sample)
+        return
+      }
       deps.setCamera(
         panCamera(
           deps.camera(),
-          downScreen.x - sample.screen.x,
-          downScreen.y - sample.screen.y,
+          origin.x - sample.screen.x,
+          origin.y - sample.screen.y,
         ),
       )
       downScreen = sample.screen
     },
     onUp: handleUp,
     onCancel() {
-      panning = false
-      downScreen = null
+      reset()
       drag.cancel()
     },
   })

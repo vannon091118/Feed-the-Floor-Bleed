@@ -29,7 +29,8 @@
 | `src/render/lighting.ts` | Billiger Lichtrand im Screen-Raum |
 | `src/input/pointer.ts` | Einheitlicher Pointer-Pfad für Maus und Touch |
 | `src/input/hit-test.ts` | Screen → Zelle und Actor-Treffer über die Kamera |
-| `src/input/drag.ts` | Drag-Schicht, die beim Abschluss einen Command emittiert |
+| `src/input/drag.ts` | Drag-Lebenszyklus: Kandidat, Slop, Abschluss-Command |
+| `src/input/drag-target.ts` | Trefferauflösung und Zwischenzustand eines Drags |
 | `src/window/store.ts` | Fenster-Registry, Fokus und Z-Order als Signals |
 | `src/window/window.tsx` | Verschiebbares Kontextfenster mit Resize-Griff |
 | `src/window/window-layer.tsx` | Fensterschicht über der Welt |
@@ -45,9 +46,11 @@
 | `src/dungeon-editor/model.ts` | Pure Editor-Regeln (Pinsel, 4x4-Tiles, Marker) |
 | `src/dungeon-editor/state.ts` | Einziger Owner von Grid, Pinsel und Route |
 | `src/raid/fixture-raid.ts` | Contract-v2-Upload und lokaler Fixture-Auftrag |
+| `src/raid/raid-panel.tsx` | Fixture-Raid-Panel, fest in der Shell eingebunden |
 | `test/dungeon-editor.test.ts` | State-/Model-Tests der Editor-Logik |
 | `test/raid-job.test.ts` | Upload-Gültigkeit, Hash und Auftragszustände |
 | `test/visual-foundation.test.ts` | Tests für World-Definitionen, Kamera, Depth, Observer |
+| `test/input-drag.test.ts` | Slop-Verhalten: ein Down ohne Weg erzeugt keinen Drop |
 | `docs/*` | Pflicht-Doku dieser Domäne |
 
 Der Client hat wieder einen Einstiegspunkt. `world`, `visual`, `render`, `input`,

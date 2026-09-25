@@ -1,5 +1,10 @@
 import { Application, Container } from 'pixi.js'
-import { type CameraState, createCamera, resizeCamera } from './camera'
+import {
+  type CameraState,
+  createCamera,
+  resizeCamera,
+  worldToScreen,
+} from './camera'
 import { LAYER_NAMES, type LayerName, layerZ } from './layers'
 
 export interface TickInfo {
@@ -64,12 +69,18 @@ export async function createVisualRuntime(
   let camera = createCamera(width, height)
   let elapsedMs = 0
 
+  /**
+   * Setzt den Weltcontainer über die kanonische Transformation.
+   *
+   * Die Container-Matrix entspricht genau `worldToScreen`: Ein Weltpunkt wird
+   * mit dem Zoom skaliert und um den Bildschirmursprung verschoben. Deshalb
+   * wird hier kein zweites Mal gerechnet, sondern der Ursprung aus `camera.ts`
+   * geholt. Sonst könnten Renderer, Hit-Test und Drag auseinanderlaufen.
+   */
   const applyCamera = (): void => {
+    const origin = worldToScreen(camera, { x: 0, y: 0 })
     worldRoot.scale.set(camera.zoom)
-    worldRoot.position.set(
-      -camera.x * camera.zoom + camera.viewportWidth / 2,
-      -camera.y * camera.zoom + camera.viewportHeight / 2,
-    )
+    worldRoot.position.set(origin.x, origin.y)
   }
   applyCamera()
 

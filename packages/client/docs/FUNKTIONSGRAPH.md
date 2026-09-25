@@ -25,7 +25,8 @@ render (Pixi)
 input
   ├─ pointer: bindPointer(element, handlers)   (Pointer Events, Maus+Touch)
   ├─ hit-test: cellAtScreen / actorAtWorld     → render/camera
-  └─ drag: createDragController(...).onDrop(command)
+  ├─ drag: createDragController(...).onDrop(command)  (Kandidat → Slop → Zug)
+  └─ drag-target: resolveTarget / passedSlop / advance / dropCommand
 
 window (Preact)
   ├─ store: windows / focusedId Signals, openWindow / close / focus / patch

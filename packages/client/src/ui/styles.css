@@ -257,6 +257,101 @@ body {
   margin: 0;
 }
 
+/* Fixture-Raid-Panel. Benutzt dieselben Tokens wie die übrige Oberfläche. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.panel-heading {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-heading h2 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.primary-button {
+  padding: 6px 10px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+}
+
+.raid-verdict {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.raid-stage {
+  font-weight: 600;
+}
+
+.raid-stage--heroes-win {
+  color: var(--accent);
+}
+
+.raid-stage--monsters-win,
+.raid-stage--error {
+  color: #d4695f;
+}
+
+.raid-hash {
+  color: var(--muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.raid-stats {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+}
+
+.raid-stats div {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+}
+
+.raid-stats dt {
+  color: var(--muted);
+}
+
+.raid-stats dd {
+  margin: 0;
+}
+
+.raid-idle,
+.raid-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
 @media (max-width: 820px) {
   .stage {
     grid-template-columns: 1fr;

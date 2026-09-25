@@ -26,6 +26,9 @@
 | `world/cell-px` | `8` — Kantenlänge einer Logikzelle in Weltpixeln |
 | `window/id` | `'team'`, `'route'`, `'legend'`, `'actor:<kind>:<id>'` |
 | `input/drop-command` | `{source, id, cell, screen}` — Ergebnis eines Drags |
+| `input/drag-slop` | `5` px Weg, ab dem aus einem Kandidaten ein aktiver Zug wird |
+| `input/gesture` | `undecided` → `drag` \| `pan`; ohne Weg bleibt es ein Klick |
+| `render/camera-single` | `worldToScreen` existiert genau einmal; der Runtime-Ursprung kommt daraus |
 | `raid/trail` | Offen: Der Combat-Log trägt noch keinen Trail-Hash, die Anzeige nutzt `route.path` |
 
 `ui/tabs` und `ui/phase` sind mit der alten visuellen Schicht entfallen. Die
