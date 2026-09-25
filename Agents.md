@@ -206,6 +206,7 @@ Jeder Task wird als eigener, in sich abgeschlossener Slice durch die Shinon-Kett
 - `.husky/post-commit` beendet Bump- oder Version-Gate-Fehler jetzt mit Exit != 0; `SHINON_SKIP_BUMP=1` bleibt ausschließlich der Recursion-Schutz.
 - Der Post-Commit-Amend läuft mit aktiven Hooks und ohne `--no-verify`; bei Staging-, Amend- oder Push-Fehlern muss der Hook sichtbar fehlschlagen.
 - Der Post-Commit-Bump staged ganze `package.json`- und `VERSION`-Dateien; ungestagte Änderungen in diesen Dateien werden in den laufenden Slice gesogen. `package.json`-Änderungen deshalb vor dem Task-Commit vollständig stagen oder als eigenen Slice führen.
+- Landet dadurch eine neue Dependency im Slice, während `pnpm-lock.yaml` erst im Folgeslice kommt, bricht der Remote-Lauf mit `ERR_PNPM_OUTDATED_LOCKFILE` ab. Dependency- und Lockfile-Änderungen gehören deshalb zwingend in denselben Slice.
 - README bleibt reine Verkaufsbühne; technische Verträge und Governance gehören in `docs/` bzw. `Agents.md`.
 
 ## 7. Umsetzung & Durchsetzung
