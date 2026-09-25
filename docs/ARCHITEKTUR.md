@@ -2,19 +2,19 @@
 
 ## Ziel
 
-Deterministisches Async-Spiel mit geteiltem Core. Client und Server nutzen denselben `sim-core` (Fixed-Point, PRNG, Grid, Kampf, Zucht). Client rendert, Server validiert.
+Deterministisches Async-Spiel mit geteiltem Core. Der Server nutzt `sim-core` (Fixed-Point, PRNG, Grid, Kampf, Zucht) für Berechnung und Validierung; der Client rendert und spielt serverseitig validierte Ergebnisse ab.
 
 ## Schichten
 
 - `contracts` besitzt Zod-Schemas, Protokoll-Versionen (`sim_version`), Hash-Verträge. Keine Logik.
 - `sim-core` besitzt reine Funktionen ohne I/O/Zeit/Zufall von außen. PRNG via Seed, A* mit festem Tie-Break.
 - `client` besitzt UI, Rendering (PixiJS 8), PWA, Dexie, Net (Upload/Results sequenziell pro Etage).
-- `server` besitzt DB, Pool, Blind-Matchmaking, Defender-State, Replay-Validierung.
+- `server` besitzt D1, Queues, Pool, MMR-Band-Matching, Ghost-Fallback, Defender-State und Replay-Validierung; es gibt keine Live-Warteschlange.
 - `scripts/shinon` besitzt Commit-Gate + Test-Suite, slice-basiert nach `git diff`. Full-Run nur in `pre-push`.
 
 ## Datenfluss Etagen-Loop (sequenziell)
 
-Client `Upload(Dungeon+Team+Tactics)` → Server vergibt `Seed1 + Etage1` → Client simuliert, sendet `Results(N, Hash)` → Server validiert (Replay) → `Weiter?` → Server gibt `Seed N+1 + Snapshot N+1`. Kein Pre-Leak tieferer Etagen.
+Client `Upload(v2-Raid-Freeze + Taktiken)` → Server friert den vollständigen eigenen Snapshot in D1 ein → Server wählt MMR-Band-Ziel oder Ghost → Queue übergibt den Job → Headless-Worker berechnet den Kampf serverseitig → D1 speichert Ergebnis oder Timeout-Verlust → Client erhält Status/Playback. Kein Pre-Leak tieferer Etagen.
 
 ## Versionierung
 

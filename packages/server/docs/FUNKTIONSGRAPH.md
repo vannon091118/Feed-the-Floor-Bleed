@@ -1,11 +1,14 @@
 # packages/server/docs/FUNKTIONSGRAPH.md
 
-```
-client:net:upload → sync:validate → db:store (Snapshot+Team)
-sync:token → matchmaking:assign (Bracket+Ghost fallback)
-sync:replay (sim-core) → hash:check → db:loot + db:defender (Moral/Stein/Loss-XP)
-db:defender → sync:sync-log (beim nächsten Login)
-matchmaking:lock → db:lock (7T lokal)
+```text
+contracts:RaidSnapshot → db:validate → db:atomic-commit
+db:atomic-commit → D1 raid_snapshots(attacker freeze) + raid_jobs(accepted)
+raid_jobs.snapshot_id → unveränderlicher Angreifer-Freeze
+raid_jobs.target_snapshot_id: NULL → späterer Ziel-Freeze (Matching noch nicht implementiert)
+db:transition → D1 bedingtes Status-Update
+db:expire → D1 expired/timeout
+sync/http/queue → db (später)
+headless/replay → db:completed|failed (später)
 ```
 
-`matchmaking` ändert keine Ergebnisse, `sync` enthält keine Spielregeln außerhalb Validierung.
+`db` besitzt Persistenz und Zustandsautomat. `sync`, `matchmaking`, Queue und Headless-Combat besitzen im aktuellen Pass keine Implementierung und keine Umgehung dieser Grenzen.
