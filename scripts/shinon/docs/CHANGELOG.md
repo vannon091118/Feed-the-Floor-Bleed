@@ -1,5 +1,10 @@
 # scripts/shinon/docs/CHANGELOG.md
 
+## 2026-09-25 — Versionsbump formatstabil
+
+- `scripts/bump-version.mjs` ersetzt das vorhandene JSON-Version-Feld nun ohne vollständiges Reserialisieren der Package-Dateien. Dadurch bleibt Biome-Formatierung nach jedem Post-Commit-Amend erhalten.
+- Der Remote-Fehler des ersten pnpm-CI-Laufs wurde damit als reproduzierbarer Lifecycle-Bug behoben: lokale Formatierung darf nicht durch den Versionsbump wieder entfernt werden.
+
 ## 2026-09-25 — main-only Remote-Gate
 
 - GitHub Actions auf den verpflichtenden `main`-Push-Workflow umgestellt; der lokale Pre-Push-Full-Gate bleibt unverändert die erste Sperre.

@@ -1,5 +1,10 @@
 # docs/CHANGELOG.md — Global
 
+## 2026-09-25 — Lifecycle-Bug des Versionsbump behoben
+
+- `scripts/bump-version.mjs` erhält beim mechanischen Bump die bestehende JSON-Formatierung und verhindert damit, dass der Post-Commit-Hook den Biome-formatierten `package.json`-Zustand wieder zerstört.
+- Der erste Remote-pnpm-Lauf hatte den Fehler sichtbar gemacht; der nächste Task-Commit dokumentiert und schließt diese Kette.
+
 ## 2026-09-25 — main-only Governance und pnpm-CI
 
 - `pnpm-lock.yaml` als reproduzierbare Workspace-Auflösung eingeführt und das veraltete `package-lock.json` entfernt.

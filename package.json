@@ -1,16 +1,14 @@
 {
   "name": "feed-the-floor",
   "private": true,
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Feed the Floor: Meet Your Fate — Dorf + Dungeon Keeper + Auto-Battler, deterministisch, async, PWA",
   "type": "module",
   "packageManager": "pnpm@9.12.3",
   "engines": {
     "node": ">=22"
   },
-  "workspaces": [
-    "packages/*"
-  ],
+  "workspaces": ["packages/*"],
   "scripts": {
     "prepare": "husky",
     "check": "pnpm run -s typecheck && node scripts/check-loc.mjs && node scripts/check-hygiene.mjs && node scripts/shinon/engine.mjs --full",

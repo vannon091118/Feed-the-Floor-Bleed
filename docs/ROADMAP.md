@@ -6,7 +6,7 @@ Diese Roadmap ist die einzige aktive Reihenfolge für Produkt- und Technikarbeit
 
 ## Statusupdate — 2026-09-25
 
-T1.0 ist abgeschlossen. `pnpm@9.12.3` besitzt jetzt `pnpm-lock.yaml`, `package-lock.json` wurde entfernt, `package.json` ruft den Check über pnpm auf und die GitHub-Actions führen den vollständigen Gate-Lauf bei jedem Push auf `main` aus. Die verpflichtende lokale Hook-Kette bleibt unverändert. Der nächste aktive Block ist T1.1: startbarer Client-Shell mit Fixture-Spielstand und Dungeon-Editor.
+T1.0 ist abgeschlossen. `pnpm@9.12.3` besitzt jetzt `pnpm-lock.yaml`, `package-lock.json` wurde entfernt, `package.json` ruft den Check über pnpm auf und die GitHub-Actions führen den vollständigen Gate-Lauf bei jedem Push auf `main` aus. Die verpflichtende lokale Hook-Kette bleibt unverändert. Der erste Remote-Lauf deckte einen Formatierungsfehler im Versionsbump auf; dieser wird als eigener Lifecycle-Task behoben, bevor T1.1 startet. Der nächste aktive Block ist T1.1: startbarer Client-Shell mit Fixture-Spielstand und Dungeon-Editor.
 
 ## Audit-Snapshot — 2026-09-25
 

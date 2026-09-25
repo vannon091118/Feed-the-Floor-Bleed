@@ -40,6 +40,13 @@ function fmt({ major, minor, patch }) {
   return `${major}.${minor}.${patch}`
 }
 
+function replaceVersion(content, version, file) {
+  const pattern = /("version"\s*:\s*")[^"]+(")/
+  if (!pattern.test(content))
+    throw new Error(`Kein version-Feld in ${path.relative(ROOT, file)}`)
+  return content.replace(pattern, `$1${version}$2`)
+}
+
 function main() {
   const raw = fs.readFileSync(VERSION_FILE, 'utf8')
   const cur = parse(raw)
@@ -65,7 +72,8 @@ function main() {
         `Ungültiges JSON in ${path.relative(ROOT, pf)}: ${e.message}`,
       )
     }
-    if (pkg.version !== nextStr) toUpdate.push({ pf, pkg, original: content })
+    if (pkg.version !== nextStr)
+      toUpdate.push({ pf, pkg, content, original: content })
   }
 
   const prevVersion = raw
@@ -73,9 +81,8 @@ function main() {
   console.log(`🦊 Version bump: ${fmt(cur)} → ${nextStr}`)
 
   try {
-    for (const { pf, pkg } of toUpdate) {
-      pkg.version = nextStr
-      fs.writeFileSync(pf, `${JSON.stringify(pkg, null, 2)}\n`, 'utf8')
+    for (const { pf, content } of toUpdate) {
+      fs.writeFileSync(pf, replaceVersion(content, nextStr, pf), 'utf8')
       console.log(`  ✓ ${path.relative(ROOT, pf)} → ${nextStr}`)
     }
   } catch (e) {
