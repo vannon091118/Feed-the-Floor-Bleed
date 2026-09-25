@@ -1,12 +1,22 @@
 # packages/client/docs/FUNKTIONSGRAPH.md
 
-```
-storage:Dexie ↔ dungeon-editor:edit (lokal)
-dungeon-editor → net:upload (Dungeon+Team+Tactics)
-net:upload → server:sync (via sim-core) → net:results
-raid:playback ← serverseitig validierter combat log
-village:build → storage + net:upload (beim nächsten Angriff Commit)
-ui:Shell → dungeon-editor/village/inventory/raid
+```text
+main.tsx
+  └─ ui/Shell
+       ├─ liest fixture-data (read-only)
+       ├─ besitzt phase ('day' | 'night', lokal)
+       ├─ village:VillagePanel({ village, day, workers, attractiveness, materials })
+       └─ dungeon-editor:EditorPanel({ resources })
+              ├─ state:selectBrush(brush)
+              ├─ state:resetGrid()
+              ├─ state:paintVisibleTile(x, y)
+              │     └─ model:paintTile(grid, brush, x, y)
+              │            └─ @floor/sim-core: clone/getCell/setCell
+              ├─ model:visibleRouteTiles(route)
+              └─ state.route = computed(findPath(grid))
+                     └─ @floor/sim-core:findPath
 ```
 
-`net` ist dünn; `raid:playback` nutzt nur den serverseitig validierten Combat-Log.
+Kurzregeln: `Shell` besitzt nur die Phase. `dungeon-editor/state` besitzt Grid und
+Pinsel. `dungeon-editor/model` ist pur und ohne Preact. `fixture-data` wird nur
+gelesen. Kein Panel importiert Fixture- oder State-Module fremder Domänen.
