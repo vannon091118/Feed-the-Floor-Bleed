@@ -1,5 +1,8 @@
 name: Shinon
 
+# Der push-Trigger greift auf `main` unabhängig davon, aus welchem Branch
+# gemergt wurde. Jeder Merge nach main löst damit Tests und Deploy-Build aus;
+# das Artefakt entsteht nur auf main, die Prüfung läuft auch für Pull Requests.
 on:
   push:
     branches:
@@ -50,3 +53,13 @@ jobs:
         run: pnpm run -s lint
       - name: Run hard-fail Shinon suite
         run: pnpm run -s check
+      - name: Deploy-Build
+        run: pnpm --filter @floor/client build
+      - name: Deploy-Artefakt
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-dist
+          path: packages/client/dist
+          if-no-files-found: error
+          retention-days: 14
