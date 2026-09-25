@@ -1,5 +1,11 @@
 # packages/sim-core/docs/CHANGELOG.md
 
+## 2026-09-25 — Kommentar- und Doku-Typos in Grid und Combat
+
+- `src/grid/serialize.ts`: der Brücken-Kommentar sprach davon, dass ein eingefrorener Snapshot „hinterher“ nicht verändert werden kann. Gemeint war „nachträglich“; hinterher im Sinne von Zeitfolge ergibt hier keinen Sinn.
+- `src/combat/fixture-job.test.ts`: der Testname sprach davon, den Kampf-Timeout „als erfolgreiches Ergebnis“ zu behandeln. Der Auftrag ist erfolgreich abgeschlossen, das Ergebnis darin trägt die Stufe `timeout`. Beides ist jetzt im Namen getrennt.
+- `docs/STRINGMATRIX.md`: die Hard-Block-Zeile nannte die Regel „Letzte freie Route nicht zumauerbar“. Die Form existiert im Deutschen nicht; die Regel lautet jetzt, dass die letzte freie Route nicht zugemauert werden darf.
+
 ## 2026-09-25 — T1.3 Ergebnislog und lokale Fixture-Job-Ausführung
 
 - `src/grid/serialize.ts` ergänzt: `toDungeonGrid` und `fromDungeonGrid` als Brücke zwischen Contract-Payload (`cells` als Array) und Laufzeit-Grid (`Uint8Array`), jeweils kopierend und mit Zellzahl-Prüfung.
