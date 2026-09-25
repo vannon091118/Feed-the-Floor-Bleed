@@ -2,61 +2,57 @@
 
 ## Rolle
 
-PWA-Client: Rendern, Editieren lokal, Sync via `net`, Speichern via `storage`.
-Aktueller Stand ist T1.3: Fixture-Shell plus lokal ausgeführter
-Fixture-Raid. Keine Serververbindung.
+PWA-Client. Die Welt ist die Navigation, die Oberfläche besteht aus
+Kontextfenstern. Pixi rendert die laufende Szene, Preact/Signals die UI; die
+Simulation bleibt der einzige Owner der Spielentscheidungen.
 
-## Struktur
+## Schichten
 
-- `src/fixture-data.ts` — read-only Startdaten (Dorf, Ressourcen, Team). Kein State, kein UI, keine Seiteneffekte.
-- `src/dungeon-editor/model.ts` — pure Editor-Regeln: Pinsel → `CellType`, 4x4-Tile-Mapping, sichtbare Routen-Tiles. Kein Preact, keine Signals.
-- `src/dungeon-editor/state.ts` — einziger Owner von `grid` und `brush` plus `computed` Route. Exportiert nur Commands (`resetGrid`, `selectBrush`, `paintVisibleTile`).
-- `src/dungeon-editor/editor.tsx` — Rendering und lokaler Drag-State `painting`. Liest Grid/Route, schreibt ausschließlich über die State-Commands.
-- `src/village/village-panel.tsx` — reine Props-Präsentation ohne globale Datenzugriffe.
-- `src/raid/fixture-raid.ts` — baut den Contract-v2-Upload aus Editor-Grid und Fixture-Daten und startet den lokalen Auftrag im Core. Kein Net, keine Uhr, kein eigener Ergebnisentscheid.
-- `src/raid/raid-panel.tsx` — zeigt Stufe, Hash und Kennzahlen sowie Fehler- und Timeout-Zustände. Der einzige State ist das zuletzt gerechnete Ergebnis.
-- `src/raid/team-panel.tsx` — Teamanzeige und Auswahlknopf als reine Props-Komponente.
-- `src/ui/shell.tsx` — besitzt die Tagesphase lokal, komponiert Shell und Panels und reicht Fixture-Daten als Props nach unten.
-- `src/ui/styles.css` — Theme, Layout, responsive Regeln.
-- `src/main.tsx` — Mount auf `#app`.
+- `world/` — einzige Tile-, Material- und Deskriptor-Wahrheit. Editor und Pixi
+  lesen dieselben Definitionen. Re-exportiert die Sim-Core-Konstanten und legt
+  Höhe, Occlusion, Materialvarianten und Weltpixelmaße darüber.
+- `visual/` — Visual Observer. Übersetzt Grid, Route und Combat-Log in
+  Präsentationsdeskriptoren. Bewusst ohne Pixi-Import, damit die Logik testbar
+  bleibt und der Core nichts über Rendering weiß.
+- `render/` — Pixi-Runtime. Besitzt `Application`, Ebenen, Ticker und Kamera.
+  `camera.ts` enthält die einzige `worldToScreen`/`screenToWorld`-Implementierung.
+- `input/` — Pointer-Pfad, Hit-Test und Drag. Der Drop emittiert nur einen
+  Command und enthält keine Spielregel.
+- `window/` — Preact-Fenster-Registry mit Fokus, Z-Order, Drag und Resize.
+- `showcase/` — sichtbare Referenzszene, die alle Systeme zusammenschaltet.
+- `dungeon-editor/` — DOM-Raster und der einzige State-Owner des Grids.
+- `ui/` — Shell, Host der Pixi-Welt, Editorraster in DOM.
+- `raid/` — bestehender Contract-v2-Upload und lokaler Fixture-Auftrag.
+- `fixture-data.ts` — read-only Startdaten.
 
 ## Datenfluss
 
 ```
-fixture-data.ts ──Props──▶ ui/shell.tsx ──Props──▶ village/village-panel.tsx
-                                  │           └──Props──▶ raid/team-panel.tsx
-                                  │
-                                  ├──Props──▶ dungeon-editor/editor.tsx
-                                  │              │ Commands
-                                  │              ▼
-                                  │   dungeon-editor/state.ts (Owner)
-                                  │              │ pure Aufrufe
-                                  │              ▼
-                                  │   dungeon-editor/model.ts
-                                  │              │
-                                  │              ▼
-                                  │     @floor/sim-core (Grid/A*)
-                                  │
-                                  └──▶ raid/raid-panel.tsx
-                                            │ liest grid aus dem Editor-State
-                                            ▼
-                                     raid/fixture-raid.ts
-                                            │
-                                            ▼
-                       @floor/sim-core runFixtureRaid + @floor/contracts RaidJob
+Core + Editor-State (grid, route)
+  → visual/observer          (Diff, keine zweite Grid-Wahrheit)
+  → Präsentationsdeskriptoren
+  → render/ (Terrain, Actors, FX, Licht)
+  → Pixi → Browser
 ```
 
-`state.route` ist aus `grid` abgeleitet und wird nicht separat gehalten. Die Shell
-kennt nur die Tagesphase; der Editor-State kennt kein UI und keine Fixture-Daten.
-`sim-core` bleibt der einzige Owner der Grid-/Pfadregeln, der Client dupliziert
-keine Zell- oder Pfadlogik. Dasselbe gilt für den Auftrag: `RaidPanel` rendert,
-`fixture-raid` übersetzt, `runFixtureRaid` entscheidet. Der Client besitzt keine
-eigene Kampf- oder Ergebnislogik.
+Der Editor bleibt DOM: `ui/editor-panel.tsx` malt über `dungeon-editor/state`
+und färbt mit `world/materials`. Pixi rendert dieselbe Welt aus denselben
+Definitionen, aber ohne eigenen Spielzustand.
+
+## Grenzen
+
+`render/camera.ts` ist die einzige räumliche Transformation; `render/`, `input/`
+und `showcase/` rufen ausschließlich diese Funktionen auf. Preact erzeugt genau
+einen Host-Knoten (`ui/world-host.tsx`), startet dort einmalig die Pixi-Runtime
+und rendert danach keine Sprites als Komponenten. Fenster liegen als
+Preact-DOM über der Szene.
 
 ## Regeln
 
-Kein direkter Grid-Mutate außerhalb von `dungeon-editor`. `net` macht kein
-Game-State. Panels bekommen Daten als Props, statt globale Fixture-Werte zu lesen.
-`fixture-data.ts` bleibt read-only; der Auftrag wird daraus kopiert, nie
-zurückgeschrieben. Der Probelauf liest keine Uhr — `createdAt`/`observedAt`
-sind Konstanten, damit derselbe Grid denselben Hash ergibt.
+- `dungeon-editor/state.ts` bleibt der einzige Grid-Owner.
+- Der Observer hält keine Grid-Kopie; Terrain wird nur bei geänderter
+  Grid-Referenz neu gelesen, sonst meldet er `terrain: null`.
+- Kein Clientpfad entscheidet den Raid-Ausgang.
+- Editiert wird in DOM, die laufende Welt rendert Pixi.
+- Der Combat-Log der Szene kommt aus `sim-core` und trägt bewusst noch keinen
+  Trail-Hash; die räumliche Wahrheit der Anzeige ist `route.value.path`.

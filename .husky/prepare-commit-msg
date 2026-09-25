@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+# Shinon prepare-commit-msg — füllt Merge-/Squash-Bodies gate-konform auf
+set -e
+node scripts/shinon/prepare-commit-msg.mjs "$1" "$2"

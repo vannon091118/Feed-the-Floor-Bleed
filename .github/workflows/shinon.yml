@@ -1,7 +1,13 @@
 name: Shinon
 
+# Der push-Trigger greift auf `main` unabhängig davon, aus welchem Branch
+# gemergt wurde. Jeder Merge nach main löst damit Tests und Deploy-Build aus;
+# das Artefakt entsteht nur auf main, die Prüfung läuft auch für Pull Requests.
 on:
   push:
+    branches:
+      - main
+  pull_request:
     branches:
       - main
 
@@ -33,9 +39,12 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
-      - name: Commit integrity
-        if: ${{ github.event.before != '0000000000000000000000000000000000000000' }}
+      - name: Commit integrity (push auf main)
+        if: ${{ github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000' }}
         run: node scripts/shinon/plugins/commit-integrity.mjs --from ${{ github.event.before }}
+      - name: Commit integrity (Pull Request)
+        if: ${{ github.event_name == 'pull_request' }}
+        run: node scripts/shinon/plugins/commit-integrity.mjs --from ${{ github.event.pull_request.base.sha }}
       - name: Typecheck
         run: pnpm run -s typecheck
       - name: Test
@@ -44,3 +53,13 @@ jobs:
         run: pnpm run -s lint
       - name: Run hard-fail Shinon suite
         run: pnpm run -s check
+      - name: Deploy-Build
+        run: pnpm --filter @floor/client build
+      - name: Deploy-Artefakt
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-dist
+          path: packages/client/dist
+          if-no-files-found: error
+          retention-days: 14

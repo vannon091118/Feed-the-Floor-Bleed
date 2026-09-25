@@ -1,6 +1,6 @@
 {
   "name": "@floor/server",
-  "version": "0.0.15",
+  "version": "0.0.21",
   "private": true,
   "type": "module",
   "exports": {

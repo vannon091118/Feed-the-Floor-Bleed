@@ -21,10 +21,19 @@ function run(cmd) {
   })
 }
 
+/**
+ * Inhalts-Commits der Range, ausdrücklich ohne Merge-Commits.
+ *
+ * Ein Merge-Commit trägt keinen eigenen Inhalt, sondern nur die Vereinigung
+ * seiner Eltern. GitHub erzeugt für jeden Pull Request zusätzlich einen
+ * synthetischen Test-Merge (refs/pull/N/merge), der niemals einen Body hat
+ * und ein reines Body-Gate fälschlich rot machen würde. Geprüft werden deshalb
+ * die Inhalts-Commits; der Merge selbst steht über seine Eltern im Bereich.
+ */
 function commitsBetween(from, to) {
   const range = from ? `${from}..${to}` : to
   const fmt = ['%H', '%B'].join(REC) + SEP
-  const out = run(`git log --format="${fmt}" ${range}`)
+  const out = run(`git log --no-merges --format="${fmt}" ${range}`)
   return out
     .split(SEP)
     .map((s) => s.trim())
@@ -42,6 +51,17 @@ function filesOf(sha) {
     .map((s) => s.trim())
     .filter(Boolean)
     .filter((f) => !f.startsWith(REC))
+}
+
+function mergeCount(from, to) {
+  const range = from ? `${from}..${to}` : to
+  try {
+    return run(`git log --merges --oneline ${range}`)
+      .split('\n')
+      .filter(Boolean).length
+  } catch {
+    return 0
+  }
 }
 
 function resolveRange() {
@@ -114,5 +134,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `✅ commit-integrity ok — ${commits.length} Commits geprüft${from ? ` (${from.slice(0, 8)}..${to})` : ''}, keine Verletzung.`,
+  `✅ commit-integrity ok — ${commits.length} Inhalts-Commits geprüft${from ? ` (${from.slice(0, 8)}..${to})` : ''}, ${mergeCount(from, to)} Merge-Commits übersprungen.`,
 )

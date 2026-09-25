@@ -33,13 +33,19 @@ packages/
     src/hash/         # Snapshot-Hash, Replay-Hash
     src/ghost/        # Ghost-Generator (deterministisch)
   client/
-    src/dungeon-editor/ # PixiJS 8, Pinsel 1/2/4, Drag
+    src/world/          # Einzige Tile-/Material-/Deskriptor-Wahrheit (Editor + Pixi)
+    src/render/         # Pixi 8: Kamera, Ebenen, Depth, Terrain, Actors, FX, Filter
+    src/visual/         # Visual Observer + Combat-Frame, ohne Pixi-Kopplung
+    src/input/          # Pointer, Hit-Test, Drag (emittiert nur Commands)
+    src/window/         # Preact Window-Runtime: Registry, Fokus, Z-Order, Drag, Resize
+    src/showcase/       # Sichtbare Referenzszene aus Grid, Route und Core-Log
+    src/dungeon-editor/ # DOM/Preact-Editorraster, Pinsel, State-Owner des Grids
     src/village/      # Gebäude, Attraktivität, Arbeiter
     src/inventory/    # Loot, Zerlegen, Ausrüstung (9 Slots)
     src/raid/         # Tactic-Board (3 Regeln/Held), Playback
     src/net/          # Upload/Results, Token, Retry
     src/storage/      # Dexie/IndexedDB, Editor-Stand lokal
-    src/ui/           # Preact + Signals, PWA Shell, Tabs
+    src/ui/           # Preact + Signals, PWA Shell, Host der Pixi-Welt
   server/
     src/db/           # D1, Snapshots, Scores, Jobstatus
     src/matchmaking/  # MMR-Band, Ghost-Fallback, lokale Sperre
@@ -65,6 +71,14 @@ docs/historisch/      # Append-only Historie (nie kürzen)
 | `raid-sim` | Kampf, Hash, Tactic-Eval | I/O, Zeit, externer Zufall |
 | `matchmaking` | Pool, Zuweisung, Sperren | Kampfergebnisse ändern |
 | `sync` | Upload/Results, Schutz, Log | Spielregeln enthalten |
+| `world` | Tile-, Material- und Deskriptor-Definitionen | Grid-Zellen ändern, Spielregeln |
+| `render` | Pixi-Szene, Kamera, Depth, Occlusion, FX, Filter | Spielzustand besitzen, Grid schreiben |
+| `visual` | Visual Observer und Präsentationsdeskriptoren | zweite Grid-Wahrheit, Spielentscheid |
+| `input` | Pointer, Hit-Test, Drag-Commands | Spielregeln im Drop |
+| `window` | Fensterzustand, Fokus, Z-Order | Welt- oder Gridzustand |
+| `showcase` | sichtbare Referenzszene | Core entscheiden, Grid schreiben |
+
+- **Räumliche Wahrheit:** `grid` und `findPath`-Route bleiben die einzigen Positionsquellen. `worldToScreen` und `screenToWorld` existieren genau einmal in `packages/client/src/render/camera.ts`; Renderer, Hit-Test und Drag benutzen dieselbe Implementierung.
 
 - **Single Responsibility:** Eine Datei = ein Job. Kein God-File, kein Util-Sumpf.
 
@@ -89,6 +103,12 @@ Kommentare (`//`, `/* */`, `/** */`) und Leerzeilen zählen nicht. Gemessen wird
 | `packages/client/src/village` | **150** | Gebäude je File |
 | `packages/client/src/inventory` | **120** | Inventar/Shop/Zerlegen getrennt |
 | `packages/client/src/raid` | **150** | Tactic-Board + Playback getrennt |
+| `packages/client/src/world` | **120** | Definitionen, keine Logik |
+| `packages/client/src/render` | **150** | Szene je Concern splitten |
+| `packages/client/src/visual` | **150** | Observer/Frame getrennt von Pixi |
+| `packages/client/src/input` | **100** | Pointer-Pfad, kein UI |
+| `packages/client/src/window` | **120** | Fenster-Runtime klein halten |
+| `packages/client/src/showcase` | **150** | Treiber, Controls, Combat-Quelle getrennt |
 | `packages/client/src/ui` | **120** | Komponenten klein halten |
 | `packages/server/src/db` | **120** | Query-Module klein |
 | `packages/server/src/matchmaking` | **150** | Pool/Sperre/Score getrennt |
@@ -162,7 +182,7 @@ Shinon ist die lokale Gate-Engine und testende Test-Suite in einem: Sie analysie
 | `hygiene-gate` | **immer** | Pflicht-Dokus vorhanden & ≤200 Zeilen aktiv |
 | `version-gate` | **immer** | `VERSION` synchron + 0..99 Range |
 | `commit-gate` | **immer** | Commit-Gate Shim (Detail in `commit-msg` Hook) |
-| `commit-integrity` | **immer** | Prüft die echten Commits der Range gegen `lib/commit-text.mjs` — die nicht umgehbare Fernprüfung |
+| `commit-integrity` | **immer** | Prüft die echten Inhalts-Commits der Range gegen `lib/commit-text.mjs` (Merge-Commits übersprungen) — die nicht umgehbare Fernprüfung |
 | `schema-contract` | **immer** | Zod-Contracts, sim_version und Contract-Grenzen |
 | `modularity-gate` | **immer** | Domain-Grenzen, Deep-Imports und Import-Zyklen |
 | `dead-code-gate` | **immer** | TypeScript-NoUnused und Dead-Code-Muster |
@@ -178,15 +198,16 @@ Shinon ist die lokale Gate-Engine und testende Test-Suite in einem: Sie analysie
 
 Ablauf: Diff-Analyse → Slice-Run (Base immer + Core nur bei Bedarf) → Prosa/Footer-Scan → Verdict → bei Pass: `post-commit` bumped Version + amended Commit + Auto-Push. Fail = Commit geblockt, kein Push.
 
-**Warum `commit-integrity` existiert:** Die Hooks allein sind kein Schutz. `core.hooksPath` und das generierte `.husky/_` liegen nur in der lokalen `.git/config` bzw. im Arbeitsverzeichnis und sind **nicht** im Repo versioniert. Ein Fresh Clone, `pnpm install --ignore-scripts` oder ein leeres `core.hooksPath` genügt, um sie komplett zu entfernen — `--no-verify` ist der kürzeste Weg. Die verbindliche Grenze sitzt deshalb nicht im Hook, sondern in `required_status_checks` auf `main` für den Status-Check `Shinon Gate`. Wer die lokale Kette umgeht, fällt remote auf. Die Commit-Regeln selbst liegen genau einmal in `scripts/shinon/lib/commit-text.mjs`; Hook und Plugin teilen sich diese Quelle, damit die beiden nicht auseinanderlaufen können. Das Plugin ist **fail-closed**: eine unauflösbare Referenz oder eine leere Range sind ein Hard-Fail, niemals ein grünes Nichts.
+**Warum `commit-integrity` existiert:** Die Hooks allein sind kein Schutz. `core.hooksPath` und das generierte `.husky/_` liegen nur in der lokalen `.git/config` bzw. im Arbeitsverzeichnis und sind **nicht** im Repo versioniert. Ein Fresh Clone, `pnpm install --ignore-scripts` oder ein leeres `core.hooksPath` genügt, um sie komplett zu entfernen — `--no-verify` ist der kürzeste Weg. Die verbindliche Grenze sitzt deshalb nicht im Hook, sondern in `required_status_checks` auf `main` für den Status-Check `Shinon Gate`. Wer die lokale Kette umgeht, fällt remote auf. Die Commit-Regeln selbst liegen genau einmal in `scripts/shinon/lib/commit-text.mjs`; Hook und Plugin teilen sich diese Quelle, damit die beiden nicht auseinanderlaufen können. Das Plugin ist **fail-closed**: eine unauflösbare Referenz oder eine leere Range sind ein Hard-Fail, niemals ein grünes Nichts. Gelesen wird die Range mit `git log --no-merges`, weil ein Merge-Commit keinen eigenen Inhalt trägt und GitHubs synthetischer Test-Merge `refs/pull/N/merge` nie einen Body besitzt; ohne diese Regel wäre jeder Pull Request dauerhaft rot. Der Merge bleibt über seine Eltern im Geltungsbereich.
 
 ### 6.6 Hooks & Kette
 
 - `.husky/pre-commit`: Shinon Slicer — slice-basierte Test-Suite (Base immer, Core nach Bedarf)
+- `.husky/prepare-commit-msg`: Integrations-Absicherung — füllt zu dünne Merge-/Squash-Bodies aus `lib/integration-text.mjs` auf, normale Commits bleiben unberührt
 - `.husky/commit-msg`: Commit-Gate — Prosa 200, Bullet-Verbot, Footer-Block, Datei-Nennung
 - `.husky/post-commit`: **Version bump** (`bump-version.mjs`) + `version-gate` Check + `amend` + **Auto-Push** (wenn `SHINON_AUTO_PUSH=1`, Loop-Schutz `SHINON_SKIP_BUMP=1`)
 - `.husky/pre-push`: Full Test-Suite — alle Plugins (letzte Sicherung)
-- GitHub Actions führt `Shinon Gate` bei jedem Push auf `main` aus. Der direkte main-Push ist gewollt; der Remote-Lauf ist die verbindliche zweite Shinon-Ausführung nach dem lokalen Gate. Ein fehlgeschlagener Remote-Lauf wird nicht als Alternative zum lokalen Gate akzeptiert, sondern muss vor dem nächsten Task behoben werden.
+- GitHub Actions führt `Shinon Gate` bei jedem Push auf `main` und bei jedem Pull Request gegen `main` aus. Die Range für `commit-integrity` kommt beim Push aus `github.event.before`, beim Pull Request aus `github.event.pull_request.base.sha`. Der Remote-Lauf ist die verbindliche zweite Shinon-Ausführung nach dem lokalen Gate. Ein fehlgeschlagener Remote-Lauf wird nicht als Alternative zum lokalen Gate akzeptiert, sondern muss vor dem nächsten Task behoben werden.
 
 ### 6.7 Task-Review, Commit und Body-Pflicht
 
@@ -219,6 +240,10 @@ Jeder Task wird als eigener, in sich abgeschlossener Slice durch die Shinon-Kett
 - Ein lokaler Pre-Push-Pass erfüllt keinen auf GitHub verlangten Status-Check; `GH013` bei geschütztem `main` bedeutet, dass der Remote-Stand vor dem Commit-Update nicht akzeptiert wurde.
 - Nach `git push -u` immer `git branch -vv` prüfen, weil ein Push vom lokalen `main` versehentlich einen Feature-Branch als Upstream setzen kann; für `main` explizit `origin/main` als Upstream verwenden.
 - Verlangt der Nutzer ausdrücklich „alles lokal", werden keine Push-, PR- oder sonstigen Remote-Aktionen ausgeführt und die lokale Shinon-Verifikation als Ziel dokumentiert.
+- Der Workflow muss `pull_request` auf `main` triggern, sonst entsteht für einen PR nie ein Check. Verlangt die Branch-Protection dann den Kontext `Shinon Gate`, kann über diesen PR nie etwas landen: Er bleibt dauerhaft ohne Status und damit blockiert.
+- `commit-integrity` muss Merge-Commits mit `git log --no-merges` auslassen. Sonst scheitert jeder Pull Request am synthetischen Test-Merge, der keinen Body hat, obwohl alle Inhalts-Commits konform sind.
+- Ein Rebase über fremde ungestagte Änderungen braucht `--autostash`; ohne den Stash verweigert Git den Start und die fremde Arbeit müsste von Hand gesichert werden.
+- Läuft `git rebase --continue` durch den `post-commit`-Hook, bumped dieser die Version und staged sie, kann den `amend` aber nicht abschließen, weil noch ein Rebase läuft. Der Bump bleibt dann staged liegen und wird mit `SHINON_SKIP_BUMP=1 git commit --amend --no-edit` in den Commit gefaltet.
 - Zwei Git-Pfade, die sich nur im Groß-/Kleinschreibungsfall unterscheiden, überleben auf case-insensitiven Dateisystemen nicht beide. Das betraf `AGENTS.md` gegen `Agents.md`; Learnings gehöhen in diese Datei, ein zweiter Governance-Pfad wird nicht geführt.
 - Das Repo braucht ein Root-`.gitattributes` mit expliziten `text eol=lf`-Einträgen je Dateityp. Ohne sie schreibt `core.autocrlf=true` unter Windows CRLF in die Worktree; das bricht Vitest bei Shebang-Dateien mit `SyntaxError: Invalid or unexpected token` und null collecteten Tests und erzeugt rund 110 reine CRLF-Fehler in Biome. `* text=auto` ist zu breit, weil `scripts/shinon/tests/fixtures/*.fixture` Byte-Vergleiche trägt.
 

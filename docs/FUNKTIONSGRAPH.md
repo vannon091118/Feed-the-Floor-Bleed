@@ -9,7 +9,13 @@ sim-core:combat → sim-core:hash (Kampf-Hash) → server:sync (Replay-Validieru
 sim-core:combat:resolve-snapshot → contracts:ResultPayload + contracts:RaidLogPayload
 sim-core:combat:fixture-job → contracts:RaidJob (validierter Auftrag, kein I/O)
 contracts:RaidJobSchema + RAID_JOB_TRANSITIONS → server:db:job-state → server:db:raid-store
-client:raid:fixture-raid → sim-core:runFixtureRaid → client:raid:raid-panel (Anzeige)
+client:raid:fixture-raid → sim-core:runFixtureRaid → client:ui:panels (Anzeige)
+client:world → client:visual + client:render + client:dungeon-editor (Definitionen)
+client:dungeon-editor:state → client:visual:observer → client:render (Deskriptoren, ohne Pixi)
+client:render:camera → client:input:hit-test + client:showcase:controls (einzige World-Screen-Transformation)
+client:showcase:combat-source → sim-core:resolveSnapshotRaid → client:render (echter Core-Log)
+client:input:drag → Drop-Command (keine Spielregel im Command)
+client:window ↔ client:ui (Kontextfenster über der Pixi-Szene)
 sim-core:genome → sim-core:items (Stein-Tier) + client:raid (Tactic-Board)
 client:storage ↔ client:dungeon-editor/village (lokal)
 client:net → server:sync/matchmaking (Upload/Results sequenziell)
