@@ -7,7 +7,7 @@ Deterministisches Async-Spiel mit geteiltem Core. Der Server nutzt `sim-core` (F
 ## Schichten
 
 - `contracts` besitzt Zod-Schemas, Protokoll-Versionen (`sim_version`), Hash-Verträge. Keine Logik.
-- `sim-core` besitzt reine Funktionen ohne I/O/Zeit/Zufall von außen. PRNG via Seed, A* mit festem Tie-Break.
+- `sim-core` besitzt reine Funktionen ohne I/O/Zeit/Zufall von außen. PRNG via Seed, A* mit festem Tie-Break, Combat-Ticks, kanonischer Log-Hash und Replay.
 - `client` besitzt UI, Rendering (PixiJS 8), PWA, Dexie, Net (Upload/Results sequenziell pro Etage).
 - `server` besitzt D1, Queues, Pool, Defender-State und Replay-Validierung; MMR-Matching und Ghost-Fallback sind geplante Zielmodule, aber keine bestätigten Spielregeln (siehe `docs/CONCEPT_REVIEW.md`).
 - `scripts/shinon` besitzt Commit-Gate + Test-Suite, slice-basiert nach `git diff`. Full-Run nur in `pre-push`.

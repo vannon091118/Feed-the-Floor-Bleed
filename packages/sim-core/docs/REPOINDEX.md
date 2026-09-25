@@ -3,11 +3,11 @@
 | Pfad | Job |
 |------|-----|
 | `src/prng/` | Mulberry32, Seed-Ableitung |
-| `src/math/` | Fixed-Point, int-sqrt |
-| `src/grid/` | Grid, RLE+deflate, A* |
-| `src/combat/` | Auto-Battler, Tactic-Eval |
-| `src/genome/` | Zucht, Generation, Mutation |
-| `src/items/` | Items, Essenzen, Steine |
-| `src/hash/` | Hash, Replay-Checkpoint |
-| `src/ghost/` | Ghost-Generator |
+| `src/math/` | Fixed-Point, isqrt |
+| `src/hash/` | FNV-1a-Hash-Kette |
+| `src/grid/` | Grid, A*, Hard-Block |
+| `src/combat/` | Tick-Simulation, Events, Log-Hash, Replay |
+| `src/genome/` | offen: Zucht, Generation, Mutation |
+| `src/items/` | offen: Items, Essenzen, Steine |
+| `src/ghost/` | offen: Ghost-Generator |
 | `docs/*` | Pflicht-Doku dieser Domäne |

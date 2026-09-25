@@ -6,25 +6,25 @@ Diese Roadmap ist die einzige aktive Reihenfolge für Produkt- und Technikarbeit
 
 ## Statusupdate — 2026-09-25
 
-T1.0 ist abgeschlossen. T1.1 ist als Fixture-Shell mit Tag/Nacht-Umschaltung und Dungeon-Editor in `packages/client` vorhanden; die Ende-zu-Ende-Abnahme bleibt offen. Der nächste aktive Block ist T1.2: deterministischer Combat-, Hash- und Replay-Core. Parallel wurde `docs/CONCEPT_REVIEW.md` auf den ODT-Stand zurückgeschnitten; KI-Vorschläge sind dort als `[K]` markiert und keine Implementierungsfreigabe.
+T1.0 ist abgeschlossen. T1.1 ist als Fixture-Shell mit Tag/Nacht-Umschaltung und Dungeon-Editor in `packages/client` vorhanden; die Ende-zu-Ende-Abnahme bleibt offen. T1.2 ist abgeschlossen: `packages/sim-core` besitzt jetzt deterministische `prng`-, `math`-, `hash`- und `combat`-Module, und gleicher Seed plus Snapshot liefern denselben Hash und identischen Log. Der nächste aktive Block ist T1.3: Contract-v2-Ergebnislog und lokale Fixture-Job-Ausführung. Parallel wurde `docs/CONCEPT_REVIEW.md` auf den ODT-Stand zurückgeschnitten; KI-Vorschläge sind dort als `[K]` markiert und keine Implementierungsfreigabe.
 
 ## Audit-Snapshot — 2026-09-25
 
 ### Grün
 
 - `pnpm run -s typecheck` bestanden.
-- `pnpm test -- --run` bestanden: 12 Testdateien, 60 Tests (inklusive 5 Client-Tests der Fixture-Shell).
+- `pnpm test -- --run` bestanden: 16 Testdateien, 79 Tests (inklusive 5 Client-Tests und 19 neuen Core-Tests).
 - `pnpm run -s check` bestanden: LOC, Hygiene und alle Shinon-Gates.
 - `pnpm audit --prod --json | jq` meldet keine bekannten Schwachstellen.
-- Grid, Contracts und D1-Raid-Freeze sind durch Tests abgedeckt.
+- Grid, Contracts, D1-Raid-Freeze sowie Combat-, Hash- und Replay-Core sind durch Tests abgedeckt.
 
 ### Befunde mit Priorität
 
 - **P1 — Client nur als Fixture-Shell:** `packages/client` besitzt Shell, Tag/Nacht-Umschaltung und Dungeon-Editor, aber weder Storage noch Net oder Raid-Playback.
-- **P1 — Kein vollständiger Raid-Flow:** HTTP, Auth, Queue, Matching, Ghost, Combat, Replay und Ergebniskonsequenzen sind nicht implementiert.
+- **P1 — Kein vollständiger Raid-Flow:** HTTP, Auth, Queue, Matching, Ghost und Ergebniskonsequenzen sind nicht implementiert; Combat-, Hash- und Replay-Core stehen.
 - **P1 — Paketmanager uneinheitlich (behoben in T1.0):** `packageManager` und Workspace sind auf pnpm ausgelegt, CI nutzt jetzt `pnpm install --frozen-lockfile`, `pnpm-lock.yaml` ist vorhanden und das veraltete `package-lock.json` wurde entfernt.
 - **P2 — Dokumentationsabstand:** Funktionsgraph und Architektur beschreiben Zielmodule, nicht den aktuellen Implementierungsstand. Ziel und Ist-Stand müssen bei jedem Arbeitspaket getrennt bleiben.
-- **P2 — Testabdeckung:** Die vorhandenen Tests decken Contracts, Grid und D1-Persistenz ab, nicht Client-Verhalten, End-to-End-Raids, Replay-Determinismus oder Fehlerfälle des Netzwerks.
+- **P2 — Testabdeckung:** Die vorhandenen Tests decken Contracts, Grid, D1-Persistenz und jetzt Replay-Determinismus ab, nicht Client-Verhalten, End-to-End-Raids oder Fehlerfälle des Netzwerks.
 
 ## Prioritätsregel
 
@@ -71,7 +71,7 @@ Diese Arbeit wird nach Abschluss von T1 zu T2 promoted. Sie startet nicht parall
 
 ## Nächster konkreter Schritt
 
-T1.2 beginnen: deterministischen Combat-, Hash- und Replay-Core auf dem vorhandenen Grid bauen. T1.1 ist als Fixture-Shell in `packages/client` vorhanden.
+T1.3 beginnen: Contract-v2-Ergebnislog und lokale Fixture-Job-Ausführung bauen. T1.2 ist im `sim-core` abgeschlossen, T1.1 ist als Fixture-Shell in `packages/client` vorhanden.
 
 ## Pflegeprotokoll
 

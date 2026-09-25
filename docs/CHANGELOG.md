@@ -1,5 +1,12 @@
 # docs/CHANGELOG.md — Global
 
+## 2026-09-25 — T1.2 deterministischer Combat-, Hash- und Replay-Core
+
+- `packages/sim-core` implementiert `prng` (Mulberry32 plus Seed-Ableitung), `math` (Fixed-Point, isqrt), `hash` (FNV-1a) und `combat` (bounded Tick-Simulation, Event-Log, kanonischer Log-Hash, Replay).
+- Gleicher Seed und Snapshot liefern denselben Hash und identischen Log; `resolveCombat`, `simulateCombat`, `replayCombat` und `verifyCombatLog` sind öffentlich.
+- Balancing bleibt provisorisch zentral in `PROVISIONAL_RULES` und ist `[K]` in `docs/CONCEPT_REVIEW.md`, keine Nutzerentscheidung.
+- 19 neue Tests; Gesamtstand 16 Testdateien und 79 Tests. `docs/ROADMAP.md` rückt T1.3 als nächsten Block nach.
+
 ## 2026-09-25 — Konzept-Realignment auf ODT-Stand
 
 - `docs/CONCEPT_REVIEW.md` neu strukturiert: `[N]` Nutzerfestlegung, `[K]` KI-Vorschlag, `[O]` offen; nur `[N]` ist fix.

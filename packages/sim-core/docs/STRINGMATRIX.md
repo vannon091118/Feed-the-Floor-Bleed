@@ -3,10 +3,13 @@
 | Schlüssel | Bedeutung |
 |-----------|-----------|
 | `prng/mulberry32` | Seed → Zufallsstrom |
-| `math/fixed` | Fixed-Point Skala (z. B. 1000) |
+| `prng/derive` | seed + index + salt → Sub-Stream |
+| `math/fixed` | Fixed-Point-Skala 1000 |
+| `hash/fnv1a` | 32-Bit-Hash-Kette über Wörter und Text |
+| `combat/stage` | `heroes-win`, `monsters-win`, `timeout` |
+| `combat/event` | `move`, `attack`, `death`, `end` |
+| `combat/role` | `hero`, `monster`, `boss` |
+| `combat/side` | `heroes`, `monsters` |
 | `grid/64x64` | Etagen-Größe, Zellen-Array |
 | `grid/hard-block` | Letzte freie Route nicht zumauerbar |
-| `combat/20tps` | 20 Ticks/s, 90s Zeitlimit |
-| `genome/intra-cluster` | Zucht nur intra-Cluster v1 |
-| `items/mutators1-4` | Visuelle Layer pro Item |
-| `hash/replay` | Hash-Kette als Debug-Checkpoint |
+| `combat/tick-rate` | Vorläufig 20 Ticks/s, 1800 Ticks maximal (`[K]`) |
