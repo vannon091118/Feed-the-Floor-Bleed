@@ -3,6 +3,7 @@ import {
   type CellTypeValue,
   type DungeonGrid,
   type PathResult,
+  type Point,
   VISIBLE_TILE_SIZE,
   cloneDungeonGrid,
   getCell,
@@ -48,4 +49,33 @@ export function visibleRouteTiles(route: PathResult): Set<number> {
       ({ x, y }) => Math.floor(y / 4) * VISIBLE_TILE_SIZE + Math.floor(x / 4),
     ),
   )
+}
+
+/** Logikzellen je sichtbarem Tile. Feste 4, muss zu `VISIBLE_TILE_SIZE` passen. */
+const CELLS_PER_TILE = 4
+
+function coversTile(point: Point, tileX: number, tileY: number): boolean {
+  return (
+    point.x >= tileX * CELLS_PER_TILE &&
+    point.x < (tileX + 1) * CELLS_PER_TILE &&
+    point.y >= tileY * CELLS_PER_TILE &&
+    point.y < (tileY + 1) * CELLS_PER_TILE
+  )
+}
+
+/**
+ * Welcher Anker liegt in diesem Tile?
+ *
+ * Spawn und Boss sind Logikzellen, keine Tile-Ecken. Ein Vergleich gegen die
+ * erste Zelle des Tiles verfehlt den Boss bei 63,63, weil Tile 15,15 nur die
+ * Zelle 60,60 sieht. Deshalb wird der Tile-Bereich geprüft.
+ */
+export function tileMarker(
+  dungeon: DungeonGrid,
+  tileX: number,
+  tileY: number,
+): 'start' | 'boss' | null {
+  if (coversTile(dungeon.spawn, tileX, tileY)) return 'start'
+  if (coversTile(dungeon.boss, tileX, tileY)) return 'boss'
+  return null
 }

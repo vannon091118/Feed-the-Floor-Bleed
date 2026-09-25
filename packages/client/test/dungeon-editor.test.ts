@@ -1,6 +1,6 @@
 import { CellType, createDungeonGrid, getCell } from '@floor/sim-core'
 import { describe, expect, it } from 'vitest'
-import { paintTile } from '../src/dungeon-editor/model'
+import { paintTile, tileMarker } from '../src/dungeon-editor/model'
 import {
   grid,
   paintVisibleTile,
@@ -40,6 +40,13 @@ describe('Dungeon-Editor', () => {
     expect(getCell(grid.value, { x: 63, y: 63 })).toBe(CellType.Boss)
     expect(getCell(grid.value, { x: 1, y: 0 })).toBe(CellType.Wall)
     expect(getCell(grid.value, { x: 62, y: 63 })).toBe(CellType.Wall)
+  })
+
+  it('findet Spawn und Boss im richtigen sichtbaren Tile', () => {
+    resetGrid()
+    expect(tileMarker(grid.value, 0, 0)).toBe('start')
+    expect(tileMarker(grid.value, 15, 15)).toBe('boss')
+    expect(tileMarker(grid.value, 7, 7)).toBeNull()
   })
 
   it('malt im Modell ohne das Eingangsgrid zu verändern', () => {
