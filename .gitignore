@@ -8,3 +8,14 @@ dist/
 .DS_Store
 coverage/
 playwright-report/
+
+# Agent-Skills: lokales Tooling, niemals Teil des Repo-Commits.
+# Registry und beide Installer-Zielverzeichnisse bleiben untracked.
+.agents/
+agent/
+.claude/
+skills-lock.json
+
+# Editor: lokale VSCode-Einstellungen enthalten maschinenbezogene URLs und
+# gehören nicht in den Commit. Wer sie teilen will, braucht Freigabe.
+.vscode/

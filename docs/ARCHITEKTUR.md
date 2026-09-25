@@ -11,6 +11,7 @@ Deterministisches Async-Spiel mit geteiltem Core. Der Server nutzt `sim-core` (F
 - `client` besitzt UI (Preact/Signals) und die laufende Szene (PixiJS 8). Die visuelle Basis ist geschichtet: `world` definiert Tiles, Materialien und Deskriptoren, `visual` übersetzt Spielzustand in Präsentationsdeskriptoren, `render` besitzt die Pixi-Szene, `input` den Pointer-Pfad, `window` die Kontextfenster. PWA, Dexie und Net bleiben Zielmodule. Der Client entscheidet nichts selbst.
 - `server` besitzt D1, Queues, Pool, Defender-State und Replay-Validierung; MMR-Matching und Ghost-Fallback sind geplante Zielmodule, aber keine bestätigten Spielregeln (siehe `docs/CONCEPT_REVIEW.md`).
 - `scripts/shinon` besitzt Commit-Gate + Test-Suite, slice-basiert nach `git diff`. Full-Run nur in `pre-push`.
+- `.github/agents/critical-adversarial-reviewer.agent.md` prüft angefragte Trees und Diffs schreibgeschützt gegen `Agents.md` und betroffene Contracts, Domänendokus sowie Tests. Ohne engeren Scope gilt der gesamte Checkout. Die kanonische Governance bleibt ausschließlich in `Agents.md`; der Agent meldet nur belegte Befunde und verändert keine Dateien.
 
 ## Datenfluss T1.3 (belegter Ist-Stand)
 

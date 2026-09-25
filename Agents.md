@@ -2,7 +2,7 @@
 
 > Leitender Systemarchitekt + Code-Enforcer. Diese Datei ist Gesetz. Wer hier pusht, hält sich dran oder fliegt aus dem Build.
 
-Diese Datei ist die einzige kanonische Agent-Governance für das Repository. Weitere eigenständige Agent-Dokumente werden nicht geführt; Erkenntnisse gehören hierher.
+Diese Datei ist die einzige kanonische Agent-Governance für das Repository. Die einzige freigegebene Custom-Agent-Ausnahme ist `.github/agents/critical-adversarial-reviewer.agent.md`: ein schreibgeschütztes Aufgabenprofil, das keine Repo-Regeln dupliziert. Weitere eigenständige Agent-Dokumente bleiben ausgeschlossen; Änderungen an dieser Ausnahme oder zusätzliche Agenten brauchen ausdrückliche Freigabe und Doku-Touch. Die Begründung dieser Governance-Änderung steht in `docs/CHANGELOG.md`.
 
 ## 1. Sprache & Kommunikation
 
