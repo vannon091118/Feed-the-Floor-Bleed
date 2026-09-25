@@ -13,8 +13,10 @@ engine → plugins/dead-code-gate (NoUnused+Dead-Code)
 engine → plugins/redundancy-gate (Duplikatblöcke)
 engine → plugins/core-determinism (Scan)
 engine → plugins/false-positive (Dead-Lock Smoke)
-commit-msg → commit-msg.mjs (Prosa/Footer/Bullet/Datei-Nennung)
+commit-msg → commit-msg.mjs → lib/commit-text.mjs (Prosa/Footer/Bullet/Datei-Nennung)
+plugins/commit-integrity → lib/commit-text.mjs (dieselben Regeln, echte Commit-Range)
+workflow Shinon Gate → commit-integrity --from <before> → required_status_checks auf main
 post-commit → git push (wenn SHINON_AUTO_PUSH=1)
 ```
 
-Kein Plugin kennt ein anderes. Engine orchestriert.
+Kein Plugin kennt ein anderes. Engine orchestriert. `lib/commit-text.mjs` ist die einzige Stelle, an der Commit-Regeln definiert sind; Hook und Plugin teilen sie sich bewusst, damit lokale und ferne Prüfung nicht auseinanderlaufen können.

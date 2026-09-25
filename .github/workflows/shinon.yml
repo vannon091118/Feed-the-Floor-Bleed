@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -31,6 +33,9 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Commit integrity
+        if: ${{ github.event.before != '0000000000000000000000000000000000000000' }}
+        run: node scripts/shinon/plugins/commit-integrity.mjs --from ${{ github.event.before }}
       - name: Typecheck
         run: pnpm run -s typecheck
       - name: Test

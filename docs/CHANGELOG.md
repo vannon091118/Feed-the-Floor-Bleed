@@ -1,5 +1,15 @@
 # docs/CHANGELOG.md — Global
 
+## 2026-09-25 — Commit-Gate gegen Clone-Umgehung verankert
+
+- Die lokale Hook-Kette war kein belastbarer Schutz, weil sie in einem Fresh Clone gar nicht existiert: `core.hooksPath` steht ausschließlich in der lokalen `.git/config`, das generierte Verzeichnis `.husky/_` ist nicht im Repo versioniert, und `pnpm install --ignore-scripts` überspringt den `prepare`-Schritt, der Husky überhaupt erst installiert. Wer das Gate umgehen wollte, brauchte damit keinen Exploit, nur einen normalen Clone.
+- Die Commit-Regeln liegen jetzt genau einmal in `scripts/shinon/lib/commit-text.mjs` als reine Funktion ohne I/O. `scripts/shinon/commit-msg.mjs` wurde auf einen dünnen Shim für die lokalen Hook-Belange reduziert, und das neue `scripts/shinon/plugins/commit-integrity.mjs` teilt sich dieselbe Quelle. Damit können die lokale und die ferne Prüfung nicht mehr auseinanderlaufen.
+- `commit-integrity` prüft die tatsächlich vorhandenen Commits einer Range direkt aus Git. Das ist notwendig, weil der Engine-Slicer in einem frischen CI-Checkout einen leeren Diff sieht und deshalb keine Range kennt. Der Workflow übergibt ihm deshalb `github.event.before` und stellt den Checkout auf `fetch-depth: 0`.
+- Das Plugin ist bewusst fail-closed ausgelegt. Eine unauflösbare Referenz, ein `--from` ohne Wert und eine unlesbare Range führen zu Exit 1 statt zu einem grünen Durchwinken. Ohne diese Eigenschaft wäre das Gate exklusiv umgehbar gewesen, indem man die Range absichtlich kaputt macht.
+- `required_status_checks` auf `main` verlangt jetzt den Kontext `Shinon Gate`. Dieser zweite Pfeiler ist der eigentliche Grund, warum `--no-verify` nichts mehr nützt: Ein lokaler Bypass ändert den Exit-Code eines Hooks, nicht den Status des Remote-Checks. GitHub lehnt den Push ab, solange der Lauf nicht abgeschlossen ist.
+- `docs/REPOINDEX.md`, `Agents.md` §6.5 und die gesamte Pflicht-Doku der Domäne `scripts/shinon` wurden auf den neuen Aufbau nachgezogen. Die Aussage, ein Push sei ohne den Remote-Lauf sinnlos, ist jetzt empirisch gedeckt statt angenommen.
+- Unverändert bleibt: Ein frischer Clone braucht für die lokale Hook-Kette weiterhin ein `pnpm install` ohne `--ignore-scripts`. Das ist gewollt und kein Loch — die verbindliche Grenze liegt remote.
+
 ## 2026-09-25 — Case-Kollision `AGENTS.md`/`Agents.md` und CRLF-Bruch unter Windows aufgelöst
 
 - Git trackte zwei Pfade, die sich nur im Groß-/Kleinschreibungsfall unterscheiden: `AGENTS.md` als Session-Learning-Stub und `Agents.md` als kanonische Governance. Auf case-insensitiven Dateisystemen überlebt nur einer; Folge war ein `git status`, der dauerhaft einen Diff zeigte, den niemand geschrieben hatte, und ein `commit-msg`-Gate, das die Datei namentlich im Commit-Body verlangte. `AGENTS.md` ist jetzt aus dem Index entfernt.

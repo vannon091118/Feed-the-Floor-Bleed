@@ -162,6 +162,7 @@ Shinon ist die lokale Gate-Engine und testende Test-Suite in einem: Sie analysie
 | `hygiene-gate` | **immer** | Pflicht-Dokus vorhanden & ≤200 Zeilen aktiv |
 | `version-gate` | **immer** | `VERSION` synchron + 0..99 Range |
 | `commit-gate` | **immer** | Commit-Gate Shim (Detail in `commit-msg` Hook) |
+| `commit-integrity` | **immer** | Prüft die echten Commits der Range gegen `lib/commit-text.mjs` — die nicht umgehbare Fernprüfung |
 | `schema-contract` | **immer** | Zod-Contracts, sim_version und Contract-Grenzen |
 | `modularity-gate` | **immer** | Domain-Grenzen, Deep-Imports und Import-Zyklen |
 | `dead-code-gate` | **immer** | TypeScript-NoUnused und Dead-Code-Muster |
@@ -176,6 +177,8 @@ Shinon ist die lokale Gate-Engine und testende Test-Suite in einem: Sie analysie
 | `false-positive` | `**/combat/**`, `**/genome/**`, `**/matchmaking/**`, `**/sync/**` | Edge-Case/Mutant-Smoke, Dead-Lock im Etagen-Loop |
 
 Ablauf: Diff-Analyse → Slice-Run (Base immer + Core nur bei Bedarf) → Prosa/Footer-Scan → Verdict → bei Pass: `post-commit` bumped Version + amended Commit + Auto-Push. Fail = Commit geblockt, kein Push.
+
+**Warum `commit-integrity` existiert:** Die Hooks allein sind kein Schutz. `core.hooksPath` und das generierte `.husky/_` liegen nur in der lokalen `.git/config` bzw. im Arbeitsverzeichnis und sind **nicht** im Repo versioniert. Ein Fresh Clone, `pnpm install --ignore-scripts` oder ein leeres `core.hooksPath` genügt, um sie komplett zu entfernen — `--no-verify` ist der kürzeste Weg. Die verbindliche Grenze sitzt deshalb nicht im Hook, sondern in `required_status_checks` auf `main` für den Status-Check `Shinon Gate`. Wer die lokale Kette umgeht, fällt remote auf. Die Commit-Regeln selbst liegen genau einmal in `scripts/shinon/lib/commit-text.mjs`; Hook und Plugin teilen sich diese Quelle, damit die beiden nicht auseinanderlaufen können. Das Plugin ist **fail-closed**: eine unauflösbare Referenz oder eine leere Range sind ein Hard-Fail, niemals ein grünes Nichts.
 
 ### 6.6 Hooks & Kette
 

@@ -10,7 +10,8 @@
       "redundancy-gate",
       "schema-contract",
       "version-gate",
-      "commit-gate"
+      "commit-gate",
+      "commit-integrity"
     ],
     "slices": {
       "core-determinism": {

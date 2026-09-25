@@ -16,6 +16,8 @@
 | `gate/redundancy` | Duplizierte Codeblöcke in Package-Quellen (Base) |
 | `gate/version` | VERSION sync + 0..99 Range (Base) |
 | `gate/commit` | Commit-Gate Shim (Base, Detail in commit-msg) |
+| `gate/commit-integrity` | Fail-closed Fernprüfung der echten Commits einer Range (Base, CI) |
+| `gate/commit-integrity/--from` | Range-Basis für die Fernprüfung; in CI `github.event.before` |
 | `gate/determinism` | Bannt Math.random, crypto.random, Date, sin/pow (Core) |
 | `gate/prosa200` | ≥200 Wörter im Body |
 | `gate/bullet-ban` | Kein `* `, `- `, `• ` im Body |

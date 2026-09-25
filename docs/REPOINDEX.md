@@ -20,6 +20,7 @@
 | `.github/workflows/shinon.yml` | Pflichtprüfung für Pull Requests und `main` |
 | `packages/contracts/src/index.ts` | Öffentliche Contract-v2-Exports mit Raid-Freeze, Grid, Handshakes und `sim_version` |
 | `scripts/shinon/engine.mjs` | Shinon Slicer + Runner (Base immer, Core nach Bedarf) |
-| `scripts/shinon/plugins/*` | Blockierende Governance-Module (global-loc, contract, modularity, dead-code, redundancy) plus Slice-Plugins |
+| `scripts/shinon/lib/commit-text.mjs` | Einzige Quelle der Commit-Regeln, geteilt von lokalem Hook und CI-Plugin |
+| `scripts/shinon/plugins/*` | Blockierende Governance-Module (global-loc, contract, modularity, dead-code, redundancy, commit-integrity) plus Slice-Plugins |
 | `scripts/check-loc.mjs` | LOC-Cap Check |
 | `scripts/check-hygiene.mjs` | Hygiene Check |

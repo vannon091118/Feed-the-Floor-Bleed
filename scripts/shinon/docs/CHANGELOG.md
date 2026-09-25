@@ -1,5 +1,13 @@
 # scripts/shinon/docs/CHANGELOG.md
 
+## 2026-09-25 — Gate gegen Clone-Umgehung verankert
+
+- Der lokale `commit-msg`-Hook allein war kein Schutz: `core.hooksPath` liegt nur in `.git/config`, `.husky/_` ist nicht im Repo, und `pnpm install --ignore-scripts` überspringt den `prepare`-Pfad, der Husky erst installiert. Ein Fresh Clone war damit gate-frei.
+- Die Commit-Regeln sind nach `lib/commit-text.mjs` ausgelagert, einer reinen Funktion ohne I/O. `commit-msg.mjs` ist nur noch Shim für die lokalen Hook-Belange, das neue `plugins/commit-integrity.mjs` teilt sich dieselbe Quelle. Damit können lokale und ferne Prüfung nicht auseinanderlaufen.
+- `plugins/commit-integrity.mjs` prüft die tatsächlichen Commits einer Range aus Git, nicht den Slicer-Diff, der in einem frischen CI-Checkout leer ist. Der Workflow übergibt deshalb `github.event.before` explizit und stellt den Checkout auf `fetch-depth: 0`.
+- Das Plugin ist bewusst fail-closed: unauflösbare Referenz, fehlender Wert nach `--from` und unlesbare Range sind Hard-Fails statt eines grünen Nichts. Ohne diese Eigenschaft wäre exklusives Umgehen möglich, indem man die Range kaputt macht.
+- `required_status_checks` auf `main` verlangt den Kontext `Shinon Gate`. Erst dieser zweite Pfeiler macht `--no-verify` wirkungslos, weil der lokale Bypass den Exit-Code des Hooks ändert, nicht den Status des Remote-Checks.
+
 ## 2026-09-25 — Versionsbump formatstabil
 
 - `scripts/bump-version.mjs` ersetzt das vorhandene JSON-Version-Feld nun ohne vollständiges Reserialisieren der Package-Dateien. Dadurch bleibt Biome-Formatierung nach jedem Post-Commit-Amend erhalten.
