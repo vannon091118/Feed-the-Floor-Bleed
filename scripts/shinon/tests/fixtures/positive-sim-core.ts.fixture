@@ -1,0 +1,2 @@
+import { sim_version } from '@floor/contracts'
+export const coreVersion = sim_version

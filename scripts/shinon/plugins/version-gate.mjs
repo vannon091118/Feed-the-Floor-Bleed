@@ -26,14 +26,18 @@ if (!fs.existsSync(VERSION_FILE)) {
 const raw = fs.readFileSync(VERSION_FILE, 'utf8').trim()
 const m = raw.match(/^(\d+)\.(\d+)\.(\d+)$/)
 if (!m) {
-  console.error(`💥 version-gate Fail — VERSION "${raw}" ungültig, erwartet X.Y.Z`)
+  console.error(
+    `💥 version-gate Fail — VERSION "${raw}" ungültig, erwartet X.Y.Z`,
+  )
   process.exit(1)
 }
 
 const minor = Number(m[2])
 const patch = Number(m[3])
 if (minor > 99 || patch > 99) {
-  console.error(`💥 version-gate Fail — VERSION "${raw}" Minor/Patch >99 — nutze bump-version.mjs`)
+  console.error(
+    `💥 version-gate Fail — VERSION "${raw}" Minor/Patch >99 — nutze bump-version.mjs`,
+  )
   failed = true
 }
 
@@ -42,10 +46,14 @@ for (const rel of PKGS) {
   if (!fs.existsSync(full)) continue
   const pkg = JSON.parse(fs.readFileSync(full, 'utf8'))
   if (pkg.version !== raw) {
-    console.error(`💥 version-gate Fail — ${rel} version "${pkg.version}" != VERSION "${raw}"`)
+    console.error(
+      `💥 version-gate Fail — ${rel} version "${pkg.version}" != VERSION "${raw}"`,
+    )
     failed = true
   }
 }
 
 if (failed) process.exit(1)
-console.log(`✅ version-gate ok — VERSION ${raw} synchron in ${PKGS.length} package.json`)
+console.log(
+  `✅ version-gate ok — VERSION ${raw} synchron in ${PKGS.length} package.json`,
+)

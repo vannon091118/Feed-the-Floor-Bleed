@@ -1,48 +1,69 @@
 #!/usr/bin/env node
-/**
- * schema-contract Plugin — prüft dass contracts vorhanden sind und sim_version getragen wird.
- */
+/** Contract-Gate — Contracts bleiben reine, versionierte Zod-Verträge. */
 import fs from 'node:fs'
 import path from 'node:path'
+import { collectSourceFiles, relativePath } from '../lib/source-scan.mjs'
+import { POLICY } from '../policy.mjs'
 
-const CONTRACT_SRC = 'packages/contracts/src'
-const STRINGMATRIX = 'docs/STRINGMATRIX.md'
+const ROOT = process.cwd()
+const {
+  root: CONTRACT_DIR,
+  package: CONTRACT_PACKAGE,
+  zodVersion,
+} = POLICY.contracts
+const failures = []
 
-let failed = false
-
-// 1) contracts/src muss existieren und index haben (oder bald)
-if (!fs.existsSync(CONTRACT_SRC)) {
-  console.error(`💥 schema-contract Fail — ${CONTRACT_SRC} fehlt`)
-  failed = true
+if (!fs.existsSync(path.join(ROOT, CONTRACT_DIR)))
+  failures.push(`${CONTRACT_DIR} fehlt`)
+if (!fs.existsSync(path.join(ROOT, CONTRACT_DIR, 'index.ts')))
+  failures.push(`${CONTRACT_DIR}/index.ts fehlt`)
+try {
+  const pkg = JSON.parse(
+    fs.readFileSync(path.join(ROOT, CONTRACT_PACKAGE), 'utf8'),
+  )
+  if (pkg.dependencies?.zod !== zodVersion)
+    failures.push(
+      `packages/contracts/package.json muss Zod ${zodVersion} als Runtime-Abhängigkeit führen`,
+    )
+} catch {
+  failures.push(`${CONTRACT_PACKAGE} fehlt oder ist ungültiges JSON`)
 }
 
-// 2) sim_version muss in Stringmatrix dokumentiert sein
-if (fs.existsSync(STRINGMATRIX)) {
-  const sm = fs.readFileSync(STRINGMATRIX, 'utf8')
-  if (!sm.toLowerCase().includes('sim_version')) {
-    console.error('💥 schema-contract Fail — STRINGMATRIX.md muss sim_version dokumentieren')
-    failed = true
+const files = collectSourceFiles([CONTRACT_DIR])
+for (const file of files) {
+  const rel = relativePath(ROOT, file)
+  const content = fs.readFileSync(file, 'utf8')
+  const importSpecifiers = [
+    ...content.matchAll(/(?:from\s+|import\s*\()['"]([^'"]+)['"]/g),
+  ].map((match) => match[1])
+  for (const specifier of importSpecifiers) {
+    if (
+      specifier !== 'zod' &&
+      !specifier.startsWith('zod/') &&
+      !specifier.startsWith('.')
+    )
+      failures.push(`${rel}: Contract-Import ${specifier} ist verboten`)
   }
-} else {
-  console.error(`💥 schema-contract Fail — ${STRINGMATRIX} fehlt (Pflicht-Doku)`)
-  failed = true
-}
-
-// 3) Wenn contracts Dateien existieren, müssen sie zod importieren und sim_version exportieren
-if (fs.existsSync(CONTRACT_SRC)) {
-  const files = fs.readdirSync(CONTRACT_SRC).filter((f) => f.endsWith('.ts'))
-  if (files.length > 0) {
-    let hasSimVersion = false
-    for (const f of files) {
-      const c = fs.readFileSync(path.join(CONTRACT_SRC, f), 'utf8')
-      if (c.includes('sim_version') || c.includes('simVersion')) hasSimVersion = true
-    }
-    if (!hasSimVersion) {
-      console.error('💥 schema-contract Fail — kein File in contracts/src exportiert sim_version')
-      failed = true
-    }
+  if (
+    rel !== `${CONTRACT_DIR}/index.ts` &&
+    !importSpecifiers.some(
+      (specifier) => specifier === 'zod' || specifier.startsWith('zod/'),
+    )
+  ) {
+    failures.push(`${rel}: Contract-Schema muss Zod explizit importieren`)
+  }
+  if (
+    rel === `${CONTRACT_DIR}/index.ts` &&
+    !/\b(sim_version|simVersion)\b/.test(content)
+  ) {
+    failures.push(`${rel}: sim_version fehlt im öffentlichen Contract`)
   }
 }
-
-if (failed) process.exit(1)
-console.log('✅ schema-contract ok — sim_version + Stringmatrix vorhanden (oder Verträge stehen noch aus und Matrix ist vorbereitet).')
+if (failures.length > 0) {
+  console.error('💥 Contract-Gate blockiert:')
+  for (const failure of [...new Set(failures)]) console.error(`  - ${failure}`)
+  process.exit(1)
+}
+console.log(
+  `✅ Contract-Gate ok — ${files.length} Contract-Quellen, sim_version, Zod und Grenzen geprüft.`,
+)

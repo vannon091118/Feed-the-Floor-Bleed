@@ -1,11 +1,11 @@
 #!/usr/bin/env node
+import { execSync } from 'node:child_process'
 /**
  * Installiert Husky + Shinon Hooks. Läuft via `pnpm prepare`.
  * Kette: pre-commit (slice) → commit-msg (gate) → post-commit (bump+push) → pre-push (full)
  */
 import fs from 'node:fs'
 import path from 'node:path'
-import { execSync } from 'node:child_process'
 
 const ROOT = process.cwd()
 
@@ -32,8 +32,8 @@ writeHook(
   'pre-commit',
   `#!/usr/bin/env sh
 # Shinon pre-commit — Slice Test-Suite (sicher + performant)
-# Base-Tests laufen IMMER: loc-gate, hygiene-gate, version-gate, commit-gate
-# Core-Tests laufen nur bei relevantem Slice: core-determinism, schema-contract, false-positive
+# Globale Base-Gates laufen IMMER: loc, global-loc, hygiene, version, commit, contracts, modularity, dead-code, redundancy
+# Core-Tests laufen nur bei relevantem Slice: core-determinism, false-positive
 # Full-Run ist NICHT der Standard — nur der Slicer entscheidet
 set -e
 echo "🦊 Shinon pre-commit — Slice Test-Suite läuft..."
@@ -108,5 +108,9 @@ node scripts/shinon/engine.mjs --full
 `,
 )
 
-console.log('✅ Shinon Hooks installiert (.husky/pre-commit, commit-msg, post-commit, pre-push)')
-console.log('   Kette: pre-commit (slice) → commit-msg (gate) → post-commit (bump+push) → pre-push (full)')
+console.log(
+  '✅ Shinon Hooks installiert (.husky/pre-commit, commit-msg, post-commit, pre-push)',
+)
+console.log(
+  '   Kette: pre-commit (slice) → commit-msg (gate) → post-commit (bump+push) → pre-push (full)',
+)

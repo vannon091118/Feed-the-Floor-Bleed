@@ -53,25 +53,29 @@ function main() {
     try {
       content = fs.readFileSync(pf, 'utf8')
     } catch (e) {
-      throw new Error(`Kann ${path.relative(ROOT, pf)} nicht lesen: ${e.message}`)
+      throw new Error(
+        `Kann ${path.relative(ROOT, pf)} nicht lesen: ${e.message}`,
+      )
     }
     let pkg
     try {
       pkg = JSON.parse(content)
     } catch (e) {
-      throw new Error(`Ungültiges JSON in ${path.relative(ROOT, pf)}: ${e.message}`)
+      throw new Error(
+        `Ungültiges JSON in ${path.relative(ROOT, pf)}: ${e.message}`,
+      )
     }
     if (pkg.version !== nextStr) toUpdate.push({ pf, pkg, original: content })
   }
 
   const prevVersion = raw
-  fs.writeFileSync(VERSION_FILE, nextStr + '\n', 'utf8')
+  fs.writeFileSync(VERSION_FILE, `${nextStr}\n`, 'utf8')
   console.log(`🦊 Version bump: ${fmt(cur)} → ${nextStr}`)
 
   try {
     for (const { pf, pkg } of toUpdate) {
       pkg.version = nextStr
-      fs.writeFileSync(pf, JSON.stringify(pkg, null, 2) + '\n', 'utf8')
+      fs.writeFileSync(pf, `${JSON.stringify(pkg, null, 2)}\n`, 'utf8')
       console.log(`  ✓ ${path.relative(ROOT, pf)} → ${nextStr}`)
     }
   } catch (e) {

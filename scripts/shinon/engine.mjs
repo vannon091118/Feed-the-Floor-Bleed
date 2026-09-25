@@ -1,11 +1,13 @@
 #!/usr/bin/env node
+import { execSync, spawnSync } from 'node:child_process'
 /**
  * Shinon — modulare Commit-Gate & Test Engine.
  * Slicing nach git diff, Plugin-Slices als isolierte Checks.
  */
 import fs from 'node:fs'
 import path from 'node:path'
-import { execSync, spawnSync } from 'node:child_process'
+import { shouldRun } from './lib/engine-policy.mjs'
+import { POLICY } from './policy.mjs'
 
 const ROOT = process.cwd()
 
@@ -15,7 +17,10 @@ function getChangedFiles({ staged }) {
     // staged = git diff --cached --name-only ; unstaged vs HEAD
     const args = staged ? 'diff --cached --name-only' : 'diff --name-only HEAD'
     const out = execSync(`git ${args}`, { encoding: 'utf8', cwd: ROOT })
-    return out.split('\n').map((s) => s.trim()).filter(Boolean)
+    return out
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean)
   } catch {
     return []
   }
@@ -33,37 +38,23 @@ function loadPlugins() {
   return plugins.sort((a, b) => a.name.localeCompare(b.name))
 }
 
-function shouldRun(pluginName, changedFiles, forceFull) {
-  if (forceFull) return true
-  const any = (pred) => changedFiles.some((f) => pred(f))
-  switch (pluginName) {
-    case 'loc-gate':
-      return true
-    case 'hygiene-gate':
-      return true
-    case 'version-gate':
-      return true
-    case 'commit-gate':
-      return true
-    case 'core-determinism':
-      return any((f) => f.startsWith('packages/sim-core/') || f.startsWith('packages/contracts/'))
-    case 'schema-contract':
-      return any((f) => f.startsWith('packages/contracts/') || f.includes('/sync/') || f.includes('/net/'))
-    case 'false-positive':
-      return any((f) => f.includes('/combat/') || f.includes('/genome/') || f.includes('/matchmaking/') || f.includes('/sync/'))
-    default:
-      return true
-  }
-}
-
 function runPlugin(plugin, changedFiles) {
-  const res = spawnSync('node', [plugin.path, '--changed', changedFiles.join(',')], {
-    encoding: 'utf8',
-    cwd: ROOT,
-    timeout: 60_000,
-  })
+  const res = spawnSync(
+    'node',
+    [plugin.path, '--changed', changedFiles.join(',')],
+    {
+      encoding: 'utf8',
+      cwd: ROOT,
+      timeout: 60_000,
+    },
+  )
   const ok = res.status === 0
-  return { ok, stdout: (res.stdout || '').trim(), stderr: (res.stderr || '').trim(), code: res.status }
+  return {
+    ok,
+    stdout: (res.stdout || '').trim(),
+    stderr: (res.stderr || '').trim(),
+    code: res.status,
+  }
 }
 
 function main() {
@@ -73,9 +64,19 @@ function main() {
   const changedFiles = forceFull
     ? (() => {
         try {
-          const out = execSync('git diff --name-only HEAD', { encoding: 'utf8', cwd: ROOT })
-          const stagedOut = execSync('git diff --cached --name-only', { encoding: 'utf8', cwd: ROOT })
-          const set = new Set([...out.split('\n'), ...stagedOut.split('\n')].map((s) => s.trim()).filter(Boolean))
+          const out = execSync('git diff --name-only HEAD', {
+            encoding: 'utf8',
+            cwd: ROOT,
+          })
+          const stagedOut = execSync('git diff --cached --name-only', {
+            encoding: 'utf8',
+            cwd: ROOT,
+          })
+          const set = new Set(
+            [...out.split('\n'), ...stagedOut.split('\n')]
+              .map((s) => s.trim())
+              .filter(Boolean),
+          )
           return [...set]
         } catch {
           return []
@@ -88,7 +89,9 @@ function main() {
     console.log('⚠️  Shinon: keine Plugins gefunden — nur Global Gates laufen')
   }
 
-  console.log(`🦊 Shinon Gate — ${forceFull ? 'FULL' : 'SLICE'} Mode — ${changedFiles.length} geänderte Dateien`)
+  console.log(
+    `🦊 Shinon Gate — ${forceFull ? 'FULL' : 'SLICE'} Mode — ${changedFiles.length} geänderte Dateien`,
+  )
   if (changedFiles.length > 0) {
     for (const f of changedFiles) console.log(`  • ${f}`)
   }
@@ -97,7 +100,7 @@ function main() {
   const results = []
 
   for (const p of plugins) {
-    const run = shouldRun(p.name, changedFiles, forceFull)
+    const run = shouldRun(p.name, changedFiles, forceFull, POLICY)
     if (!run) {
       console.log(`⏭️  ${p.name} — geskippt (kein relevanter Slice)`)
       results.push({ name: p.name, skipped: true })
@@ -118,7 +121,9 @@ function main() {
   }
 
   if (failed) {
-    console.error('\n💥 Shinon Verdict: FAIL — Commit geblockt. Fix die markierten Plugins.')
+    console.error(
+      '\n💥 Shinon Verdict: FAIL — Commit geblockt. Fix die markierten Plugins.',
+    )
     process.exit(1)
   } else {
     console.log('\n✅ Shinon Verdict: PASS — alle relevanten Gates bestanden.')

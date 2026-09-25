@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "engine": {
+    "always": [
+      "loc-gate",
+      "hygiene-gate",
+      "global-loc-gate",
+      "modularity-gate",
+      "dead-code-gate",
+      "redundancy-gate",
+      "schema-contract",
+      "version-gate",
+      "commit-gate"
+    ],
+    "slices": {
+      "core-determinism": {
+        "prefixes": ["packages/sim-core/", "packages/contracts/"]
+      },
+      "false-positive": {
+        "contains": ["/combat/", "/genome/", "/matchmaking/", "/sync/"]
+      }
+    }
+  },
+  "source": {
+    "extensions": [".ts", ".tsx", ".js", ".mjs", ".cjs", ".jsx"],
+    "ignoreDirectories": [
+      "node_modules",
+      "dist",
+      "coverage",
+      ".git",
+      ".husky",
+      "historisch",
+      ".freebuff"
+    ]
+  },
+  "globalLoc": {
+    "roots": ["packages", "scripts"]
+  },
+  "locCaps": [
+    { "prefix": "packages/contracts/src", "cap": 120, "owner": "contracts" },
+    { "prefix": "packages/sim-core/src/prng", "cap": 80, "owner": "prng" },
+    { "prefix": "packages/sim-core/src/hash", "cap": 80, "owner": "hash" },
+    { "prefix": "packages/sim-core/src/math", "cap": 120, "owner": "math" },
+    { "prefix": "packages/sim-core/src/grid", "cap": 150, "owner": "grid" },
+    { "prefix": "packages/sim-core/src/combat", "cap": 150, "owner": "combat" },
+    { "prefix": "packages/sim-core/src/genome", "cap": 150, "owner": "genome" },
+    { "prefix": "packages/sim-core/src/items", "cap": 150, "owner": "items" },
+    { "prefix": "packages/sim-core/src/ghost", "cap": 150, "owner": "ghost" },
+    {
+      "prefix": "packages/sim-core/src",
+      "cap": 150,
+      "owner": "sim-core/fallback"
+    },
+    { "prefix": "packages/client/src/net", "cap": 100, "owner": "net" },
+    { "prefix": "packages/client/src/storage", "cap": 100, "owner": "storage" },
+    {
+      "prefix": "packages/client/src/dungeon-editor",
+      "cap": 150,
+      "owner": "dungeon-editor"
+    },
+    { "prefix": "packages/client/src/village", "cap": 150, "owner": "village" },
+    {
+      "prefix": "packages/client/src/inventory",
+      "cap": 120,
+      "owner": "inventory"
+    },
+    { "prefix": "packages/client/src/raid", "cap": 150, "owner": "raid" },
+    { "prefix": "packages/client/src/ui", "cap": 120, "owner": "ui" },
+    { "prefix": "packages/client/src", "cap": 150, "owner": "client/fallback" },
+    { "prefix": "packages/server/src/db", "cap": 120, "owner": "db" },
+    {
+      "prefix": "packages/server/src/matchmaking",
+      "cap": 150,
+      "owner": "matchmaking"
+    },
+    { "prefix": "packages/server/src/sync", "cap": 150, "owner": "sync" },
+    { "prefix": "packages/server/src", "cap": 150, "owner": "server/fallback" },
+    {
+      "prefix": "scripts/shinon/plugins",
+      "cap": 150,
+      "owner": "shinon/plugin"
+    },
+    {
+      "prefix": "scripts/shinon/engine.mjs",
+      "cap": 200,
+      "owner": "shinon/engine"
+    },
+    {
+      "prefix": "scripts/shinon/install-hooks.mjs",
+      "cap": 200,
+      "owner": "shinon/install"
+    },
+    { "prefix": "scripts/shinon", "cap": 200, "owner": "shinon/fallback" },
+    {
+      "prefix": "scripts/bump-version.mjs",
+      "cap": 200,
+      "owner": "tooling/version"
+    },
+    { "prefix": "scripts/check-loc.mjs", "cap": 200, "owner": "tooling" },
+    { "prefix": "scripts/check-hygiene.mjs", "cap": 200, "owner": "tooling" }
+  ],
+  "deadCode": { "roots": ["packages", "scripts"] },
+  "coreDeterminism": {
+    "roots": ["packages/sim-core/src", "packages/contracts/src"]
+  },
+  "falsePositive": {
+    "roots": [
+      "packages/sim-core/src/combat",
+      "packages/sim-core/src/genome",
+      "packages/server/src/matchmaking",
+      "packages/server/src/sync"
+    ],
+    "extensions": [".ts"]
+  },
+  "redundancy": { "roots": ["packages"], "window": 6 },
+  "contracts": {
+    "root": "packages/contracts/src",
+    "package": "packages/contracts/package.json",
+    "zodVersion": "3.23.8"
+  },
+  "modularity": {
+    "domains": {
+      "contracts": "packages/contracts",
+      "sim-core": "packages/sim-core",
+      "client": "packages/client",
+      "server": "packages/server"
+    },
+    "allowed": {
+      "contracts": ["contracts"],
+      "sim-core": ["sim-core", "contracts"],
+      "client": ["client", "sim-core", "contracts"],
+      "server": ["server", "sim-core", "contracts"]
+    }
+  }
+}

@@ -1,0 +1,6 @@
+const sharedOne = 1
+const sharedTwo = 2
+const sharedThree = 3
+const sharedFour = 4
+const sharedFive = 5
+const sharedSix = 6

@@ -2,19 +2,20 @@
 
 ## Rolle
 
-Lokale Gate-Engine + Test-Suite. Jeder Test ist ein modulares Plugin, Shinon separiert die Test-Notwendigkeit dynamisch nach Commit-Slices. Full-Run ist NICHT der Standard — sicher + performant mit Base + Core.
+Lokale Gate-Engine + Test-Suite. Globale Governance-Module laufen bei jedem Commit; deterministische Domain-Checks werden zusätzlich nach Commit-Slices ausgewählt. Full-Run ist NICHT der Standard — sicher + performant mit Base + Core.
 
 ## Slicer
 
 - `git diff --cached --name-only` → changed Files
 - `shouldRun(plugin, changed)` → skip/run
-- Base (immer): `loc-gate`, `hygiene-gate`, `version-gate`, `commit-gate`
-- Core (nur bei relevantem Slice): `core-determinism` (sim-core/contracts, bannt Math.random + crypto.random + Date/sin/pow), `schema-contract` (contracts/sync/net), `false-positive` (combat/genome/matchmaking/sync)
+- Base (immer): `loc-gate`, `global-loc-gate`, `hygiene-gate`, `version-gate`, `commit-gate`, `schema-contract`, `modularity-gate`, `dead-code-gate`, `redundancy-gate`
+- Core (nur bei relevantem Slice): `core-determinism` (sim-core/contracts, bannt Math.random + crypto.random + Date/sin/pow), `false-positive` (combat/genome/matchmaking/sync)
+- `lib/engine-policy.mjs` entscheidet diese Trigger rein aus der geladenen Policy; `engine.mjs` orchestriert nur noch Dateisammlung, Plugin-Start und Verdict.
 - Full nur in `pre-push` via `--full`
 
 ## Plugins
 
-Je Plugin eine `.mjs` in `plugins/`, max 150 LOC, ein Job.
+Je Plugin eine `.mjs` in `plugins/`, max 150 LOC, ein Job. Gemeinsame Source-Erkennung, Ignore-Regeln und LOC-Zählung liegen in `lib/source-scan.mjs`; versionierte Gate-, LOC-, Ignore-, Dependency- und Engine-Trigger-Policies liegen in `policy.json`, werden über `policy.mjs` geladen und vor jeder Verwendung strikt mit `policy-schema.mjs` validiert. Zusätzlich müssen alle konfigurierten Engine-Plugin-Namen zu tatsächlich vorhandenen Plugin-Dateien passen und jede vorhandene Plugin-Datei muss einen Always- oder Slice-Trigger besitzen. `engine.mjs` entscheidet Slices ausschließlich anhand dieser Policy. Nur die unterstützte Policy-Version ist zulässig; bei inkompatibler oder fehlerhafter Policy gibt es keinen stillen Fallback, sondern einen Hard-Fail. Globale Module `global-loc-gate`, `schema-contract`, `modularity-gate`, `dead-code-gate` und `redundancy-gate` sind Hard-Fails und laufen unabhängig vom Diff.
 
 ## Hooks & Kette
 

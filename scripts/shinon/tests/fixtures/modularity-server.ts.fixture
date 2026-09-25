@@ -1,0 +1,2 @@
+import { clientValue } from '@floor/client'
+export const serverValue = clientValue

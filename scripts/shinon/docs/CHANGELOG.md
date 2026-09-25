@@ -1,10 +1,28 @@
 # scripts/shinon/docs/CHANGELOG.md
 
+## 2026-09-25 — Slicer-Grenzfälle gehärtet
+
+- `shouldRun` behandelt einen leeren Diff-Slice wie "kein relevanter Slice": Skip-Gates laufen im Commit nicht leer, Full-Run in Pre-Push und CI bleibt die letzte Instanz.
+- Min-Heap im Core trennt Steps-First und Cost-First-Ordering; der Fallback-Suchpfad optimiert jetzt wirklich Minimalkosten statt Minimalschritte.
+- Golden-Tests decken den Fallback-Ordering-Fall ab und rotieren gegen den alten Always-Steps-First-Heap.
+
+## 2026-09-25 — Globale Governance-Gates
+
+- Shinon prüft jetzt global LOC-Budgets, Contracts, Modularität, Dead Code und Redundanz als blockierende Base-Module.
+- Der Contract-Gate erzwingt Zod, sim_version und reine Contract-Grenzen; Modularity-Gate verbietet Domain-Leaks und Zyklen; Dead-Code-Gate nutzt TypeScript-NoUnused.
+- Globaler LOC-Gate erzwingt einen dynamisch aus den Ownership-Caps abgeleiteten Datei-Cap; es gibt kein künstliches Gesamtbudget.
+- Die Modularity-Fixtures prüfen jetzt sowohl verbotene Zyklen als auch die erlaubten Contracts-, Sim-Core-, Client- und Server-Abhängigkeiten.
+- Source-Erkennung, Ignore-Regeln und LOC-Zählung sind in `lib/source-scan.mjs` zentralisiert; versionierte Gate-, LOC-, Ignore- und Dependency-Policies liegen in `policy.json`/`policy.mjs` und werden strikt über `policy-schema.mjs` validiert.
+- Policy-Versionierung ist explizit: Nur Version 1 wird geladen; inkompatible oder fehlerhafte Policies lösen keinen stillen Fallback, sondern einen Hard-Fail mit Feldpfad aus.
+- `engine.mjs` lädt seine Always- und Slice-Trigger aus `policy.json`; der doppelte `schema-contract`-Slicer-Fall wurde entfernt.
+- Integrationstests prüfen Policy-Matching direkt und starten die echte Engine nur noch in einem Smoke-Test mit gemischten Slices.
+- Engine-Policies werden zusätzlich gegen die tatsächlich vorhandenen Plugin-Dateien geprüft; unbekannte oder unkonfigurierte Plugin-Namen blockieren den Loader.
+
 ## 2026-09-25 — Offizieller Initialstand
 
 - `Shinon Gate` läuft als verpflichtender GitHub-Check für Pull Requests und Pushes auf `main`.
 - Der Root-Commit startet mit Version `0.0.1`, enthält eine echte Contracts-Quelle für den Typecheck und versioniert `package-lock.json` für reproduzierbare `npm ci`-Läufe.
-- Governance bleibt in `Agents.md` kanonisch; Mirrors und Session-Learning enthalten keine konkurrierenden Regeln.
+- Governance bleibt vollständig in `Agents.md` kanonisch; eigenständige Agent-Dokumente und Session-Learning-Duplikate werden nicht gepflegt.
 
 ## 2026-09-25 — Lifecycle-Gate-Härtung
 
