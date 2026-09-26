@@ -1,5 +1,11 @@
 # docs/CHANGELOG.md — Global
 
+## 2026-09-26 — Auto-Push und Commit-Pflicht als by design festhalten
+
+`docs/REGELWERK_GIT.md` bekommt den Abschnitt „Auto-Push und Commit-Pflicht". Bisher stand der Auto-Push nur als Nebensatz im Hook-Abschnitt und als `SHINON_AUTO_PUSH=0` für Lifecycle-Tests, also als Ausnahme von etwas, dessen Begründung nirgends geschrieben war; der Default in `.husky/post-commit` ist `SHINON_AUTO_PUSH=1`, damit schiebt ein gewöhnlicher Commit seinen Branch ohne Zutun, und eine nicht begründete Voreinstellung ist keine Governance. Die Begründung trägt der `pre-push`-Hook, der unmittelbar vor dem Push `scripts/shinon/engine.mjs --full` fährt: Der Auto-Push ist Fortsetzung der Kette von `pre-commit` bis `pre-push` und kein Bypass neben ihr, während die Commit-Pflicht dieselbe Kette in die andere Richtung beschreibt, weil Slice-Engine, Commit-Text-Regel, mechanischer Bump mit `version-gate` und Amend das Entstehen eines nicht gate-konformen Commits verhindern. Sicher macht das erst das Push-Ziel: Der Auto-Push schiebt den aktuell ausgecheckoutten Branch und erreicht `main` nicht, weil `main` `Shinon Gate` mit `strict`, `required_linear_history` und `enforce_admins` verlangt. Ergänzt sind die zwei Grenzen, ein grüner lokaler Lauf ersetzt den verpflichtenden Remote-Status nicht und `SHINON_SKIP_BUMP=1` ist Rekursionsschutz, keine Aussage über das Push-Verhalten.
+
+`docs/ROADMAP.md` ersetzt seinen offenen Prüfpunkt zum T2-1-Branch durch die Messung: `origin/feat/dorfwirtschaft-t2-1` enthält testgedeckte Arbeit, liegt aber fünf Commits und zwei Toolchain-Migrationen hinter `main` und ist deshalb allein rot, was ihn als Rebase- und nicht als Merge-Kandidaten ausweist.
+
 ## 2026-09-26 — Versions-Pins und -Grenzen der Toolchain festgehalten
 
 Vier Dependabot-PRs sind mit begründeten Kommentaren geschlossen: zod 3.23.8 auf 4.6.5, TypeScript 5.6.3 auf 7.0.2, Vitest 2.1.8 auf 5.0.1 und Biome 1.9.4 auf 2.5.14. Alle vier meldeten `mergeable`, scheiterten aber am `Shinon Gate`, und `main` verlangt genau diesen Status-Check.

@@ -17,6 +17,16 @@ Verbindlich für Commits, Hooks und Versionierung. `Agents.md` bleibt der Einsti
 - Kein `--no-verify`. Kein Commit, Push, PR oder Deployment ohne ausdrücklichen Auftrag. Fremde Änderungen bleiben außerhalb des eigenen Task-Slices.
 - Jeder Task bleibt ein einzelner reviewbarer Slice. Vor dem Commit staged Diff, Scope, Tests und Doku prüfen; Remote-Gates sind nach Push abzuwarten, bevor der nächste Task beginnt.
 
+## Auto-Push und Commit-Pflicht
+
+Auto-Push und Commit-Pflicht sind by design und gehören derselben Kette an. Die Commit-Pflicht ist der Filter nach innen, der Auto-Push die Fortsetzung nach außen, und keiner von beiden ersetzt einen Gate.
+
+- `pre-commit` fährt `scripts/shinon/engine.mjs` über den staged Slice, `commit-msg` erzwingt deutschen Conventional-Commit-Titel, einen Fließtext-Body von mindestens zweihundert Wörtern ohne Bullet-Zeilen und die Nennung jeder geänderten Datei, `post-commit` bumped mechanisch, prüft mit `version-gate` und amendet. Ein nicht gate-konformer Commit kommt damit gar nicht erst zustande; der einzige Ausweg ist `--no-verify`, und das ist hier verboten.
+- Der Auto-Push im `post-commit`-Hook ist deshalb unbedenklich, weil `pre-push` unmittelbar davor `engine.mjs --full` fährt. Die vollständige lokale Plugin-Suite ist die letzte Sperre, ein Push verlässt die Maschine also nie ohne sie. Der Default `SHINON_AUTO_PUSH=1` ist die gewollte Voreinstellung, nicht ein Versehen.
+- Die Grenze, die das by design trägt: Der Auto-Push schiebt den **aktuell ausgecheckten Branch** und niemals `main`. `main` verlangt `Shinon Gate` mit `strict`, `required_linear_history` und `enforce_admins`, deshalb kann der Auto-Push den Promotionsweg strukturell nicht umgehen und einen geprüften PR-Kopf nicht unterlaufen. Er verteilt nur den Slice auf seinen eigenen Branch.
+- Ein grüner lokaler Lauf ist ausdrücklich kein verpflichtender Remote-Status. Der `Shinon Gate` auf dem PR bleibt maßgeblich, und der lokale Pre-Push-Pass ersetzt ihn nicht.
+- `SHINON_AUTO_PUSH=0` ist für lokale Lifecycle-Tests und für Slices reserviert, deren Push einen ausdrücklichen Auftrag braucht. `SHINON_SKIP_BUMP=1` ist ausschließlich Rekursionsschutz für den Amend und sagt nichts über das Push-Verhalten aus.
+
 ## Pull Request und Promotion nach `main`
 
 - Der Weg nach `main` läuft ausschließlich über einen Arbeitsbranch und einen Pull Request, nie über einen Direktpush. `main` verlangt den Required-Status-Check `Shinon Gate` und verifizierte Signaturen und erlaubt keine Merge-Commits.
