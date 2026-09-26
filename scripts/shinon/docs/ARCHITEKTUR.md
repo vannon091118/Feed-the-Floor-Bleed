@@ -19,7 +19,7 @@ Je Plugin eine `.mjs` in `plugins/`, max 150 LOC, ein Job. Gemeinsame Source-Erk
 
 ## Hooks & Kette
 
-pre-commit → `engine.mjs` (slice: Base immer, Core nach Bedarf) → prepare-commit-msg → `prepare-commit-msg.mjs` (füllt Merge-/Squash-Bodies aus `lib/integration-text.mjs` auf) → commit-msg → `commit-msg.mjs` (Prosa 200, Bullets, Footer, Datei-Nennung) → post-commit → Root-Commit-Erkennung bleibt `0.0.1`, danach `bump-version.mjs` (mechanisch 0.0.1→0.0.99→0.1.0) mit formatstabiler Ersetzung der bestehenden JSON-Felder + `amend` mit aktiven Hooks + `version-gate` + Auto-Push → pre-push → `engine.mjs --full` (letzte Sicherung). GitHub Actions wiederholt den vollständigen Lauf als `Shinon Gate` bei jedem Push auf `main` und bei jedem Pull Request gegen `main`; die Range kommt beim Push aus `github.event.before`, beim Pull Request aus `github.event.pull_request.base.sha`. Ist der PR-Gate grün, schiebt der Job `promote` (`needs: gate`) den geprüften PR-Kopf per Fast-Forward nach `main`; ein Nicht-Fast-Forward oder eine fehlende Signatur lässt ihn sichtbar scheitern. Der lokale Pre-Push-Gate bleibt die erste Sperre.
+pre-commit → `engine.mjs` (slice: Base immer, Core nach Bedarf) → prepare-commit-msg → `prepare-commit-msg.mjs` (füllt Merge-/Squash-Bodies aus `lib/integration-text.mjs` auf) → commit-msg → `commit-msg.mjs` (Prosa 200, Bullets, Footer, Datei-Nennung) → post-commit → Root-Commit-Erkennung bleibt `0.0.1`, danach `bump-version.mjs` (Next-Bump-Zähler mit Basis aus `origin/main`, 0.0.1→0.0.99→0.1.0, verweigert doppelte Nummern) mit formatstabiler Ersetzung der bestehenden JSON-Felder + `amend` mit aktiven Hooks + `version-gate` + Auto-Push → pre-push → `engine.mjs --full` (letzte Sicherung). GitHub Actions wiederholt den vollständigen Lauf als `Shinon Gate` bei jedem Push auf `main` und bei jedem Pull Request gegen `main`; die Range kommt beim Push aus `github.event.before`, beim Pull Request aus `github.event.pull_request.base.sha`. Ist der PR-Gate grün, schiebt der Job `promote` (`needs: gate`) den geprüften PR-Kopf per Fast-Forward nach `main`; ein Nicht-Fast-Forward oder eine fehlende Signatur lässt ihn sichtbar scheitern. Der lokale Pre-Push-Gate bleibt die erste Sperre.
 
 ## Zwei-Säulen-Gate
 
@@ -33,4 +33,4 @@ Die zweite Säule ist `required_status_checks` auf `main` für den Kontext `Shin
 
 ## Versionierung
 
-`VERSION` + alle `package.json` synchron, PATCH 0..99 → MINOR 0..99 → MAJOR carry. Loop-Schutz `SHINON_SKIP_BUMP=1`.
+`VERSION` + alle `package.json` synchron, PATCH 0..99 → MINOR 0..99 → MAJOR carry. Die Basis kommt aus `origin/main` (`--next` fragt nur, `--ref` überschreibt sie), damit ein hinterherer Branch keine Nummer doppelt vergibt. Loop-Schutz `SHINON_SKIP_BUMP=1`.

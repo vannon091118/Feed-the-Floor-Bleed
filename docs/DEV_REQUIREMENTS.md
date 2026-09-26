@@ -100,7 +100,7 @@ festgeschrieben werden, ist eine offene Entscheidung.
 
 ## 7. Bekannte Stolperfallen
 
-`package.json` darf keine `pnpm`-Runtime-Dependency führen, das kollidiert mit `packageManager`. Ein `package-lock.json` im Working Tree bricht den Remote-Gate. Leere `historisch/`- und Source-Domänenordner brauchen `.gitkeep`, sonst schlägt Fresh-Clone-Hygiene fehl. Hook-Änderungen müssen `scripts/shinon/install-hooks.mjs` und die generierten `.husky/*` gemeinsam treffen. `SHINON_SKIP_BUMP=1` schützt nur die Post-Commit-Recursion, `SHINON_AUTO_PUSH=0` ist der sichere lokale Lifecycle-Test. `core-determinism` und `false-positive` können bei leerer Core-Source grün werden; ein grüner Full-Run ist erst mit echter Source-Abdeckung aussagekräftig.
+`package.json` darf keine `pnpm`-Runtime-Dependency führen, das kollidiert mit `packageManager`. Ein `package-lock.json` im Working Tree bricht den Remote-Gate. Leere `historisch/`- und Source-Domänenordner brauchen `.gitkeep`, sonst schlägt Fresh-Clone-Hygiene fehl. Hook-Änderungen müssen `scripts/shinon/install-hooks.mjs` und die generierten `.husky/*` gemeinsam treffen. `SHINON_SKIP_BUMP=1` schützt nur die Post-Commit-Recursion, `SHINON_AUTO_PUSH=0` ist der sichere lokale Lifecycle-Test. `scripts/bump-version.mjs` liest die Basis aus `origin/main` und fällt ohne erreichbare Basis auf lokal zurück; `node scripts/bump-version.mjs --next` fragt ohne Schreibzugriff. `core-determinism` und `false-positive` können bei leerer Core-Source grün werden; ein grüner Full-Run ist erst mit echter Source-Abdeckung aussagekräftig.
 
 ## 7. Toolchain-Pins und ihre Gründe
 

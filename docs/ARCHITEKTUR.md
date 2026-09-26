@@ -32,7 +32,7 @@ Client `Upload(v2-Raid-Freeze + Taktiken)` → Server friert den vollständigen 
 
 ## Versionierung
 
-`VERSION` im Root ist Single Source of Truth (`X.Y.Z`, PATCH 0..99 → MINOR 0..99 → MAJOR). `scripts/bump-version.mjs` bumped mechanisch nach jedem erfolgreichen Commit (amend mit aktiven Hooks, Loop-Schutz `SHINON_SKIP_BUMP=1`) und schreibt `VERSION` + alle `package.json` synchron. Der erste Root-Commit bleibt `0.0.1`; `version-gate` prüft Sync. GitHub Actions wiederholt den vollständigen Check `Shinon Gate` bei jedem Push auf `main` und bei jedem Pull Request; der lokale Pre-Push-Gate bleibt die erste Sperre. Ist der PR-Gate grün, schiebt der Job `promote` den geprüften Kopf per Fast-Forward nach `main`.
+`VERSION` im Root ist Single Source of Truth (`X.Y.Z`, PATCH 0..99 → MINOR 0..99 → MAJOR). `scripts/bump-version.mjs` bumped mechanisch nach jedem erfolgreichen Commit (amend mit aktiven Hooks, Loop-Schutz `SHINON_SKIP_BUMP=1`) und schreibt `VERSION` + alle `package.json` synchron. Die Basis des Bumps ist der Online-Stand von `origin/main`, nicht die lokale Datei: ein Arbeitsbranch, der hinter `main` liegt, würde sonst die Nummer eines parallelen Branches vergeben, und ein Rebase mit `checkout --ours` auf `VERSION` würde den eigenen Bump stillschweigend verschlucken. Der Zähler verweigert deshalb eine Nummer, die in der Basis schon vergeben wurde. Der erste Root-Commit bleibt `0.0.1`; `version-gate` prüft Sync. GitHub Actions wiederholt den vollständigen Check `Shinon Gate` bei jedem Push auf `main` und bei jedem Pull Request; der lokale Pre-Push-Gate bleibt die erste Sperre. Ist der PR-Gate grün, schiebt der Job `promote` den geprüften Kopf per Fast-Forward nach `main`.
 
 ## Owner-Grenzen
 

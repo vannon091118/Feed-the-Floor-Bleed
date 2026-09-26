@@ -25,7 +25,7 @@
 | `packages/sim-core/src/*` | Deterministischer Core (PRNG, Math, Grid, Combat, Genome, Items, Hash, Ghost) |
 | `packages/client/src/*` | PWA Client: `world`/`visual`/`render`/`input`/`window`/`showcase` als sichtbare visuelle Basis, `dungeon-editor` als Grid-Owner, `village` als einziger Owner der Tag/Nacht/Raid-Phase, `ui` als Shell und Pixi-Host, `raid` als lokaler Fixture-Auftrag; Route-Index-Mapping und Actor-Varianten sind visuell konsistent |
 | `packages/server/src/*` | Server (DB, Matchmaking, Sync) |
-| `scripts/bump-version.mjs` | Mechanischer Version bump (PATCH→MINOR→MAJOR) |
+| `scripts/bump-version.mjs` | Next-Bump-Zähler mit Basis aus `origin/main` (PATCH→MINOR→MAJOR, verweigert doppelte Nummern) |
 | `.github/workflows/shinon.yml` | Pflichtprüfung für Pull Requests und `main`; Job `promote` schiebt den geprüften PR-Kopf per Fast-Forward nach `main` |
 | `packages/contracts/src/index.ts` | Öffentliche Contract-v3-Exports mit Raid-Freeze, Grid, Handshakes, Trail und `sim_version` |
 | `.agents/skills/` | Installierte Review-Skills (`code-slop`, `typescript-review`, `code-quality`), Registry in `skills-lock.json` |

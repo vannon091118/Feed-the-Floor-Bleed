@@ -56,7 +56,10 @@ Auto-Push und Commit-Pflicht sind by design und gehören derselben Kette an. Die
 
 - `VERSION` ist die Single Source of Truth im Format `MAJOR.MINOR.PATCH`; PATCH und MINOR liegen jeweils in `0..99`.
 - `scripts/bump-version.mjs` schreibt `VERSION` und alle Workspace-`package.json` synchron. Versionen nicht von Hand ändern.
-- Der Post-Commit-Hook bump/amended den Commit gemäß `SHINON_SKIP_BUMP`-Loop-Schutz und der lokalen Auto-Push-Konfiguration. `version-gate` prüft Synchronität und Range.
+- **Die Basis des Zählers ist der Online-Stand von `main`, nicht die lokale Datei.** `node scripts/bump-version.mjs --next` fragt nur und schreibt nichts; die Nummer landet auf stdout, alle Diagnosen auf stderr. Steht der Arbeitsbranch hinter `main`, meldet der Zähler beide Werte und zählt von `main` hoch, nicht vom eigenen alten Stand. Ohne erreichbare Basis fällt er auf lokal zurück und sagt das vorher, statt still zu raten.
+- **Der Zähler vergibt keine Nummer zweimal.** Ist die gerechnete Nummer in den letzten fünfzig Bump-Commits der Basis bereits vergeben, bricht er mit Fehler ab und lässt `VERSION` unangetastet. Der richtige Ausweg ist ein Rebase auf `origin/main` und ein neu gerechneter Bump, nicht ein Handgriff in die Datei.
+- **Rebase-Regel für `VERSION`.** Der Commit-Diff eines Branches lautet „Basis-Stand → nächste Nummer". Ist `main` inzwischen weiter, greift der Patch nicht, und eine Auflösung mit `git checkout --ours` verwirft den Bump des Branches **stillschweigend** — der gelandete Commit trägt dann dieselbe Nummer wie sein Nachbar. Bei einem `VERSION`-Konflikt gilt deshalb: Basiswert einsetzen, danach `node scripts/bump-version.mjs` neu rechnen lassen und den Commit kontrolliert mit `SHINON_SKIP_BUMP=1` amenden. Genau dieser Schluck hat am 2026-09-26 auf `main` 0.0.37 doppelt vergeben, auf `222d2a2` und `fb5f5bc`.
+- Der Post-Commit-Hook bump/amended den Commit gemäß `SHINON_SKIP_BUMP`-Loop-Schutz und der lokalen Auto-Push-Konfiguration. `version-gate` prüft Synchronität und Range; die Eindeutigkeit der Nummer prüft der Zähler selbst, nicht das Gate.
 - Änderungen an `package.json` vor dem Slice-Commit vollständig berücksichtigen: Der Bump staged komplette Manifestdateien. Dependency und Lockfile gehören in denselben Slice.
 
 ## Betriebsdetails und Learnings
@@ -66,6 +69,8 @@ Auto-Push und Commit-Pflicht sind by design und gehören derselben Kette an. Die
 - Für lokale Lifecycle-Tests `SHINON_AUTO_PUSH=0` verwenden; `SHINON_SKIP_BUMP=1` ist nur der Rekursionsschutz.
 - Ein leerer Core-Source-Bereich kann einzelne Plugins inhaltslos grün lassen; den tatsächlichen Scope und die Abdeckung mitberichten.
 - Für Commits über Rebase gelten die normalen Hooks. Läuft der Versionsbump während eines Rebase in einen nicht abschließbaren Amend, den staged Bump kontrolliert mit `SHINON_SKIP_BUMP=1` in den Rebase-Commit übernehmen.
+- Ein Zähler, der aus dem eigenen Working Tree hochzählt, sieht parallele Arbeit nicht. Zwei Branches von derselben Basis vergaben so dieselbe Nummer, und ein nachfolgender Rebase schluckte den Bump des zweiten zusätzlich, weil `git checkout --ours` auf `VERSION` den Branch-Diff stillschweigend ins Leere auflöste. Die Nummer gehört deshalb aus dem Online-Stand gelesen und nicht aus der Datei, die man gerade bearbeitet.
+- `version-gate` prüft Konsistenz zwischen `VERSION` und den Manifesten, nicht die Eindeutigkeit über die Historie. Ein doppelt vergebener Stand fällt dort nicht auf; `scripts/shinon/tests/bump-version.test.mjs` deckt den Zähler ab, einschließlich der Verweigerung einer bereits vergebenen Nummer.
 - Fremde staged/untracked Änderungen dürfen weder verloren gehen noch in den Slice rutschen. Ein temporärer `GIT_INDEX_FILE` kann für isolierte Indexoperationen verwendet werden.
 - Ein lokaler Pre-Push-Pass ersetzt keinen verpflichtenden Remote-Status. Workflow, Branch-Protection und Remote-Ergebnis anhand des aktuellen Repository-Zustands prüfen, nicht aus früheren Annahmen ableiten.
 - Auf case-insensitiven Dateisystemen können Pfade, die sich nur in Groß-/Kleinschreibung unterscheiden, kollidieren. `git ls-files -s` zeigt den Indexzustand.

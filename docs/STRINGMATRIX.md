@@ -4,7 +4,7 @@
 |-----------|-----------|----------|
 | `sim_version` | Version der Sim (Snapshot-Hash, Kampf-Hash) — in jedem Snapshot + Validierung | contracts |
 | `VERSION` | Repo-Version (X.Y.Z, PATCH 0..99 → MINOR 0..99 → MAJOR), Single Source of Truth | root |
-| `VERSION/bump` | Mechanischer Bump via `scripts/bump-version.mjs` + amend + auto-push | shinon |
+| `VERSION/bump` | Next-Bump-Zähler via `scripts/bump-version.mjs`, Basis aus `origin/main`, Kollision wird verweigert; + amend + auto-push | shinon |
 | `proto/upload` | Contract-v3-Upload: vollständiger `RaidSnapshot` plus `tactics` | sync/net |
 | `proto/results` | Results-Payload: `token`, `floor`, `hash`, typisierte `summary` | sync/net |
 | `proto/log` | Ergebnislog als eigenes Artefakt: `token`, `floor`, `hash`, `log` inkl. `trail` | sync/net |
