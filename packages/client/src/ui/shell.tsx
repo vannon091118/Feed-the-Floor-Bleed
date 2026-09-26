@@ -1,12 +1,19 @@
 import { signal } from '@preact/signals'
-import { useCallback, useState } from 'preact/hooks'
+import { useCallback } from 'preact/hooks'
 import type { DragDropCommand } from '../input'
-import { RaidPanel } from '../raid/raid-panel'
+import { dayNight } from '../village/state'
 import { WindowLayer, openWindow } from '../window'
 import type { ActorKind } from '../world'
 import { EditorControls } from './editor-controls'
 import { EditorPanel } from './editor-panel'
 import { ActorPanel, LegendPanel, RoutePanel, TeamPanel } from './panels'
+import { PhaseBadge } from './phase-badge'
+import {
+  NightPhasePanel,
+  RaidPhasePanel,
+  ResultPhasePanel,
+  TagPhasePanel,
+} from './phase-panels'
 import { WorldHost } from './world-host'
 
 const lastDrop = signal('Noch kein Drop.')
@@ -20,8 +27,6 @@ function renderContent(id: string) {
 }
 
 export function Shell() {
-  const [night, setNight] = useState(false)
-
   const handleActorClick = useCallback((actorId: string, kind: ActorKind) => {
     openWindow({
       id: `actor:${kind}:${actorId}`,
@@ -37,14 +42,15 @@ export function Shell() {
     lastDrop.value = `${command.source} ${command.id} → Zelle ${command.cell.x},${command.cell.y}`
   }, [])
 
+  const { phase } = dayNight.value
+  const editing = phase === 'night' || phase === 'raid'
+
   return (
-    <main class={night ? 'app is-night' : 'app is-day'}>
+    <main class={phase === 'tag' ? 'app is-day' : 'app'}>
       <header class="topbar">
-        <h1>Feed the Floor · Visual Foundation</h1>
+        <h1>Feed the Floor · Tag/Nacht-Schleife</h1>
         <div class="topbar__actions">
-          <button type="button" class="chip" onClick={() => setNight(!night)}>
-            {night ? 'Nacht' : 'Tag'}
-          </button>
+          <PhaseBadge />
           <button
             type="button"
             class="chip"
@@ -80,9 +86,12 @@ export function Shell() {
           <WindowLayer renderContent={renderContent} />
         </div>
         <aside class="side">
-          <EditorControls />
-          <EditorPanel />
-          <RaidPanel />
+          {phase === 'tag' && <TagPhasePanel />}
+          {phase === 'night' && <NightPhasePanel />}
+          {editing && <EditorControls />}
+          {editing && <EditorPanel />}
+          {phase === 'raid' && <RaidPhasePanel />}
+          {phase === 'result' && <ResultPhasePanel />}
           <p class="hint" aria-live="polite">
             {lastDrop.value}
           </p>

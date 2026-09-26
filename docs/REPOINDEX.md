@@ -21,7 +21,7 @@
 | `docs/historisch/` | Append-only Archiv, u. a. `2026-09-25_roadmap-t1-abgeschlossen.md` mit den abgeschlossenen T1.0/T1.2/T1.3/T1.3b-Blöcken |
 | `packages/contracts/src` | Zod-Schemas, sim_version, Trail, Ergebnislog, Auftragsunion |
 | `packages/sim-core/src/*` | Deterministischer Core (PRNG, Math, Grid, Combat, Genome, Items, Hash, Ghost) |
-| `packages/client/src/*` | PWA Client mit World-/Visual-/Render-/Input-/Window-/Showcase-Schichten; Route-Index-Mapping und Actor-Varianten sind visuell konsistent, der Editor bleibt Grid-Owner |
+| `packages/client/src/*` | PWA Client: `world`/`visual`/`render`/`input`/`window`/`showcase` als sichtbare visuelle Basis, `dungeon-editor` als Grid-Owner, `village` als einziger Owner der Tag/Nacht/Raid-Phase, `ui` als Shell und Pixi-Host, `raid` als lokaler Fixture-Auftrag; Route-Index-Mapping und Actor-Varianten sind visuell konsistent |
 | `packages/server/src/*` | Server (DB, Matchmaking, Sync) |
 | `scripts/bump-version.mjs` | Mechanischer Version bump (PATCH→MINOR→MAJOR) |
 | `.github/workflows/shinon.yml` | Pflichtprüfung für Pull Requests und `main`; Job `promote` schiebt den geprüften PR-Kopf per Fast-Forward nach `main` |

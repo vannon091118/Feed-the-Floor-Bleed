@@ -33,6 +33,12 @@
 | `visual/route-index` | `routePointAt(path, index)` klemmt Actor-/FX-Indizes auf denselben Route-Punkt |
 | `visual/actor-variant` | `actorVariant(id)` liefert identische deterministische Varianten in Leerlauf und Combat |
 | `raid/trail` | Seit T1.1: `CombatLog.trail` (x/y/cell je Schritt) fließt in den Kampf-Hash; die Anzeige kann den Trail statt `route.path` nutzen |
+| `phase/state` | `'tag' \| 'night' \| 'raid' \| 'result'` — Schleifenreihenfolge, einziger Owner `village/state.ts` |
+| `phase/transitions` | erlaubt: `tag→night`, `night→raid`, `raid→result`, `result→tag`, `result→raid`; jeder andere Übergang wird verworfen |
+| `phase/day` | Start `fixture.day` (18), Zähler hoch bei `result→tag`, Auftrag wird dabei gelöscht |
+| `phase/actions` | `startNight`, `triggerRaid`, `completeRaid` (nur aus `raid`), `finishResult` (Nachfolge nach Auftragsstatus) |
 
-`ui/tabs` und `ui/phase` sind mit der alten visuellen Schicht entfallen. Die
-neue Shell hat Tag/Nacht als lokalen Zustand und die Welt als Navigation.
+`ui/tabs` ist mit der alten visuellen Schicht entfallen. Die Shell schaltet
+seit T1.2 nach `village/state.ts`; die alte lokale Tag/Nacht-Notiz ist
+überholt. Die Welt bleibt die Navigation, der Editor bleibt in Nacht und Raid
+aktiv.
