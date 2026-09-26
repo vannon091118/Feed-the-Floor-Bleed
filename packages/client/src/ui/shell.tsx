@@ -1,36 +1,26 @@
-import { signal } from '@preact/signals'
 import { useCallback } from 'preact/hooks'
 import type { DragDropCommand } from '../input'
-import { dayNight } from '../village/state'
-import { WindowLayer, openWindow } from '../window'
+import { openWindow } from '../window'
 import type { ActorKind } from '../world'
-import { EditorControls } from './editor-controls'
-import { EditorPanel } from './editor-panel'
-import { ActorPanel, LegendPanel, RoutePanel, TeamPanel } from './panels'
-import { PhaseBadge } from './phase-badge'
-import {
-  NightPhasePanel,
-  RaidPhasePanel,
-  ResultPhasePanel,
-  TagPhasePanel,
-} from './phase-panels'
-import { WorldHost } from './world-host'
+import { actorLabel } from './actor-label'
+import { recordDrop } from './drop-status'
+import { Sidebar } from './sidebar'
+import { Stage } from './stage'
+import { Topbar } from './topbar'
 
-const lastDrop = signal('Noch kein Drop.')
-
-function renderContent(id: string) {
-  if (id.startsWith('actor:')) return <ActorPanel windowId={id} />
-  if (id === 'team') return <TeamPanel />
-  if (id === 'route') return <RoutePanel />
-  if (id === 'legend') return <LegendPanel />
-  return <p class="hint">Kein Inhalt hinterlegt.</p>
-}
-
+/**
+ * Die Shell ist nur noch Layout.
+ *
+ * Sie kennt keine Phase, keine Phase-Aktion und keinen Dorfzustand: Topbar,
+ * Bühne und Sidebar lesen ihre Stores selbst. Die zwei Rückrufe hier sind
+ * Verdrahtung — ein Klick auf eine Kreatur öffnet ein Fenster, ein Zug meldet
+ * sich im Werkzeugstatus.
+ */
 export function Shell() {
   const handleActorClick = useCallback((actorId: string, kind: ActorKind) => {
     openWindow({
       id: `actor:${kind}:${actorId}`,
-      title: `${kind} · ${actorId}`,
+      title: actorLabel(actorId),
       x: 320,
       y: 180,
       width: 240,
@@ -39,63 +29,15 @@ export function Shell() {
   }, [])
 
   const handleDrop = useCallback((command: DragDropCommand) => {
-    lastDrop.value = `${command.source} ${command.id} → Zelle ${command.cell.x},${command.cell.y}`
+    recordDrop(command)
   }, [])
 
-  const { phase } = dayNight.value
-  const editing = phase === 'night' || phase === 'raid'
-
   return (
-    <main class={phase === 'tag' ? 'app is-day' : 'app'}>
-      <header class="topbar">
-        <h1>Feed the Floor · Tag/Nacht-Schleife</h1>
-        <div class="topbar__actions">
-          <PhaseBadge />
-          <button
-            type="button"
-            class="chip"
-            onClick={() =>
-              openWindow({ id: 'team', title: 'Team', x: 24, y: 24 })
-            }
-          >
-            Team
-          </button>
-          <button
-            type="button"
-            class="chip"
-            onClick={() =>
-              openWindow({ id: 'route', title: 'Route', x: 300, y: 24 })
-            }
-          >
-            Route
-          </button>
-          <button
-            type="button"
-            class="chip"
-            onClick={() =>
-              openWindow({ id: 'legend', title: 'Legende', x: 576, y: 24 })
-            }
-          >
-            Legende
-          </button>
-        </div>
-      </header>
+    <main class="app">
+      <Topbar />
       <section class="stage">
-        <div class="viewport">
-          <WorldHost onActorClick={handleActorClick} onDrop={handleDrop} />
-          <WindowLayer renderContent={renderContent} />
-        </div>
-        <aside class="side">
-          {phase === 'tag' && <TagPhasePanel />}
-          {phase === 'night' && <NightPhasePanel />}
-          {editing && <EditorControls />}
-          {editing && <EditorPanel />}
-          {phase === 'raid' && <RaidPhasePanel />}
-          {phase === 'result' && <ResultPhasePanel />}
-          <p class="hint" aria-live="polite">
-            {lastDrop.value}
-          </p>
-        </aside>
+        <Stage onActorClick={handleActorClick} onDrop={handleDrop} />
+        <Sidebar />
       </section>
     </main>
   )

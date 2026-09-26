@@ -1,0 +1,95 @@
+/* Kontextfenster über der Bühne.
+   Bewusst dichter und ruhiger als die Sidebar: ein Fenster ist ein Werkzeug
+   auf dem Bild, kein Bereich der Seite. */
+.window-layer {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  pointer-events: none;
+}
+
+.game-window {
+  position: absolute;
+  display: flex;
+  min-width: 200px;
+  flex-direction: column;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  box-shadow: var(--elevation-2);
+  pointer-events: auto;
+  overflow: hidden;
+}
+
+.game-window.is-focused {
+  border-color: var(--accent);
+}
+
+.game-window__bar {
+  display: flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--surface);
+  cursor: grab;
+  touch-action: none;
+}
+
+.game-window__title {
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.game-window__close {
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--faint);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.game-window__close:hover {
+  background: var(--line-soft);
+  color: var(--text);
+}
+
+.game-window__body {
+  flex: 1;
+  padding: var(--space-3);
+  overflow: auto;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.game-window__resize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 20px;
+  height: 20px;
+  cursor: nwse-resize;
+  touch-action: none;
+}
+
+@media (max-width: 720px) {
+  .game-window {
+    position: fixed;
+    z-index: 3;
+    top: auto !important;
+    right: 10px;
+    bottom: 10px;
+    left: 10px !important;
+    width: auto !important;
+    height: auto !important;
+    max-height: 60dvh;
+  }
+}

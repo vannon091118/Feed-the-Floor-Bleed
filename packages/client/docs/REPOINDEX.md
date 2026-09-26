@@ -49,19 +49,40 @@
 | `src/showcase/combat-source.ts` | Core-Combat-Log als Positionsquelle |
 | `src/showcase/controls.ts` | Viewport-Steuerung: Pan, Zoom, Klick, Drag |
 | `src/showcase/scene.ts` | Treiber, der Observer, Views und Kamera schaltet |
-| `src/ui/shell.tsx` | Shell: Phasen-Schleife, Welt, Fenster, Editor nach Phase |
-| `src/ui/phase-badge.tsx` | Phasen-Badge mit laufendem Tag in der Topbar |
-| `src/ui/phase-panels.tsx` | Phasen-Panels: Tag, Nacht, Raid, Ergebnis |
+| `src/ui/shell.tsx` | Reines Layout: Topbar, Bühne, Sidebar |
+| `src/ui/topbar.tsx` | Wortmarke, Ressourcenstreifen, Phasenanzeige, Ansichtsumschalter, Werkzeuge |
+| `src/ui/view.ts` | Blick-Signal `village \| dungeon`, bewusst kein Phasenzustand |
+| `src/ui/view-switch.tsx` | Segmentierter Umschalter zwischen Dorf- und Dungeon-Blick |
+| `src/ui/stage.tsx` | Bühne: genau eine Ansicht im Viewport, Fensterlayer darüber |
+| `src/ui/sidebar.tsx` | Sidebar: Panel der Phase, Editorwerkzeug nur im Dungeon-Blick |
+| `src/ui/village-view.tsx` | Dorfblick: Ort, Gilde, Bilanz der letzten Nacht |
+| `src/ui/roster-list.tsx` | Gildenliste, geteilt von Dorfblick und Team-Fenster |
+| `src/ui/stats.tsx` | Beschriftete Wertzeilen statt offener Label-Wert-Listen |
+| `src/ui/phase-badge.tsx` | Schleifen-Anzeige mit laufendem Tag in der Topbar |
+| `src/ui/phase-panels.tsx` | Phasen-Panels: Auftrag und Hauptaktion je Phase |
+| `src/ui/actor-label.ts` | Kennung → sprechender Name für Fenster und Werkzeugstatus |
+| `src/ui/drop-status.tsx` | Rückmeldung über den letzten Zug im Editor |
+| `src/ui/window-tools.tsx` | Schnellfenster der Topbar mit kaskadierenden Startlagen |
+| `src/ui/window-content.tsx` | Fenster-ID → Inhalt, eine Quelle für die Fensterschicht |
 | `src/ui/world-host.tsx` | Stabiler DOM-Host und Lebenszyklus der Pixi-Runtime |
 | `src/ui/editor-panel.tsx` | DOM-Editorraster mit 16×16 sichtbaren Feldern |
-| `src/ui/editor-controls.tsx` | Pinselauswahl und Reset |
+| `src/ui/editor-controls.tsx` | Pinselauswahl und Zurücksetzen |
 | `src/ui/panels.tsx` | Inhalte der Kontextfenster |
-| `src/ui/styles.css` | Layout, Fensterchrome, Editorraster, Mobile |
+| `src/ui/styles/index.css` | Einstiegspunkt der Oberflächen-Styles mit fester Importreihenfolge |
+| `src/ui/styles/tokens.css` | Gestaltungsraster: Farbe, Abstand, Radius, Typografie |
+| `src/ui/styles/base.css` | Reset, Seitenhintergrund, Fokus, reduzierte Bewegung |
+| `src/ui/styles/shell.css` | App-Rahmen, Topbar, Bühnenraster, Viewport |
+| `src/ui/styles/village.css` | Gebietskarten, Gildenliste, Belegungsbalken |
+| `src/ui/styles/panels.css` | Sidebar-Flächen, Wertzeilen, Buttons, Werkzeugstatus |
+| `src/ui/styles/windows.css` | Kontextfenster über der Bühne |
+| `src/ui/styles/editor.css` | Pinselwahl und Editorraster |
+| `src/ui/styles/raid.css` | Auftrag, Urteil und Hash |
 | `src/dungeon-editor/model.ts` | Pure Editor-Regeln (Pinsel, 4x4-Tiles, Marker) |
 | `src/dungeon-editor/state.ts` | Einziger Owner von Grid, Pinsel und Route |
 | `src/village/phase.ts` | Phase-Union in Schleifenreihenfolge, erlaubte Übergänge, reine Entscheidungsfunktion |
 | `src/village/state.ts` | DayNightState-Signal (`phase`, `day`, `job`), einziger Schreibpfad `setPhase` |
 | `src/village/phase-actions.ts` | Schleifen-Kommandos: Nacht starten, Raid auslösen, Ergebnis abschließen |
+| `src/village/settlement.ts` | Dorfblick als reine Ableitung aus Phase-Owner und Fixture, ohne Wirtschaft |
 | `src/village/index.ts` | Barrel der village-Domäne |
 | `src/raid/fixture-raid.ts` | Contract-v3-Upload und lokaler Fixture-Auftrag |
 | `src/raid/raid-panel.tsx` | Probelauf-Panel, reicht den terminalen Auftrag an die Schleife weiter |
@@ -73,9 +94,13 @@
 | `test/visual-foundation.test.ts` | Tests für World-Definitionen, Kamera, Depth, Observer |
 | `test/render-animation.test.ts` | Periodik, Determinismus, Grenzen und Amplituden der Render-Animation |
 | `test/input-drag.test.ts` | Slop-Verhalten: ein Down ohne Weg erzeugt keinen Drop |
+| `test/village-settlement.test.ts` | Dorf-Ableitung gegen echten Loop-Zustand und Auftragsstatus |
+| `test/stage-view.test.ts` | Blickwechsel verändert die Spielphase nicht |
 | `docs/*` | Pflicht-Doku dieser Domäne |
 
 Der Client hat wieder einen Einstiegspunkt. `world`, `visual`, `render`, `input`,
 `window` und `showcase` bilden die sichtbare visuelle Basis; `dungeon-editor`
-bleibt der einzige Grid-Owner. `village` besitzt die Tag/Nacht/Raid-Phase,
-`raid` rechnet den Fixture-Auftrag lokal, die Shell schaltet nach Phase.
+bleibt der einzige Grid-Owner. `village` besitzt die Tag/Nacht/Raid-Phase und
+leitet daraus den Dorfblick ab, `raid` rechnet den Fixture-Auftrag lokal. Die
+Shell ist nur noch Layout; Topbar, Bühne und Sidebar lesen ihre Stores selbst.
+`ui/view.ts` hält den Blick auf die Bühne, der bewusst keine Phase ist.

@@ -1,0 +1,61 @@
+/* Editorwerkzeug: Pinselwahl und das 16×16-Raster in DOM.
+   Trefferflächen bleiben sichtbar, aber das Raster ist Werkzeug, nicht
+   Hauptdarsteller — deshalb ruhiger als die Bühne. */
+.editor-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.editor-grid {
+  display: grid;
+  width: 100%;
+  aspect-ratio: 1;
+  grid-template-columns: repeat(16, 1fr);
+  gap: 2px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  overflow: hidden;
+}
+
+.editor-tile {
+  position: relative;
+  min-width: 0;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.28);
+  border-radius: 2px;
+  color: var(--text-strong);
+  font-size: 10px;
+  font-weight: 800;
+  text-shadow: 0 1px 3px #000;
+  cursor: crosshair;
+  transition: filter 100ms ease, transform 100ms ease;
+}
+
+.editor-tile:hover {
+  z-index: 1;
+  filter: brightness(1.35) saturate(1.15);
+  transform: scale(1.13);
+}
+
+.editor-tile.is-wall {
+  filter: brightness(1.25) saturate(0.8);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.14), inset 0 -3px 0
+    rgba(0, 0, 0, 0.3);
+}
+
+.editor-tile.is-route {
+  outline: 1px solid #ffdc7c;
+  outline-offset: -2px;
+  box-shadow: inset 0 0 8px rgba(255, 207, 91, 0.5);
+}
+
+.editor-tile.is-start {
+  box-shadow: inset 0 0 0 2px #94e6a2;
+}
+
+.editor-tile.is-boss {
+  box-shadow: inset 0 0 0 2px #f2a28a;
+}

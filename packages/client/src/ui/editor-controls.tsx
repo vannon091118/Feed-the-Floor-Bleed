@@ -11,21 +11,23 @@ const BRUSHES: ReadonlyArray<{ id: Brush; label: string }> = [
   { id: 'trap', label: 'Falle' },
 ]
 
+/** Pinselauswahl und Rücksetzen. Beides schreibt nur in den Grid-Owner. */
 export function EditorControls() {
   return (
-    <div class="editor-controls">
+    <div class="editor-tools">
       {BRUSHES.map((entry) => (
         <button
           key={entry.id}
           type="button"
-          class={brush.value === entry.id ? 'chip is-active' : 'chip'}
+          class="chip"
+          aria-pressed={brush.value === entry.id}
           onClick={() => selectBrush(entry.id)}
         >
           {entry.label}
         </button>
       ))}
       <button type="button" class="chip" onClick={() => resetGrid()}>
-        Reset
+        Zurücksetzen
       </button>
     </div>
   )

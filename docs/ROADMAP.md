@@ -4,6 +4,14 @@
 
 Diese Roadmap ist die einzige aktive Reihenfolge für Produkt- und Technikarbeit. Sie trennt den belegten Ist-Stand von der geplanten Zielarchitektur und verhindert, dass unimplementierte Systeme als bereits vorhanden behandelt werden.
 
+## Statusupdate — 2026-09-26 (zweiter Eintrag)
+
+Ein Korrekturblock an der Client-Oberfläche ist gelaufen, der **kein neues Feature-Track** ist: Der Client hatte kein Dorf, sondern eine Label-Wert-Liste mit vier Fixture-Zahlen, zeigte in jeder Phase das Dungeon-Raster im Viewport und führte Debug-Rückmeldung mit Rohkoordinaten in der Sidebar. `village/settlement.ts` leitet den Dorfblick jetzt als reine Funktion aus Phase-Owner und Fixture ab, `ui/view.ts` führt den Blick `village | dungeon` getrennt von der Spielphase, die Shell ist nur noch Layout, und `ui/styles.css` ist durch acht Style-Module auf gemeinsamen Tokens ersetzt.
+
+Ausdrücklich **nicht** angefasst wurde die Dorfwirtschaft: Arbeiterverteilung, Gold- und Materialausgaben, Landkauf und Verkauf der Nachtbeute bleiben T2, weil T1.1 noch in einem eigenen Branch läuft und T1 exklusiv ist. Der Dorfblick zeigt deshalb nur, was die Schleife kennt — Tag, Gilde, Verteidigerplätze, Ergebnis der letzten Nacht. Die Startbasis aus `fixture.workers` und `fixture.attractiveness` ist in der Oberfläche als Startbasis gekennzeichnet und nicht als veränderlich dargestellt. `test/village-settlement.test.ts` und `test/stage-view.test.ts` sind neu.
+
+**Offen:** Die Browser-Abnahme steht aus. In der Arbeitsumgebung waren weder Chrome noch ein DOM-Testsetup verfügbar, die neue Oberfläche ist also nicht am Bildschirm gesehen worden. Vor dem nächsten Statuswechsel gehört sie im Browser durchgeklickt.
+
 ## Statusupdate — 2026-09-26
 
 T1.2 (Ende-zu-Ende-Abnahme der Tag/Nacht/Raid-Schleife) ist abgeschlossen: `packages/client/src/village/` besitzt den DayNightState-Store als einzigen Phase-Owner, die Shell schaltet Tag (Dorf-Basisdaten), Nacht (aktiver Editor), Raid (lokaler Fixture-Lauf) und Ergebnis (TerminalRaidJob mit Tagesabschluss oder Retry), und der Loop wurde im Browser durchgeklickt — Tag 18 → Nacht → Raid → Ergebnis `fixture-raid-1` → Tag 19. `test/day-night-loop.test.ts` führt den vollen Loop mit Fake-Timern in unter 5 s aus, `test/village-phase.test.ts` pinnt Übergänge und Skip-Verbot. Der Editor bleibt in Nacht und Raid aktiv, damit eine blockierte Route vor dem Retry reparierbar ist.
@@ -27,7 +35,7 @@ Nachtrag: Die visuelle Basis ist im Browser lauffähig (`pnpm --filter @floor/cl
 ### Befunde mit Priorität
 
 - **P1 — Trail-Hash erledigt:** Aus dem 64×64-Grid fließt seit dem Trail-Hash der vollständige Trail (Koordinate plus Zelltyp je Schritt) in den Kampf-Hash; gleich lange Routen unterscheiden sich.
-- **P1 — Client ohne echten Spielfluss:** Visuelle Basis steht (Pixi, World, Kamera, Depth, Occlusion, Actors, FX, Observer, Window-Runtime, Showcase), die Tag/Nacht/Raid-Schleife läuft als lokaler Fixture-Loop, aber weder Storage noch Net noch servergebundenes Raid-Playback sind vorhanden. Showcase rechnet nur lokal.
+- **P1 — Client ohne echten Spielfluss:** Visuelle Basis steht (Pixi, World, Kamera, Depth, Occlusion, Actors, FX, Observer, Window-Runtime, Showcase), die Tag/Nacht/Raid-Schleife läuft als lokaler Fixture-Loop, aber weder Storage noch Net noch servergebundenes Raid-Playback sind vorhanden. Showcase rechnet nur lokal. Das Dorf ist seit dem Korrekturblock als Ort sichtbar, aber ohne Wirtschaft: es gibt keine Arbeiterverteilung, keine Ausgaben und keinen Beute-Verkauf.
 - **P1 — Kein vollständiger Raid-Flow:** HTTP, Auth, Queue, Matching, Ghost und Ergebniskonsequenzen fehlen; Core, Contract, lokale Fixture-Ausführung und die geschlossene Tag/Nacht-Schleife stehen.
 - **P2 — Dokumentationsabstand:** Funktionsgraph und Architektur mischen Ziel und Ist-Stand. Bei jedem Arbeitspaket strikt trennen.
 - **P2 — Testabdeckung:** Contracts, Grid, D1 und Replay-Determinismus abgedeckt, nicht Client-Verhalten, E2E-Raids oder Netzfehler.
@@ -73,7 +81,7 @@ Diese Arbeit wird nach Abschluss von T1 zu T2 promoted. Sie startet nicht parall
 
 ## Nächster konkreter Schritt
 
-T1.2 ist abgeschlossen und im Browser abgenommen: Die Tag-/Nacht-/Raid-Schleife läuft als geschlossener, deterministischer Fixture-Loop über den DayNightState-Store. T1.1 (Raid-Playback mit Timeline) läuft weiterhin in einem eigenen Arbeits-Branch. Der Foundation-Audit ist ebenfalls abgeschlossen — 0 CRLF über `.gitattributes` erzwungen, PackageManager-Widerspruch beseitigt, Lockfile bereinigt, alle vier Gates grün. Nach dem Merge des T1.1-Branches folgt die gemeinsame Review-Abnahme beider Blöcke; danach sind Storage, Netz und die Schlussfolgen auf Dorf und Team die offenen Lücken zum spielfähigen Kern.
+T1.2 ist abgeschlossen und im Browser abgenommen: Die Tag-/Nacht-/Raid-Schleife läuft als geschlossener, deterministischer Fixture-Loop über den DayNightState-Store. T1.1 (Raid-Playback mit Timeline) läuft weiterhin in einem eigenen Arbeits-Branch. Der Foundation-Audit ist ebenfalls abgeschlossen — 0 CRLF über `.gitattributes` erzwungen, PackageManager-Widerspruch beseitigt, Lockfile bereinigt, alle vier Gates grün. Nach dem Merge des T1.1-Branches folgt die gemeinsame Review-Abnahme beider Blöcke; danach sind Storage, Netz und die Schlussfolgen auf Dorf und Team die offenen Lücken zum spielfähigen Kern. Vor der nächsten Statusänderung gehört die umgebaute Oberfläche im Browser abgenommen — der Korrekturblock ist gates-grün, aber visuell ungeprüft.
 
 ## Pflegeprotokoll
 

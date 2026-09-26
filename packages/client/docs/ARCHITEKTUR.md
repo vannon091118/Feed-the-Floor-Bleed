@@ -23,7 +23,14 @@ Simulation bleibt der einzige Owner der Spielentscheidungen.
 - `dungeon-editor/` — DOM-Raster und der einzige State-Owner des Grids.
 - `village/` — einziger Owner der Tag/Nacht/Raid-Phase (`phase.ts` reine
   Übergangslogik, `state.ts` Signal-Store, `phase-actions.ts` Kommandos).
-- `ui/` — Shell, Host der Pixi-Welt, Editorraster in DOM, Phasen-Panels.
+  `settlement.ts` leitet daraus den Dorfblick als reine Funktion ab: Gebiete,
+  Gildenroster und die Bilanz der letzten Nacht. Es gibt dort keinen
+  Dorfzustand und keine Wirtschaftsregel — Dorfwirtschaft bleibt T2.
+- `ui/` — Shell und Bühne. Die Shell ist reines Layout; Topbar, Bühne und
+  Sidebar lesen ihre Stores selbst. `view.ts` hält den Blick auf die Bühne
+  (`village | dungeon`) und ist bewusst kein Phasenzustand. `styles/` ist in
+  Raster, Grundlage, Shell, Dorf, Panels, Fenster, Editor und Raid getrennt,
+  eingebunden über `styles/index.css`.
 - `raid/` — bestehender Contract-v3-Upload und lokaler Fixture-Auftrag;
   das Panel reicht das terminale Ergebnis an den Phase-Store weiter.
 - `fixture-data.ts` — read-only Startdaten.
@@ -57,9 +64,16 @@ tag → night → raid → result → tag (Tag +1)
              └─ retry ┘ (fehlgeschlagener Auftrag)
 ```
 
-`village/state.ts` ist der einzige Phase-Owner; die Shell liest und die
-Panels schreiben nur über `phase-actions`. Ein Skip wie `tag → raid` wird
-in `resolvePhaseTransition` verworfen, der Zustand bleibt unverändert.
+`village/state.ts` ist der einzige Phase-Owner; die Sidebar-Panels schreiben
+nur über `phase-actions`, Topbar, Sidebar und Dorfblick lesen direkt aus dem
+Store. Ein Skip wie `tag → raid` wird in `resolvePhaseTransition` verworfen,
+der Zustand bleibt unverändert.
+
+Blick und Phase sind getrennt: die Topbar schaltet zwischen Dorf und Dungeon,
+und `ui/view.ts` hält diese Wahl ohne Spielregel. Im Dorf zeigt
+`village/settlement` nur, was die Schleife tatsächlich kennt — Tag, Gilde,
+Verteidigerplätze und das Ergebnis des letzten Auftrags. Arbeiterverteilung,
+Gold-Ausgaben, Landkauf und Beute-Verkauf sind Dorfwirtschaft und damit T2.
 
 ## Grenzen
 
@@ -74,6 +88,9 @@ Preact-DOM über der Szene.
 - `dungeon-editor/state.ts` bleibt der einzige Grid-Owner.
 - `village/state.ts` bleibt der einzige Phase-Owner; keine Komponente hält
   eine zweite Phase-Wahrheit.
+- `ui/view.ts` ist der einzige Owner des Bühnenblicks und verändert weder
+  Phase noch Grid. Editorwerkzeug erscheint nur in der Dungeon-Ansicht; die
+  Bau-Erlaubnis kommt weiter aus der Phase.
 - Der Observer hält keine Grid-Kopie; Terrain wird nur bei geänderter
   Grid-Referenz neu gelesen, sonst meldet er `terrain: null`.
 - Kein Clientpfad entscheidet den Raid-Ausgang.

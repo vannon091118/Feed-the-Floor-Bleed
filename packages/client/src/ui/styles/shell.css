@@ -1,0 +1,195 @@
+/* Rahmen der Anwendung: Topbar, Bühnenraster und Bühne.
+   Enthält alles, was unabhängig vom Inhalt der Bühne gleich bleibt. */
+.app {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+/* --- Topbar ------------------------------------------------------------ */
+
+.topbar {
+  z-index: 2;
+  display: flex;
+  min-height: 60px;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-5);
+  align-items: center;
+  padding: var(--space-3) clamp(var(--space-4), 2.2vw, 28px);
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--surface-sunken);
+}
+
+.brand {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.brand__mark {
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--accent);
+  border-radius: var(--radius-sm);
+  transform: rotate(45deg);
+}
+
+.brand__name {
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* --- Ressourcenstreifen ----------------------------------------------- */
+
+.resource-strip {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.resource {
+  display: flex;
+  min-width: 84px;
+  gap: var(--space-2);
+  align-items: baseline;
+  padding: 5px var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+}
+
+.resource__value {
+  color: var(--accent-strong);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.resource__label {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* --- Ansichtsumschalter ------------------------------------------------ */
+
+.view-switch {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+}
+
+.view-switch__option {
+  min-height: 30px;
+  padding: 4px 14px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.view-switch__option:hover {
+  color: var(--text);
+}
+
+.view-switch__option[aria-pressed="true"] {
+  background: var(--accent-wash);
+  color: var(--accent-strong);
+}
+
+/* --- Werkzeuge --------------------------------------------------------- */
+
+.tool-group {
+  display: flex;
+  gap: var(--space-1);
+  margin-left: auto;
+}
+
+/* --- Bühne ------------------------------------------------------------- */
+
+.stage {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 330px);
+  gap: var(--space-3);
+  padding: var(--space-3) clamp(var(--space-3), 1.8vw, 26px)
+    clamp(var(--space-4), 2vw, 20px);
+}
+
+.viewport {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-sunken);
+  overflow: hidden;
+}
+
+.viewport--village {
+  padding: clamp(var(--space-4), 2.4vw, 28px);
+  background: radial-gradient(
+      ellipse at 50% 0%,
+      rgba(224, 173, 85, 0.07),
+      transparent 62%
+    ), var(--surface-sunken);
+  overflow: auto;
+}
+
+.world-host {
+  width: 100%;
+  height: 100%;
+}
+
+.world-host canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+@media (max-width: 960px) {
+  .stage {
+    grid-template-columns: minmax(0, 1fr) minmax(250px, 29vw);
+  }
+}
+
+@media (max-width: 720px) {
+  body {
+    overflow: auto;
+  }
+
+  #app,
+  .app {
+    min-height: 100dvh;
+    height: auto;
+  }
+
+  .topbar {
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .tool-group {
+    margin-left: 0;
+  }
+
+  .stage {
+    min-height: calc(100dvh - 110px);
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(50vh, 1fr) auto;
+  }
+}

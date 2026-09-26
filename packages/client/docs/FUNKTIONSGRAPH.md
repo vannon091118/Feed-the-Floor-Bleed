@@ -48,7 +48,11 @@ showcase
   └─ scene: createShowcase → observer + Views + Kamera + Ticker
 
 ui
-  └─ shell → world-host (Pixi) + window-layer + editor-panel (DOM) + editor-controls
+  ├─ view: stageView Signal (village | dungeon), showView  (Navigation, keine Phase)
+  ├─ shell: reines Layout → topbar + stage + sidebar
+  ├─ topbar → phase-badge + view-switch + Ressourcenstreifen + window-tools
+  ├─ stage → village-view | world-host (Pixi) + window-layer
+  └─ sidebar → phase-panel je Phase + (Nacht/Raid + Dungeon-Blick) editorwerkzeug
 
 dungeon-editor/state (einziger Grid-Owner)
   ├─ grid / brush Signals, route = computed(findPath)
@@ -57,15 +61,16 @@ dungeon-editor/state (einziger Grid-Owner)
 village (einziger Phase-Owner der Schleife)
   ├─ phase: Phase-Union, ALLOWED_TRANSITIONS, resolvePhaseTransition
   ├─ state: dayNight Signal, setPhase (guarded), recordRaidJob
-  └─ phase-actions: startNight / triggerRaid / completeRaid / finishResult
+  ├─ phase-actions: startNight / triggerRaid / completeRaid / finishResult
+  └─ settlement: villageOutlook() → Gebiete + Roster + Bilanz der letzten Nacht
 
 raid/fixture-raid
   ├─ buildFixtureUpload(grid) → @floor/contracts UploadRequest
   └─ runLocalFixtureRaid(grid) → @floor/sim-core runFixtureRaid
 
-ui (Shell schaltet nach Phase)
-  ├─ shell → world-host + window-layer + Phase-Panel je phase
+ui (Sidebar schaltet nach Phase, Bühne nach Blick)
   ├─ phase-badge: liest dayNight.phase / dayNight.day
+  ├─ village-view → village/settlement + raid/panel (raidOutcomeText) + roster-list
   ├─ TagPhasePanel → startNight → phase night
   ├─ NightPhasePanel → triggerRaid → phase raid (Editor bleibt aktiv)
   ├─ RaidPhasePanel → RaidPanel.onJob → completeRaid(job) → phase result
@@ -78,4 +83,6 @@ Schleife: `tag → night → raid → result → tag` (Tag +1) beziehungsweise
 
 Kurzregeln: `world` definiert nur. `visual` übersetzt ohne Pixi. `render`
 besitzt die Szene. `input` emittiert Commands. Der Observer liest Grid und Route,
-kopiert sie aber nicht.
+kopiert sie aber nicht. `village/settlement` liest den Phase-Owner und die
+Fixture und besitzt selbst keinen Dorfzustand; `ui/view` hält nur den Blick und
+ändert keine Phase.

@@ -1,0 +1,38 @@
+/* Auftrag und Urteil.
+   Gehört zu `raid/`, wird aber wie die übrige Oberfläche gestaltet und
+   benutzt dieselben Tokens. */
+.raid-verdict {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.raid-stage {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.raid-stage--heroes-win {
+  color: var(--ok);
+}
+
+.raid-stage--monsters-win,
+.raid-stage--error {
+  color: var(--alert);
+}
+
+.raid-hash {
+  color: var(--faint);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+
+.raid-idle,
+.raid-note {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
