@@ -71,7 +71,7 @@ Diese Arbeit wird nach Abschluss von T1 zu T2 promoted. Sie startet nicht parall
 
 ## Nächster konkreter Schritt
 
-T1.1 beginnen: Raid-Playback mit Timeline und Schlussfolgen auf dem fertigen Trail-Hash. Der Dungeon steckt im Hash; die Timeline kann Routen- und Fallenereignisse sichtbar machen.
+T1.1 und T1.2 laufen parallel in eigenen Arbeits-Branches: Raid-Playback mit Timeline und Schlussfolgen auf dem fertigen Trail-Hash sowie die Ende-zu-Ende-Abnahme der Tag-/Nacht-/Raid-Schleife. Der Foundation-Audit ist abgeschlossen — 0 CRLF über `.gitattributes` erzwungen, PackageManager-Widerspruch beseitigt, Lockfile bereinigt, alle vier Gates grün. Nach dem Merge der parallelen Branches folgt die gemeinsame Review-Abnahme beider Blöcke.
 
 ## Pflegeprotokoll
 

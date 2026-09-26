@@ -3,32 +3,42 @@
 # Shebang-Dateien mit CRLF brechen Vitest (SyntaxError, 0 collectete Tests),
 # CRLF erzeugt zusaetzlich ~110 reine Formatfehler in Biome.
 #
-# Bewusst KEIN '* text=auto': scripts/shinon/tests/fixtures/*.fixture werden
-# byteweise verglichen und duerfen nicht normalisiert werden.
-* text=auto
+# Fixtures sind text eol=lf: keine binary, keine auto. Der Byte-Vergleich in
+# scripts/shinon/tests bleibt deterministisch, weil LF in Repo UND Worktree
+# erzwungen wird — CRLF kann nie wieder ins Fixture gelangen.
+# Bewusst KEIN '* text=auto': zu breit, Git wuerde unklare Typen selbst raten.
 
-*.md   text eol=lf
-*.mjs  text eol=lf
-*.mts  text eol=lf
-*.ts   text eol=lf
-*.tsx  text eol=lf
-*.js   text eol=lf
-*.css  text eol=lf
-*.html text eol=lf
-*.json text eol=lf
-*.yml  text eol=lf
-*.yaml text eol=lf
-*.sql  text eol=lf
-VERSION          text eol=lf
-.env.example     text eol=lf
-.husky/*         text eol=lf
+*.ts        text eol=lf
+*.tsx       text eol=lf
+*.js        text eol=lf
+*.jsx       text eol=lf
+*.mjs       text eol=lf
+*.cjs       text eol=lf
+*.mts       text eol=lf
+*.json      text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.sql       text eol=lf
+*.css       text eol=lf
+*.html      text eol=lf
+*.md        text eol=lf
+*.sh        text eol=lf
+*.cmd       text eol=lf
+*.fixture   text eol=lf
+VERSION     text eol=lf
+.env.example text eol=lf
+.husky/*    text eol=lf
 
-# Binaries und Byte-Vergleich-Fixtures: niemals anfassen.
-*.png  binary
-*.jpg  binary
-*.jpeg binary
-*.gif  binary
-*.ico  binary
-*.woff binary
+# Dotfiles ohne Extension: ohne Regel schreibt autocrlf=true sie als CRLF.
+.gitkeep      text eol=lf
+.gitignore    text eol=lf
+.gitattributes text eol=lf
+
+# Binaries: niemals anfassen.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.woff  binary
 *.woff2 binary
-*.fixture -text
