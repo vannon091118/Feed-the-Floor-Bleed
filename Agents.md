@@ -208,6 +208,7 @@ Ablauf: Diff-Analyse → Slice-Run (Base immer + Core nur bei Bedarf) → Prosa/
 - `.husky/post-commit`: **Version bump** (`bump-version.mjs`) + `version-gate` Check + `amend` + **Auto-Push** (wenn `SHINON_AUTO_PUSH=1`, Loop-Schutz `SHINON_SKIP_BUMP=1`)
 - `.husky/pre-push`: Full Test-Suite — alle Plugins (letzte Sicherung)
 - GitHub Actions führt `Shinon Gate` bei jedem Push auf `main` und bei jedem Pull Request gegen `main` aus. Die Range für `commit-integrity` kommt beim Push aus `github.event.before`, beim Pull Request aus `github.event.pull_request.base.sha`. Der Remote-Lauf ist die verbindliche zweite Shinon-Ausführung nach dem lokalen Gate. Ein fehlgeschlagener Remote-Lauf wird nicht als Alternative zum lokalen Gate akzeptiert, sondern muss vor dem nächsten Task behoben werden.
+- **Shinon erledigt den Rest:** Ist der `gate`-Job eines Pull Requests grün, schiebt der Job `promote` den geprüften PR-Kopf per Fast-Forward nach `main`. Damit braucht niemand einen manuellen Direktpush, und `main` erfüllt seinen Required-Status-Check, der auf einem frischen Commit sonst nie erzeugt werden kann. Es entsteht kein Merge-Commit; unaufgelöste Review-Kommentare, fehlende Signaturen oder ein Nicht-Fast-Forward lassen `promote` sichtbar scheitern, dann landet nichts.
 
 ### 6.7 Task-Review, Commit und Body-Pflicht
 
@@ -217,7 +218,7 @@ Kein `--no-verify` ohne Arch-Freigabe. Wer bypassed, schreibt im nächsten Commi
 
 ### 6.8 Task-Slice-Commit und Push
 
-Jeder Task wird als eigener, in sich abgeschlossener Slice durch die Shinon-Kette committet und gepusht. Ein Sammelcommit über mehrere Tasks ist verboten; fremde, unfertige oder nicht zum Task gehörende Änderungen bleiben unstaged und werden vom Slice nicht angefasst. Der Slice läuft vollständig über `pre-commit` (Slice-Tests), `commit-msg` (Prosa, Datei-Nennung, Footer-Verbot), `post-commit` (Version bump, Amend, Auto-Push) und `pre-push` (Full-Suite); `--no-verify` bleibt auch für Slice-Commits verboten. Ein Task gilt erst als abgeschlossen, wenn sein Slice lokal grün und der Remote-Lauf `Shinon Gate` grün ist. Erst danach beginnt der nächste Task; der Auto-Push ist der Pflichtpfad und kein optionaler Sonderfall.
+Jeder Task wird als eigener, in sich abgeschlossener Slice durch die Shinon-Kette committet und gepusht. Ein Sammelcommit über mehrere Tasks ist verboten; fremde, unfertige oder nicht zum Task gehörende Änderungen bleiben unstaged und werden vom Slice nicht angefasst. Der Slice läuft vollständig über `pre-commit` (Slice-Tests), `commit-msg` (Prosa, Datei-Nennung, Footer-Verbot), `post-commit` (Version bump, Amend, Auto-Push) und `pre-push` (Full-Suite); `--no-verify` bleibt auch für Slice-Commits verboten. Ein Task gilt erst als abgeschlossen, wenn sein Slice lokal grün und der Remote-Lauf `Shinon Gate` grün ist. Erst danach beginnt der nächste Task; der Auto-Push ist der Pflichtpfad und kein optionaler Sonderfall. Der Weg nach `main` läuft über einen Arbeitsbranch und einen Pull Request: der Branch wird gepusht, `Shinon Gate` läuft, und nur bei grünem Gate promotet `promote` den Kopf per Fast-Forward nach `main`. Ein blockierendes Gate wird vor jeder weiteren Arbeit behoben.
 
 ### 6.9 Session-Learnings
 
@@ -226,7 +227,7 @@ Jeder Task wird als eigener, in sich abgeschlossener Slice durch die Shinon-Kett
 - `SHINON_SKIP_BUMP=1` verhindert Post-Commit-Recursion; `SHINON_AUTO_PUSH=0` ist der sichere lokale Lifecycle-Test, `1` ist der Default-Push.
 - `schema-contract` und `false-positive` können bei leerer Core-Source grün werden; ein grüner Full-Run ist erst mit echter Source-Abdeckung aussagekräftig.
 - `pnpm run -s typecheck` prüft die minimale `packages/contracts/src/index.ts`-Quelle und muss im offiziellen Initialstand TS18003 vermeiden.
-- GitHub-Branch-Protection lässt direkte `main`-Pushes zu, verlangt aber keinen Required-Status-Check. Der verpflichtende Remote-Lauf `Shinon Gate` muss trotzdem bei jedem Push gestartet werden und sichtbar grün sein; die lokale Pre-Push-Suite bleibt unverzichtbar.
+- GitHub-Branch-Protection auf `main` verlangt den Status-Check `Shinon Gate` und verifizierte Signaturen und erlaubt keine Merge-Commits. Ein direkter `main`-Push kann den Check nie erzeugen, deshalb läuft der Weg über Arbeitsbranch und Pull Request; der Job `promote` schiebt den geprüften Kopf per Fast-Forward nach `main`. Squash verunstaltet den Commit-Body, und Rebase kann GitHub nicht signieren — Fast-Forward ist der einzige verlustfreie Weg.
 - `.husky/post-commit` beendet Bump- oder Version-Gate-Fehler jetzt mit Exit != 0; `SHINON_SKIP_BUMP=1` bleibt ausschließlich der Recursion-Schutz.
 - Der Post-Commit-Amend läuft mit aktiven Hooks und ohne `--no-verify`; bei Staging-, Amend- oder Push-Fehlern muss der Hook sichtbar fehlschlagen.
 - Der Post-Commit-Bump staged ganze `package.json`- und `VERSION`-Dateien; ungestagte Änderungen in diesen Dateien werden in den laufenden Slice gesogen. `package.json`-Änderungen deshalb vor dem Task-Commit vollständig stagen oder als eigenen Slice führen.

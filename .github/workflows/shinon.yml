@@ -63,3 +63,34 @@ jobs:
           path: packages/client/dist
           if-no-files-found: error
           retention-days: 14
+
+  # Shinon erledigt den Rest: Ist der Gate-Job grün, wird der geprüfte
+  # PR-Kopf per Fast-Forward nach main geschoben. Das schließt die Lücke,
+  # dass main den Status-Check `Shinon Gate` verlangt und ein Direktpush ihn
+  # nie auf dem Zielcommit erzeugen kann. Es entsteht kein Merge-Commit; die
+  # signierten und geprüften Commits landen unverändert. Blockt ein Gate oder
+  # eine Policy (unaufgelöste Kommentare, fehlende Signatur), scheitert dieser
+  # Job sichtbar und es landet nichts.
+  promote:
+    name: Promote nach main
+    needs: gate
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout PR-Kopf
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Nur Fast-Forward zulassen
+        run: |
+          git fetch origin main
+          if ! git merge-base --is-ancestor origin/main HEAD; then
+            echo "::error::main ist kein Vorfahre des PR-Kopfes; Rebase nötig, kein Force-Push."
+            exit 1
+          fi
+      - name: Nach main schieben
+        run: git push origin HEAD:main

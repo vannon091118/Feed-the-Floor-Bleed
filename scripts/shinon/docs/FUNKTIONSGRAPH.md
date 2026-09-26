@@ -19,6 +19,7 @@ lib/integration-text.mjs → lib/commit-text.mjs (checkMessage prüft die Erzeug
 plugins/commit-integrity → lib/commit-text.mjs (dieselben Regeln, echte Inhalts-Commits)
 workflow Shinon Gate (push) → commit-integrity --from <before> → required_status_checks auf main
 workflow Shinon Gate (pull_request) → commit-integrity --from <pull_request.base.sha> → derselbe Status-Kontext
+workflow Shinon Gate (pull_request, needs: gate) → Job promote → git push HEAD:main (Fast-Forward des geprüften PR-Kopfes)
 post-commit → git push (wenn SHINON_AUTO_PUSH=1)
 ```
 
