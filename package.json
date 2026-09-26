@@ -23,7 +23,7 @@
     "build": "pnpm --filter @floor/client build"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
+    "@biomejs/biome": "2.5.14",
     "husky": "9.1.7",
     "typescript": "5.6.3",
     "vitest": "2.1.8",
