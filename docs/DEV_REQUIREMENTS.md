@@ -45,6 +45,7 @@ Ausführungskette: `pre-commit` (Slice) → `commit-msg` (Prosa) → `post-commi
 | `hygiene-gate` | immer | 5 Pflicht-Dokus je Domäne, `historisch/` vorhanden | 200 Zeilen/Doku |
 | `version-gate` | immer | `VERSION` synchron zu allen `package.json`, Bereich 0..99 | — |
 | `commit-gate` | immer | Shim, die eigentliche Prüfung läuft im `commit-msg`-Hook | — |
+| `commit-integrity` | immer | Fernprüfung der echten Inhalts-Commits einer Range gegen `lib/commit-text.mjs`, Merge-Commits ausgenommen, fail-closed | — |
 | `schema-contract` | immer | Zod-Imports in Contracts, `sim_version`, Zod `3.23.8` | — |
 | `modularity-gate` | immer | Domain-Grenzen, Deep-Imports, Import-Zyklen | — |
 | `dead-code-gate` | immer | `noUnusedLocals`, `noUnusedParameters`, `debugger`, `if (false)` | — |

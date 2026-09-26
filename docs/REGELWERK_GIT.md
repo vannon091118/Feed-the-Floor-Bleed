@@ -13,9 +13,16 @@ Verbindlich für Commits, Hooks und Versionierung. `Agents.md` bleibt der Einsti
 
 - Vor Abschluss passende Tests ausführen; vollständiger Standardlauf: `pnpm run -s check` und `pnpm test`. `pnpm run -s check` bündelt Typecheck, LOC, Doku-Hygiene und Shinon Full.
 - `scripts/shinon/engine.mjs` analysiert staged Diff-Slices. Globale Base-Gates laufen bei jedem Commit; zusätzliche Core-Plugins laufen bei passendem Scope. Gate-Fehler sind Hard-Fail.
-- `.husky/pre-commit`: Shinon Slice; `commit-msg`: Commit-Text; `post-commit`: mechanischer Versionsbump, Amend und Push gemäß Hook-Konfiguration; `pre-push`: vollständige Plugin-Suite. GitHub Actions wiederholt `Shinon Gate` für Pushes und Pull Requests gemäß Workflow.
+- `.husky/pre-commit`: Shinon Slice; `commit-msg`: Commit-Text; `post-commit`: mechanischer Versionsbump, Amend und Push gemäß Hook-Konfiguration; `pre-push`: vollständige Plugin-Suite. GitHub Actions wiederholt `Shinon Gate` für Pushes und Pull Requests gemäß Workflow und promotet anschließend grüne Pull Requests (siehe Abschnitt "Pull Request und Promotion nach `main`").
 - Kein `--no-verify`. Kein Commit, Push, PR oder Deployment ohne ausdrücklichen Auftrag. Fremde Änderungen bleiben außerhalb des eigenen Task-Slices.
 - Jeder Task bleibt ein einzelner reviewbarer Slice. Vor dem Commit staged Diff, Scope, Tests und Doku prüfen; Remote-Gates sind nach Push abzuwarten, bevor der nächste Task beginnt.
+
+## Pull Request und Promotion nach `main`
+
+- Der Weg nach `main` läuft ausschließlich über einen Arbeitsbranch und einen Pull Request, nie über einen Direktpush. `main` verlangt den Required-Status-Check `Shinon Gate` und verifizierte Signaturen und erlaubt keine Merge-Commits.
+- Der Workflow `.github/workflows/shinon.yml` triggert auf `push` nach `main` und auf `pull_request` gegen `main`. Der Job `gate` fährt die volle Kette; der Job `promote` hängt per `needs: gate` daran, prüft, dass `main` Vorfahre des PR-Kopfes ist, und schiebt den geprüften Kopf per `git push origin HEAD:main` als Fast-Forward nach `main`.
+- Es entsteht kein Merge-Commit. Squash verfälscht den Commit-Body, Rebase kann GitHub nicht signieren; Fast-Forward ist der einzige verlustfreie Weg. Der Arbeitsbranch muss deshalb auf dem aktuellen `main` aufsetzen oder auf ihn rebased sein, sonst bricht `promote` sichtbar ab.
+- Blockt etwas, landet nichts: unaufgelöste Review-Kommentare, fehlende Signaturen oder ein Nicht-Fast-Forward lassen `promote` fehlschlagen. Der Remote-Lauf wird vor dem nächsten Task abgewartet; ein lokaler Pre-Push-Pass ersetzt den Status-Check nicht.
 
 ## Versionierung
 
@@ -34,3 +41,11 @@ Verbindlich für Commits, Hooks und Versionierung. `Agents.md` bleibt der Einsti
 - Ein lokaler Pre-Push-Pass ersetzt keinen verpflichtenden Remote-Status. Workflow, Branch-Protection und Remote-Ergebnis anhand des aktuellen Repository-Zustands prüfen, nicht aus früheren Annahmen ableiten.
 - Auf case-insensitiven Dateisystemen können Pfade, die sich nur in Groß-/Kleinschreibung unterscheiden, kollidieren. `git ls-files -s` zeigt den Indexzustand.
 - Textdateien brauchen die im Root konfigurierte LF-Normalisierung. Byte-genaue Fixtures dürfen nicht normalisiert werden.
+- GitHub kann einen gültig SSH-signierten Commit als unverifiziert ablehnen, wenn der Committer eine nicht verifizierte Adresse nutzt. Repository-Identität auf die verifizierte Noreply-Adresse setzen und neu signieren.
+- `git verify-commit --verbose HEAD` braucht für SSH-Signaturen `gpg.ssh.allowedSignersFile`; ein gültiger Key allein beweist ohne Allowlist keine lokale Verifikation.
+- Ob ein öffentlicher SSH-Signing-Key bei GitHub registriert ist, prüft read-only `gh api user/ssh_signing_keys`; der private Key wird niemals hochgeladen.
+- Ein lokaler Pre-Push-Pass erfüllt keinen auf GitHub verlangten Status-Check; `GH013` bei geschütztem `main` bedeutet, dass der Remote-Stand abgelehnt wurde.
+- Nach `git push -u` immer `git branch -vv` prüfen, weil ein Push vom lokalen `main` versehentlich einen Feature-Branch als Upstream setzen kann; für `main` explizit `origin/main` verwenden.
+- Ist `origin/main` bereits Vorfahre von `HEAD`, ist ein Rebase ein No-op und ein Stash unnötig; `git rev-list --left-right --count origin/main...HEAD` zeigt das vorher. Ein Rebase über fremde ungestagte Änderungen braucht `--autostash`.
+- Der erste Root-Commit bleibt `0.0.1` und löst keinen Bump aus. `pnpm install --ignore-scripts` überspringt `prepare` und damit Husky, sodass die lokale Hook-Kette fehlt.
+- Der Workflow muss `pull_request` gegen `main` triggern, sonst entsteht für einen PR nie ein Status-Check und er bleibt dauerhaft blockiert.

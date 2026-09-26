@@ -2,7 +2,7 @@
  * Reine Commit-Text-Validierung — eine Wahrheit für Hook und CI-Plugin.
  * Kein Git-Zugriff, keine I/O: bekommt Text, liefert Verstöße.
  * So kann der lokale commit-msg Hook und das Remote commit-integrity
- * Plugin dieselben Regeln erzwingen, ohne sie zu duplizieren (§2 DRY).
+ * Plugin dieselben Regeln erzwingen, ohne sie zu duplizieren (docs/REGELWERK_GIT.md).
  */
 
 const FORBIDDEN = [

@@ -2,7 +2,7 @@
 /**
  * Shinon commit-msg Gate — lokaler Hook-Aufruf.
  * Die Regeln liegen in lib/commit-text.mjs, damit das Remote-Plugin
- * commit-integrity dieselben Verstöße findet (§2 DRY, §6.5).
+ * commit-integrity dieselben Verstöße findet (docs/REGELWERK_GIT.md).
  */
 import { execSync } from 'node:child_process'
 import fs from 'node:fs'
