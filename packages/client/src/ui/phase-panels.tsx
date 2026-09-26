@@ -16,8 +16,8 @@ export function TagPhasePanel() {
       <p class="eyebrow">Tag · Bürgermeister</p>
       <h2 class="panel__title">Die Nacht vorbereiten</h2>
       <p class="panel__note">
-        Lager, Vorrat und Stimmung des Dorfs stehen im Dorfblick. Den Plan für
-        den heutigen Zug legst du im Dungeon.
+        Ort, Gilde und Bilanz der letzten Nacht stehen im Dorfblick. Den Plan
+        für den heutigen Zug legst du im Dungeon.
       </p>
       <button
         type="button"
