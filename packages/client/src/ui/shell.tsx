@@ -1,6 +1,7 @@
 import { signal } from '@preact/signals'
 import { useCallback } from 'preact/hooks'
 import type { DragDropCommand } from '../input'
+import { RaidTimeline } from '../raid/timeline'
 import { dayNight } from '../village/state'
 import { openWindow, WindowLayer } from '../window'
 import type { ActorKind } from '../world'
@@ -91,6 +92,7 @@ export function Shell() {
           {editing && <EditorControls />}
           {editing && <EditorPanel />}
           {phase === 'raid' && <RaidPhasePanel />}
+          {phase === 'raid' && <RaidTimeline />}
           {phase === 'result' && <ResultPhasePanel />}
           <p class="hint" aria-live="polite">
             {lastDrop.value}

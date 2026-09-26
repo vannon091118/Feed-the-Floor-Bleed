@@ -6,6 +6,7 @@ import {
   resolveSnapshotRaid,
 } from '@floor/sim-core'
 import { fixture, fixtureRaid } from '../fixture-data'
+import { setPlaybackLog } from '../raid/playback'
 
 function occupiedSlots(): number {
   return fixture.monsterSlots.filter((slot) => slot.monsterId).length
@@ -17,14 +18,18 @@ function occupiedSlots(): number {
  * Die Szene benutzt `resolveSnapshotRaid` direkt, weil sie den vollständigen
  * Log mit Einheiten und Ereignissen braucht — die Auftragsantwort trägt nur
  * die Kurzfassung. Es entsteht kein zweiter Kampfpfad: derselbe Core-Aufruf,
- * dieselbe Quelle für `routeIndex`.
+ * dieselbe Quelle für `routeIndex`. Der Log geht an den Playback-Store, damit
+ * die Timeline denselben Lauf liest und nichts nachrechnet.
  */
 export function buildCombatLog(
   grid: DungeonGrid,
   route: PathResult,
 ): CombatLog | null {
-  if (route.mode === 'unreachable' || !hasValidRoute(grid)) return null
-  return resolveSnapshotRaid({
+  if (route.mode === 'unreachable' || !hasValidRoute(grid)) {
+    setPlaybackLog(null)
+    return null
+  }
+  const log = resolveSnapshotRaid({
     grid,
     teamSize: fixture.team.length,
     monsterSlots: occupiedSlots(),
@@ -32,4 +37,6 @@ export function buildCombatLog(
     floor: fixtureRaid.floor,
     token: fixtureRaid.jobId,
   }).log.log
+  setPlaybackLog(log)
+  return log
 }

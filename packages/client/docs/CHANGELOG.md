@@ -1,5 +1,13 @@
 # packages/client/docs/CHANGELOG.md
 
+## 2026-09-26 — Raid-Timeline verdrahtet
+
+Die Timeline war gebaut, aber nicht angeschlossen: `ui/shell.tsx` hat sie nie gerendert, `showcase/scene.ts` hat einen eigenen `playback`-Zähler geführt, und für die elf Klassen der Timeline gab es kein CSS. Die Shell rendert jetzt `<RaidTimeline />` in der Raid-Phase neben dem Probelauf-Panel; `styles.css` trägt die elf Klassen `raid-timeline`, `timeline-phase-nav`, `timeline-phase-step`, `timeline-scrubber`, `timeline-scrub-step`, `timeline-scrub-readout`, `timeline-phase`, `timeline-trail`, `timeline-clusters`, `timeline-cluster-type`, `timeline-facts` und `timeline-hint` in den bestehenden Farbtokens.
+
+Der zweite Teil war wichtiger als der erste. Die Szene hat den Tick lokal über `playback += deltaMs / (1000 / tickRate)` fortgeschrieben und dabei `stepPlayback` sowie `playbackPaused` ignoriert; ein Scrubber-Stand wäre sofort wieder überschrieben worden, die Anzeige wäre wirkungslos gewesen. `scene.ts` ruft jetzt `stepPlayback` auf und lässt den Store den Tick halten. Die Routenposition liest `playbackRouteIndex` und fällt nur dann auf die Helmenposition des Observers zurück, wenn noch kein Log vorliegt; damit ist der bisher ungenutzte Store-Wert an der Stelle verdrahtet, für die sein Kommentar ihn vorsah.
+
+`test/raid-timeline.test.ts` deckt die Verdrahtung jetzt ab: ohne Log steht der Tick, im Spiel läuft er, ein gesetzter Scrubber-Stand wird übernommen und läuft ohne Pause weiter, mit Pause bleibt er exakt stehen, und die Routenposition folgt dem Scrubber-Tick statt der Helmenposition.
+
 ## 2026-09-26 — Render-Animation ohne Sinus vereinheitlicht
 
 `render/animation.ts` nutzt jetzt eine glatte deterministische Periodik für Bob, Schritt, Squash und Schwanken; `render/actors.ts` verwendet denselben Kurven-Owner für die Schritthöhe. Ein Regressionstest prüft Wiederholbarkeit, Periodengrenzen, Wertebereiche und bisherige Amplituden.

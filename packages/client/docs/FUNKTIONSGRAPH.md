@@ -63,18 +63,32 @@ raid/fixture-raid
   ├─ buildFixtureUpload(grid) → @floor/contracts UploadRequest
   └─ runLocalFixtureRaid(grid) → @floor/sim-core runFixtureRaid
 
+raid/timeline (liest den Log, rechnet nichts)
+  ├─ playback: playbackLog / playbackTick / playbackPaused, stepPlayback,
+  │            setScrubTick, playbackRouteIndex
+  ├─ timeline-model: buildTimelineSections, phaseForTick, clusterEvents,
+  │                 trailBadge, resultCard
+  ├─ phase-nav: drei Phasen-Knöpfe → setScrubTick(Phasenbeginn)
+  └─ raid-timeline: PhaseNav + RoutePhase + CombatPhase + ResultPhase + Scrubber
+
 ui (Shell schaltet nach Phase)
   ├─ shell → world-host + window-layer + Phase-Panel je phase
   ├─ phase-badge: liest dayNight.phase / dayNight.day
   ├─ TagPhasePanel → startNight → phase night
   ├─ NightPhasePanel → triggerRaid → phase raid (Editor bleibt aktiv)
   ├─ RaidPhasePanel → RaidPanel.onJob → completeRaid(job) → phase result
+  ├─ RaidTimeline (nur phase raid) → setScrubTick / playbackPaused
   └─ ResultPhasePanel → finishResult(job) → phase tag (completed) | raid (sonst)
 ```
 
 Schleife: `tag → night → raid → result → tag` (Tag +1) beziehungsweise
 `result → raid` als Retry nach fehlgeschlagenem Auftrag. Jeder andere
 Übergang wird vom Store verworfen.
+
+Die Timeline liest denselben Log, den `showcase/combat-source.ts` über
+`setPlaybackLog` in den Store legt. `showcase/scene.ts` treibt den Tick über
+`stepPlayback`; es gibt keinen zweiten Zähler. Der Scrubber schreibt
+ausschließlich `playbackTick` und löst keinen Core-Aufruf aus.
 
 Kurzregeln: `world` definiert nur. `visual` übersetzt ohne Pixi. `render`
 besitzt die Szene. `input` emittiert Commands. Der Observer liest Grid und Route,

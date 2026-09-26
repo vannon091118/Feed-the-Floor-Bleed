@@ -66,6 +66,12 @@
 | `src/raid/fixture-raid.ts` | Contract-v3-Upload und lokaler Fixture-Auftrag |
 | `src/raid/raid-panel.tsx` | Probelauf-Panel, reicht den terminalen Auftrag an die Schleife weiter |
 | `src/raid/panel.tsx` | Reine Ergebnis-Darstellung eines TerminalRaidJob |
+| `src/raid/playback.ts` | Playback-Store: Log, Tick, Pause, abgeleitete Routenposition |
+| `src/raid/timeline-model.ts` | Reine Abschnitts-, Phasen- und Ergebnismodelle des Logs |
+| `src/raid/timeline.tsx` | Re-Export der Timeline für die Shell |
+| `src/raid/raid-timeline.tsx` | Scrubber, Play/Pause und Phasen-Reihen in der Raid-Phase |
+| `src/raid/phase-nav.tsx` | Drei Phasen-Knöpfe, setzen den Scrubber auf den Phasenbeginn |
+| `src/raid/phases.tsx` | Routen-, Kampf- und Ergebnisdarstellung der Timeline |
 | `test/dungeon-editor.test.ts` | State-/Model-Tests der Editor-Logik |
 | `test/village-phase.test.ts` | Phase-Übergänge, Skip-Verbot und Store-Verhalten |
 | `test/day-night-loop.test.ts` | End-to-End-Loop mit Fake-Timern unter 5 s |

@@ -574,6 +574,122 @@ button:focus-visible {
   line-height: 1.45;
 }
 
+.raid-timeline {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.timeline-phase-nav {
+  display: flex;
+  gap: 4px;
+}
+
+.timeline-phase-step {
+  flex: 1;
+  padding: 5px 4px;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.timeline-phase-step.is-active {
+  border-color: var(--accent);
+  color: var(--text);
+  background: rgba(229, 180, 92, 0.14);
+}
+
+.timeline-scrubber {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: center;
+}
+
+.timeline-scrub-step {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.timeline-scrub-step.is-live {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.timeline-scrub-readout {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline-phase {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+  padding: 6px 0;
+  border-top: 1px solid var(--line-soft);
+}
+
+.timeline-trail,
+.timeline-clusters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timeline-trail li,
+.timeline-cluster-type {
+  padding: 2px 5px;
+  border: 1px solid var(--line-soft);
+  border-radius: 4px;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline-cluster-type {
+  color: var(--muted);
+}
+
+.timeline-facts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 8px;
+  margin: 0;
+  font-size: 11px;
+}
+
+.timeline-facts dt {
+  color: var(--muted);
+}
+
+.timeline-facts dd {
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
 @media (max-width: 960px) {
   .stage {
     grid-template-columns: minmax(0, 1fr) minmax(250px, 29vw);

@@ -1,5 +1,6 @@
 import type { CombatLog, DungeonGrid, PathResult } from '@floor/sim-core'
 import type { DragDropCommand } from '../input/drag'
+import { playbackRouteIndex, stepPlayback } from '../raid/playback'
 import {
   createActorsView,
   createFxView,
@@ -99,8 +100,9 @@ export function createShowcase(deps: ShowcaseDeps): Showcase {
       combat = buildCombatLog(grid, route)
     }
     if (combat) {
-      playback += deltaMs / (1000 / combat.config.tickRate)
-      if (playback > combat.ticks + 30) playback = 0
+      playback = stepPlayback(deltaMs, combat.config.tickRate)
+    } else {
+      playback = 0
     }
     const delta = observer.observe({
       grid,
@@ -109,12 +111,17 @@ export function createShowcase(deps: ShowcaseDeps): Showcase {
       playbackTick: Math.floor(playback),
     })
     terrain.apply(delta.terrain)
+    // Der Scrubber bestimmt die Route: er zählt die Bewegungsereignisse des
+    // Logs bis zum aktuellen Tick. Ohne Log — noch vor dem ersten Aufbau —
+    // führt die Helmenposition aus dem Observer.
     const lead = delta.actors.find((actor) => actor.kind === 'hero')
-    const routeIndex = lead
+    const fromLead = lead
       ? route.path.findIndex(
           (cell) => cell.x === lead.cell.x && cell.y === lead.cell.y,
         )
       : -1
+    const routeIndex =
+      playbackRouteIndex.value >= 0 ? playbackRouteIndex.value : fromLead
     routeView.apply(route.path, routeIndex)
     actors.apply(delta.actors)
     visibleActors = delta.actors

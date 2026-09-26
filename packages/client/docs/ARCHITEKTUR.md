@@ -24,7 +24,11 @@ Simulation bleibt der einzige Owner der Spielentscheidungen.
 - `village/` — einziger Owner der Tag/Nacht/Raid-Phase (`phase.ts` reine
   Übergangslogik, `state.ts` Signal-Store, `phase-actions.ts` Kommandos).
 - `ui/` — Shell, Host der Pixi-Welt, Editorraster in DOM, Phasen-Panels.
-- `raid/` — bestehender Contract-v3-Upload und lokaler Fixture-Auftrag;
+- `raid/` — bestehender Contract-v3-Upload und lokaler Fixture-Auftrag; dazu
+  die Raid-Timeline: `playback.ts` hält den Playback-Store, `timeline-model.ts`
+  die reinen Modelle, `raid-timeline.tsx`, `phase-nav.tsx` und `phases.tsx` die
+  Darstellung. Die Timeline liest den Log der Szene und rechnet nichts selbst;
+  `showcase/scene.ts` treibt den Tick über `stepPlayback` aus demselben Store.
   das Panel reicht das terminale Ergebnis an den Phase-Store weiter.
 - `fixture-data.ts` — read-only Startdaten.
 
