@@ -25,6 +25,10 @@
 | `visual/route-markers` | Route-View liest `route.path` und rendert sparsames Highlight des aktiven Actors; kein Grid- oder Positionsbesitz | client |
 | `visual/route-index` | Boundsafe `routePointAt(path, index)` wird von Actor-Frame, Event-FX und Leerlaufroute geteilt | client |
 | `visual/actor-variant` | ID-basierte `actorVariant(id)` ist zwischen Leerlauf- und Combat-Actors identisch | client |
+| `phase/state` | `'tag' \| 'night' \| 'raid' \| 'result'` — Schleifenreihenfolge, einziger Owner `village/state.ts` | client |
+| `phase/transitions` | erlaubt: `tag→night`, `night→raid`, `raid→result`, `result→tag`, `result→raid`; jeder andere Übergang wird verworfen | client |
+| `phase/day` | Zähler hoch bei `result→tag`, der Auftrag wird dabei gelöscht | client |
+| `phase/actions` | `startNight`, `triggerRaid`, `completeRaid`, `finishResult`, `retryAfterResult` | client |
 
 Die Fehlercodes und Auftragsstatus werden seit T1.3 von `packages/contracts` definiert. Server, D1, Client und lokale Fixture-Ausführung lesen dieselbe Quelle; freie Strings sind nicht mehr zulässig. `combat/trail` (x/y/cell je Schritt) fließt seit T1.1 in den Kampf-Hash.
 

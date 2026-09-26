@@ -11,7 +11,7 @@
 | Git | mit SSH-Signatur | ja | Commits, Hooks, `Shinon Gate` |
 | Python | `>=3.10` | nein | nur optionale Helfer-Skripte, niemals Build-Abhängigkeit |
 | Bash | POSIX | ja (Linux/macOS) | `.husky/*` und `scripts/install-requirements.sh` |
-| Cloudflare-D1 | `wrangler`-Konfig | nein | erst ab T1.5 relevant |
+| Cloudflare-D1 | `wrangler`-Konfig | nein | erst mit dem servergebundenen Raid-Flow relevant |
 
 Harte Regeln: `npm` und `yarn` sind verboten. Kein `package-lock.json`. Dependency-Änderung und `pnpm-lock.yaml` gehören in denselben Commit-Slice, sonst bricht der Remote-Lauf mit `ERR_PNPM_OUTDATED_LOCKFILE`.
 
