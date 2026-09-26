@@ -1,5 +1,13 @@
 # docs/CHANGELOG.md — Global
 
+## 2026-09-26 — Versions-Pins und -Grenzen der Toolchain festgehalten
+
+Vier Dependabot-PRs sind mit begründeter Kommentar geschlossen: zod 3.23.8 auf 4.6.5, TypeScript 5.6.3 auf 7.0.2, Vitest 2.1.8 auf 5.0.1 und Biome 1.9.4 auf 2.5.14. Alle vier meldeten `mergeable`, scheiterten aber am `Shinon Gate`, und `main` verlangt genau diesen Status-Check.
+
+Die Gründe sind nicht ähnlich, und genau deshalb stehen sie jetzt in `docs/DEV_REQUIREMENTS.md` Abschnitt 6 statt nur in den geschlossenen Kommentaren. Der Zod-Pin ist eine Governance-Entscheidung: `scripts/shinon/policy.json` prüft die Version wörtlich, weil Client und Server dieselben Schema-Instanzen teilen, und zod v4 verweigert zusätzlich `Infinity` in `z.number()`, was der Contract als Sentinel für `unreachable` nutzt. Die TypeScript-Grenze ist strukturell: ab Version 7 fehlt die klassische Compiler-API, auf der `source-scan.mjs` und das `dead-code-gate` aufbauen — ein Bump liefert keine rote Gate-Ausgabe, sondern zwei stillschweigend wirkungslose Prüfungen. Vitest 5 scheitert reproduzierbar am Default-Timeout von fünf Sekunden, weil `engine-slicing.test.mjs` ein echtes Git-Repo anlegt und die Engine als Kindprozess startet. Biome 2 bringt neue Regeln in Bestandscode und ist damit ein Code-Slice, kein Versions-Slice.
+
+Zwei Entscheidungen bleiben ausdrücklich offen und sind nicht als getroffen dokumentiert: ob die Grenzen als `ignore` in `.github/dependabot.yml` festgeschrieben werden, damit Dependabot nicht erneut darauf zeigt, und ob die beiden reparierbaren Bumps Vitest und Biome als eigene Slices nachgezogen werden. Eine entsprechende `ignore`-Konfiguration wurde nicht angelegt, weil diese Frage unbeantwortet blieb.
+
 ## 2026-09-26 — Konsistenz-Pass nach den fünf Merges
 
 Die Prüfung des zusammengeführten `main` nach den Merges #9 bis #14 fand drei veraltete Stellen. `docs/ARCHITEKTUR.md` nannte die Timeline noch unter T1.2, obwohl die aktive Roadmap T1.1 als Raid-Playback mit Timeline führt und T1.2 die Abnahme der Tag/Nacht/Raid-Schleife ist; die Zuordnung ist auf T1.1 korrigiert. Dieselbe Datei beschrieb die Client-Schichten ohne die neue Phase-Owner-Domäne; `village` und `ui` sind in der Aufzählung ergänzt. `docs/DEV_REQUIREMENTS.md` verwies bei Cloudflare-D1 auf einen Block T1.5, den die aktive Roadmap nicht mehr führt; der Verweis nennt jetzt den servergebundenen Raid-Flow. `docs/STRINGMATRIX.md` fehlten die vier `phase`-Schlüssel, die die Client-Domain bereits führt; `phase/state`, `phase/transitions`, `phase/day` und `phase/actions` sind aufgenommen, damit die globale Matrix die Client-Schlüssel einheitlich abbildet.

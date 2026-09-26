@@ -75,6 +75,26 @@ Installiert unter `.agents/skills/`, Registry in `skills-lock.json`. Alle drei s
 
 Effektiv nutzbar sind daraus `code-slop` für Lesbarkeits-Audits und `typescript-review` für die `any`-Disziplin. `code-quality` überschneidet sich am stärksten mit den bestehenden Gates und liefert für dieses Repo den wenigsten Zusatz.
 
-## 6. Bekannte Stolperfallen
+## 6. Versions-Pins und -Grenzen der Toolchain
+
+Dependabot schlägt diese Bumps regelmäßig vor. Die Gründe stehen hier, damit die
+Entscheidung beim nächsten Lauf nicht wieder von Hand getroffen werden muss. Ein
+Bump, der gegen eine Zeile dieser Liste verstößt, braucht zuerst diese Zeile und
+nicht den PR.
+
+| Paket | Stand | Grenze | Grund |
+|-------|-------|--------|-------|
+| `zod` | `3.23.8` | **hart gepinnt** | `scripts/shinon/policy.json` prüft die Version im `schema-contract`-Gate wörtlich. Die Kopplung ist Absicht: Client und Server teilen dieselben Schema-Instanzen, ein Versatz erzeugt zwei Wahrheiten. Verschärfend verweigert zod v4 `Infinity` in `z.number()`, und der Contract nutzt `Infinity` absichtlich als Sentinel für `unreachable`. |
+| `typescript` | `<7` | **Obergrenze 6.x** | Ab TypeScript 7 exportiert das Paket nur noch `version` und `versionMajorMinor`. Die klassische Compiler-API (`createScanner`, `createSourceFile`, `SyntaxKind`, `isIfStatement`) entfällt, und darauf bauen `scripts/shinon/lib/source-scan.mjs` und das `dead-code-gate` auf. Ein Bump auf 7.x macht zwei Gates still wirkend grün statt rot. |
+| `vitest` | `<5` | Obergrenze 4.x, 5.x nur mit Config-Fix | Ab 5.x ist der Default-Timeout 5 s. `scripts/shinon/tests/engine-slicing.test.mjs` legt ein echtes Git-Repo an und startet die Engine als Kindprozess; unter Parallel-Last braucht der Lauf rund 8 s. Der Test scheitert dann an der Zeit statt an der Aussage. Zusätzlich ist `--reporter=basic` entfallen. |
+| `@biomejs/biome` | `<2` | Obergrenze 1.x, 2.x nur mit Code-Fix | Biome 2 führt neue Regeln ein und migriert `rules.recommended` nach `rules.preset`. Der Sprung trifft Bestandscode und verlangt Änderungen, die über Versionsnummern hinausgehen. |
+
+Der Zod-Pin ist die einzige Grenze, die `scripts/shinon/policy.json` selbst
+durchsetzt. Die drei übrigen sind Einschätzungen aus realen Bump-Versuchen und
+stehen hier, damit sie beim nächsten Lauf wiederauffindbar sind, nicht im
+Changelog verschwinden. Ob sie später als `ignore` in `.github/dependabot.yml`
+festgeschrieben werden, ist eine offene Entscheidung.
+
+## 7. Bekannte Stolperfallen
 
 `package.json` darf keine `pnpm`-Runtime-Dependency führen, das kollidiert mit `packageManager`. Ein `package-lock.json` im Working Tree bricht den Remote-Gate. Leere `historisch/`- und Source-Domänenordner brauchen `.gitkeep`, sonst schlägt Fresh-Clone-Hygiene fehl. Hook-Änderungen müssen `scripts/shinon/install-hooks.mjs` und die generierten `.husky/*` gemeinsam treffen. `SHINON_SKIP_BUMP=1` schützt nur die Post-Commit-Recursion, `SHINON_AUTO_PUSH=0` ist der sichere lokale Lifecycle-Test. `core-determinism` und `false-positive` können bei leerer Core-Source grün werden; ein grüner Full-Run ist erst mit echter Source-Abdeckung aussagekräftig.
