@@ -8,7 +8,7 @@
     "./db": "./src/db/index.ts"
   },
   "dependencies": {
-    "zod": "3.23.8"
+    "zod": "4.6.5"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
