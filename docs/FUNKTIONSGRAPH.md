@@ -26,7 +26,7 @@ client:storage ↔ client:dungeon-editor/village (lokal)
 client:net → server:sync/matchmaking (Upload/Results sequenziell)
 server:db ↔ server:sync/matchmaking (Defender-State, Pool, Sperren)
 scripts/shinon:engine → plugins/* → git hooks (pre-commit/commit-msg/pre-push)
-.github/workflows/shinon.yml → pnpm install --frozen-lockfile + pnpm run check → Shinon Gate bei main-Push und Pull Request; bei grünem PR-Gate promotet der Job promote den Kopf per Fast-Forward nach main
+.github/workflows/shinon.yml → pnpm install --frozen-lockfile + pnpm run check → Shinon Gate bei main-Push und Pull Request; bei grünem PR-Gate promotet der Job promote den Kopf per Fast-Forward mit PROMOTE_TOKEN nach main, worauf der push-Zweig client-dist erzeugt (GITHUB_TOKEN würde ihn nicht auslösen)
 .github/agents/critical-adversarial-reviewer → Git-Status/Diffs + Agents.md/Regelwerke + betroffene Dokus/Tests → verifizierte Befunde (schreibgeschützt)
 .github/agents/berater → Code/Diff/Gate-Ausgabe + Agents.md → Urteil + Beleg + Fix, kurz (schreibgeschützt)
 ```

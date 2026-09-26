@@ -43,11 +43,24 @@ function canonical(command) {
   return cmd
 } /** Der Block des Jobs `gate`, sauber am nächsten Job abgeschnitten. */
 function gateJobBlock(workflow) {
-  const start = workflow.search(/^ {2}gate:\s*$/m)
+  return jobBlock(workflow, 'gate')
+}
+
+/** Der Block eines beliebigen Jobs, sauber am nächsten Job abgeschnitten. */
+function jobBlock(workflow, name) {
+  const start = workflow.search(new RegExp(`^ {2}${name}:\\s*$`, 'm'))
   if (start === -1) return ''
   const rest = workflow.slice(start + 1)
   const next = rest.search(/^ {2}[a-z][a-z0-9-]*:\s*$/m)
   return next === -1 ? rest : rest.slice(0, next + 1)
+}
+
+/** Die Workflow-Datei als Rohtext. */
+function workflowText() {
+  return fs.readFileSync(
+    path.join(ROOT, '.github/workflows/shinon.yml'),
+    'utf8',
+  )
 }
 
 /**
@@ -56,10 +69,7 @@ function gateJobBlock(workflow) {
  * nie wiederzufinden.
  */
 function remoteGateCommands() {
-  const workflow = fs.readFileSync(
-    path.join(ROOT, '.github/workflows/shinon.yml'),
-    'utf8',
-  )
+  const workflow = workflowText()
   const commands = []
   for (const line of gateJobBlock(workflow).split('\n')) {
     const match = line.match(/^\s+run:\s+(.+)$/)
@@ -138,14 +148,45 @@ describe('Parität zwischen Remote-Gate und lokalem Gate', () => {
   })
 
   it('fährt den Remote-Runner auf ubuntu-latest, nicht auf einem kostenpflichtigen', () => {
-    const workflow = fs.readFileSync(
-      path.join(ROOT, '.github/workflows/shinon.yml'),
-      'utf8',
+    const runners = [...workflowText().matchAll(/runs-on:\s*(\S+)/g)].map(
+      (m) => m[1],
     )
-    const runners = [...workflow.matchAll(/runs-on:\s*(\S+)/g)].map((m) => m[1])
     expect(runners.length).toBeGreaterThan(0)
     for (const runner of runners) {
       expect(runner).toMatch(/^(ubuntu|windows|macos)-latest$/)
     }
+  })
+})
+
+/**
+ * Der push-Zweig auf `main` ist nur lebendig, wenn `promote` nicht mit dem
+ * mitgelieferten `GITHUB_TOKEN` schiebt.
+ *
+ * GitHub startet für Events, die ein `GITHUB_TOKEN` ausgelöst hat, bewusst
+ * keinen neuen Workflow-Lauf. Schiebt `promote` damit nach `main`, landen die
+ * Commits zwar, aber der push-Zweig startet nie: kein `Commit integrity` auf
+ * `main`, kein `client-dist`, und kein Gate wird rot. Der Fehler ist vollkommen
+ * still — genau deshalb gehört er in einen Test und nicht in einen Kommentar.
+ */
+describe('Der push-Zweig auf main bleibt wirklich an', () => {
+  it('schiebt nach main mit PROMOTE_TOKEN statt mit GITHUB_TOKEN', () => {
+    const promote = jobBlock(workflowText(), 'promote')
+    expect(promote).toContain('secrets.PROMOTE_TOKEN')
+    expect(promote).not.toMatch(/secrets\.GITHUB_TOKEN/)
+    expect(promote).toContain('persist-credentials: false')
+  })
+
+  it('lässt dem promote-Job kein Schreiben über den GITHUB_TOKEN', () => {
+    expect(jobBlock(workflowText(), 'promote')).not.toContain('contents: write')
+  })
+
+  it('koppelt den push-Trigger an das Deploy-Artefakt auf main', () => {
+    const gate = gateJobBlock(workflowText())
+    expect(workflowText()).toMatch(/^ {2}push:\s*$/m)
+    expect(gate).toContain('actions/upload-artifact@v4')
+    // Das Artefakt darf nur im push-Zweig entstehen, sonst wäre es der Baum
+    // eines Pull Requests und nicht der von main.
+    const step = gate.slice(gate.search(/- name: Deploy-Artefakt/))
+    expect(step.slice(0, 300)).toContain("github.event_name == 'push'")
   })
 })

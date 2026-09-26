@@ -39,7 +39,7 @@ Bootstrap: `bash scripts/install-requirements.sh` prüft Node, pnpm, Git und Pyt
 
 ## 3. Gate-Matrix
 
-Ausführungskette: `pre-commit` (Slice) → `commit-msg` (Prosa) → `post-commit` (Bump, Amend, Push) → `pre-push` (Full) → GitHub Actions `Shinon Gate` auf Branch/PR → Job `promote` schiebt den grünen PR-Kopf per Fast-Forward nach `main`.
+Ausführungskette: `pre-commit` (Slice) → `commit-msg` (Prosa) → `post-commit` (Bump, Amend, Push) → `pre-push` (Full) → GitHub Actions `Shinon Gate` auf Branch/PR → Job `promote` schiebt den grünen PR-Kopf per Fast-Forward mit `PROMOTE_TOKEN` nach `main` → push-Lauf auf `main` wiederholt die Kette und erzeugt `client-dist`.
 
 | Plugin | Trigger | Prüft | Cap |
 |--------|---------|-------|-----|

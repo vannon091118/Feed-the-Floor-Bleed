@@ -3,6 +3,14 @@ name: Shinon
 # Der push-Trigger greift auf `main` unabhängig davon, aus welchem Branch
 # gemergt wurde. Jeder Merge nach main löst damit Tests und Deploy-Build aus;
 # das Artefakt entsteht nur auf main, die Prüfung läuft auch für Pull Requests.
+#
+# Dieser Trigger setzt voraus, dass der `promote`-Job NICHT mit dem
+# mitgelieferten `GITHUB_TOKEN` schiebt. GitHub startet für Events, die ein
+# `GITHUB_TOKEN` ausgelöst hat, bewusst keinen neuen Workflow-Lauf; ein Push
+# auf `main` aus `promote` heraus würde den push-Zweig also stumm abschalten.
+# Deshalb schiebt `promote` mit dem Secret `PROMOTE_TOKEN` (Fine-grained PAT
+# mit `contents: write` auf dieses Repository). Fehlt das Secret, bricht der
+# Job sichtbar ab, statt still zugrunde zu fördern.
 on:
   push:
     branches:
@@ -118,6 +126,13 @@ jobs:
   # signierten und geprüften Commits landen unverändert. Blockt ein Gate oder
   # eine Policy (unaufgelöste Kommentare, fehlende Signatur), scheitert dieser
   # Job sichtbar und es landet nichts.
+  #
+  # Geschoben wird nicht mit `GITHUB_TOKEN`, sondern mit `PROMOTE_TOKEN`.
+  # Sonst würde GitHub den push-Zweig nie mehr starten, weil Events aus einem
+  # `GITHUB_TOKEN`-Push keine neuen Läufe erzeugen — der Deploy-Pfad auf
+  # `main` wäre stumm tot. Das Token kommt als HTTP-Extraheader rein und
+  # nicht in die Remote-URL, damit es in keiner Fehlermeldung und in keinem
+  # `git`-Output landet.
   promote:
     name: Promote nach main
     needs: gate
@@ -125,13 +140,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: write
+      # Bewusst nur read: Der mitgelieferte GITHUB_TOKEN darf hier gar nicht
+      # schreiben können. Der einzige Schreibweg ist PROMOTE_TOKEN.
+      contents: read
     steps:
       - name: Checkout PR-Kopf
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
+          # Kein persistierter Zugangsschein aus GITHUB_TOKEN: der Push
+          # unten nutzt ausschliesslich PROMOTE_TOKEN.
+          persist-credentials: false
       - name: Nur Fast-Forward zulassen
         run: |
           git fetch origin main
@@ -140,4 +160,13 @@ jobs:
             exit 1
           fi
       - name: Nach main schieben
-        run: git push origin HEAD:main
+        env:
+          PROMOTE_TOKEN: ${{ secrets.PROMOTE_TOKEN }}
+        run: |
+          if [ -z "$PROMOTE_TOKEN" ]; then
+            echo "::error::Secret PROMOTE_TOKEN fehlt. Ohne eigenes Token wuerde der Push-Zweig auf main nie starten; Promote bricht bewusst ab."
+            exit 1
+          fi
+          git config --local http.https://github.com/.extraheader \
+            "AUTHORIZATION: basic $(printf 'x-access-token:%s' "$PROMOTE_TOKEN" | base64 -w0)"
+          git push origin HEAD:main

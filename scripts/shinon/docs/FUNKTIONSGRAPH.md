@@ -17,9 +17,9 @@ commit-msg → commit-msg.mjs → lib/commit-text.mjs (Prosa/Footer/Bullet/Datei
 prepare-commit-msg → prepare-commit-msg.mjs → lib/integration-text.mjs (Merge-/Squash-Body)
 lib/integration-text.mjs → lib/commit-text.mjs (checkMessage prüft die Erzeugung nach)
 plugins/commit-integrity → lib/commit-text.mjs (dieselben Regeln, echte Inhalts-Commits)
-workflow Shinon Gate (push) → commit-integrity --from <before> → required_status_checks auf main
+workflow Shinon Gate (push) → commit-integrity --from <before> → required_status_checks auf main + client-dist
 workflow Shinon Gate (pull_request) → commit-integrity --from <pull_request.base.sha> → derselbe Status-Kontext
-workflow Shinon Gate (pull_request, needs: gate) → Job promote → git push HEAD:main (Fast-Forward des geprüften PR-Kopfes)
+workflow Shinon Gate (pull_request, needs: gate) → Job promote → git push HEAD:main mit PROMOTE_TOKEN (Fast-Forward des geprüften PR-Kopfes; GITHUB_TOKEN würde den push-Zweig nicht auslösen)
 post-commit → git push (wenn SHINON_AUTO_PUSH=1)
 ```
 
