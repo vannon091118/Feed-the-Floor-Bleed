@@ -5,6 +5,7 @@ import {
   createActorsView,
   createFxView,
   createLightingView,
+  createRouteView,
   createTerrainView,
 } from '../render'
 import {
@@ -58,6 +59,7 @@ function centerOnRoute(camera: CameraState, route: PathResult): CameraState {
 export function createShowcase(deps: ShowcaseDeps): Showcase {
   const { runtime, element } = deps
   const terrain = createTerrainView(runtime)
+  const routeView = createRouteView(runtime)
   const actors = createActorsView(runtime)
   const fx = createFxView(runtime)
   const lighting = createLightingView(runtime)
@@ -71,6 +73,7 @@ export function createShowcase(deps: ShowcaseDeps): Showcase {
 
   let combat: CombatLog | null = null
   let combatGrid: DungeonGrid | null = null
+  let combatRoute: PathResult | null = null
   let playback = 0
   let visibleActors: ActorDescriptor[] = []
 
@@ -89,8 +92,9 @@ export function createShowcase(deps: ShowcaseDeps): Showcase {
   const stopTick = runtime.onTick(({ deltaMs, elapsedMs }) => {
     const grid = deps.getGrid()
     const route = deps.getRoute()
-    if (grid !== combatGrid) {
+    if (grid !== combatGrid || route !== combatRoute) {
       combatGrid = grid
+      combatRoute = route
       playback = 0
       combat = buildCombatLog(grid, route)
     }
@@ -105,6 +109,13 @@ export function createShowcase(deps: ShowcaseDeps): Showcase {
       playbackTick: Math.floor(playback),
     })
     terrain.apply(delta.terrain)
+    const lead = delta.actors.find((actor) => actor.kind === 'hero')
+    const routeIndex = lead
+      ? route.path.findIndex(
+          (cell) => cell.x === lead.cell.x && cell.y === lead.cell.y,
+        )
+      : -1
+    routeView.apply(route.path, routeIndex)
     actors.apply(delta.actors)
     visibleActors = delta.actors
     fx.emit(delta.fx)
@@ -122,6 +133,7 @@ export function createShowcase(deps: ShowcaseDeps): Showcase {
       stopTick()
       controls.dispose()
       terrain.dispose()
+      routeView.dispose()
       actors.dispose()
       fx.dispose()
       lighting.dispose()

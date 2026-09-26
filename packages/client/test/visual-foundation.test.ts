@@ -13,7 +13,10 @@ import {
 } from '../src/render/camera'
 import { depthValue } from '../src/render/depth'
 import { createVisualObserver } from '../src/visual'
-import { routeActors } from '../src/visual/combat-frame'
+import { combatFrame, routeActors } from '../src/visual/combat-frame'
+import { fxSeed } from '../src/visual/fx-seed'
+import { routePointAt } from '../src/visual/route-index'
+import { actorVariant } from '../src/visual/variant'
 import {
   TILES,
   WORLD_CELL_PX,
@@ -150,5 +153,32 @@ describe('Visual Observer', () => {
     const actors = routeActors(route.path)
     expect(actors.length).toBeGreaterThan(0)
     expect(actors.some((actor) => actor.kind === 'boss')).toBe(true)
+    for (const actor of actors) {
+      expect(actor.variant).toBe(actorVariant(actor.id))
+    }
+  })
+
+  it('klemmt Combat- und FX-Indizes auf denselben Route-Punkt', () => {
+    expect(routePointAt(route.path, -1)).toBe(route.path[0])
+    expect(routePointAt(route.path, route.path.length)).toBe(
+      route.path[route.path.length - 1],
+    )
+    expect(routePointAt([], 0)).toEqual({ x: 0, y: 0 })
+  })
+
+  it('leitet denselben Effekt-Seed aus demselben Combat-Event ab', () => {
+    const raid = resolveSnapshotRaid({
+      grid,
+      teamSize: 3,
+      monsterSlots: 2,
+      seed: 4242,
+      floor: 1,
+      token: 'fixture',
+    }).log.log
+    const event = raid.events.find((entry) => entry.type === 'attack')
+    if (!event)
+      throw new Error('Fixture muss mindestens einen Angriff enthalten')
+    expect(fxSeed(event)).toBe(fxSeed({ ...event }))
+    expect(fxSeed(event)).not.toBe(fxSeed({ ...event, tick: event.tick + 1 }))
   })
 })

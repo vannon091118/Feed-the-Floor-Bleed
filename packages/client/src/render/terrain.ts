@@ -7,10 +7,10 @@ import {
   cellToWorld,
   materialById,
 } from '../world'
-import { tileTexture } from './atlas'
 import { depthValue } from './depth'
 import { materialFilter } from './filters'
 import type { VisualRuntime } from './runtime'
+import { tileTexture, wallTexture } from './tile-atlas'
 
 export interface TerrainView {
   apply(patch: TerrainPatch | null): void
@@ -56,10 +56,11 @@ export function createTerrainView(runtime: VisualRuntime): TerrainView {
 
   const place = (tile: TerrainTile): void => {
     discard(tile.index)
-    const texture = tileTexture(tile.materialId, tile.variant)
     const foot = cellFoot(tile.cell)
     if (tile.occludes) {
-      const sprite = new Sprite(texture)
+      const sprite = new Sprite(
+        wallTexture(tile.materialId, tile.variant, tile.height),
+      )
       sprite.anchor.set(0.5, 1)
       sprite.x = foot.x
       sprite.y = foot.y
@@ -69,7 +70,7 @@ export function createTerrainView(runtime: VisualRuntime): TerrainView {
       runtime.layers.world.addChild(sprite)
       blocks.set(tile.index, sprite)
     } else {
-      const sprite = new Sprite(texture)
+      const sprite = new Sprite(tileTexture(tile.materialId, tile.variant))
       const origin = cellToWorld(tile.cell)
       sprite.width = WORLD_CELL_PX
       sprite.height = WORLD_CELL_PX

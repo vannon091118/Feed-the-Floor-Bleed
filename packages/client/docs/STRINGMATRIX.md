@@ -20,7 +20,7 @@
 | `visual/fx-kind` | `'dust' \| 'hit' \| 'spark' \| 'magic' \| 'smoke' \| 'blood' \| 'ambient'` |
 | `visual/actor-kind` | `'hero' \| 'monster' \| 'boss'` |
 | `visual/material-id` | `soil`, `stone`, `moss`, `wood`, `arcane` |
-| `visual/descriptor` | `TerrainTile`, `ActorDescriptor`, `FxDescriptor`, `VisualDelta` |
+| `visual/descriptor` | `TerrainTile`, `ActorDescriptor`, `FxDescriptor` inkl. stabilem Event-Seed, `VisualDelta` |
 | `visual/observes` | `grid`, `route`, `combat`, `playbackTick` — Eingang des Observers |
 | `world/tile-px` | `32` — Kantenlänge eines sichtbaren Tiles in Weltpixeln |
 | `world/cell-px` | `8` — Kantenlänge einer Logikzelle in Weltpixeln |
@@ -29,6 +29,9 @@
 | `input/drag-slop` | `5` px Weg, ab dem aus einem Kandidaten ein aktiver Zug wird |
 | `input/gesture` | `undecided` → `drag` \| `pan`; ohne Weg bleibt es ein Klick |
 | `render/camera-single` | `worldToScreen` existiert genau einmal; der Runtime-Ursprung kommt daraus |
+| `render/route` | Marker folgen `route.path`; aktiver Hero-Index markiert Combat-Fortschritt ohne zweite Positionsquelle |
+| `visual/route-index` | `routePointAt(path, index)` klemmt Actor-/FX-Indizes auf denselben Route-Punkt |
+| `visual/actor-variant` | `actorVariant(id)` liefert identische deterministische Varianten in Leerlauf und Combat |
 | `raid/trail` | Seit T1.1: `CombatLog.trail` (x/y/cell je Schritt) fließt in den Kampf-Hash; die Anzeige kann den Trail statt `route.path` nutzen |
 
 `ui/tabs` und `ui/phase` sind mit der alten visuellen Schicht entfallen. Die

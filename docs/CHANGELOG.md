@@ -26,6 +26,20 @@ Der Ton ist gewollt rau, aber an der Arbeit und nicht an der Person. Die Vorgabe
 
 `Agents.md` ist an der Ausnahmen-Liste entsprechend nachgezogen, damit die Governance nicht dem Tree widerspricht. `docs/REPOINDEX.md` registriert den neuen Pfad, `docs/STRINGMATRIX.md` führt die Agent-Kennung `agent/berater` mit ihrem Job. Die bestehende Grenze bleibt unverändert: Über diese zwei Profile hinaus sind weitere eigenständige Agent-Dokumente ausgeschlossen und brauchen ausdrückliche Freigabe.
 
+## 2026-09-26 — Agents.md entlastet und Detailregeln aufgeteilt
+
+`Agents.md` ist jetzt ein kurzer verbindlicher Einstieg statt eines tiefen Sammelregelwerks. Architektur/Ownership/LOC, Doku-Hygiene und Git-/Shinon-Lifecycle stehen getrennt in `docs/REGELWERK_ARCHITEKTUR.md`, `docs/REGELWERK_DOKUMENTATION.md` und `docs/REGELWERK_GIT.md`; der Einstieg weist den Zuständigkeitsbereich jeder Quelle aus. Root-Repoindex, Architektur und Funktionsgraph verweisen auf das neue Modell. `Agents.md` bleibt der Grundsatz-Owner, während die Regelwerke ihre jeweiligen Details verbindlich definieren und der Maschinen-Code die Regeln durchsetzt.
+
+## 2026-09-26 — Visuelle Foundation erhält Relief, Route-Licht und konsistente Dungeon-UI
+
+Die vorhandene Pixi-/Preact-Aufteilung bleibt unverändert; verbessert wird die Darstellung innerhalb der bestehenden Render-Owner. Der Client rendert deterministische Bodenvarianten, sichtbare Fake-3D-Wandflächen mit Deckplatte und Kantenlicht, differenzierte Held-/Monster-/Boss-Silhouetten sowie eine beleuchtete Markierung der echten Editorroute. Die Route-View leitet ausschließlich aus `route.path` ab und nutzt die vorhandene depth-sortierte Pixi-Weltebene. CSS gibt Shell, Editorraster, Kontextfenstern und mobilen Ansichten eine gemeinsame warme Dungeon-Kunstsprache.
+
+Die Render-Texturen sind entlang ihrer Aufgabe aufgeteilt (`render/canvas.ts`, `render/tile-atlas.ts`, `render/atlas.ts`). Combat-FX erhalten einen stabil aus Eventfeldern abgeleiteten Seed; Partikelvariation ist damit nicht mehr von einer globalen RNG-Aufrufreihenfolge abhängig. `packages/client/test/visual-foundation.test.ts` deckt die Seed-Stabilität ab. World-/Screen-Transformation, Core-Routenquelle, Observer und Grid-Ownership bleiben unverändert. Pflichtdokus in Root und Client sind mitgezogen.
+
+## 2026-09-26 — Visuelle Route-Abbildung und Actor-Varianten konsolidiert
+
+Im Client-Visual-Bereich waren die boundsafe Route-Index-Abbildung und die Actor-Variantenwahl an Combat-Actors beziehungsweise Leerlaufbesetzung getrennt implementiert. `packages/client/src/visual/route-index.ts` ist nun der gemeinsame Mapper für Combat-Actor, Event-FX und Route-Leerlauf; ein leerer Pfad und Indizes außerhalb des Pfads haben definierte Fallbacks. `packages/client/src/visual/variant.ts` liefert für alle Rollen dieselbe deterministische ID-Variante, sodass ein Actor beim Übergang in Combat nicht seine Optik anhand der Besetzungsposition wechselt. Die Client-Visual-Foundation-Tests prüfen Randindizes, leeren Pfad und Variantenkonsistenz. Architektur-, Funktionsgraph-, Stringmatrix- und Repoindex-Dokus beschreiben die Owner-Grenze.
+
 ## 2026-09-25 — T1.1 Trail-Hash: Dungeon-Geometrie steckt jetzt im Kampf-Hash
 
 Der Dungeon war für die Engine ein Skalar: `resolve.ts` schob nur `route.path.length` in `rules.ts`, `fingerprint.ts` hashte nur Seed, Config, Specs und Events. Zwei Dungeons mit gleich langer Route lieferten denselben Hash, Fallen wirkungslos — gepinnt in `packages/client/test/raid-job.test.ts` als grüner Beweis der Lücke. `packages/contracts/src/trail.ts` neu mit `CombatTrailEntrySchema` (`x/y 0..63`, `cell 0..4`), `packages/contracts/src/combat-log.ts` trägt `trail: CombatTrailEntry[] 1..4096` im `CombatLog`, `packages/contracts/src/version.ts` hebt `CONTRACT_VERSION 2→3` und `sim_version 0.0.1→0.0.2` an. In `packages/sim-core` baut `src/combat/resolve.ts` den Trail aus `findPath(grid)` plus `getCell` je Schritt, `src/combat/fingerprint.ts` hasht jede Trail-Zelle vor Units und Events, `src/combat/simulate.ts` verlangt `trail` als Pflicht-Input und `src/combat/replay.ts`/`verifyCombatLog` prüfen ihn mit. Der gepinnte Test dreht von `toBe` auf `not.toBe` und ist nach einem bewusst roten Durchlauf grün — gleich lange Routen mit anderem Trail liefern jetzt unterschiedliche Hashes. Der `combat-log.ts`-Cap bleibt durch Auslagerung nach `trail.ts` gehalten, alle 122 Tests und der Typecheck sind grün. Versionssprung ist breaking und beabsichtigt: alte v2-Logs enthalten keinen Trail und werden von v3 abgewiesen.
@@ -130,8 +144,8 @@ Die Ausnahme in `Agents.md` ist bewusst auf genau diesen Agenten begrenzt. `Agen
 
 ## 2026-09-25 — Governance-Konsolidierung
 
-- Die parallele Session-Learning-Datei und der GitHub-Governance-Spiegel wurden entfernt; `Agents.md` bleibt die einzige kanonische Agent-Governance und enthält die relevanten Erkenntnisse bereits.
-- `docs/REPOINDEX.md` und die Shinon-Dokumentation verweisen nicht mehr auf eigenständige Governance-Duplikate.
+- Die parallele Session-Learning-Datei und der GitHub-Governance-Spiegel wurden entfernt; `Agents.md` blieb damals die zentrale Agent-Governance. Die aktuellen Detailregeln sind inzwischen in `docs/REGELWERK_ARCHITEKTUR.md`, `docs/REGELWERK_DOKUMENTATION.md` und `docs/REGELWERK_GIT.md` aufgeteilt; `Agents.md` verweist verbindlich auf diese Quellen.
+- `docs/REPOINDEX.md` und die Shinon-Dokumentation verwiesen nach der damaligen Konsolidierung nicht mehr auf eigenständige Governance-Duplikate.
 
 ## 2026-09-25 — Offizieller Initialstand
 

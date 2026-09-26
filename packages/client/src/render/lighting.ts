@@ -1,5 +1,5 @@
 import { Sprite } from 'pixi.js'
-import { vignetteTexture } from './atlas'
+import { vignetteTexture } from './atmosphere-atlas'
 import type { VisualRuntime } from './runtime'
 
 export interface LightingView {

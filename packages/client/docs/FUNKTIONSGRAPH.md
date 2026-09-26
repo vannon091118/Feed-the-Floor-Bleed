@@ -8,17 +8,27 @@ world (Definitionen, keine Logik)
 
 visual (ohne Pixi)
   ├─ terrain: buildTerrain(grid) / diffTerrain(prev, next)
-  ├─ combat-frame: combatFrame(log, route.path, tick, from)
-  │                 routeActors(route.path)
+  ├─ route-index: routePointAt(path, index), boundsafe gemeinsame Route-Abbildung
+  ├─ variant: actorVariant(id), identische Leerlauf-/Combat-Varianten
+  ├─ actor-frame: combatActors(units, events, route.path, tick)
+  ├─ route-actors: routeActors(route.path)
+  ├─ event-fx: eventFx(event, route.path)
+  ├─ fx-seed: fxSeed(event) → stabile, präsentationslokale ID
   └─ observer: createVisualObserver().observe({grid, route, combat, tick})
 
 render (Pixi)
   ├─ camera: worldToScreen / screenToWorld (einzige Quelle)
   ├─ runtime: createVisualRuntime(host) → Application, Ebenen, Ticker
-  ├─ atlas: tileTexture / unitTexture / glowTexture / vignetteTexture
+  ├─ canvas: gemeinsame Canvas-/Textur-Helfer
+  ├─ atlas: Barrel der Textur-Owner
+  ├─ tile-atlas: deterministische Boden-/Wandtexturen
+  ├─ route-atlas: gepufferte Markertexturen
+  ├─ actor-atlas: Actor-Silhouetten
+  ├─ atmosphere-atlas: Glow-/Vignette-Texturen
   ├─ terrain: createTerrainView(runtime).apply(patch)
+  ├─ route: createRouteView(runtime).apply(route.path, activeIndex)
   ├─ actors: createActorsView(runtime).apply(actors) + update(clock)
-  ├─ fx: createFxView(runtime).emit(fx) + update(delta)
+  ├─ fx: createFxView(runtime).emit(fx) + update(delta), Seed je Event/Partikel
   ├─ shadows/light: createLightingView(runtime)
   └─ filters: materialFilter(material)
 

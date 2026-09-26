@@ -13,16 +13,28 @@
 | `src/world/descriptors.ts` | Reine Deskriptor-Typen für Observer und Runtime |
 | `src/world/index.ts` | Barrel der gemeinsamen Definitionen |
 | `src/visual/terrain.ts` | Grid → Terrain-Deskriptoren und Diff |
-| `src/visual/combat-frame.ts` | Combat-Log/Router auf Actor- und FX-Deskriptoren |
+| `src/visual/actor-frame.ts` | Combat-Units/Events → Actor-Deskriptoren |
+| `src/visual/combat-frame.ts` | Combat-Log/Route auf vollständigen Präsentationsrahmen |
+| `src/visual/event-fx.ts` | Core-Event/Route → event-seeded FX-Deskriptor |
+| `src/visual/fx-seed.ts` | Eventfelder → stabiler Seed für Präsentations-FX |
+| `src/visual/route-actors.ts` | Leerlauf-Akteure aus der echten Route |
+| `src/visual/route-index.ts` | Gemeinsames boundsafe Route-Index-Mapping |
+| `src/visual/variant.ts` | Gemeinsame ID-basierte Actor-Variantenwahl |
 | `src/visual/observer.ts` | Diffender Visual Observer, keine zweite Grid-Wahrheit |
 | `src/render/camera.ts` | Einzige World↔Screen-Transformation, Pan/Zoom/Clamp |
 | `src/render/layers.ts` | Ebenen-Namen und Z-Ordnung |
 | `src/render/depth.ts` | Fußpunkt-basierte Tiefenschlüssel |
-| `src/render/atlas.ts` | Prozedurale Texturen (Tiles, Units, Glow, Vignette) |
+| `src/render/canvas.ts` | Gemeinsame Canvas- und Textur-Helfer |
+| `src/render/atlas.ts` | Barrel für Actor-, Licht-, Tile- und Routentexturmodule |
+| `src/render/actor-atlas.ts` | Prozedurale Actor-Silhouetten |
+| `src/render/atmosphere-atlas.ts` | Gepufferte Glow- und Vignette-Texturen |
+| `src/render/tile-atlas.ts` | Deterministische Boden- und Mauertexturen |
+| `src/render/route-atlas.ts` | Gepufferte Leuchttexturen für Route-Marker |
 | `src/render/filters.ts` | Materialfilter aus Materialparametern |
 | `src/render/animation.ts` | Determinierte Animations-Helfer auf der Renderuhr |
 | `src/render/runtime.ts` | Pixi `Application`, Ebenen, Ticker, Kamera-Bindung |
-| `src/render/terrain.ts` | Persistente Boden- und Block-Sprites |
+| `src/render/terrain.ts` | Persistente Boden- und Fake-3D-Wandsprites |
+| `src/render/route.ts` | Persistente Route-Marker auf `route.path`, mit Combat-Position-Highlight |
 | `src/render/actors.ts` | Persistente Actor-Sprites mit Schatten und Animation |
 | `src/render/fx.ts` | Gepooltes FX-System ohne Objektallokation pro Treffer |
 | `src/render/fx-styles.ts` | Stiltabelle je FX-Art |
@@ -50,6 +62,7 @@
 | `test/dungeon-editor.test.ts` | State-/Model-Tests der Editor-Logik |
 | `test/raid-job.test.ts` | Upload-Gültigkeit, Hash und Auftragszustände |
 | `test/visual-foundation.test.ts` | Tests für World-Definitionen, Kamera, Depth, Observer |
+| `test/render-animation.test.ts` | Periodik, Determinismus, Grenzen und Amplituden der Render-Animation |
 | `test/input-drag.test.ts` | Slop-Verhalten: ein Down ohne Weg erzeugt keinen Drop |
 | `docs/*` | Pflicht-Doku dieser Domäne |
 

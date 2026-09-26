@@ -1,7 +1,6 @@
 # docs/DEV_REQUIREMENTS.md — Toolchain, Gates und Arbeitsablauf
 
-> Verbindliche Entwicklungsumgebung für dieses Repository. `Agents.md` bleibt das Gesetz für Governance und Architektur; diese Datei beantwortet die Frage „was brauche ich, um zu arbeiten, und was muss grün sein, bevor ich committe“.
-> Bei Widerspruch zu `Agents.md` gilt `Agents.md`.
+> Verbindliche Entwicklungsumgebung für dieses Repository. `Agents.md` ist der Einstieg; die fachlichen Regeln sind in `docs/REGELWERK_ARCHITEKTUR.md`, `docs/REGELWERK_DOKUMENTATION.md` und `docs/REGELWERK_GIT.md` aufgeteilt. Diese Datei beschreibt Toolchain, Befehle und Gate-Matrix.
 
 ## 1. Voraussetzungen
 

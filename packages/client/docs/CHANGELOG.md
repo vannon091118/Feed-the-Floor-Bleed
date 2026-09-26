@@ -1,5 +1,25 @@
 # packages/client/docs/CHANGELOG.md
 
+## 2026-09-26 — Render-Animation ohne Sinus vereinheitlicht
+
+`render/animation.ts` nutzt jetzt eine glatte deterministische Periodik für Bob, Schritt, Squash und Schwanken; `render/actors.ts` verwendet denselben Kurven-Owner für die Schritthöhe. Ein Regressionstest prüft Wiederholbarkeit, Periodengrenzen, Wertebereiche und bisherige Amplituden.
+
+## 2026-09-26 — Route-Mapping und Actor-Varianten vereinheitlicht
+
+`visual/route-index.ts` ist die einzige boundsafe Abbildung von Combat-/FX-Indizes auf den bestehenden `route.path`; Actor-Frame, Event-FX und Leerlaufbesetzung verwenden dieselbe Funktion. `visual/variant.ts` liefert für beide Actor-Pfade dieselbe deterministische, ID-basierte Variante. Damit ist die zuvor abweichende positionsbasierte Editor-Variante beseitigt. Tests decken Grenzindizes, leeren Pfad und Variantenkonsistenz ab.
+
+## 2026-09-26 — Showcase-Optik auf Materialrelief, Route und Charaktere gehoben
+
+Der Foundation-Stand rendert jetzt aus deterministischen Materialtexturen differenzierte Bodenkacheln und Wände mit Deckplatte, sichtbarer Frontfläche, Kantenlicht und Schatten, statt die Wandtextur nur in die Höhe zu strecken. `render/route.ts` zeigt `route.path` als warme, leuchtende Marker und hebt die aktuelle Position eines Helden hervor; es speichert keine eigene Grid- oder Route-Wahrheit und legt Marker in dieselbe depth-sortierte Welt-Ebene. Die prozeduralen Actor-Silhouetten unterscheiden Held, Monster und Boss über Farben und Formen, und die Blickrichtung folgt `facing`. Die globale UI-Haut in `src/ui/styles.css` hat eine passende Dungeon-Palette, gerahmten Viewport, lesbare Panels, sichtbare Fokuszustände und ein mobiles Layout bekommen.
+
+Der Atlas wurde entlang seiner Zuständigkeiten geteilt: `render/canvas.ts` besitzt Canvas/Textur-Helfer, `render/tile-atlas.ts` Boden-/Mauertexturen, `render/route-atlas.ts` Route-Lichter, `render/actor-atlas.ts` Silhouetten und `render/atmosphere-atlas.ts` Glow/Vignette. `visual/fx-seed.ts` erzeugt aus allen relevanten Combat-Event-Feldern einen stabilen Präsentationsseed; `render/fx.ts` leitet die Partikelvariation je Effekt/Partikel daraus ab, statt von einem fortlaufenden Emissions-RNG abhängig zu sein. `test/visual-foundation.test.ts` pinnt die stabile Seed-Ableitung und bestehende Route-/Observer-Grenzen.
+
+Der Render-/Visual-Code bleibt innerhalb der Ownership-Caps: Actor-Frame, Event-FX und Leerlauf-Route-Akteure liegen in eigenen kleinen Modulen statt einer großen Sammeldatei.
+
+## 2026-09-26 — Modularer Schnitt für Atlas und Combat-Visuals
+
+`render/atlas.ts` bleibt als Barrel; Actor-Silhouetten, Atmosphärentexturen, Boden-/Wandtexturen und Routenleuchten liegen separat in `actor-atlas.ts`, `atmosphere-atlas.ts`, `tile-atlas.ts` und `route-atlas.ts`. Im Pixi-freien `visual`-Owner sind `combatActors`, `eventFx`, `fxSeed` und die Leerlaufroute in eigenständige Dateien getrennt. Das hält die strengen Dateien-Caps ein und isoliert jeweilige Darstellungsjobs, ohne neue Raum- oder Grid-Owner einzuführen.
+
 ## 2026-09-26 — Client-Stringmatrix auf Trail-v3 nachgezogen
 
 - `docs/STRINGMATRIX.md`: Der Eintrag `raid/trail` behauptete weiterhin, der Combat-Log trage keinen Trail-Hash und die Anzeige nutze `route.path`. Das widersprach dem T1.1-Stand, den `test/raid-job.test.ts` bereits festschreibt. Seit T1.1 trägt `CombatLog.trail` je Schritt `x/y/cell` und `fingerprintCombatLog` hasht den vollständigen Trail; der Eintrag beschreibt jetzt genau das statt der überholten Lücke.
@@ -12,63 +32,39 @@
 
 - `src/render/runtime.ts` rechnete die World-to-Screen-Matrix ein zweites Mal. `applyCamera` holt den Container-Ursprung jetzt über `worldToScreen` aus `camera.ts`; die Regel „genau eine Transformation" ist damit im Code und nicht nur in der Doku gültig.
 - `src/input/drag.ts` aktivierte den Drag bei jedem Pointer-Down. Dadurch war jeder Klick auf einen Actor gleichzeitig ein Drop, und der Klickpfad zum Kontextfenster lief nie. Ein Down registriert jetzt nur noch einen Kandidaten; erst eine Bewegung über den Slop macht daraus einen aktiven Zug.
-- `src/input/drag-target.ts` neu: `resolveTarget`, `passedSlop`, `advance` und `dropCommand` kapseln Trefferauflösung und Zwischenzustand. Der Slop-Zusatz hatte `drag.ts` über den `input`-Cap von 100 Code-Zeilen getrieben, deshalb der Schnitt entlang der zwei Jobs.
+- `src/input/drag-target.ts` neu: `resolveTarget`, `passedSlop`, `advance` und `dropCommand` kapseln Trefferauflösung und Zwischenzustand eines Drags.
 - `src/showcase/controls.ts` entscheidet die Geste erst nach dem Slop: auf einem Actor ein Drag, sonst ein Pan, ohne Weg ein Klick.
-- `src/ui/shell.tsx` rendert `src/raid/raid-panel.tsx` wieder, das in der Repository-Historie lag, aber von keiner gerenderten Komponente erreicht wurde. Ohne diese Einbindung war der lokale bestimmbare Fixture-Raid im Browser nicht mehr auslösbar.
+- `src/ui/shell.tsx` rendert `src/raid/raid-panel.tsx` wieder. Der lokale Fixture-Raid ist damit im Browser auslösbar.
 - `src/ui/styles.css` ergänzt die Klassen des Raid-Panels aus den vorhandenen Tokens.
-- `test/input-drag.test.ts` neu: belegt, dass ein Down ohne Weg keinen Drop erzeugt, dass der Zug erst nach dem Slop aktiv wird und dass außerhalb des Greifradius kein Kandidat entsteht. Die Drag-Tests sind aus `test/visual-foundation.test.ts` herausgezogen, weil diese Datei sonst den globalen 200-Zeilen-Cap gerissen hätte.
+- `test/input-drag.test.ts` belegt, dass ein Down ohne Weg keinen Drop erzeugt, ein Zug erst nach dem Slop aktiv wird und außerhalb des Greifradius kein Kandidat entsteht.
 
 ## 2026-09-25 — Visuelle Foundation: Pixi-Szene, World, Observer, Window-Runtime
 
-- `packages/client/package.json` und `pnpm-lock.yaml`: `pixi.js@^8` als Client-Abhängigkeit. Die seit dem Init dokumentierte PixiJS-8-Schicht ist damit tatsächlich vorhanden; `docs/ARCHITEKTUR.md` behauptete sie vorher ohne Deckung.
-- `src/world/*` neu: `geometry.ts`, `materials.ts`, `tiles.ts`, `descriptors.ts` und Barrel als einzige Tile-/Material-/Deskriptor-Wahrheit. `CellType`, `GRID_SIZE`, `VISIBLE_TILE_SIZE` und `LOGIC_CELLS_PER_VISIBLE_TILE` werden aus `sim-core` wiederverwendet und nicht neu erfunden.
-- `src/render/*` neu: `camera.ts` hält die einzige `worldToScreen`/`screenToWorld`-Implementierung, `runtime.ts` besitzt `Application`, Ebenen und Ticker, `terrain.ts`, `actors.ts`, `fx.ts` und `lighting.ts` sind persistente Views, `atlas.ts` erzeugt Texturen prozedural und deterministisch, `filters.ts` leitet Materialfilter aus Materialparametern ab. FX läuft über einen festen Pool ohne Allokation pro Treffer.
-- `src/visual/*` neu: `observer.ts`, `terrain.ts` und `combat-frame.ts` übersetzen Grid, Route und Combat-Log in Präsentationsdeskriptoren. Bewusst ohne Pixi-Import, damit die Logik testbar bleibt und der Core nichts über Rendering weiß.
-- `src/input/*` neu: einheitlicher Pointer-Pfad für Maus und Touch, Hit-Test über die Kamera, Drag-Schicht, die beim Abschluss nur einen Command emittiert.
+- `packages/client/package.json` und `pnpm-lock.yaml`: `pixi.js@^8` als Client-Abhängigkeit.
+- `src/world/*` neu: gemeinsame Geometrie, Materialien, Tiles und Deskriptoren auf Basis der Sim-Core-Konstanten.
+- `src/render/*` neu: einzige Kamera-Transformation, Pixi-Runtime, persistente Terrain-/Actor-/FX-/Lighting-Views, deterministische Texturen und Materialfilter. FX läuft über einen festen Pool.
+- `src/visual/*` neu: Observer, Terrain-Diff und Combat-Frame ohne Pixi-Import.
+- `src/input/*` neu: gemeinsamer Pointer-Pfad, Hit-Test und Drag-Command.
 - `src/window/*` neu: Preact-Fenster-Registry mit Fokus, Z-Order, Drag und Resize.
-- `src/showcase/*` neu: Treiber, Viewport-Steuerung und Combat-Quelle, die die sichtbare Referenzszene aus echten Grid-, Route- und Core-Log-Daten bauen. Combat-Positionen entstehen aus `routeIndex`/`fromIndex`/`toIndex`, abgebildet auf `route.value.path`.
-- `src/ui/*` neu: `shell.tsx`, `world-host.tsx`, `editor-panel.tsx`, `editor-controls.tsx`, `panels.tsx` und `styles.css`. Der Editor bleibt DOM, die laufende Welt rendert Pixi; Fenster liegen als Preact-DOM über der Szene. `src/main.tsx` existiert wieder, der Client startet.
-- `test/visual-foundation.test.ts` neu: prüft Weltdefinitionen, Geometrie, Kamera-Umkehrbarkeit, Depth-Ordnung, Terrain-Diff und die Route-Abbildung des Combat-Frames.
-- `docs/ARCHITEKTUR.md`, `FUNKTIONSGRAPH.md`, `REPOINDEX.md` und `STRINGMATRIX.md` beschreiben die neue Schicht. Der Stringmatrix-Eintrag `raid/trail` hält den offenen Trail-Hash fest.
+- `src/showcase/*` neu: Referenzszene aus echtem Grid, Route und Core-Log.
+- `src/ui/*` neu: Shell, stabiler Pixi-Host, DOM-Editor und Fenster über der Szene.
+- `test/visual-foundation.test.ts` prüft Weltdefinitionen, Kamera, Depth, Terrain-Diff und Route-Abbildung.
+- `docs/ARCHITEKTUR.md`, `FUNKTIONSGRAPH.md`, `REPOINDEX.md` und `STRINGMATRIX.md` dokumentieren die Schichten.
 
 ## 2026-09-25 — Visuelle Schicht entfernt
 
-- Sieben Dateien gelöscht: `src/main.tsx`, `src/ui/shell.tsx`, `src/ui/styles.css`, `src/village/village-panel.tsx`, `src/raid/raid-panel.tsx`, `src/raid/team-panel.tsx` und `src/dungeon-editor/editor.tsx`. Der Client hat damit keinen Einstiegspunkt und rendert nichts.
-- Der Grund war eine Bilanz der visuellen Schicht: keine der beiden im CSS genannten Schriften wurde tatsächlich geladen, zwei Texte lagen unter dem WCAG-AA-Kontrast, alle acht Buttons waren 42 Pixel hoch statt 44, es gab zwölf freie Schriftgrößen ohne Skala, keine Transitions mit Dauer und 388 Pixel tote Fläche unter der Seitenspalte.
-- `model.ts` und `state.ts` bleiben erhalten, weil sie Logik sind und kein Markup. `fixture-data.ts` und `raid/fixture-raid.ts` bleiben ebenfalls, damit der T1.3-Auftragsweg testbar steht.
-- `model.ts` hat vor dem Löschen `tileMarker` bekommen: Der Boss lag auf Logikzelle 63,63, der Editor prüfte aber nur die erste Zelle eines Tiles, also 60,60 bei Tile 15,15. Der Boss war dadurch im Grid vorhanden, aber im Renderer unsichtbar. Die Logik überlebt das Löschen und ist getestet.
-- `model.ts` bleibt architektonisch fehlplatziert: `paintTile` enthält das 4x4-Logikraster und den Spawn- und Boss-Schutz, `tileMarker` die Tile-zu-Logikzelle-Abimmung. Beides gehört nach `sim-core/src/grid`, der Server kann die Regel heute nicht nutzen.
-- Verweise in `REPOINDEX.md`, `ARCHITEKTUR.md`, `FUNKTIONSGRAPH.md` und `STRINGMATRIX.md` auf die entfernten Komponenten bereinigt. Die Lücke `ui/phase` und `ui/tabs` ist in der Stringmatrix als entfernt vermerkt.
-- Typecheck und alle 104 Tests bleiben grün: die Client-Tests prüfen Logik, nicht Markup.
+- Sieben UI-Dateien wurden zunächst entfernt, weil der damalige Entwurf keine geladene Schrift, unzureichenden Kontrast, uneinheitliche Schriftgrößen und tote Fläche aufwies. Die Visual-Foundation wurde danach modular neu aufgebaut.
+- `model.ts` und `state.ts` blieben als Editorlogik bestehen. `tileMarker` korrigierte die Abbildung von Boss- und Spawn-Markern auf sichtbare Tiles.
+- Tests für Editor-, Raid- und Visual-Logik blieben erhalten; Markup selbst war damals nicht abgedeckt.
 
 ## 2026-09-25 — T1.3 lokaler Fixture-Raid
 
-- `src/raid/fixture-raid.ts` neu: `buildFixtureUpload` baut aus dem Editor-Grid und den Fixture-Daten einen gültigen Contract-v2-Upload, `runLocalFixtureRaid` führt ihn lokal ohne Netz aus.
-- `src/raid/raid-panel.tsx` neu: zeigt Ergebnisstufe, Hash, Ticks, Ereignisse, Angriffe und Überlebende sowie Fehler- und Timeout-Zustände. Der Lauf startet über einen eigenen Knopf.
-- `src/raid/team-panel.tsx` neu: Teamanzeige und Auswahlknopf als reine Props-Komponente aus `ui/shell.tsx` herausgelöst, damit die Shell unter ihrem LOC-Cap bleibt.
-- `src/fixture-data.ts`: Helden tragen `id`, `fatigue` und `tactics`; das Verteidiger-Roster und feste Auftragsdaten (Job-ID, Seed, Etage, Zeiten) liegen dort. Die Zeiten sind Konstanten, damit der Probelauf reproduzierbar bleibt.
-- `src/ui/shell.tsx`: Nachtphase rendert `RaidPanel` unter dem Editor; Hinweistext und Footer auf T1.3 gehoben.
-- `src/ui/styles.css`: Styles für Ergebniszeile, Kennzahlen-Raster und Idle-/Hinweistext inklusive Mobile-Breakpoint.
-- `test/raid-job.test.ts` neu: Upload-Gültigkeit, reproduzierbarer Hash, Hash-Änderung bei längerer Route, blockierte Route und ein Test, der die bekannte Routenlängen-Lücke pinnt. Seit T1.1 pinnt er den behobenen Fall: gleich lange Routen mit anderem Trail liefern unterschiedliche Hashes.
-- Der Panel ist als Probelauf beschriftet. Der Client entscheidet nichts — er zeigt das Ergebnis eines Core-Laufs.
-
-## 2026-09-25 — Architektur-Pass Fixture-Shell
-
-- `src/ui/fixture.ts` aufgelöst. State nach `src/dungeon-editor/state.ts`, pure
-  Regeln nach `src/dungeon-editor/model.ts`, read-only Daten nach
-  `src/fixture-data.ts` verschoben.
-- `src/ui/shell.tsx` besitzt die Tagesphase jetzt lokal und reicht Fixture-Daten
-  als Props an `EditorPanel` und `VillagePanel`; keine Panel liest globale
-  Fixture-Werte.
-- `src/dungeon-editor/editor.tsx` rendert nur noch, lokaler Drag-State bleibt in
-  der Komponente, Grid-/Pinsel-Schreibzugriffe laufen über State-Commands.
-- `src/village/village-panel.tsx` ist eine reine Props-Komponente.
-- Externer Google-Fonts-`@import` aus `src/ui/styles.css` entfernt (Hardcode-Regel);
-  Font-Stacks fallen auf System-Fonts zurück.
-- Tests von `test/fixture.test.ts` nach `test/dungeon-editor.test.ts` verschoben
-  und um Model-Grenzfälle ergänzt.
+- `src/raid/fixture-raid.ts` baut den Contract-Upload und führt den lokalen Auftrag ohne Netz aus.
+- `src/raid/raid-panel.tsx` zeigt Ergebnis, Hash, Ticks, Ereignisse und Fehlerzustände.
+- `src/fixture-data.ts` hält feste Fixture-Daten für reproduzierbare Tests.
+- `test/raid-job.test.ts` prüft Upload, Hash, Blockade und Auftragszustände.
 
 ## 2026-09-25 — Init
 
 - Domäne angelegt: `dungeon-editor`, `village`, `inventory`, `raid`, `net`, `storage`, `ui`.
-- PWA-Ziel: Vite + PixiJS 8 + Preact + Signals + Dexie + fflate. Tab/ Sidebar Layout.
+- PWA-Ziel: Vite + PixiJS 8 + Preact + Signals + Dexie + fflate.

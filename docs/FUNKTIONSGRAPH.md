@@ -14,6 +14,11 @@ client:world → client:visual + client:render + client:dungeon-editor (Definiti
 client:dungeon-editor:state → client:visual:observer → client:render (Deskriptoren, ohne Pixi)
 client:render:camera → client:input:hit-test + client:showcase:controls (einzige World-Screen-Transformation)
 client:showcase:combat-source → sim-core:resolveSnapshotRaid → client:render (echter Core-Log)
+client:showcase:scene → client:render:route (Marker aus route.path, keine zweite Positionsquelle)
+client:visual:combat-frame → client:render:fx (stabiler Event-Seed → gepoolte Partikel)
+client:render:tile-atlas → Pixi-Texturen (deterministische Materialien, Fake-3D-Wände)
+client:visual:route-index → actor-frame/event-fx/route-actors (gemeinsame Route-Index-Abbildung)
+client:visual:variant → actor-frame/route-actors (gemeinsame Actor-Variante)
 client:input:drag → Drop-Command (keine Spielregel im Command)
 client:window ↔ client:ui (Kontextfenster über der Pixi-Szene)
 sim-core:genome → sim-core:items (Stein-Tier) + client:raid (Tactic-Board)
@@ -22,7 +27,7 @@ client:net → server:sync/matchmaking (Upload/Results sequenziell)
 server:db ↔ server:sync/matchmaking (Defender-State, Pool, Sperren)
 scripts/shinon:engine → plugins/* → git hooks (pre-commit/commit-msg/pre-push)
 .github/workflows/shinon.yml → pnpm install --frozen-lockfile + pnpm run check → Shinon Gate bei main-Push und Pull Request; bei grünem PR-Gate promotet der Job promote den Kopf per Fast-Forward nach main
-.github/agents/critical-adversarial-reviewer → Git-Status/Diffs + Agents.md + betroffene Dokus/Tests → verifizierte Befunde (schreibgeschützt)
+.github/agents/critical-adversarial-reviewer → Git-Status/Diffs + Agents.md/Regelwerke + betroffene Dokus/Tests → verifizierte Befunde (schreibgeschützt)
 .github/agents/berater → Code/Diff/Gate-Ausgabe + Agents.md → Urteil + Beleg + Fix, kurz (schreibgeschützt)
 ```
 

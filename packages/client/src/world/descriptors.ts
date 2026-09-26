@@ -42,6 +42,8 @@ export interface FxDescriptor {
   kind: FxKind
   world: WorldPoint
   amount: number
+  /** Stabiler Seed aus dem Combat-Event, unabhängig von der Emissionsreihenfolge. */
+  seed: number
 }
 
 /**

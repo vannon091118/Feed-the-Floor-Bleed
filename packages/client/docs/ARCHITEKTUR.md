@@ -31,13 +31,20 @@ Simulation bleibt der einzige Owner der Spielentscheidungen.
 Core + Editor-State (grid, route)
   → visual/observer          (Diff, keine zweite Grid-Wahrheit)
   → Präsentationsdeskriptoren
-  → render/ (Terrain, Actors, FX, Licht)
+  → render/ (Terrain, Fake-3D-Wände, Route-Marker, Actors, FX, Licht)
   → Pixi → Browser
 ```
 
 Der Editor bleibt DOM: `ui/editor-panel.tsx` malt über `dungeon-editor/state`
 und färbt mit `world/materials`. Pixi rendert dieselbe Welt aus denselben
-Definitionen, aber ohne eigenen Spielzustand.
+Definitionen, aber ohne eigenen Spielzustand. `render/route` erhält ausschließlich
+`route.path` und markiert den Combat-Fortschritt, ohne Rasterdaten zu besitzen.
+Der Render-Atlas ist nach Canvas-Helfern, Boden-/Wand-/Routentexturen sowie
+Actor- und Atmosphärentexturen getrennt. `visual/route-index` bildet Actor- und
+FX-Indizes über dieselbe boundsafe Funktion auf `route.path` ab; die
+Actor-Variantenwahl ist in Leerlauf und Combat ID-basiert identisch. FX-Variation
+wird pro Event aus einem stabilen Seed abgeleitet; ein gemeinsamer fortlaufender
+Zufallsstrom existiert nicht.
 
 ## Grenzen
 
@@ -54,5 +61,5 @@ Preact-DOM über der Szene.
   Grid-Referenz neu gelesen, sonst meldet er `terrain: null`.
 - Kein Clientpfad entscheidet den Raid-Ausgang.
 - Editiert wird in DOM, die laufende Welt rendert Pixi.
-- Der Combat-Log der Szene kommt aus `sim-core` und trägt bewusst noch keinen
-  Trail-Hash; die räumliche Wahrheit der Anzeige ist `route.value.path`.
+- Die Showcase-Szene bezieht den Combat-Log aus `sim-core`; ihre Route-Marker
+  folgen `route.value.path`, Combat-Positionen werden darauf abgebildet.

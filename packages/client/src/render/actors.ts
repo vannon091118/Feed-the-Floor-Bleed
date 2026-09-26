@@ -1,7 +1,8 @@
 import { Sprite } from 'pixi.js'
 import { type ActorDescriptor, WORLD_CELL_PX } from '../world'
-import { bob, squash } from './animation'
-import { glowTexture, unitTexture } from './atlas'
+import { unitTexture } from './actor-atlas'
+import { bob, squash, stepLift } from './animation'
+import { glowTexture } from './atmosphere-atlas'
 import { depthValue } from './depth'
 import type { VisualRuntime } from './runtime'
 
@@ -28,6 +29,10 @@ function actorSize(actor: ActorDescriptor): number {
   return actor.kind === 'boss' ? WORLD_CELL_PX * 3.4 : WORLD_CELL_PX * 2.6
 }
 
+function face(actor: ActorDescriptor): number {
+  return actor.facing
+}
+
 /**
  * Actor-Darstellung mit Fuß-Sortierung.
  *
@@ -46,6 +51,7 @@ export function createActorsView(runtime: VisualRuntime): ActorsView {
     body.x = actor.world.x
     body.y = actor.world.y
     body.tint = hpTint(actor.hpRatio)
+    body.scale.x = entry.baseScale * face(actor)
     body.alpha = actor.hpRatio <= 0 ? 0.35 : 1
     body.zIndex = depthValue(actor.world.y, actor.height, actor.variant % 10)
     shadow.x = actor.world.x
@@ -98,13 +104,16 @@ export function createActorsView(runtime: VisualRuntime): ActorsView {
       for (const entry of entries.values()) {
         const { actor, body, shadow } = entry
         const lift = actor.moving
-          ? Math.abs(Math.sin(elapsedMs / 130 + actor.variant)) * 3
+          ? stepLift(elapsedMs, actor.variant)
           : bob(elapsedMs, actor.variant)
         body.y = actor.world.y - lift
         const shape = actor.moving
           ? squash(elapsedMs, actor.variant)
           : { x: 1, y: 1 }
-        body.scale.set(entry.baseScale * shape.x, entry.baseScale * shape.y)
+        body.scale.set(
+          entry.baseScale * shape.x * face(actor),
+          entry.baseScale * shape.y,
+        )
         shadow.alpha = (actor.hpRatio > 0 ? 0.32 : 0.14) - lift * 0.02
       }
     },

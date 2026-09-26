@@ -1,8 +1,14 @@
-import { createRng, nextBelow } from '@floor/sim-core'
+import {
+  createRng,
+  hashFinish,
+  hashStart,
+  hashWord,
+  nextBelow,
+} from '@floor/sim-core'
 import { Sprite } from 'pixi.js'
 import type { FxDescriptor } from '../world'
 import { fadeAlpha, growScale } from './animation'
-import { glowTexture } from './atlas'
+import { glowTexture } from './atmosphere-atlas'
 import { depthValue } from './depth'
 import { FX_STYLES } from './fx-styles'
 import type { VisualRuntime } from './runtime'
@@ -33,7 +39,6 @@ export interface FxView {
  * eine FX-Spitze ohne GC-Druck und ohne Allokation pro Treffer.
  */
 export function createFxView(runtime: VisualRuntime): FxView {
-  const rng = createRng(0x5eed)
   let cursor = 0
   const particles: Particle[] = []
   for (let index = 0; index < POOL_SIZE; index += 1) {
@@ -71,6 +76,9 @@ export function createFxView(runtime: VisualRuntime): FxView {
     const count = Math.min(style.count, 1 + Math.floor(effect.amount / 8))
     for (let index = 0; index < count; index += 1) {
       const particle = acquire()
+      let seed = hashWord(hashStart(), effect.seed)
+      seed = hashWord(seed, index)
+      const rng = createRng(hashFinish(seed))
       const spread = (nextBelow(rng, 200) - 100) / 100
       particle.active = true
       particle.ageMs = 0

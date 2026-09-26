@@ -18,6 +18,13 @@
 | `job/ttl` | 15 Minuten; Kampf-Timeout ist davon getrennt (`summary.stage`) | contracts |
 | `agent/critical-adversarial-reviewer` | Schreibgeschützter Tree-/Diff-Review; meldet ausschließlich belegte Governance-, KI-Code-, Contract- oder Scope-Befunde | root |
 | `agent/berater` | Schreibgeschützte Second-Opinion zu Idee, Diff oder Gate-Ausgabe; antwortet kurz und zynisch, ändert nichts | root |
+| `governance/architecture` | Verbindliche Domain-, Ownership-, Datenwahrheits- und LOC-Regeln | root |
+| `governance/documentation` | Pflichtdoku, Pflege, Hygiene-Gate und Historisierung | root |
+| `governance/git` | Shinon, Commit-Text, Versionierung und Git-Lifecycle | root |
+| `visual/fx-seed` | Stabiler Präsentationsseed aus Eventtyp, IDs, Tick, Indizes und Menge; keine Wirkung auf den Combat-Hash | client |
+| `visual/route-markers` | Route-View liest `route.path` und rendert sparsames Highlight des aktiven Actors; kein Grid- oder Positionsbesitz | client |
+| `visual/route-index` | Boundsafe `routePointAt(path, index)` wird von Actor-Frame, Event-FX und Leerlaufroute geteilt | client |
+| `visual/actor-variant` | ID-basierte `actorVariant(id)` ist zwischen Leerlauf- und Combat-Actors identisch | client |
 
 Die Fehlercodes und Auftragsstatus werden seit T1.3 von `packages/contracts` definiert. Server, D1, Client und lokale Fixture-Ausführung lesen dieselbe Quelle; freie Strings sind nicht mehr zulässig. `combat/trail` (x/y/cell je Schritt) fließt seit T1.1 in den Kampf-Hash.
 
