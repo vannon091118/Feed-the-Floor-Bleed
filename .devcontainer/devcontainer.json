@@ -1,8 +1,11 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
+// Devcontainer für Feed the Floor.
+//
+// Node kommt aus dem TypeScript-Node-Image und erfüllt die `engines`-Vorgabe
+// `>=22`. pnpm wird über Corepack in der in `package.json` gepinnten Version
+// aktiviert (`packageManager`), danach installiert der Post-Create-Schritt die
+// Workspace-Dependencies mit `--frozen-lockfile`, wie es die CI tut.
 {
-  "name": "Node.js & TypeScript",
-  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+  "name": "Feed the Floor",
   "image": "mcr.microsoft.com/devcontainers/typescript-node:5-24-trixie",
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {
@@ -10,24 +13,10 @@
       "version": "latest"
     }
   },
+  "postCreateCommand": "corepack enable && pnpm install --frozen-lockfile",
   "customizations": {
     "vscode": {
       "extensions": ["erveepp.agnes-ai-for-copilot-chat"]
     }
   }
-
-  // Features to add to the dev container. More info: https://containers.dev/features.
-  // "features": {},
-
-  // Use 'forwardPorts' to make a list of ports inside the container available locally.
-  // "forwardPorts": [],
-
-  // Use 'postCreateCommand' to run commands after the container is created.
-  // "postCreateCommand": "yarn install",
-
-  // Configure tool-specific properties.
-  // "customizations": {},
-
-  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-  // "remoteUser": "root"
 }
