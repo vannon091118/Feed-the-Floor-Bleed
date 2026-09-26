@@ -5,9 +5,9 @@ import {
   ErrorPayloadSchema,
   RAID_JOB_TTL_MS,
   RaidJobSchema,
+  sim_version,
   type TerminalRaidJob,
   UploadRequestSchema,
-  sim_version,
 } from '@floor/contracts'
 import { hasValidRoute, toDungeonGrid } from '../grid'
 import { replayCombat } from './replay'
@@ -62,7 +62,7 @@ function failure(
  * Meldungstexte ändern sich zwischen Versionen, Feldpfade nicht.
  */
 function issueDetail(error: {
-  issues: ReadonlyArray<{ path: readonly (string | number)[] }>
+  issues: ReadonlyArray<{ path: readonly PropertyKey[] }>
 }) {
   const first = error.issues[0]
   if (!first || first.path.length === 0) return 'payload'

@@ -67,7 +67,7 @@ writeHook(
 set -e
 if [ "\${SHINON_SKIP_BUMP:-0}" = "1" ]; then
   echo "🦊 Shinon post-commit — Bump übersprungen (SHINON_SKIP_BUMP=1)"
-elif [ "\$(git rev-list --count HEAD 2>/dev/null || echo 0)" -le 1 ]; then
+elif [ "$(git rev-list --count HEAD 2>/dev/null || echo 0)" -le 1 ]; then
   echo "🦊 Shinon post-commit — Initial commit erkannt (Version bleibt 0.0.1)"
 else
   echo "🦊 Shinon post-commit — Version bump..."

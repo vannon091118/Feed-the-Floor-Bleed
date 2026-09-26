@@ -8,6 +8,9 @@
 |----------|---------|--------|-------|
 | Node.js | `>=22` | ja | Runtime, Build, Test-Runner |
 | pnpm | `9.12.3` | ja | einziger Paketmanager, `packageManager` in `package.json` |
+| TypeScript | `6.0.3` | ja | `tsc --noEmit`; nicht `7.x`, siehe Abschnitt 8 |
+| Biome | `2.5.14` | ja | Format und Lint, `biome.json` |
+| Vitest | `5.0.1` | ja | Test-Runner, `vitest.config.ts` |
 | Git | mit SSH-Signatur | ja | Commits, Hooks, `Shinon Gate` |
 | Python | `>=3.10` | nein | nur optionale Helfer-Skripte, niemals Build-Abhängigkeit |
 | Bash | POSIX | ja (Linux/macOS) | `.husky/*` und `scripts/install-requirements.sh` |
@@ -78,3 +81,13 @@ Effektiv nutzbar sind daraus `code-slop` für Lesbarkeits-Audits und `typescript
 ## 6. Bekannte Stolperfallen
 
 `package.json` darf keine `pnpm`-Runtime-Dependency führen, das kollidiert mit `packageManager`. Ein `package-lock.json` im Working Tree bricht den Remote-Gate. Leere `historisch/`- und Source-Domänenordner brauchen `.gitkeep`, sonst schlägt Fresh-Clone-Hygiene fehl. Hook-Änderungen müssen `scripts/shinon/install-hooks.mjs` und die generierten `.husky/*` gemeinsam treffen. `SHINON_SKIP_BUMP=1` schützt nur die Post-Commit-Recursion, `SHINON_AUTO_PUSH=0` ist der sichere lokale Lifecycle-Test. `core-determinism` und `false-positive` können bei leerer Core-Source grün werden; ein grüner Full-Run ist erst mit echter Source-Abdeckung aussagekräftig.
+
+## 7. Toolchain-Pins und ihre Gründe
+
+Drei Pins sind nicht veraltete Schranken, sondern bewusste Entscheidungen. Ein Dependabot-Bump darauf ist eine Task für sich und braucht eine ausdrückliche Freigabe.
+
+Zod `3.23.8` ist über `scripts/shinon/policy.json` unter `contracts.zodVersion` gepinnt und wird vom `schema-contract`-Gate erzwungen. Grund: Contracts, Client und Server teilen sich eine Zod-Instanz, weil Contract-Payloads an der Prozessgrenze validiert werden. Jede andere Version erzeugt zwei Validatoren für dieselbe Prüfung. Der Sprung auf v4 ist zusätzlich Breaking: `z.number()` weist `Infinity` ab, `ZodError.issues[].path` ist auf `PropertyKey` gewachsen und unbekannte Objekt-Schlüssel kommen als `unrecognized_keys`-Issue mit eigenem `keys`-Feld statt im Message-Text. Der PathResult-Sentinel für `unreachable` braucht dafür eine Union-Schema statt `z.number().nonnegative()`.
+
+TypeScript ist bewusst unter `7.x` gehalten. Die 7er-Linie liefert nur noch eine native Binärdatei und exportiert `createScanner`, `createSourceFile`, `SyntaxKind` und `isIfStatement` nicht mehr. `scripts/shinon/lib/source-scan.mjs` und `scripts/shinon/plugins/dead-code-gate.mjs` bauen darauf auf und können ohne Neuaufbau der Gates auf `typescript/unstable/*` nicht laufen. Zulässig ist die höchste 6er-Version; `baseUrl` ist bereits entfernt und durch relative `paths` ersetzt.
+
+Biome `2.5.14` verlangt in `biome.json` `rules.preset` statt `rules.recommended`. Der Vitest-Default von 5 Sekunden ist zu knapp für den Engine-Smoke-Test, der ein echtes Git-Repo anlegt und die Engine als Kindprozess startet; `vitest.config.ts` setzt `testTimeout: 30_000` und schließt `.freebuff/` aus, sonst zählt Vitest die Tests der Feature-Worktrees doppelt.
