@@ -1,5 +1,9 @@
 # packages/contracts/docs/CHANGELOG.md
 
+## 2026-09-26 — Review-Nachgang: nutzloser Zell-Alias in `grid.ts` entfernt
+
+- `packages/contracts/src/grid.ts`: `const cellTypeSchema = CellTypeSchema` war eine reine Weiterleitung mit genau einer Verwendung. Der Alias ist entfernt, `DungeonGridSchema` nutzt `CellTypeSchema` direkt. Import und Verhalten bleiben unverändert.
+
 ## 2026-09-25 — T1.1 Trail-Hash: Contract v3 mit `CombatTrailEntry` und `trail`
 
 - `packages/contracts/src/trail.ts` neu: `CombatTrailEntrySchema` mit `x/y 0..63` und `cell 0..4` (`.strict()`).

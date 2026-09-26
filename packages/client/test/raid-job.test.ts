@@ -29,6 +29,7 @@ describe('Fixture-Raid aus dem Client', () => {
     const second = runLocalFixtureRaid(createDungeonGrid())
     expect(RaidJobSchema.safeParse(first).success).toBe(true)
     expect(first.status).toBe('completed')
+    expect(second.status).toBe('completed')
     if (first.status !== 'completed' || second.status !== 'completed') return
     expect(second.result.hash).toBe(first.result.hash)
     expect(first.result.summary.hash).toBe(first.result.hash)
@@ -38,6 +39,8 @@ describe('Fixture-Raid aus dem Client', () => {
     const open = runLocalFixtureRaid(createDungeonGrid())
     const snake = snakeGrid()
     const long = runLocalFixtureRaid(snake)
+    expect(open.status).toBe('completed')
+    expect(long.status).toBe('completed')
     if (open.status !== 'completed' || long.status !== 'completed') return
     expect(long.result.hash).not.toBe(open.result.hash)
   })
@@ -47,6 +50,8 @@ describe('Fixture-Raid aus dem Client', () => {
     const detour = runLocalFixtureRaid(
       paintTile(createDungeonGrid(), 'wall', 1, 0),
     )
+    expect(plain.status).toBe('completed')
+    expect(detour.status).toBe('completed')
     if (plain.status !== 'completed' || detour.status !== 'completed') return
     expect(detour.result.hash).not.toBe(plain.result.hash)
     expect(detour.result.summary.hash).toBe(detour.result.hash)

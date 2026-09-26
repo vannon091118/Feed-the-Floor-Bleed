@@ -6,17 +6,7 @@ import {
   hashWord,
   hashWords,
 } from '../hash'
-import type {
-  CombatEvent,
-  CombatLog,
-  CombatTrailEntry,
-  CombatUnitSpec,
-} from './types'
-
-function trailHash(entry: CombatTrailEntry): number {
-  let hash = hashWords(hashStart(), [entry.x, entry.y, entry.cell])
-  return hash
-}
+import type { CombatEvent, CombatLog, CombatUnitSpec } from './types'
 
 function specHash(spec: CombatUnitSpec): number {
   let hash = hashText(hashStart(), spec.id)
@@ -57,7 +47,11 @@ export function fingerprintCombatLog(log: CombatLog): string {
     log.config.variancePermille,
     log.config.varianceSwing,
   ])
-  for (const entry of log.trail) hash = hashWord(hash, trailHash(entry))
+  for (const entry of log.trail)
+    hash = hashWord(
+      hash,
+      hashWords(hashStart(), [entry.x, entry.y, entry.cell]),
+    )
   for (const unit of log.units) hash = hashWord(hash, specHash(unit))
   for (const event of log.events) hash = hashWord(hash, eventHash(event))
   hash = hashText(hash, log.stage)

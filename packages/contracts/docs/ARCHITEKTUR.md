@@ -31,7 +31,7 @@ Der Contract legt keine Formeln, Grenzen, Umrechnungen oder Gameplay-Effekte fü
 - `MatchResponseSchema`: `seed`, `floor` und ein vollständiger versionierter `RaidSnapshot` als späteres Ziel.
 - `ResultPayloadSchema`: `token`, `floor`, `hash` und typisiertes `CombatSummary`.
 - `RaidLogPayloadSchema`: derselbe Hash plus der vollständige `CombatLog`. Eigenes Artefakt, damit `result_json` klein bleibt.
-- `CombatLogSchema`: Config, Einheiten, Ereignisse, Stufe, Ticks, Hash und `trail` (jeder Schritt mit `x/y/cell`). Seit T1.1 fließt der Trail in `fingerprintCombatLog`; `verifyCombatLog` prüft ihn. Invarianten erzwingen eindeutige IDs, ein schließendes `end`-Ereignis und Tick ≤ `log.ticks`.
+- `CombatLogSchema`: Config, Einheiten, Ereignisse, Stufe, Ticks, Hash und `trail` (jeder Schritt mit `x/y/cell`). Seit T1.1 fließt der Trail in `fingerprintCombatLog`; `verifyCombatLog` deckt ihn über den Hash-Vergleich ab. Invarianten erzwingen eindeutige IDs, ein schließendes `end`-Ereignis und Tick ≤ `log.ticks`.
 - `ErrorPayloadSchema`: `blocked`, `invalid-hash`, `invalid-request`, `protected`, `timeout` plus optionales `detail`.
 - `RaidJobSchema`: Diskriminated Union über `status` mit Übergangsautomat.
 

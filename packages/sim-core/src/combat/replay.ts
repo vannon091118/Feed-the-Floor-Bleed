@@ -12,19 +12,6 @@ export function replayCombat(log: CombatLog): CombatLog {
 
 export function verifyCombatLog(log: CombatLog): boolean {
   const replayed = replayCombat(log)
-  if (replayed.trail.length !== log.trail.length) return false
-  for (let index = 0; index < log.trail.length; index += 1) {
-    const left = log.trail[index]
-    const right = replayed.trail[index]
-    if (
-      !left ||
-      !right ||
-      left.x !== right.x ||
-      left.y !== right.y ||
-      left.cell !== right.cell
-    )
-      return false
-  }
   return (
     replayed.hash === log.hash &&
     replayed.stage === log.stage &&

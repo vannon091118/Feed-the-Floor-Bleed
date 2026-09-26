@@ -1,5 +1,11 @@
 # packages/sim-core/docs/CHANGELOG.md
 
+## 2026-09-26 — Review-Nachgang T1.1: toter Trail-Vergleich, Lint und Wrapper
+
+- `src/combat/replay.ts`: `verifyCombatLog` enthielt nach T1.1 einen Längen- und Zellvergleich des Trails. Der war wirkungslos, weil `replayCombat` `log.trail` unverändert an `simulateCombat` durchreicht und der Vergleich damit jedes Element mit sich selbst verglich — der Block konnte nie `false` liefern. Er ist entfernt; der Trail bleibt über `fingerprintCombatLog` im Hash abgesichert.
+- `src/combat/fingerprint.ts`: der Ein-Aufruf-Wrapper `trailHash` ist entfernt, der Ausdruck steht direkt in der Schleife. `let hash` wich `const`, der zuvor rote Biome-Lauf ist damit grün.
+- Die frühere Zeile „`verifyCombatLog` prüft Länge und jede Zelle“ war falsch und ist durch diesen Eintrag überholt.
+
 ## 2026-09-25 — T1.1 Trail-Hash: `trail` fließt in den Hash, LOC-Cap gehalten
 
 - `src/combat/types.ts`: `CombatTrailEntry { x, y, cell }` und `CombatLog.trail: CombatTrailEntry[]` neu.

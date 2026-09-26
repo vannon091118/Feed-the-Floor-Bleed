@@ -7,12 +7,11 @@ const pointSchema = z
     y: z.number().int().min(0).max(63),
   })
   .strict()
-const cellTypeSchema = CellTypeSchema
 
 export const GridPointSchema = pointSchema
 export const DungeonGridSchema = z
   .object({
-    cells: z.array(cellTypeSchema).length(4096),
+    cells: z.array(CellTypeSchema).length(4096),
     spawn: pointSchema,
     boss: pointSchema,
   })

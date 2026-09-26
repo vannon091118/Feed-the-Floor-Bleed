@@ -41,7 +41,7 @@ aussagt.
 
 ## Trail seit T1.1
 
-Seit T1.1 fließt der vollständige Trail aus dem Grid in den Kampf: `resolveCombat` zieht die Route, baut `trail[]` mit `x/y/cell` je Schritt und reicht ihn an `simulateCombat`; `fingerprintCombatLog` hasht jede `CombatTrailEntry` vor Units und Events. `replayCombat`/`verifyCombatLog` prüfen den Trail mit. Gleich lange Routen mit anderer Geometrie liefern jetzt unterschiedliche Hashes — der gepinnte Test `raid-job.test.ts` ist grün.
+Seit T1.1 fließt der vollständige Trail aus dem Grid in den Kampf: `resolveCombat` zieht die Route, baut `trail[]` mit `x/y/cell` je Schritt und reicht ihn an `simulateCombat`; `fingerprintCombatLog` hasht jede `CombatTrailEntry` vor Units und Events. Ein manipulierter Trail ändert damit den Hash, den `replayCombat`/`verifyCombatLog` abschließend vergleichen — der Trail ist über den Hash abgesichert, nicht über einen separaten Zellvergleich. Gleich lange Routen mit anderer Geometrie liefern jetzt unterschiedliche Hashes — der gepinnte Test `raid-job.test.ts` ist grün.
   `resolveCombat` zieht die Route aus dem Grid, `replayCombat` und
   `verifyCombatLog` bestätigen einen gespeicherten Log.
 - `genome`, `items`, `ghost` sind weiterhin offen.
