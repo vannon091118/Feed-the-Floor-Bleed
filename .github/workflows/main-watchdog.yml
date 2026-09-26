@@ -1,0 +1,79 @@
+name: Main-Watchdog
+
+# Der Push-Zweig des Shinon-Workflows ist ein Auditor nach der Landung und
+# keine Sperre, und das ist nicht reparierbar: Branch-Protection verlangt den
+# Status-Check vor dem Push, ein Push-Workflow wird aber vom Push ausgelöst.
+# Ein roter Push-Lauf auf main kann deshalb nichts mehr aufhalten — er kann nur
+# melden. Am 2026-09-25 um 23:13Z lag so ein roter Lauf 21 Stunden unbeachtet
+# auf main, während 22 weitere rote Läufe einliefen. Dieser Workflow sorgt dafür,
+# dass eine solche Meldung nicht wieder untergeht.
+#
+# `workflow_run` greift unabhängig davon, was den Shinon-Lauf ausgelöst hat, und
+# feuert auch dann, wenn der Auslöser ein GITHUB_TOKEN war. Der Branch-Filter
+# greift auf den Kopf-Branch des auslösenden Laufs, also genau auf `main`.
+
+on:
+  workflow_run:
+    workflows: [Shinon]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: main-watchdog-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+jobs:
+  watchdog:
+    name: Roter Push-Lauf auf main
+    if: ${{ github.event.workflow_run.conclusion != 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Vorfall als offenen Issue festhalten
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+        run: |
+          set -euo pipefail
+          SHORT="${SHA:0:7}"
+          TITLE="Roter Push-Lauf auf main: ${SHORT} (${CONCLUSION})"
+          BODY="Ein Shinon-Push-Lauf auf \`main\` ist rot gelaufen. Der Lauf prüft
+          \`main\` nach der Landung und konnte den Commit deshalb nicht verhindern.
+
+          | | |
+          |---|---|
+          | Lauf | ${RUN_URL} |
+          | Commit | \`${SHA}\` |
+          | Ergebnis | \`${CONCLUSION}\` |
+          | Repo | \`${REPO}\` |
+
+          Der Push-Pfad ist per Konstruktion fail-open; die Sperre ist der
+          PR-Gate über \`needs: gate\`. Dieser Issue ist der Nachweis, dass ein
+          roter Push-Lauf bemerkt wurde. Behebe die Ursache und schließe den
+          Issue — nicht einfach schliessen.
+
+          Beachte die Schrittliste des Laufs: bricht \`commit-integrity\` ab, sind
+          Typecheck, Tests, Lint und Build **übersprungen**. Ein roter Lauf hat
+          dann weniger geprüft als ein grüner."
+          gh label create watchdog --description "Roter Push-Lauf auf main" --force >/dev/null 2>&1 || true
+          EXISTING=$(gh issue list --state open --label watchdog --limit 100 \
+            --json number,title --jq "[.[] | select(.title | contains(\"${SHORT}\"))][0].number // empty")
+          if [ -n "$EXISTING" ]; then
+            echo "Offener Vorfall ${EXISTING} existiert bereits — nachgetragen."
+            gh issue comment "$EXISTING" --body "Erneut rot: Lauf ${RUN_URL} (\`${CONCLUSION}\`)." >/dev/null
+          else
+            gh issue create --title "$TITLE" --body "$BODY" --label watchdog >/dev/null
+            echo "Neuer Vorfall angelegt: ${TITLE}"
+          fi
+      - name: Sichtbar rot werden
+        run: |
+          echo "::error::Push-Lauf auf main ist rot — der Commit liegt bereits auf main. Details im Workflow-Lauf und im angelegten Issue."
+          exit 1

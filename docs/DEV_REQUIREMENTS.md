@@ -39,7 +39,9 @@ Bootstrap: `bash scripts/install-requirements.sh` prüft Node, pnpm, Git und Pyt
 
 ## 3. Gate-Matrix
 
-Ausführungskette: `pre-commit` (Slice) → `commit-msg` (Prosa) → `post-commit` (Bump, Amend, Push) → `pre-push` (Full) → GitHub Actions `Shinon Gate` auf Branch/PR → Job `promote` schiebt den grünen PR-Kopf per Fast-Forward mit `PROMOTE_TOKEN` nach `main` → push-Lauf auf `main` wiederholt die Kette und erzeugt `client-dist`.
+Ausführungskette: `pre-commit` (Slice) → `commit-msg` (Prosa) → `post-commit` (Bump, Amend, Push) → `pre-push` (Full) → GitHub Actions `Shinon Gate` auf Branch/PR → Job `promote` schiebt den grünen PR-Kopf per Fast-Forward mit `PROMOTE_TOKEN` nach `main` → push-Lauf auf `main` wiederholt die Kette und erzeugt `client-dist` → Main-Watchdog meldet einen roten Push-Lauf als offenen Issue.
+
+Fail-closed gilt nur auf dem PR-Pfad. `promote` hängt per `needs: gate` daran, ein roter Gate verhindert die Landung. Der Push-Pfad kann das nicht: Branch-Protection prüft einen SHA, und die Pflichtprüfung muss vor dem Push existieren. Dort entsteht `client-dist` und `Commit integrity` laufen als Nachweis; ein roter Lauf meldet, er hält nichts auf. Bricht `commit-integrity` ab, werden alle späteren Schritte des Push-Laufs übersprungen — ein roter Lauf prüft dann weniger als ein grüner.
 
 | Plugin | Trigger | Prüft | Cap |
 |--------|---------|-------|-----|

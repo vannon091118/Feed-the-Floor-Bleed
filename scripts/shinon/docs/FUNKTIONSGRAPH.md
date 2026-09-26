@@ -17,7 +17,8 @@ commit-msg → commit-msg.mjs → lib/commit-text.mjs (Prosa/Footer/Bullet/Datei
 prepare-commit-msg → prepare-commit-msg.mjs → lib/integration-text.mjs (Merge-/Squash-Body)
 lib/integration-text.mjs → lib/commit-text.mjs (checkMessage prüft die Erzeugung nach)
 plugins/commit-integrity → lib/commit-text.mjs (dieselben Regeln, echte Inhalts-Commits)
-workflow Shinon Gate (push) → commit-integrity --from <before> → required_status_checks auf main + client-dist
+workflow Shinon Gate (push) → commit-integrity --from <before> → required_status_checks auf main + client-dist (fail-open: meldet nach der Landung, verhindert nichts; bricht commit-integrity ab, sind alle späteren Schritte übersprungen)
+workflow Main-Watchdog (workflow_run: Shinon completed, branches main) → conclusion != success → offener Issue mit Label watchdog + roter Lauf
 workflow Shinon Gate (pull_request) → commit-integrity --from <pull_request.base.sha> → derselbe Status-Kontext
 workflow Shinon Gate (pull_request, needs: gate) → Job promote → git push HEAD:main mit PROMOTE_TOKEN (Fast-Forward des geprüften PR-Kopfes; GITHUB_TOKEN würde den push-Zweig nicht auslösen)
 post-commit → git push (wenn SHINON_AUTO_PUSH=1)

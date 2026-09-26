@@ -13,6 +13,7 @@
 | `VERSION` | Repo-Version (X.Y.Z, PATCH 0..99), Single Source of Truth |
 | `pnpm-lock.yaml` | Reproduzierbare pnpm-Auflösung für alle Workspace-Projekte |
 | `.github/workflows/shinon.yml` | Pflichtprüfung `Shinon Gate` bei Push auf `main` und PR; Job `promote` schiebt den geprüften PR-Kopf per Fast-Forward mit `PROMOTE_TOKEN` nach `main` |
+| `.github/workflows/main-watchdog.yml` | Meldet jeden roten Push-Lauf auf `main` als offenen Issue mit Label `watchdog`; der Push-Pfad ist per Konstruktion fail-open |
 | `docs/*` | Globale Pflicht-Doku und verbindliche Regelwerke (aktiv ≤200 Zeilen) |
 | `.github/dependabot.yml` | Wöchentliche Dependency-Updates für das pnpm-Workspace (npm-Ökosystem) und den Devcontainer |
 | `.devcontainer/devcontainer.json` | Devcontainer mit TypeScript-Node-Image und pnpm über Corepack |
@@ -27,6 +28,7 @@
 | `packages/server/src/*` | Server (DB, Matchmaking, Sync) |
 | `scripts/bump-version.mjs` | Next-Bump-Zähler mit Basis aus `origin/main` (PATCH→MINOR→MAJOR, verweigert doppelte Nummern) |
 | `.github/workflows/shinon.yml` | Pflichtprüfung für Pull Requests und `main`; Job `promote` schiebt den geprüften PR-Kopf per Fast-Forward nach `main` und löst darüber den Deploy-Pfad auf `main` aus |
+| `.github/workflows/main-watchdog.yml` | Beobachtet die roten Push-Läufe auf `main`, die die Branch-Protection nicht verhindern kann |
 | `packages/contracts/src/index.ts` | Öffentliche Contract-v3-Exports mit Raid-Freeze, Grid, Handshakes, Trail und `sim_version` |
 | `.agents/skills/` | Installierte Review-Skills (`code-slop`, `typescript-review`, `code-quality`), Registry in `skills-lock.json` |
 | `scripts/shinon/engine.mjs` | Shinon Slicer + Runner (Base immer, Core nach Bedarf) |
