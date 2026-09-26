@@ -50,12 +50,15 @@
 | `src/showcase/controls.ts` | Viewport-Steuerung: Pan, Zoom, Klick, Drag |
 | `src/showcase/scene.ts` | Treiber, der Observer, Views und Kamera schaltet |
 | `src/ui/shell.tsx` | Reines Layout: Topbar, Bühne, Sidebar |
-| `src/ui/topbar.tsx` | Wortmarke, Ressourcenstreifen, Phasenanzeige, Ansichtsumschalter, Werkzeuge |
+| `src/ui/topbar.tsx` | Wortmarke, Phasenanzeige, Ansichtsumschalter, live gelesener Ressourcenstreifen, Werkzeuge |
 | `src/ui/view.ts` | Blick-Signal `village \| dungeon`, bewusst kein Phasenzustand |
 | `src/ui/view-switch.tsx` | Segmentierter Umschalter zwischen Dorf- und Dungeon-Blick |
 | `src/ui/stage.tsx` | Bühne: genau eine Ansicht im Viewport, Fensterlayer darüber |
 | `src/ui/sidebar.tsx` | Sidebar: Panel der Phase, Editorwerkzeug nur im Dungeon-Blick |
-| `src/ui/village-view.tsx` | Dorfblick: Ort, Gilde, Bilanz der letzten Nacht |
+| `src/ui/building-card.tsx` | Baukarte mit Bau- bzw. Ausbautaste, Kosten und Arbeiterzuweisung |
+| `src/ui/village-places.tsx` | Ortskarten, Lager mit Beuteverkauf, Nachtprotokoll |
+| `src/ui/village-feedback.tsx` | `runVillageAction` und die sichtbare Rückmeldung jeder Dorfaktion |
+| `src/ui/village-view.tsx` | Dorfblick: Kopfzeile, Kennzahlen und Komposition der Abschnitte |
 | `src/ui/roster-list.tsx` | Gildenliste, geteilt von Dorfblick und Team-Fenster |
 | `src/ui/stats.tsx` | Beschriftete Wertzeilen statt offener Label-Wert-Listen |
 | `src/ui/phase-badge.tsx` | Schleifen-Anzeige mit laufendem Tag in der Topbar |
@@ -83,10 +86,15 @@
 | `src/village/state.ts` | DayNightState-Signal (`phase`, `day`, `job`), einziger Schreibpfad `setPhase` |
 | `src/village/phase-actions.ts` | Schleifen-Kommandos: Nacht starten, Raid auslösen, Ergebnis abschließen |
 | `src/village/settlement.ts` | Dorfblick als reine Ableitung aus Phase-Owner und Fixture, ohne Wirtschaft |
+| `src/village/buildings.ts` | Gebäudedefinitionen: Kosten, Stufengrenze, Tagesertrag, Arbeitsplätze |
+| `src/village/economy.ts` | Reine Regeln: Kostenstufen, Kapazitäten, Tagesertrag, Löhne, Zuzug |
+| `src/village/loot.ts` | Beute als Ableitung des Auftragsergebnisses, ohne Contract-Feld |
+| `src/village/treasury.ts` | Einziger Owner von Ressourcen, Gebäuden, Arbeitern, Bauplätzen und offener Beute |
+| `src/village/building-outlook.ts` | Gebäude-Ableitung: Stufe, Ertrag, Arbeitsplätze, Kosten, Fehlbetrag |
 | `src/village/index.ts` | Barrel der village-Domäne |
 | `src/raid/fixture-raid.ts` | Contract-v3-Upload und lokaler Fixture-Auftrag |
 | `src/raid/raid-panel.tsx` | Probelauf-Panel, reicht den terminalen Auftrag an die Schleife weiter |
-| `src/raid/panel.tsx` | Reine Ergebnis-Darstellung eines TerminalRaidJob |
+| `src/raid/panel.tsx` | Reine Ergebnis-Darstellung eines TerminalRaidJob und `raidOutcomeText` |
 | `test/dungeon-editor.test.ts` | State-/Model-Tests der Editor-Logik |
 | `test/village-phase.test.ts` | Phase-Übergänge, Skip-Verbot und Store-Verhalten |
 | `test/day-night-loop.test.ts` | End-to-End-Loop mit Fake-Timern unter 5 s |
@@ -94,7 +102,8 @@
 | `test/visual-foundation.test.ts` | Tests für World-Definitionen, Kamera, Depth, Observer |
 | `test/render-animation.test.ts` | Periodik, Determinismus, Grenzen und Amplituden der Render-Animation |
 | `test/input-drag.test.ts` | Slop-Verhalten: ein Down ohne Weg erzeugt keinen Drop |
-| `test/village-settlement.test.ts` | Dorf-Ableitung gegen echten Loop-Zustand und Auftragsstatus |
+| `test/village-settlement.test.ts` | Dorf-Ableitung gegen Wirtschaft, echten Loop-Zustand und Auftragsstatus |
+| `test/village-economy.test.ts` | Bauen, Ablehnungen, Arbeiter, Tagesabrechnung und Beuteverkauf |
 | `test/stage-view.test.ts` | Blickwechsel verändert die Spielphase nicht |
 | `docs/*` | Pflicht-Doku dieser Domäne |
 

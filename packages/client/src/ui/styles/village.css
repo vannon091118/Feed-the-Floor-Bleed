@@ -148,3 +148,98 @@
   color: var(--muted);
   font-size: 11px;
 }
+
+/* --- Gebäude ---------------------------------------------------------- */
+
+.building-grid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+
+.building {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--elevation-1);
+}
+
+/* Ein leerer Bauplatz ist erkennbar, ohne verblasst zu wirken. */
+.building[data-built="false"] {
+  border-style: dashed;
+  background: transparent;
+}
+
+.building__name {
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.building__purpose,
+.building__yield {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.building__missing {
+  color: var(--accent-strong);
+  font-size: 11px;
+}
+
+.worker-row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--line-soft);
+}
+
+.worker-row__count {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.worker-row__buttons {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.worker-row__buttons .button {
+  min-width: 34px;
+  min-height: 30px;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* --- Rückmeldung ------------------------------------------------------ */
+
+.village-feedback {
+  position: sticky;
+  bottom: 0;
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-left-width: 2px;
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.village-feedback[data-tone="ok"] {
+  border-left-color: var(--ok);
+  color: var(--text);
+}
+
+.village-feedback[data-tone="alert"] {
+  border-left-color: var(--alert);
+  color: var(--text);
+}

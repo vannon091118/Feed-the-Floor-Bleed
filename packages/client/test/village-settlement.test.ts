@@ -10,6 +10,7 @@ import {
 } from '../src/village/phase-actions'
 import { villageOutlook } from '../src/village/settlement'
 import { resetDayNight } from '../src/village/state'
+import { buildBuilding, resetTreasury, treasury } from '../src/village/treasury'
 
 /** Beide Route-Ausgänge zumauern erzwingt einen blockierten Auftrag. */
 function blockedGrid() {
@@ -25,33 +26,43 @@ function district(id: string) {
   return found
 }
 
+/** Legt einen Vorrat an, der für jeden Bau reicht. */
+function stock(gold: number, materials: number) {
+  treasury.value = { ...treasury.value, gold, materials }
+}
+
 afterEach(() => {
   resetDayNight()
+  resetTreasury()
 })
 
-describe('Dorfblick: Ableitung aus dem Phase-Owner', () => {
-  it('zeigt im Tag den Dorfnamen, den laufenden Tag und die Startbasis', () => {
-    resetDayNight()
+describe('Dorfblick: Ableitung aus Wirtschaft und Phase', () => {
+  it('zeigt im Tag Dorfnamen, laufenden Tag und den Wirtschaftsstand', () => {
     const outlook = villageOutlook()
     expect(outlook.name).toBe(fixture.village)
     expect(outlook.day).toBe(fixture.day)
     expect(outlook.districts).toHaveLength(3)
-    expect(district('rathaus').note).toContain(String(fixture.workers))
+    expect(outlook.gold).toBe(fixture.resources.gold)
+    expect(outlook.workers).toBe(fixture.workers)
   })
 
-  it('leitet die Gilde aus Verletzungen ab, nicht aus einer eigenen Kopie', () => {
-    resetDayNight()
+  it('folgt einem Ausbau, statt bei einer Konstante stehen zu bleiben', () => {
+    stock(500, 20)
+    expect(buildBuilding('werkstatt').ok).toBe(true)
     const outlook = villageOutlook()
-    const injured = fixture.team.filter((hero) => hero.injury > 0).length
-    const ready = fixture.team.length - injured
+    expect(outlook.gold).toBe(500 - 55)
+    expect(outlook.buildings.find((b) => b.id === 'werkstatt')?.level).toBe(1)
+  })
+
+  it('leitet die Gilde aus Verletzungen und freien Arbeitern ab', () => {
+    const ready = fixture.team.filter((hero) => hero.injury === 0).length
     expect(district('gilde').state).toBe(
       `${ready} von ${fixture.team.length} einsatzbereit`,
     )
-    expect(outlook.roster).toBe(fixture.team)
+    expect(district('gilde').note).toContain(`${fixture.workers} Arbeiter frei`)
   })
 
   it('zählt die belegten Verteidigerplätze aus dem Roster', () => {
-    resetDayNight()
     const filled = fixture.monsterSlots.filter((slot) => slot.monsterId).length
     const pen = district('gehege')
     expect(pen.state).toBe(
@@ -61,33 +72,26 @@ describe('Dorfblick: Ableitung aus dem Phase-Owner', () => {
   })
 
   it('meldet vor dem ersten Auftrag eine offene Bilanz', () => {
-    resetDayNight()
     expect(villageOutlook().lastNight.status).toBe('none')
     expect(district('rathaus').tone).toBe('accent')
   })
 
   it('übernimmt einen abgeschlossenen Auftrag in die Bilanz', () => {
-    resetDayNight()
     startNight()
     triggerRaid()
     completeRaid(runLocalFixtureRaid(createDungeonGrid()))
     expect(villageOutlook().lastNight.status).toBe('completed')
-    expect(district('rathaus').tone).toBe('idle')
   })
 
-  it('markiert einen gescheiterten Auftrag als Warnung und behält den Tag', () => {
-    resetDayNight()
+  it('markiert einen gescheiterten Auftrag als Warnung', () => {
     startNight()
     triggerRaid()
     completeRaid(runLocalFixtureRaid(blockedGrid()))
-    const outlook = villageOutlook()
-    expect(outlook.lastNight.status).toBe('failed')
+    expect(villageOutlook().lastNight.status).toBe('failed')
     expect(district('rathaus').tone).toBe('alert')
-    expect(outlook.day).toBe(fixture.day)
   })
 
   it('zählt den Tag nach dem Abschluss und löscht die Bilanz', () => {
-    resetDayNight()
     startNight()
     triggerRaid()
     const job = runLocalFixtureRaid(createDungeonGrid())

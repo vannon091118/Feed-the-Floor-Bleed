@@ -4,6 +4,16 @@
 
 Diese Roadmap ist die einzige aktive Reihenfolge für Produkt- und Technikarbeit. Sie trennt den belegten Ist-Stand von der geplanten Zielarchitektur und verhindert, dass unimplementierte Systeme als bereits vorhanden behandelt werden.
 
+## Statusupdate — 2026-09-26 (dritter Eintrag)
+
+**T2.1 Dorfwirtschaft ist begonnen — mit ausdrücklicher Abweichung von der T1-Exklusivität.** Die Prioritätsregel dieses Dokuments sagt, dass während T1 kein T2-Feature begonnen wird, und T1.1 (Raid-Playback mit Timeline) läuft weiterhin in einem eigenen Arbeits-Branch. Die Dorfwirtschaft wurde auf ausdrücklichen Auftrag trotzdem umgesetzt. Das ist eine bewusste Abweichung und keine stille Verschiebung; sie steht hier, damit sie sichtbar bleibt und bei der Review-Abnahme beider Branches mitentschieden werden kann.
+
+Umgesetzt ist: Gebäudearten mit Kosten, Stufengrenze, Tagesertrag und Arbeitsplätzen, eine begrenzte Zahl von Bauplätzen, Arbeiterzuweisung mit Löhnen, Attraktivität als Zuzugshebel, Tagesabrechnung beim Übergang in den Tag und ein Verkauf der Beute im Ergebnis. Die Regeln liegen in `packages/client/src/village/`, weil die Ownership-Tabelle in `docs/REGELWERK_ARCHITEKTUR.md` Gebäude, Attraktivität und Arbeiter genau dieser Domäne zuschreibt. Die Beute ist eine Ableitung aus dem vorhandenen Auftragsergebnis; `sim_version`, `CONTRACT_VERSION`, das Wire-Schema und der Replay-Hash bleiben unverändert.
+
+**Nicht umgesetzt und weiterhin offen:** Zucht mit Generationen und Mutationen, Inventar und Ausrüstung, persistenter Spielstand, Landkauf und horizontales Wachstum des Dorfes sowie echter asynchroner Job-Status. Diese Punkte stehen unverändert unter T2.
+
+**Nächster Schritt für diesen Block:** Der Stand ist im Browser abgenommen und gates-grün, aber noch nicht gemergt. Vor der Review-Abnahme gehören die Frage der T1-Exklusivität und die Frage entschieden, ob die Beute später als echtes Contract-Feld nachgezogen wird.
+
 ## Statusupdate — 2026-09-26 (zweiter Eintrag)
 
 Ein Korrekturblock an der Client-Oberfläche ist gelaufen, der **kein neues Feature-Track** ist: Der Client hatte kein Dorf, sondern eine Label-Wert-Liste mit vier Fixture-Zahlen, zeigte in jeder Phase das Dungeon-Raster im Viewport und führte Debug-Rückmeldung mit Rohkoordinaten in der Sidebar. `village/settlement.ts` leitet den Dorfblick jetzt als reine Funktion aus Phase-Owner und Fixture ab, `ui/view.ts` führt den Blick `village | dungeon` getrennt von der Spielphase, die Shell ist nur noch Layout, und `ui/styles.css` ist durch acht Style-Module auf gemeinsamen Tokens ersetzt.
@@ -61,13 +71,16 @@ Nachtrag: Die visuelle Basis ist im Browser lauffähig (`pnpm --filter @floor/cl
 
 ## T2 — Alltagstiefe nach T1
 
-Diese Arbeit wird erst nach Abschluss von T1 zu T1 promoted und anschließend einzeln abgearbeitet.
+Diese Arbeit wird erst nach Abschluss von T1 zu T1 promoted und anschließend einzeln abgearbeitet. Die Ausnahme ist im Statusupdate oben ausdrücklich benannt: T2.1 wurde auf Auftrag vorzeitig begonnen.
 
-- Dorfwirtschaft mit Arbeitern, Attraktivität und Materialbedarf.
-- Inventar, Ausrüstung und sichtbare Phantom-Loot-Umsetzung.
-- Zucht, Generationen, Mutationen und reproduzierbare Stammbäume.
-- Persistenter lokaler Spielstand und echter asynchroner Job-Status.
-- Erweiterte Taktiken mit sichtbaren Regeln und Risikoauswirkung.
+| ID | Ergebnis | Fertig, wenn |
+|----|----------|--------------|
+| T2.1 | Dorfwirtschaft: Gebäude, Bauplätze, Arbeiter, Löhne, Zuzug, Tagesabrechnung und Beuteverkauf | ✅ Umgesetzt und im Browser abgenommen — `packages/client/src/village/`, `test/village-economy.test.ts` |
+| T2.2 | Inventar, Ausrüstung und sichtbare Phantom-Loot-Umsetzung | — |
+| T2.3 | Zucht, Generationen, Mutationen und reproduzierbare Stammbäume | — |
+| T2.4 | Persistenter lokaler Spielstand und echter asynchroner Job-Status | — |
+| T2.5 | Erweiterte Taktiken mit sichtbaren Regeln und Risikoauswirkung | — |
+| T2.6 | Landkauf und horizontales Wachstum des Dorfes | — |
 
 ## T3 — Systemische Erweiterung nach T1
 

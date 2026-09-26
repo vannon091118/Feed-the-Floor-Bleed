@@ -1,7 +1,16 @@
-import { fixture } from '../fixture-data'
 import type { Hero } from '../fixture-data'
+import { fixture } from '../fixture-data'
+import {
+  type BuildingOutlook,
+  buildingOutlooks,
+  defenderSlots,
+} from './building-outlook'
+import { BUILDINGS } from './buildings'
+import { type VillageHoldings, attractiveness, workerCapacity } from './economy'
+import type { Loot } from './loot'
 import type { Phase } from './phase'
 import { dayNight } from './state'
+import { type VillageState, treasury, usedPlots } from './treasury'
 
 /** Farbton einer Karte. Die UI übersetzt das in eine Kante, nicht in Text. */
 export type DistrictTone = 'idle' | 'accent' | 'ok' | 'alert'
@@ -24,23 +33,24 @@ export interface NightRecord {
   detail: string
 }
 
-/**
- * Der Dorfblick als reine Ableitung.
- *
- * Grundlage sind ausschließlich der Phase-Owner und die Fixture-Daten; es
- * gibt hier keinen zweiten Dorfzustand, keine Arbeiterverteilung und keine
- * Wirtschaft. `note` kennzeichnet die Startbasis ausdrücklich als solche, damit
- * die Oberfläche nichts als veränderlich ausgibt, was es nicht ist.
- */
+/** Der Dorfblick als reine Ableitung über Wirtschaft, Phase und Roster. */
 export interface VillageOutlook {
   name: string
   day: number
   phase: Phase
   tagline: string
+  gold: number
+  materials: number
+  workers: number
+  workerCapacity: number
+  attractiveness: number
+  plotsUsed: number
+  plots: number
   districts: VillageDistrict[]
-  /** Die Gilde. Keine Kopie: der Roster-Owner bleibt `fixture-data`. */
+  buildings: BuildingOutlook[]
   roster: Hero[]
   lastNight: NightRecord
+  pendingLoot: Loot | null
 }
 
 const TAGLINE: Record<Phase, string> = {
@@ -57,64 +67,61 @@ const HALL_STATE: Record<Phase, string> = {
   result: 'Bilanz steht',
 }
 
-function hallTone(phase: Phase, lastNight: NightRecord): DistrictTone {
-  if (phase === 'tag') return 'accent'
-  if (lastNight.status === 'failed' || lastNight.status === 'expired') {
-    return 'alert'
-  }
+function tone(holdings: VillageHoldings, night: NightRecord): DistrictTone {
+  if (holdings.gold < 0) return 'alert'
+  if (night.status === 'failed' || night.status === 'expired') return 'alert'
   return 'idle'
 }
 
-function hall(): VillageDistrict {
+function hall(state: VillageState, night: NightRecord): VillageDistrict {
   const { phase } = dayNight.value
   return {
     id: 'rathaus',
     kind: 'Verwaltung',
     name: 'Rathaus',
     state: HALL_STATE[phase],
-    note: `Startbasis: ${fixture.workers} Arbeiter · Attraktivität ${fixture.attractiveness}`,
-    tone: hallTone(phase, nightRecord()),
+    note: `Attraktivität ${attractiveness(state)} · Zuzug ab 50 Punkten`,
+    tone: phase === 'tag' ? 'accent' : tone(state, night),
     share: null,
   }
 }
 
-function guild(): VillageDistrict {
+function guild(state: VillageState): VillageDistrict {
   const ready = fixture.team.filter((hero) => hero.injury === 0).length
-  const fatigue = fixture.team.reduce((sum, hero) => sum + hero.fatigue, 0)
+  const busy = BUILDINGS.reduce(
+    (sum, def) => sum + (state.assignments[def.id] ?? 0),
+    0,
+  )
   return {
     id: 'gilde',
     kind: 'Heldentrupp',
     name: 'Gilde',
     state: `${ready} von ${fixture.team.length} einsatzbereit`,
-    note:
-      ready === fixture.team.length
-        ? 'Keine Verletzten aus der letzten Nacht'
-        : `${fixture.team.length - ready} verletzt · Müdigkeit gesamt ${fatigue}`,
+    note: `${state.workers - busy} Arbeiter frei · Unterkunft bis ${workerCapacity(state)}`,
     tone: ready === fixture.team.length ? 'ok' : 'accent',
     share: null,
   }
 }
 
-function pen(): VillageDistrict {
-  const total = fixture.monsterSlots.length
+function pen(state: VillageState): VillageDistrict {
   const filled = fixture.monsterSlots.filter((slot) => slot.monsterId).length
-  const free = total - filled
+  const slots = defenderSlots(state)
+  const free = slots - filled
   return {
     id: 'gehege',
     kind: 'Zucht',
     name: 'Verteidiger-Gehege',
-    state: `${filled} von ${total} Plätzen belegt`,
-    note: free > 0 ? `${free} Plätze frei` : 'Keine freien Plätze',
+    state: `${filled} von ${slots} Plätzen belegt`,
+    note: free > 0 ? `${free} Plätze frei` : 'Alle Plätze belegt',
     tone: filled === 0 ? 'alert' : free > 0 ? 'accent' : 'ok',
-    share: filled / total,
+    share: filled / slots,
   }
 }
 
 function nightRecord(): NightRecord {
   const job = dayNight.value.job
-  if (!job) {
+  if (!job)
     return { status: 'none', detail: 'Der erste Auftrag steht noch aus.' }
-  }
   if (job.status === 'completed') {
     const { heroesAlive, monstersAlive } = job.result.summary
     return {
@@ -129,18 +136,29 @@ function nightRecord(): NightRecord {
 }
 
 /**
- * Liest den Phase-Owner und die Fixture und liefert den Dorfblick. Reine
- * Funktion ohne eigenen Zustand: jeder Aufrufer sieht dieselbe Ableitung.
+ * Liest Wirtschaft, Phase-Owner und Roster und liefert den Dorfblick. Reine
+ * Funktion ohne eigenen Zustand: der Store schreibt, diese Ableitung liest.
  */
 export function villageOutlook(): VillageOutlook {
   const { phase, day } = dayNight.value
+  const state = treasury.value
+  const lastNight = nightRecord()
   return {
     name: fixture.village,
     day,
     phase,
     tagline: TAGLINE[phase],
-    districts: [hall(), guild(), pen()],
+    gold: state.gold,
+    materials: state.materials,
+    workers: state.workers,
+    workerCapacity: workerCapacity(state),
+    attractiveness: attractiveness(state),
+    plotsUsed: usedPlots(state),
+    plots: state.plots,
+    districts: [hall(state, lastNight), guild(state), pen(state)],
+    buildings: buildingOutlooks(state),
     roster: fixture.team,
-    lastNight: nightRecord(),
+    lastNight,
+    pendingLoot: state.pendingLoot,
   }
 }

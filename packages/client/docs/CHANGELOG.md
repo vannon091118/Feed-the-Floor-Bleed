@@ -1,5 +1,23 @@
 # packages/client/docs/CHANGELOG.md
 
+## 2026-09-26 — T2.1: Dorfwirtschaft mit Gebäuden, Arbeitern und Beuteverkauf
+
+**Scope:** `packages/client/src/village/` von vier auf neun Dateien erweitert, `packages/client/src/ui/` um Baukarten, Ortskarten und eine Aktionsrückmeldung ergänzt, `src/raid/` auf die aktuelle Klassensprache umgestellt, `test/village-economy.test.ts` neu. **Roadmap-Abweichung:** Dieser Block ist T2-Arbeit, obwohl T1.1 noch in einem eigenen Branch läuft. `docs/ROADMAP.md` trägt die Abweichung ausdrücklich ein.
+
+**Regelort:** Die Wirtschaft liegt in `village/`, weil die Ownership-Tabelle `village` Gebäude, Attraktivität und Arbeiter zuschreibt. Core und Contract bleiben unberührt. `buildings.ts` hält die vier Arten mit Kosten, Stufengrenze, Tagesertrag und Arbeitsplätzen, `economy.ts` die reinen Regeln für Kostenstufen, Kapazitäten, Tagesertrag, Löhne, Attraktivität und Zuzug, `treasury.ts` den einzigen Zustand.
+
+**Was eine Entscheidung trägt:** Bauen kostet Gold und Material und braucht für einen Erstbau einen von drei Bauplätzen; das Rathaus steht ab Start auf Stufe 1, dadurch bindet die Platzgrenze wirklich. Die Werkstatt bringt je Stufe 2 Gold und 3 Material, das Gehege öffnet einen Verteidigerplatz, das Wohnhaus zwei Unterkünfte, das Rathaus 6 Attraktivität. Jeder zugewiesene Arbeiter kostet ein Gold pro Tag, ein freier Arbeiter nichts. Der Zuzug kommt ab Attraktivität 50 in Zehnerschritten und ist durch die freie Unterkunft gedeckelt. Die Verteidigerplätze des Dorfes hängen am Gehege-Ausbau, nicht mehr an einer Konstanten.
+
+**Tagesabschluss:** `finishResult` rechnet nur beim Übergang `result → tag` ab — Ertrag minus Löhne, dazu der Zuzug. Ein Retry rechnet nichts ab, weil kein Tag beginnt. Bauen und Einteilen sind Amtshandlungen des Tages und werden in jeder anderen Phase abgelehnt, damit die Nacht kein stiller Umbau wird.
+
+**Beute ohne Contract-Umbruch:** `loot.ts` leitet die Ware aus dem Ergebnis ab, das der Core ohnehin liefert: 15 Gold und 2 Material je gefallenem Verteidiger, 30 Gold extra für den gefallenen Boss, gezählt aus dem besetzten Roster minus `monstersAlive`. Damit bleiben `sim_version 0.0.2`, `CONTRACT_VERSION 3`, Wire-Schema und Replay-Hash unverändert. Ein gescheiterter Auftrag hinterlässt nichts. `completeRaid` legt die Ware zum Verkauf bereit und ersetzt sie bei einem Retry, `sellLoot` bucht sie einmalig im Ergebnis.
+
+**Dorf als Ort:** `building-card` zeigt Zweck, Stufe, Tagesertrag, Kosten und Fehlbetrag mit Bau- und Arbeiterknöpfen, `village-places` die Ortskarten inklusive Lager mit Verkauf, `village-feedback` führt jede Dorfaktion über `runVillageAction`, damit keine Amtshandlung ohne sichtbare Antwort bleibt. Die Topbar liest Gold und Material live aus dem Wirtschafts-Owner statt aus den Startdaten.
+
+**Zwei Befunde aus der Browser-Abnahme:** Das Probelauf-Panel und die Ergebnisansicht benutzten `primary-button`, `panel-heading` und `raid-stats` — Klassen, die der Style-Umbau entfernt hatte. Der Auftrag-Knopf war dadurch ungestylt und die Ergebniszahlen ohne Rahmen. Beides ist auf die aktuelle Klassensprache umgestellt. Außerdem verletzten `district__note` mit 3,03:1 und `eyebrow` mit 3,27:1 die WCAG-AA-Untergrenze; `--faint` und `--muted` sind angehoben, die kleinste gemessene Textkante liegt jetzt bei 4,71:1.
+
+**Verifikation:** `pnpm run -s typecheck`, `pnpm test -- --run` (29 Dateien, 166 Tests) und `pnpm run -s check` sind grün. Zusätzlich im Browser abgenommen: Tag 18 mit 120 Gold und 7 Material, Werkstatt gebaut (65/4), Arbeiter gesetzt (1/1), Dungeonsicht mit laufendem Pixi-Canvas, Nacht mit sichtbarem Editor, Auftrag gerechnet, „Boss hält“, 15 Gold und 2 Material verkauft (80/6), Tagesabschluss auf 84/10 und Tag 19. Kein Layoutüberlauf bei 1440 px und 700 px, keine Konsolenfehler.
+
 ## 2026-09-26 — Oberfläche modularisiert, Dorfblick und Blickumschalter ergänzt
 
 **Scope:** `packages/client/src/ui/` vollständig umgebaut, `src/village/settlement.ts` neu, `src/raid/panel.tsx` um `raidOutcomeText` erweitert, `test/village-settlement.test.ts` und `test/stage-view.test.ts` neu.
@@ -14,7 +32,7 @@
 
 **Ausgabe-Korrektheit:** Interne Kennungen erscheinen nicht mehr im Bildschirm — Fenster tragen `Mara` statt `hero-mara`, der Werkzeugstatus meldet `Frost 2 → Feld 3,4`. Die Sidebar zeigt je Phase nur Auftrag und Hauptaktion; der Standort selbst steht im Dorfblick, damit er nicht als Wertetabelle nebenbei existiert. Ergebnis- und Fehlertext kommen über `raidOutcomeText` aus einer Quelle, damit Panel und Dorfblick nicht getrennt formulieren.
 
-**Verifikation:** `pnpm run -s typecheck`, `pnpm test -- --run` (28 Dateien, 148 Tests) und `pnpm run -s check` sind grün, der Vite-Build löst die Style-Kette vollständig auf. **Offen:** Die Abnahme im Browser steht aus — in dieser Umgebung gibt es weder Chrome noch ein DOM-Testsetup, die neue Oberfläche ist also nicht am Bildschirm gesehen worden. Grüne Gates belegen Korrektheit, nicht das Aussehen.
+**Verifikation:** `pnpm run -s typecheck`, `pnpm test -- --run` (28 Dateien, 148 Tests) und `pnpm run -s check` sind grün, der Vite-Build löst die Style-Kette vollständig auf. Die Browser-Abnahme stand zu diesem Zeitpunkt aus und ist im darunterliegenden Dorfwirtschafts-Block nachgeholt worden; dabei fielen zwei regressionsbedingte Fehlstellungen auf, die hier noch enthalten waren.
 
 ## 2026-09-26 — Render-Animation ohne Sinus vereinheitlicht
 

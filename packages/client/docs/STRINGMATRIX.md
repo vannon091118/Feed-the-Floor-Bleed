@@ -41,6 +41,13 @@
 | `view/default` | `'village'` — der erste Eindruck ist der Ort, nicht das Raster |
 | `district/tone` | `'idle' \| 'accent' \| 'ok' \| 'alert'` — Kartenkante im Dorfblick, kein Ampelsystem |
 | `district/id` | `rathaus`, `gilde`, `gehege` — Orte aus `village/settlement.ts` |
+| `building/id` | `wohnhaus`, `werkstatt`, `gehege`, `rathaus` — die vier Arten aus `village/buildings.ts` |
+| `building/plots` | `3` — gleichzeitig stehende Arten; das Rathaus steht ab Start auf Stufe 1 |
+| `building/wage` | `1` Gold je Tag und zugewiesenem Arbeiter |
+| `building/recruit` | Zuzug ab Attraktivität 50, je 10 Punkte ein Arbeiter, gedeckelt durch freie Unterkunft |
+| `loot/gold-per-slain` | `15` je gefallenem Verteidiger, plus `30` für den gefallenen Boss |
+| `loot/material-per-slain` | `2` je gefallenem Verteidiger |
+| `loot/source` | Ableitung aus `CombatSummary` — kein Loot-Feld im Contract |
 
 `ui/tabs` ist mit der alten visuellen Schicht entfallen. Die Sidebar schaltet
 seit T1.2 nach `village/state.ts`; die alte lokale Tag/Nacht-Notiz ist

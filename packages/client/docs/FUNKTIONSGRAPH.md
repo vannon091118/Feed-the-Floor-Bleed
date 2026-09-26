@@ -58,11 +58,18 @@ dungeon-editor/state (einziger Grid-Owner)
   ├─ grid / brush Signals, route = computed(findPath)
   └─ paintVisibleTile → model.paintTile
 
-village (einziger Phase-Owner der Schleife)
+village (einziger Phase- und Wirtschafts-Owner)
   ├─ phase: Phase-Union, ALLOWED_TRANSITIONS, resolvePhaseTransition
   ├─ state: dayNight Signal, setPhase (guarded), recordRaidJob
   ├─ phase-actions: startNight / triggerRaid / completeRaid / finishResult
-  └─ settlement: villageOutlook() → Gebiete + Roster + Bilanz der letzten Nacht
+  ├─ buildings: BUILDINGS (Kosten, maxLevel, Ertrag, Arbeitsplätze)
+  ├─ economy (rein): upgradeCost / canAfford / workerCapacity / dailyYield
+  │                 / dailyWages / attractiveness / dailyRecruits / settleDay
+  ├─ loot (rein): lootFromJob(job) → Beute aus dem Auftragsergebnis
+  ├─ treasury: einziger Zustand, buildBuilding / assignWorker / releaseWorker
+  │            / depositLoot / sellLoot / settleVillageDay (nur am Tagesabschluss)
+  ├─ building-outlook: buildingOutlooks(state) → Stufe, Ertrag, Kosten, Fehlbetrag
+  └─ settlement: villageOutlook() → Orte, Kennzahlen, Gebäude, Roster, Bilanz
 
 raid/fixture-raid
   ├─ buildFixtureUpload(grid) → @floor/contracts UploadRequest
@@ -70,11 +77,16 @@ raid/fixture-raid
 
 ui (Sidebar schaltet nach Phase, Bühne nach Blick)
   ├─ phase-badge: liest dayNight.phase / dayNight.day
-  ├─ village-view → village/settlement + raid/panel (raidOutcomeText) + roster-list
+  ├─ village-view → village/settlement + village-places + building-card
+  ├─ village-feedback: runVillageAction(action) → sichtbare Rückmeldung
+  ├─ building-card → buildBuilding / assignWorker / releaseWorker
+  ├─ village-places → Warehouse → sellLoot (nur in Phase result)
+  ├─ topbar → treasury.value für den Ressourcenstreifen
   ├─ TagPhasePanel → startNight → phase night
   ├─ NightPhasePanel → triggerRaid → phase raid (Editor bleibt aktiv)
   ├─ RaidPhasePanel → RaidPanel.onJob → completeRaid(job) → phase result
-  └─ ResultPhasePanel → finishResult(job) → phase tag (completed) | raid (sonst)
+  ├─ ResultPhasePanel → finishResult(job) → phase tag (completed, rechnet ab) | raid (sonst)
+  └─ completeRaid → depositLoot(job); finishResult(→tag) → settleVillageDay()
 ```
 
 Schleife: `tag → night → raid → result → tag` (Tag +1) beziehungsweise

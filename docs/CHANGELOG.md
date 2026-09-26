@@ -1,5 +1,15 @@
 # docs/CHANGELOG.md — Global
 
+## 2026-09-26 — T2.1: Dorfwirtschaft mit Gebäuden, Arbeitern und Beuteverkauf
+
+Das Dorf ist vom Anzeigeort zum Ort mit eigenen Amtshandlungen geworden. `packages/client/src/village/` besitzt jetzt neben der Tag/Nacht/Raid-Phase die Wirtschaft: `buildings.ts` definiert vier Gebäudearten mit Kosten, Stufengrenze, Tagesertrag und Arbeitsplätzen, `economy.ts` hält die reinen Regeln für Kostenstufen, Kapazitäten, Löhne, Attraktivität und Zuzug, `treasury.ts` ist der einzige Zustands-Owner für Ressourcen, Gebäude, Arbeiter, Bauplätze und offene Beute, und `loot.ts` leitet die Ware aus dem Auftragsergebnis ab. Die Regeln liegen bewusst in `village/` und nicht im Core, weil die Ownership-Tabelle in `docs/REGELWERK_ARCHITEKTUR.md` Gebäude, Attraktivität und Arbeiter ausdrücklich dieser Domäne zuschreibt; `sim-core` und `contracts` bleiben unberührt.
+
+Die Beute kommt ohne Contract-Umbruch aus: 15 Gold und 2 Material je gefallenem Verteidiger, 30 Gold für den gefallenen Boss, gezählt aus dem besetzten Roster minus der überlebenden Monster im Kernergebnis. `sim_version 0.0.2`, `CONTRACT_VERSION 3`, das Wire-Schema und der Replay-Hash bleiben deshalb unverändert, und die Herkunft der Ware ist aus dem Ausgang des Auftrags nachvollziehbar statt ein Nebenwert neben dem Ergebnis. Ein gescheiterter Auftrag hinterlässt nichts.
+
+Der Tagesabschluss ist die einzige Stelle, an der die Wirtschaft rechnet: `finishResult` bucht Ertrag minus Löhne und den Zuzug nur beim Übergang in den Tag, ein Retry rechnet nichts ab. Bauen und Arbeiter einteilen sind Amtshandlungen des Tages und werden in jeder anderen Phase abgelehnt. In der Oberfläche führt jede Dorfaktion über `runVillageAction`, damit keine Amtshandlung ohne sichtbare Rückmeldung bleibt, und die Topbar liest Gold und Material live aus dem Wirtschafts-Owner.
+
+**Diese Arbeit verletzt bewusst die T1-Exklusivität**, weil T1.1 noch in einem eigenen Branch läuft. `docs/ROADMAP.md` führt T2.1 jetzt in der aktiven Tabelle und benennt die Abweichung samt Grund, statt sie stillschweigend zu verschieben. Zwei echte Fehler hat die Browser-Abnahme aufgedeckt, die ohne sie durchgerutscht wären: Das Probelauf-Panel benutzte Klassen, die der Style-Umbau entfernt hatte, wodurch der Auftrag-Knopf ungestylt und die Ergebniszahlen ohne Rahmen blieben, und zwei Textfarben verletzten mit 3,03:1 und 3,27:1 die WCAG-AA-Untergrenze. Beides ist behoben; die kleinste gemessene Textkante liegt jetzt bei 4,71:1. Details in `packages/client/docs/CHANGELOG.md`.
+
 ## 2026-09-26 — Client-Oberfläche: Dorfblick, Blickumschalter, modularer Schnitt
 
 Der Client hatte kein Dorf, sondern vier Fixture-Zahlen in einer offenen Label-Wert-Liste, und zeigte in jeder Phase das Dungeon-Raster im Viewport. Die Kopfleiste führte Debug-Rückmeldung mit Rohkoordinaten, `styles.css` war eine 630-zeilige Datei mit drei erfundenen Panel-Optiken und einem `is-night`-Theming, das die Shell nie setzte, und `shell.tsx` stand bei 96 von 120 erlaubten LOC — ohne Raum für weitere Arbeit am Layout.

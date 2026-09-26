@@ -9,15 +9,15 @@ import { RoutePanel } from './panels'
 /**
  * Tag: der Bürgermeister erteilt den Auftrag. Zahlen stehen im Dorfblick,
  * hier steht nur der Auftrag und seine Hauptaktion.
- */
-export function TagPhasePanel() {
+ */ export function TagPhasePanel() {
   return (
     <section class="panel">
       <p class="eyebrow">Tag · Bürgermeister</p>
       <h2 class="panel__title">Die Nacht vorbereiten</h2>
       <p class="panel__note">
-        Lager, Vorrat und Stimmung des Dorfs stehen im Dorfblick. Den Plan für
-        den heutigen Zug legst du im Dungeon.
+        Im Dorfblick regierst du: Gebäude ausbauen, Arbeiter einteilen und die
+        Beute der letzten Nacht verkaufen. Den Plan für den Zug legst du im
+        Dungeon.
       </p>
       <button
         type="button"
@@ -91,6 +91,11 @@ export function ResultPhasePanel() {
       <p class="eyebrow">Ergebnis</p>
       <h2 class="panel__title">Auftrag {job.id}</h2>
       <RaidResultView job={job} />
+      <p class="panel__note">
+        {retry
+          ? 'Die Beute bleibt im Dungeon. Ein neuer Versuch rechnet den Auftrag neu.'
+          : 'Verkaufe die Beute im Lager, bevor du den Tag beginnst — erst dann rechnet das Dorf ab.'}
+      </p>
       <button
         type="button"
         class="button button--primary"

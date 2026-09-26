@@ -22,15 +22,18 @@ Simulation bleibt der einzige Owner der Spielentscheidungen.
 - `showcase/` — sichtbare Referenzszene, die alle Systeme zusammenschaltet.
 - `dungeon-editor/` — DOM-Raster und der einzige State-Owner des Grids.
 - `village/` — einziger Owner der Tag/Nacht/Raid-Phase (`phase.ts` reine
-  Übergangslogik, `state.ts` Signal-Store, `phase-actions.ts` Kommandos).
-  `settlement.ts` leitet daraus den Dorfblick als reine Funktion ab: Gebiete,
-  Gildenroster und die Bilanz der letzten Nacht. Es gibt dort keinen
-  Dorfzustand und keine Wirtschaftsregel — Dorfwirtschaft bleibt T2.
+  Übergangslogik, `state.ts` Signal-Store, `phase-actions.ts` Kommandos) und
+  der Dorfwirtschaft (`buildings.ts` Definitionen, `economy.ts` reine Regeln,
+  `treasury.ts` einziger Zustands-Owner für Ressourcen, Gebäude, Arbeiter,
+  Bauplätze und offene Beute, `loot.ts` Beute als Ableitung des Auftrags).
+  `settlement.ts` und `building-outlook.ts` leiten daraus den Dorfblick als
+  reine Funktionen ab.
 - `ui/` — Shell und Bühne. Die Shell ist reines Layout; Topbar, Bühne und
   Sidebar lesen ihre Stores selbst. `view.ts` hält den Blick auf die Bühne
-  (`village | dungeon`) und ist bewusst kein Phasenzustand. `styles/` ist in
-  Raster, Grundlage, Shell, Dorf, Panels, Fenster, Editor und Raid getrennt,
-  eingebunden über `styles/index.css`.
+  (`village | dungeon`) und ist bewusst kein Phasenzustand. `village-feedback`
+  führt jede Dorfaktion über `runVillageAction`, damit keine Amtshandlung ohne
+  Rückmeldung bleibt. `styles/` ist in Raster, Grundlage, Shell, Dorf, Panels,
+  Fenster, Editor und Raid getrennt, eingebunden über `styles/index.css`.
 - `raid/` — bestehender Contract-v3-Upload und lokaler Fixture-Auftrag;
   das Panel reicht das terminale Ergebnis an den Phase-Store weiter.
 - `fixture-data.ts` — read-only Startdaten.
@@ -70,10 +73,16 @@ Store. Ein Skip wie `tag → raid` wird in `resolvePhaseTransition` verworfen,
 der Zustand bleibt unverändert.
 
 Blick und Phase sind getrennt: die Topbar schaltet zwischen Dorf und Dungeon,
-und `ui/view.ts` hält diese Wahl ohne Spielregel. Im Dorf zeigt
-`village/settlement` nur, was die Schleife tatsächlich kennt — Tag, Gilde,
-Verteidigerplätze und das Ergebnis des letzten Auftrags. Arbeiterverteilung,
-Gold-Ausgaben, Landkauf und Beute-Verkauf sind Dorfwirtschaft und damit T2.
+und `ui/view.ts` hält diese Wahl ohne Spielregel.
+
+Die Dorfwirtschaft regiert am Tag: `treasury.ts` weist Bauen und
+Arbeiterzuweisung in jeder anderen Phase ab, damit die Nacht kein stiller
+Umbau wird. `completeRaid` legt die aus dem Auftrag abgeleitete Beute zum
+Verkauf bereit, `sellLoot` bucht sie im Ergebnis, und `finishResult` rechnet
+erst beim Übergang `result → tag` den Tag ab — Ertrag, Löhne und Zuzug. Ein
+Retry rechnet nichts ab, weil kein Tag beginnt. Die Beute kommt bewusst ohne
+Loot-Feld im Contract aus: sie wird aus dem Kernergebnis abgeleitet, damit
+`sim_version`, Wire-Schema und Replay-Hash unverändert bleiben.
 
 ## Grenzen
 
@@ -88,6 +97,10 @@ Preact-DOM über der Szene.
 - `dungeon-editor/state.ts` bleibt der einzige Grid-Owner.
 - `village/state.ts` bleibt der einzige Phase-Owner; keine Komponente hält
   eine zweite Phase-Wahrheit.
+- `village/treasury.ts` bleibt der einzige Wirtschafts-Owner; die Oberfläche
+  rechnet keine Kosten, Erträge oder Löhne selbst.
+- `village/economy.ts` ist rein: gleiche Belegung, gleiches Ergebnis. Die
+  Wirtschaft entscheidet nichts über den Raid-Ausgang.
 - `ui/view.ts` ist der einzige Owner des Bühnenblicks und verändert weder
   Phase noch Grid. Editorwerkzeug erscheint nur in der Dungeon-Ansicht; die
   Bau-Erlaubnis kommt weiter aus der Phase.

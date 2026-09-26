@@ -18,36 +18,38 @@ function completedView(job: Extract<TerminalRaidJob, { status: 'completed' }>) {
   const { summary } = job.result
   return (
     <>
-      <div className="raid-verdict">
-        <span className={`raid-stage raid-stage--${summary.stage}`}>
+      <div class="raid-verdict">
+        <span class={`raid-stage raid-stage--${summary.stage}`}>
           {STAGE_TEXT[summary.stage]}
         </span>
-        <code className="raid-hash">{job.result.hash}</code>
+        <code class="raid-hash">{job.result.hash}</code>
       </div>
-      <dl className="raid-stats">
-        <div>
-          <dt>Ticks</dt>
-          <dd>{summary.ticks}</dd>
+      <dl class="stats">
+        <div class="stats__row">
+          <dt class="stats__key">Ticks</dt>
+          <dd class="stats__value">{summary.ticks}</dd>
         </div>
-        <div>
-          <dt>Ereignisse</dt>
-          <dd>{summary.events}</dd>
+        <div class="stats__row">
+          <dt class="stats__key">Ereignisse</dt>
+          <dd class="stats__value">{summary.events}</dd>
         </div>
-        <div>
-          <dt>Angriffe</dt>
-          <dd>{summary.attacks}</dd>
+        <div class="stats__row">
+          <dt class="stats__key">Angriffe</dt>
+          <dd class="stats__value">{summary.attacks}</dd>
         </div>
-        <div>
-          <dt>Helden</dt>
-          <dd>{summary.heroesAlive}</dd>
+        <div class="stats__row">
+          <dt class="stats__key">Helden</dt>
+          <dd class="stats__value">{summary.heroesAlive}</dd>
         </div>
-        <div>
-          <dt>Monster</dt>
-          <dd>{summary.monstersAlive}</dd>
+        <div class="stats__row">
+          <dt class="stats__key">Monster</dt>
+          <dd class="stats__value">{summary.monstersAlive}</dd>
         </div>
-        <div>
-          <dt>Boss</dt>
-          <dd>{summary.bossAlive ? 'steht' : 'gefällt'}</dd>
+        <div class="stats__row">
+          <dt class="stats__key">Boss</dt>
+          <dd class="stats__value">
+            {summary.bossAlive ? 'steht' : 'gefällt'}
+          </dd>
         </div>
       </dl>
     </>
@@ -58,11 +60,11 @@ function failedView(
   job: Extract<TerminalRaidJob, { status: 'failed' | 'expired' }>,
 ) {
   return (
-    <div className="raid-verdict">
-      <span className="raid-stage raid-stage--error">
+    <div class="raid-verdict">
+      <span class="raid-stage raid-stage--error">
         {CODE_TEXT[job.error.code]}
       </span>
-      <code className="raid-hash">{job.error.detail ?? job.status}</code>
+      <code class="raid-hash">{job.error.detail ?? job.status}</code>
     </div>
   )
 }

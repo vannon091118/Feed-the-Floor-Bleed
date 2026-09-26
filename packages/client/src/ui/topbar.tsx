@@ -1,20 +1,18 @@
-import { fixture } from '../fixture-data'
+import { treasury } from '../village'
 import { PhaseBadge } from './phase-badge'
 import { ViewSwitch } from './view-switch'
 import { ToolGroup } from './window-tools'
 
-/** Gold und Material stehen als Startbasis durchgehend oben. */
-const RESOURCES = [
-  { label: 'Gold', value: fixture.resources.gold },
-  { label: 'Material', value: fixture.resources.materials },
-]
-
 /**
  * Kopfleiste: Wortmarke, Schleifenzustand, Ansichtsumschalter, Ressourcen
- * und die Schnellfenster. Hält keine Spielentscheidung — sie verweist nur auf
- * die Stores und schaltet zwischen zwei Ansichten.
+ * und die Schnellfenster.
+ *
+ * Die Ressourcen kommen aus dem Wirtschafts-Owner, nicht aus den Startdaten,
+ * damit der Streifen nach einem Bau und einem Tagesabschluss den echten Stand
+ * zeigt. Hält keine Spielentscheidung.
  */
 export function Topbar() {
+  const { gold, materials } = treasury.value
   return (
     <header class="topbar">
       <div class="brand">
@@ -24,12 +22,14 @@ export function Topbar() {
       <PhaseBadge />
       <ViewSwitch />
       <div class="resource-strip">
-        {RESOURCES.map((entry) => (
-          <div class="resource" key={entry.label}>
-            <span class="resource__value tnum">{entry.value}</span>
-            <span class="resource__label">{entry.label}</span>
-          </div>
-        ))}
+        <div class="resource">
+          <span class="resource__value tnum">{gold}</span>
+          <span class="resource__label">Gold</span>
+        </div>
+        <div class="resource">
+          <span class="resource__value tnum">{materials}</span>
+          <span class="resource__label">Material</span>
+        </div>
       </div>
       <ToolGroup />
     </header>

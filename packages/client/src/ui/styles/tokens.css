@@ -14,11 +14,12 @@
   --line-strong: #3b4451;
   --line-soft: rgba(255, 255, 255, 0.06);
 
-  /* Schrift. Drei Größen, kein Raten. */
+  /* Schrift. Drei Größen, kein Raten. --faint trägt echten Text und
+     muss deshalb die 4.5:1 gegen --surface halten, nicht nur dekorativ sein. */
   --text: #e9e4d8;
   --text-strong: #fffaf1;
-  --muted: #9a948a;
-  --faint: #6b665e;
+  --muted: #a49d92;
+  --faint: #8b857a;
 
   /* Akzent und Semantik. */
   --accent: #e0ad55;
