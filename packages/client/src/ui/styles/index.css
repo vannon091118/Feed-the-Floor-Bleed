@@ -1,0 +1,11 @@
+/* Einstiegspunkt der Oberflächen-Styles.
+   Reihenfolge ist Absicht: Raster, dann Grundlage, dann Layout, dann
+   Komponenten. main.tsx importiert nur diese Datei. */
+@import "./tokens.css";
+@import "./base.css";
+@import "./shell.css";
+@import "./village.css";
+@import "./panels.css";
+@import "./windows.css";
+@import "./editor.css";
+@import "./raid.css";

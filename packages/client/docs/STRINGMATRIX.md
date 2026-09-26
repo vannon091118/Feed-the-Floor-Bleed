@@ -37,18 +37,29 @@
 | `phase/transitions` | erlaubt: `tag→night`, `night→raid`, `raid→result`, `result→tag`, `result→raid`; jeder andere Übergang wird verworfen |
 | `phase/day` | Start `fixture.day` (18), Zähler hoch bei `result→tag`, Auftrag wird dabei gelöscht |
 | `phase/actions` | `startNight`, `triggerRaid`, `completeRaid` (nur aus `raid`), `finishResult` (Nachfolge nach Auftragsstatus) |
+| `view/id` | `'village' \| 'dungeon'` — Bühnenblick, phasenunabhängig, einziger Owner `ui/view.ts` |
+| `view/default` | `'village'` — der erste Eindruck ist der Ort, nicht das Raster |
+| `district/tone` | `'idle' \| 'accent' \| 'ok' \| 'alert'` — Kartenkante im Dorfblick, kein Ampelsystem |
+| `district/id` | `rathaus`, `gilde`, `gehege` — Orte aus `village/settlement.ts` |
 | `timeline/phase-label` | `Routen-Phase`, `Kampf-Phase`, `Ergebnis-Phase` — Beschriftung der drei Knöpfe |
 | `timeline/scrub-readout` | `Tick 12/225 · Kampf-Phase` — Position und Phase im Scrubber |
 | `timeline/aria` | `Raid-Phasen`, `Ein Tick zurück`, `Tick-Index`, `Wiedergabe fortsetzen`, `Wiedergabe pausieren` |
 
-`ui/tabs` ist mit der alten visuellen Schicht entfallen. Die Shell schaltet
+`ui/tabs` ist mit der alten visuellen Schicht entfallen. Die Sidebar schaltet
 seit T1.2 nach `village/state.ts`; die alte lokale Tag/Nacht-Notiz ist
 überholt. Die Welt bleibt die Navigation, der Editor bleibt in Nacht und Raid
-aktiv.
+aktiv — seine Sichtbarkeit hängt allein an der Phase, weil Bauen in der Nacht
+passiert; der Blick ist eine Navigationsfrage und bindet das Werkzeug nicht.
+
+Die Sidebar zeigt je Phase nur noch den Auftrag und eine Hauptaktion. Zahlen
+und Zustände des Dorfs stehen im Dorfblick (`ui/village-view.tsx`), damit der
+Ort nicht als Wertetabelle nebenbei existiert. Kennungen aus Roster und
+Verteidiger-Gehege erscheinen nie roh: `ui/actor-label.ts` übersetzt sie in
+Namen und Zählung.
 
 Die Timeline-Klassen `raid-timeline`, `timeline-phase-nav`, `timeline-phase-step`,
 `timeline-scrubber`, `timeline-scrub-step`, `timeline-scrub-readout`,
 `timeline-phase`, `timeline-trail`, `timeline-clusters`, `timeline-cluster-type`,
 `timeline-facts` und `timeline-hint` gehören zu `src/raid/raid-timeline.tsx`,
 `phase-nav.tsx` und `phases.tsx`. Sie erscheinen ausschließlich in der
-Raid-Phase.
+Raid-Phase und sind mit dem UI-Rebase nach `ui/styles/raid.css` überführt.

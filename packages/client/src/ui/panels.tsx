@@ -1,36 +1,35 @@
 import { route } from '../dungeon-editor/state'
-import { fixture } from '../fixture-data'
+import { villageOutlook } from '../village'
+import { RosterList } from './roster-list'
+import { Stats } from './stats'
 
 function finite(value: number): string {
   return Number.isFinite(value) ? String(value) : '∞'
 }
 
+const LEGEND: readonly string[] = [
+  'Ziehen auf freier Fläche: Kamera schwenken',
+  'Mausrad: Zoom',
+  'Klick auf eine Kreatur: Kontextfenster',
+  'Kreatur ziehen: Drop-Command, keine eigene Spielregel',
+  'Editor rastert DOM, die laufende Welt rastert Pixi',
+]
+
 export function TeamPanel() {
-  return (
-    <ul class="list">
-      {fixture.team.map((hero) => (
-        <li key={hero.id}>
-          <strong>{hero.name}</strong> · {hero.role} · {hero.hp} HP · Müdigkeit{' '}
-          {hero.fatigue}
-        </li>
-      ))}
-    </ul>
-  )
+  return <RosterList heroes={villageOutlook().roster} />
 }
 
 export function RoutePanel() {
   const current = route.value
   return (
-    <dl class="facts">
-      <dt>Modus</dt>
-      <dd>{current.mode}</dd>
-      <dt>Schritte</dt>
-      <dd>{current.path.length}</dd>
-      <dt>Kosten</dt>
-      <dd>{finite(current.movementCost)}</dd>
-      <dt>Umweg</dt>
-      <dd>{finite(current.detourCost)}</dd>
-    </dl>
+    <Stats
+      rows={[
+        ['Modus', current.mode],
+        ['Schritte', String(current.path.length)],
+        ['Kosten', finite(current.movementCost)],
+        ['Umweg', finite(current.detourCost)],
+      ]}
+    />
   )
 }
 
@@ -41,23 +40,21 @@ export interface ActorPanelProps {
 export function ActorPanel({ windowId }: ActorPanelProps) {
   const [, kind = 'actor', id = windowId] = windowId.split(':')
   return (
-    <dl class="facts">
-      <dt>Art</dt>
-      <dd>{kind}</dd>
-      <dt>ID</dt>
-      <dd>{id}</dd>
-    </dl>
+    <Stats
+      rows={[
+        ['Art', kind],
+        ['ID', id],
+      ]}
+    />
   )
 }
 
 export function LegendPanel() {
   return (
     <ul class="list">
-      <li>Ziehen auf freier Fläche: Kamera schwenken</li>
-      <li>Mausrad: Zoom</li>
-      <li>Klick auf eine Kreatur: Kontextfenster</li>
-      <li>Kreatur ziehen: Drop-Command, keine eigene Spielregel</li>
-      <li>Editor rastert DOM, die laufende Welt rastert Pixi</li>
+      {LEGEND.map((entry) => (
+        <li key={entry}>{entry}</li>
+      ))}
     </ul>
   )
 }

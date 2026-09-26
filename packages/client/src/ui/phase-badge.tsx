@@ -9,18 +9,17 @@ const PHASE_TEXT: Record<Phase, string> = {
 }
 
 /**
- * Schleifen-Badge in der Topbar: liest ausschließlich den Phase-Store und
- * beschriftet die aktuelle Phase mit dem laufenden Tag.
+ * Schleifen-Anzeige in der Topbar.
+ *
+ * Liest ausschließlich den Phase-Owner und zeigt den laufenden Tag neben der
+ * Phase. Kein eigener Zustand, keine Ableitung, keine Spielentscheidung.
  */
 export function PhaseBadge() {
-  const state = dayNight.value
-  const label =
-    state.phase === 'tag'
-      ? `Tag ${state.day}`
-      : `${PHASE_TEXT[state.phase]} · Tag ${state.day}`
+  const { phase, day } = dayNight.value
   return (
     <span class="phase-badge" aria-live="polite">
-      {label}
+      <span class="phase-badge__day tnum">Tag {day}</span>
+      <span class="phase-badge__phase">{PHASE_TEXT[phase]}</span>
     </span>
   )
 }

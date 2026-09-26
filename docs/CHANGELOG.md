@@ -20,6 +20,7 @@ Die Texte sind wortgleich verschoben, nicht gekürzt und nicht neu geschrieben. 
 
 `docs/REPOINDEX.md` registriert die neue Datei und holt dabei die bisher fehlende Erwähnung von `2026-09-25_changelog-backend-und-initialstand.md` nach.
 
+
 ## 2026-09-26 — Auto-Push und Commit-Pflicht als by design festhalten
 
 `docs/REGELWERK_GIT.md` bekommt den Abschnitt „Auto-Push und Commit-Pflicht". Bisher stand der Auto-Push nur als Nebensatz im Hook-Abschnitt und als `SHINON_AUTO_PUSH=0` für Lifecycle-Tests, also als Ausnahme von etwas, dessen Begründung nirgends geschrieben war; der Default in `.husky/post-commit` ist `SHINON_AUTO_PUSH=1`, damit schiebt ein gewöhnlicher Commit seinen Branch ohne Zutun, und eine nicht begründete Voreinstellung ist keine Governance. Die Begründung trägt der `pre-push`-Hook, der unmittelbar vor dem Push `scripts/shinon/engine.mjs --full` fährt: Der Auto-Push ist Fortsetzung der Kette von `pre-commit` bis `pre-push` und kein Bypass neben ihr, während die Commit-Pflicht dieselbe Kette in die andere Richtung beschreibt, weil Slice-Engine, Commit-Text-Regel, mechanischer Bump mit `version-gate` und Amend das Entstehen eines nicht gate-konformen Commits verhindern. Sicher macht das erst das Push-Ziel: Der Auto-Push schiebt den aktuell ausgecheckoutten Branch und erreicht `main` nicht, weil `main` `Shinon Gate` mit `strict`, `required_linear_history` und `enforce_admins` verlangt. Ergänzt sind die zwei Grenzen, ein grüner lokaler Lauf ersetzt den verpflichtenden Remote-Status nicht und `SHINON_SKIP_BUMP=1` ist Rekursionsschutz, keine Aussage über das Push-Verhalten.
@@ -79,6 +80,15 @@ Vitest 5 hat den `basic`-Reporter und den Default-Timeout-Verhalten geändert. D
 Biome 2 verlangt in `biome.json` `rules.preset` statt `rules.recommended`, und das `$schema` zeigt auf die 2.5.14-Version. Die neuen Regeln haben drei unbenutzte Importe, zwei unbenutzte Variablen und einen überflüssigen Backslash in `scripts/shinon/install-hooks.mjs` gefunden; die Fixes sind angewandt. Die Formatierung von `packages/client/src/ui/styles.css` hat sich durch den Biome-2-Formatter geändert.
 
 Zod bleibt bewusst auf `3.23.8`. Der `schema-contract`-Gate pinnt die Version in `scripts/shinon/policy.json`, weil Contracts, Client und Server eine Zod-Instanz teilen. Die v4-Migration war durchführbar und ist im Laufe dieses Durchgangs erarbeitet worden, sie wird aber nicht übernommen. `docs/DEV_REQUIREMENTS.md` führt die Gründe für alle drei Pins jetzt in einem eigenen Abschnitt und nennt die konkreten v4-Umbrüche, damit der Bump als eigene Task mit Freigabe behandelt werden kann.
+## 2026-09-26 — Client-Oberfläche: Dorfblick, Blickumschalter, modularer Schnitt
+
+Der Client hatte kein Dorf, sondern vier Fixture-Zahlen in einer offenen Label-Wert-Liste, und zeigte in jeder Phase das Dungeon-Raster im Viewport. Die Kopfleiste führte Debug-Rückmeldung mit Rohkoordinaten, `styles.css` war eine 630-zeilige Datei mit drei erfundenen Panel-Optiken und einem `is-night`-Theming, das die Shell nie setzte, und `shell.tsx` stand bei 96 von 120 erlaubten LOC — ohne Raum für weitere Arbeit am Layout.
+
+`packages/client/src/village/settlement.ts` leitet den Dorfblick jetzt als reine Funktion aus dem Phase-Owner und den Fixture-Daten ab: Gebiete, Gildenroster, Verteidigerplätze und die Bilanz der letzten Nacht. Das ist aus dem Loop abgeleitet, nicht erfunden; Dorfwirtschaft mit Arbeitern, Gold- und Materialausgaben, Landkauf und Beute-Verkauf bleibt unverändert T2 und wurde nicht angefasst. Die Fenster- und Kennungsdarstellung nutzt jetzt Namen statt interner IDs.
+
+`packages/client/src/ui/view.ts` führt den Blick `village | dungeon` als Navigation getrennt von der Spielphase; `test/stage-view.test.ts` pinnt, dass der Wechsel weder Phase noch Grid berührt. Die Shell ist nur noch Layout, Topbar, Bühne und Sidebar lesen ihre Stores selbst, und `styles.css` ist durch `ui/styles/` mit acht Modulen auf gemeinsamen Gestaltungs-Tokens ersetzt. `test/village-settlement.test.ts` prüft die Ableitung gegen echten Loop-Zustand.
+
+Grenze dieses Blocks: `typecheck`, 148 Tests, Lint und alle Shinon-Gates sind grün und der Build löst die Style-Kette auf, aber die Abnahme im Browser steht aus — in der Arbeitsumgebung gab es weder Chrome noch ein DOM-Testsetup. Grüne Gates belegen Korrektheit, nicht Aussehen. Details in `packages/client/docs/CHANGELOG.md`.
 
 ## 2026-09-26 — Konsistenz-Pass nach den fünf Merges
 

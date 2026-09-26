@@ -68,6 +68,17 @@ function failedView(
 }
 
 /**
+ * Deutscher Titel des Auftragsergebnisses.
+ *
+ * Einzige Textquelle für Urteil und Fehler: das Ergebnis-Panel und der
+ * Dorfblick formulieren dadurch nie getrennt.
+ */
+export function raidOutcomeText(job: TerminalRaidJob): string {
+  if (job.status === 'completed') return STAGE_TEXT[job.result.summary.stage]
+  return CODE_TEXT[job.error.code]
+}
+
+/**
  * Reine Ergebnis-Darstellung eines TerminalRaidJob: keine Zustände, keine
  * Knöpfe, keine Entscheidung über den Raid-Ausgang.
  */
