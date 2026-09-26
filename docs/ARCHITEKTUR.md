@@ -4,6 +4,8 @@
 
 Deterministisches Async-Spiel mit geteiltem Core. Der Server nutzt `sim-core` (Fixed-Point, PRNG, Grid, Kampf, Zucht) für Berechnung und Validierung; der Client rendert und spielt serverseitig validierte Ergebnisse ab.
 
+Die aktive Arbeitsreihenfolge besitzt ausschließlich `docs/ROADMAP.md`. T1 (Kern und reproduzierbarer Raid-Loop) ist mit T1.1 Raid-Playback und T1.2 Schleifenabnahme abgeschlossen; T2 ist damit der aktive Bereich, T3 folgt danach. Die Prioritätsregel „T1 ist exklusiv“ steht dort.
+
 ## Schichten
 
 - `contracts` besitzt Zod-Schemas, Protokoll-Versionen (`sim_version`), Hash-Verträge, Ergebnislog und den Auftragsautomaten. Keine Logik.

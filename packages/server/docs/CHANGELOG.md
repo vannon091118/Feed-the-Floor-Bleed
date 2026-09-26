@@ -1,5 +1,16 @@
 # packages/server/docs/CHANGELOG.md
 
+## 2026-09-26 — Idempotenz gemessen: Wiederholung ist ein No-Op
+
+Keine Codeänderung. Eine Mess-Session gegen den SQLite-D1-Doppel mit Migration und Triggern hat das Verhalten von `commitRaid` bei wiederholtem `idempotencyKey` belegt. Die Beobachtungen sind in `docs/ROADMAP.md` als offene Prüfpunkte eingetragen.
+
+- **Abgeschlossener Job plus Wiederholung:** Rückgabe mit identischem `result_json` und unveränderter Revision (gemessen `4 → 4`), `idempotent: true`. Kein zweiter Kampf, kein neues Ergebnis. Der Expire-Sweep sieht nur `accepted`, `queued` und `running`; zusätzlich würde der Trigger `raid_jobs_valid_status_transition` ein `completed → expired` per `RAISE(ABORT)` blockieren. Zwei unabhängige Mechanismen.
+- **Abweichender Payload:** `IDEMPOTENCY_CONFLICT`. `INSERT OR IGNORE` lässt den alten Snapshot stehen, der Byte-Vergleich von `payloadJson` schlägt zu. Ein Key ist nicht mit anderem Inhalt überschreibbar.
+- **Key durch anderen Angreifer belegt:** `IDEMPOTENCY_CONFLICT`, geschützt durch `job.attackerId !== input.attackerId` in `raid-commit.ts`. Squatting bleibt damit ein Denial-of-Service und ist kein Datenabfluss. Für Pre-Alpha mit client-generierten Keys vertretbar; mit serverseitig vergebenen UUIDs entfällt das Fenster.
+- **Offene Lücke Test:** Der Abschluss-Fall ist in `raid-commit.test.ts` ungedeckt. Getestet sind Wiederholung im Status `accepted` und der Payload-Konflikt, nicht „abgeschlossen plus Wiederholung“ samt Revisionsstabilität.
+- **Offene Lücke Sweep:** `EXPIRE_ATTACKER_OPEN_JOBS` hängt am Commit-Pfad. Ein Job, den niemand wiederholt, bleibt unbegrenzt `accepted`, bis ein fremder Commit mit derselben `attackerId` ihn einsammelt. Gehört zur Queue-Semantik in T3.
+- **Hash trägt keine Identität:** Über `src` und `migrations` gibt es keine Verwendung von `hash` außerhalb der Tests. Der Kampf-Hash ist Replay-Selbstkonsistenz in `sim-core`; Identität und Idempotenz laufen über `idempotencyKey` und den Payload-Vergleich. FNV-1a-32 reicht für diese Aufgabe und wäre als Inhaltsadresse zu kurz.
+
 ## 2026-09-25 — T1.3 Zustandsvokabular aus dem Contract
 
 - `src/db/job-state.ts` importiert `RAID_JOB_STATUSES`, `RAID_JOB_TTL_MS`, `canTransitionRaidJob`, `RaidJobStatus` und `ErrorCodeSchema` aus `@floor/contracts` und re-exportiert sie für `@floor/server/db`. Vorher standen dieselben Werte an drei Stellen, mit der Folge, dass `timeout` in D1 möglich, im Contract aber nicht darstellbar war.

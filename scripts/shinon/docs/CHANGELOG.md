@@ -1,5 +1,9 @@
 # scripts/shinon/docs/CHANGELOG.md
 
+## 2026-09-26 — Befund: Hook-Texte doppelt gehalten
+
+Keine Codeänderung. Aus dem Befund-Review: `install-hooks.mjs` schreibt die Inhalte der fünf Hook-Dateien (`pre-commit`, `prepare-commit-msg`, `commit-msg`, `post-commit`, `pre-push`) als Stringliterale in `.husky/`, statt sie zu importieren oder aus einer gemeinsamen Quelle zu ziehen. Ein Edit an einem Hook muss derzeit an zwei Orten nachgezogen werden, sonst laufen der installierte und der eingecheckte Hook auseinander. Die Auflösung ist ein Code-Thema und keine Doku-Aufgabe; hier nur als Beobachtung festgehalten.
+
 ## 2026-09-25 — Merge- und Pull-Request-Pfad gate-fähig
 
 - Der Workflow triggerte ausschließlich auf `push: [main]`. Verlangt die Branch-Protection den Kontext `Shinon Gate`, entsteht für einen Pull Request damit nie ein Check, und über diesen Weg kann nichts landen. Der Workflow hat jetzt zusätzlich `pull_request` gegen `main`; die Range kommt per `github.event.pull_request.base.sha`.
