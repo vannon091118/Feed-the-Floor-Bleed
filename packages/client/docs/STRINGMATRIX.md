@@ -29,7 +29,7 @@
 | `input/drag-slop` | `5` px Weg, ab dem aus einem Kandidaten ein aktiver Zug wird |
 | `input/gesture` | `undecided` → `drag` \| `pan`; ohne Weg bleibt es ein Klick |
 | `render/camera-single` | `worldToScreen` existiert genau einmal; der Runtime-Ursprung kommt daraus |
-| `raid/trail` | Offen: Der Combat-Log trägt noch keinen Trail-Hash, die Anzeige nutzt `route.path` |
+| `raid/trail` | Seit T1.1: `CombatLog.trail` (x/y/cell je Schritt) fließt in den Kampf-Hash; die Anzeige kann den Trail statt `route.path` nutzen |
 
 `ui/tabs` und `ui/phase` sind mit der alten visuellen Schicht entfallen. Die
 neue Shell hat Tag/Nacht als lokalen Zustand und die Welt als Navigation.
