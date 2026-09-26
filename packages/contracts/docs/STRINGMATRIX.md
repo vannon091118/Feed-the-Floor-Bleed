@@ -4,10 +4,10 @@
 
 | Schlüssel | Wert | Bedeutung |
 |-----------|------|-----------|
-| `CONTRACT_VERSION` | `2` |major des Wire-Formats |
-| `sim_version` | `0.0.1` | exakt akzeptierte Simulationsversion |
+| `CONTRACT_VERSION` | `3` |major des Wire-Formats |
+| `sim_version` | `0.0.2` | exakt akzeptierte Simulationsversion |
 
-Jeder Raid-Snapshot, jedes Ergebnis, jeder Log und jeder Auftrag führt verpflichtend `contractVersion: 2` und `simVersion: "0.0.1"`.
+Jeder Raid-Snapshot, jedes Ergebnis, jeder Log und jeder Auftrag führt verpflichtend `contractVersion: 3` und `simVersion: "0.0.2"`.
 
 ## Raid-Freeze
 
@@ -28,6 +28,7 @@ Keine weiteren Werte, Formeln oder Balancing-Regeln sind Teil des v2-Snapshotver
 | `log.hash` | `^[0-9a-f]{8}$` |
 | `log.events[].type` | `'move' \| 'attack' \| 'death' \| 'end'` |
 | `log.events[].stage` | obige drei oder `'running'` |
+| `log.trail[]` | `{ x: 0..63, y: 0..63, cell: 0..4 }`, jeder Schritt der A*-Route in Reihenfolge |
 | `result.summary` | `{ stage, ticks, hash, events, attacks, damage, heroesAlive, monstersAlive, bossAlive }` |
 | `job.status` | `accepted \| queued \| running \| completed \| failed \| expired` |
 | `error.code` | `blocked \| invalid-hash \| invalid-request \| protected \| timeout` |
@@ -53,4 +54,4 @@ mit `result` sind nicht darstellbar.
 | Replay-Hash passt nicht | `invalid-hash` |
 | Defender geschützt | `protected` |
 
-Unbekannte Codes, fehlende Pflichtfelder und zusätzliche Felder werden durch `.strict()` abgewiesen. Contract v1 wird von v2 nicht akzeptiert.
+Unbekannte Codes, fehlende Pflichtfelder und zusätzliche Felder werden durch `.strict()` abgewiesen. Contract v1/v2 wird von v3 nicht akzeptiert.

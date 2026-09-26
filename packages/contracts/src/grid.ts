@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { CellTypeSchema } from './cell'
 
 const pointSchema = z
   .object({
@@ -6,13 +7,7 @@ const pointSchema = z
     y: z.number().int().min(0).max(63),
   })
   .strict()
-const cellTypeSchema = z.union([
-  z.literal(0),
-  z.literal(1),
-  z.literal(2),
-  z.literal(3),
-  z.literal(4),
-])
+const cellTypeSchema = CellTypeSchema
 
 export const GridPointSchema = pointSchema
 export const DungeonGridSchema = z

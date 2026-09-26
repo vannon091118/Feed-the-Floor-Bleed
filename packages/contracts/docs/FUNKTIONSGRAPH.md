@@ -4,12 +4,12 @@
 version/constants → RaidSnapshotSchema
 RaidSnapshotSchema → UploadRequestSchema
 RaidSnapshotSchema → MatchResponseSchema
-version/constants → CombatLogSchema → CombatSummarySchema
+trail.ts → CombatLogSchema → CombatSummarySchema
 CombatLogSchema → ResultPayloadSchema
 CombatLogSchema → RaidLogPayloadSchema
 ResultPayloadSchema + ErrorPayloadSchema → RaidJobSchema
 version/constants + ErrorPayloadSchema + ResultPayloadSchema → job.ts (Automat)
-contracts → sim-core/combat (Log-Erzeugung, Fixture-Auftrag)
+contracts → sim-core/combat (Log/Trail-Erzeugung, Fixture-Auftrag)
 contracts → server/db (Validierung, Persistenz, Übergänge)
 contracts → client/raid (Payload-Bau, Anzeige)
 ```

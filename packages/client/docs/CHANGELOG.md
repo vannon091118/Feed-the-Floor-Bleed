@@ -41,7 +41,7 @@
 - `src/fixture-data.ts`: Helden tragen `id`, `fatigue` und `tactics`; das Verteidiger-Roster und feste Auftragsdaten (Job-ID, Seed, Etage, Zeiten) liegen dort. Die Zeiten sind Konstanten, damit der Probelauf reproduzierbar bleibt.
 - `src/ui/shell.tsx`: Nachtphase rendert `RaidPanel` unter dem Editor; Hinweistext und Footer auf T1.3 gehoben.
 - `src/ui/styles.css`: Styles für Ergebniszeile, Kennzahlen-Raster und Idle-/Hinweistext inklusive Mobile-Breakpoint.
-- `test/raid-job.test.ts` neu: Upload-Gültigkeit, reproduzierbarer Hash, Hash-Änderung bei längerer Route, blockierte Route und ein Test, der die bekannte Routenlängen-Lücke pinnt.
+- `test/raid-job.test.ts` neu: Upload-Gültigkeit, reproduzierbarer Hash, Hash-Änderung bei längerer Route, blockierte Route und ein Test, der die bekannte Routenlängen-Lücke pinnt. Seit T1.1 pinnt er den behobenen Fall: gleich lange Routen mit anderem Trail liefern unterschiedliche Hashes.
 - Der Panel ist als Probelauf beschriftet. Der Client entscheidet nichts — er zeigt das Ergebnis eines Core-Laufs.
 
 ## 2026-09-25 — Architektur-Pass Fixture-Shell

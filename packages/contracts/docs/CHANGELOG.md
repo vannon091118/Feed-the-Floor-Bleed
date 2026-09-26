@@ -1,5 +1,12 @@
 # packages/contracts/docs/CHANGELOG.md
 
+## 2026-09-25 — T1.1 Trail-Hash: Contract v3 mit `CombatTrailEntry` und `trail`
+
+- `packages/contracts/src/trail.ts` neu: `CombatTrailEntrySchema` mit `x/y 0..63` und `cell 0..4` (`.strict()`).
+- `packages/contracts/src/combat-log.ts`: `CombatLogSchema` trägt `trail: CombatTrailEntry[] 1..4096`; die sechs bestehenden Invarianten bleiben, zusätzlich gilt jede Pfadzelle als Pflichtfeld. `CONTRACT_VERSION 2→3`, `sim_version 0.0.1→0.0.2`.
+- `packages/contracts/src/index.ts` re-exportiert `CombatTrailEntrySchema` und `CombatTrailEntry`. `LOC`-Cap in `combat-log.ts` durch Auslagerung gehalten.
+- `packages/contracts/test/raid-fixtures.ts` liefert einen gültigen v3-Trail, `combat-log.test.ts`/`job.test.ts`/`raid-snapshot.test.ts`/`contracts.test.ts` an v3 angepasst; inkompatible Versionen werden weiterhin abgewiesen.
+
 ## 2026-09-25 — T1.3 Ergebnislog, Job-Union und Fehlercode-Vokabular
 
 - `packages/contracts/src/combat-log.ts` ergänzt: strikte Schemas für `CombatConfig`, `CombatUnitSpec`, `CombatEvent`, `CombatLog` und `CombatSummary`. Invarianten: eindeutige Einheiten-IDs, schließendes `end`-Ereignis in der Ergebnisstufe, keine unbekannten Einheiten, kein Tick hinter dem Log-Ende.

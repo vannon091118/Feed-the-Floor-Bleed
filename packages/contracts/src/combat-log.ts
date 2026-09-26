@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { CombatTrailEntrySchema } from './trail'
 
 /**
  * Strikte Wire-Form des Combat-Logs.
@@ -23,7 +24,6 @@ export const CombatHashSchema = z.string().regex(/^[0-9a-f]{8}$/)
 const fixed = z.number().int()
 const count = z.number().int().nonnegative()
 const unitId = z.string().min(1)
-
 export const CombatConfigSchema = z
   .object({
     tickRate: z.number().int().positive(),
@@ -72,6 +72,7 @@ export const CombatLogSchema = z
     stage: CombatStageSchema,
     ticks: count,
     hash: CombatHashSchema,
+    trail: z.array(CombatTrailEntrySchema).min(1).max(4096),
   })
   .strict()
   .superRefine((log, context) => {

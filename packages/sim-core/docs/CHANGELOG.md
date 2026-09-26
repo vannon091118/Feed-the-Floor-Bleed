@@ -1,5 +1,13 @@
 # packages/sim-core/docs/CHANGELOG.md
 
+## 2026-09-25 — T1.1 Trail-Hash: `trail` fließt in den Hash, LOC-Cap gehalten
+
+- `src/combat/types.ts`: `CombatTrailEntry { x, y, cell }` und `CombatLog.trail: CombatTrailEntry[]` neu.
+- `src/combat/fingerprint.ts`: `trailHash` neu, `fingerprintCombatLog` hasht jede Trail-Zelle vor Units und Events — gleich lange Routen unterscheiden sich.
+- `src/combat/resolve.ts`: baut `trail` aus `findPath(grid)` plus `getCell`, reicht ihn an `simulateCombat`.
+- `src/combat/simulate.ts`/`replay.ts`: `trail` ist Pflicht-Input, `verifyCombatLog` prüft Länge und jede Zelle.
+- `packages/client/test/raid-job.test.ts`: bekannte Lücke geschlossen, Test von `toBe` auf `not.toBe` gedreht (bewusst roter Durchlauf vor dem Fix belegt).
+
 ## 2026-09-25 — Kommentar- und Doku-Typos in Grid und Combat
 
 - `src/grid/serialize.ts`: der Brücken-Kommentar sprach davon, dass ein eingefrorener Snapshot „hinterher“ nicht verändert werden kann. Gemeint war „nachträglich“; hinterher im Sinne von Zeitfolge ergibt hier keinen Sinn.

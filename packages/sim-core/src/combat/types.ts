@@ -42,6 +42,12 @@ export interface CombatEvent {
   stage: CombatStage | 'running'
 }
 
+export interface CombatTrailEntry {
+  x: number
+  y: number
+  cell: number
+}
+
 export interface CombatLog {
   seed: number
   config: CombatConfig
@@ -50,4 +56,5 @@ export interface CombatLog {
   stage: CombatStage
   ticks: number
   hash: string
+  trail: CombatTrailEntry[]
 }

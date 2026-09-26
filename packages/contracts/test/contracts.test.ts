@@ -86,10 +86,10 @@ describe('Versionierte Contracts', () => {
       UploadRequestSchema.safeParse({ ...payload, contractVersion: 1 }).success,
     ).toBe(false)
     expect(
-      UploadRequestSchema.safeParse({ ...payload, contractVersion: 3 }).success,
+      UploadRequestSchema.safeParse({ ...payload, contractVersion: 2 }).success,
     ).toBe(false)
     expect(
-      UploadRequestSchema.safeParse({ ...payload, simVersion: '0.0.2' })
+      UploadRequestSchema.safeParse({ ...payload, simVersion: '0.0.1' })
         .success,
     ).toBe(false)
   })

@@ -6,12 +6,12 @@ Single Source of Truth für versionierte Schemas, Payloads und `sim_version`. Da
 
 ## Versionierung
 
-- `CONTRACT_VERSION = 2` kennzeichnet das Wire-Format major.
-- `sim_version = "0.0.1"` ist die einzige von v2 akzeptierte Simulationsversion.
+- `CONTRACT_VERSION = 3` kennzeichnet das Wire-Format major.
+- `sim_version = "0.0.2"` ist die einzige von v3 akzeptierte Simulationsversion.
 - Upload, Match, Result, Ergebnislog, Auftrag, Fehler und jeder eigenständige Raid-Snapshot tragen beide Pflichtfelder `contractVersion` und `simVersion`.
-- Ein v2-Empfänger akzeptiert nur exakt diese Kombination. V1 und inkompatible Folgestände scheitern vor jeder Domänenverarbeitung.
-- Inkompatible Form- oder Bedeutungsänderungen erhöhen `CONTRACT_VERSION`; Korrekturen ohne Änderung des akzeptierten JSON dürfen v2 erhalten. Unbekannte Felder werden nicht ignoriert.
-- Grid- und Pathfinding-Schemas sind versionierte Runtime-Werte des v2-Vertrags, aber noch kein eigenständiges Transportformat.
+- Ein v3-Empfänger akzeptiert nur exakt diese Kombination. v1/v2 und inkompatible Folgestände scheitern vor jeder Domänenverarbeitung.
+- Inkompatible Form- oder Bedeutungsänderungen erhöhen `CONTRACT_VERSION`; Korrekturen ohne Änderung des akzeptierten JSON dürfen v3 erhalten. Unbekannte Felder werden nicht ignoriert.
+- Grid- und Pathfinding-Schemas sind versionierte Runtime-Werte des v3-Vertrags, aber noch kein eigenständiges Transportformat.
 
 ## Kanonischer Raid-Freeze
 
@@ -31,7 +31,7 @@ Der Contract legt keine Formeln, Grenzen, Umrechnungen oder Gameplay-Effekte fü
 - `MatchResponseSchema`: `seed`, `floor` und ein vollständiger versionierter `RaidSnapshot` als späteres Ziel.
 - `ResultPayloadSchema`: `token`, `floor`, `hash` und typisiertes `CombatSummary`.
 - `RaidLogPayloadSchema`: derselbe Hash plus der vollständige `CombatLog`. Eigenes Artefakt, damit `result_json` klein bleibt.
-- `CombatLogSchema`: Config, Einheiten, Ereignisse, Stufe, Ticks und Hash. Invarianten erzwingen eindeutige IDs, ein schließendes `end`-Ereignis und Tick ≤ `log.ticks`.
+- `CombatLogSchema`: Config, Einheiten, Ereignisse, Stufe, Ticks, Hash und `trail` (jeder Schritt mit `x/y/cell`). Seit T1.1 fließt der Trail in `fingerprintCombatLog`; `verifyCombatLog` prüft ihn. Invarianten erzwingen eindeutige IDs, ein schließendes `end`-Ereignis und Tick ≤ `log.ticks`.
 - `ErrorPayloadSchema`: `blocked`, `invalid-hash`, `invalid-request`, `protected`, `timeout` plus optionales `detail`.
 - `RaidJobSchema`: Diskriminated Union über `status` mit Übergangsautomat.
 

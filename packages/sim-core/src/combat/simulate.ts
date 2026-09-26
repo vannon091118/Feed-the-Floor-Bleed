@@ -11,6 +11,7 @@ import type {
   CombatEvent,
   CombatLog,
   CombatStage,
+  CombatTrailEntry,
   CombatUnitSpec,
 } from './types'
 
@@ -18,6 +19,7 @@ export interface SimulateCombatInput {
   seed: number
   units: CombatUnitSpec[]
   config: CombatConfig
+  trail: CombatTrailEntry[]
 }
 
 export function simulateCombat(input: SimulateCombatInput): CombatLog {
@@ -65,6 +67,7 @@ export function simulateCombat(input: SimulateCombatInput): CombatLog {
     stage,
     ticks,
     hash: '',
+    trail: input.trail,
   }
   log.hash = fingerprintCombatLog(log)
   return log

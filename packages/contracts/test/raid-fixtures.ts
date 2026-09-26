@@ -104,6 +104,12 @@ export function combatLog(): CombatLog {
     stage: 'timeout',
     ticks: 5,
     hash: HASH,
+    trail: [
+      { x: 0, y: 0, cell: 3 },
+      { x: 1, y: 0, cell: 0 },
+      { x: 2, y: 0, cell: 0 },
+      { x: 3, y: 0, cell: 4 },
+    ],
   }
 }
 

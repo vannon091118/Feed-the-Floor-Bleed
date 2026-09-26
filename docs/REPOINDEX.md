@@ -14,13 +14,13 @@
 | `docs/ROADMAP.md` | Audit-basierte Produkt- und Technik-Roadmap mit T1/T2/T3-Promotion |
 | `docs/DEV_REQUIREMENTS.md` | Toolchain-Voraussetzungen, Befehle, Gate-Matrix, Arbeitsablauf und Skills |
 | `docs/historisch/` | Append-only Archiv, u. a. `2026-09-25_roadmap-t1-abgeschlossen.md` mit den abgeschlossenen T1.0/T1.2/T1.3/T1.3b-Blöcken |
-| `packages/contracts/src` | Zod-Schemas, sim_version, Ergebnislog, Auftragsunion |
+| `packages/contracts/src` | Zod-Schemas, sim_version, Trail, Ergebnislog, Auftragsunion |
 | `packages/sim-core/src/*` | Deterministischer Core (PRNG, Math, Grid, Combat, Genome, Items, Hash, Ghost) |
 | `packages/client/src/*` | PWA Client: `world`/`visual`/`render`/`input`/`window`/`showcase` als sichtbare visuelle Basis, `dungeon-editor` als Grid-Owner, `ui` als Shell und Pixi-Host, `raid` als lokaler Fixture-Auftrag |
 | `packages/server/src/*` | Server (DB, Matchmaking, Sync) |
 | `scripts/bump-version.mjs` | Mechanischer Version bump (PATCH→MINOR→MAJOR) |
 | `.github/workflows/shinon.yml` | Pflichtprüfung für Pull Requests und `main` |
-| `packages/contracts/src/index.ts` | Öffentliche Contract-v2-Exports mit Raid-Freeze, Grid, Handshakes und `sim_version` |
+| `packages/contracts/src/index.ts` | Öffentliche Contract-v3-Exports mit Raid-Freeze, Grid, Handshakes, Trail und `sim_version` |
 | `.agents/skills/` | Installierte Review-Skills (`code-slop`, `typescript-review`, `code-quality`), Registry in `skills-lock.json` |
 | `scripts/shinon/engine.mjs` | Shinon Slicer + Runner (Base immer, Core nach Bedarf) |
 | `scripts/shinon/lib/commit-text.mjs` | Einzige Quelle der Commit-Regeln, geteilt von lokalem Hook und CI-Plugin |

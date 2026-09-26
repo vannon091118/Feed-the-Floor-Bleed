@@ -42,17 +42,14 @@ describe('Fixture-Raid aus dem Client', () => {
     expect(long.result.hash).not.toBe(open.result.hash)
   })
 
-  it('dokumentiert die bekannte Lücke: gleiche Routenlänge, gleicher Hash', () => {
-    // TODO Folgeblock nach T1.3: Der Pfad muss als Trail mit Zelltyp und
-    // Koordinaten in den Hash eingehen. Heute ist `route.path.length` der
-    // einzige Grid-Eingang, deshalb sieht die Engine Umwege mit gleicher
-    // Schrittzahl nicht. Dieser Test wird beim Fix bewusst rot.
+  it('unterscheidet zwei gleich lange Routen mit anderem Trail', () => {
     const plain = runLocalFixtureRaid(createDungeonGrid())
     const detour = runLocalFixtureRaid(
       paintTile(createDungeonGrid(), 'wall', 1, 0),
     )
     if (plain.status !== 'completed' || detour.status !== 'completed') return
-    expect(detour.result.hash).toBe(plain.result.hash)
+    expect(detour.result.hash).not.toBe(plain.result.hash)
+    expect(detour.result.summary.hash).toBe(detour.result.hash)
   })
 
   it('meldet eine zugemauerte Route als blockierten Auftrag', () => {

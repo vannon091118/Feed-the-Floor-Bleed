@@ -1,3 +1,4 @@
+export { CellTypeSchema, type CellTypeValue } from './cell'
 export {
   CONTRACT_VERSION,
   sim_version,
@@ -26,6 +27,10 @@ export {
   type CombatSummary,
   type CombatUnitSpec,
 } from './combat-log'
+export {
+  CombatTrailEntrySchema,
+  type CombatTrailEntry,
+} from './trail'
 export {
   DungeonGridSchema,
   GridPointSchema,

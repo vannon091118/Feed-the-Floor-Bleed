@@ -1,7 +1,7 @@
-import { type DungeonGrid, findPath } from '../grid'
+import { type DungeonGrid, findPath, getCell } from '../grid'
 import { buildCombatUnits, defaultCombatConfig } from './rules'
 import { simulateCombat } from './simulate'
-import type { CombatConfig, CombatLog } from './types'
+import type { CombatConfig, CombatLog, CombatTrailEntry } from './types'
 
 export interface ResolveCombatInput {
   seed: number
@@ -20,10 +20,15 @@ export function resolveCombat(input: ResolveCombatInput): CombatLog {
   const route = findPath(input.grid)
   if (route.mode === 'unreachable')
     throw new Error('combat requires a reachable route')
+  const trail: CombatTrailEntry[] = route.path.map((point) => ({
+    x: point.x,
+    y: point.y,
+    cell: getCell(input.grid, point),
+  }))
   const units = buildCombatUnits({
     teamSize: input.teamSize,
     monsterSlots: input.monsterSlots,
     routeLength: route.path.length,
   })
-  return simulateCombat({ seed: input.seed, units, config })
+  return simulateCombat({ seed: input.seed, units, config, trail })
 }

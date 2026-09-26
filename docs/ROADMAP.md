@@ -6,23 +6,23 @@ Diese Roadmap ist die einzige aktive Reihenfolge für Produkt- und Technikarbeit
 
 ## Statusupdate — 2026-09-25
 
-Abgeschlossen und nach `docs/historisch/2026-09-25_roadmap-t1-abgeschlossen.md` archiviert: pnpm-only (T1.0), deterministischer Combat-/Hash-/Replay-Core (T1.2), Contract-v2-Ergebnislog und lokale Fixture-Ausführung (T1.3) sowie die sichtbare visuelle Basis (T1.3b). `docs/CONCEPT_REVIEW.md` steht auf ODT-Stand; KI-Vorschläge sind als `[K]` markiert. Der nächste aktive Block ist T1.1: Trail-Hash, damit der Dungeon im Kampf ankommt.
+Abgeschlossen und nach `docs/historisch/2026-09-25_roadmap-t1-abgeschlossen.md` archiviert: pnpm-only (T1.0), deterministischer Combat-/Hash-/Replay-Core (T1.2), Contract-v2-Ergebnislog und lokale Fixture-Ausführung (T1.3) sowie die sichtbare visuelle Basis (T1.3b). `docs/CONCEPT_REVIEW.md` steht auf ODT-Stand; KI-Vorschläge sind als `[K]` markiert. T1.1 Trail-Hash ist erledigt: `packages/contracts/src/trail.ts` und `CombatLog.trail` plus `CombatTrailEntrySchema`, `packages/sim-core/src/combat/{fingerprint,resolve,simulate,replay}` tragen `x/y/cell` jeder Pfadzelle in den Hash, `sim_version 0.0.1→0.0.2`, `CONTRACT_VERSION 2→3`, gepinnter Test `raid-job.test.ts` von `toBe` auf `not.toBe` gedreht. Nächster aktiver Block ist T1.2: Raid-Playback.
 
-Nachtrag: Die visuelle Basis ist im Browser lauffähig (`pnpm --filter @floor/client dev`). Die Szene rechnet einen lokalen Fixture-Lauf aus `resolveSnapshotRaid` und entscheidet nichts. Der Hash sieht weiterhin nur `route.path.length`; gleich lange Umwege liefern denselben Wert.
+Nachtrag: Die visuelle Basis ist im Browser lauffähig (`pnpm --filter @floor/client dev`). Die Szene rechnet einen lokalen Fixture-Lauf aus `resolveSnapshotRaid` und entscheidet nichts. Der Hash sieht seit T1.1 den vollen Trail; gleich lange Umwege liefern jetzt unterschiedliche Werte.
 
 ## Audit-Snapshot — 2026-09-25
 
 ### Grün
 
 - `pnpm run -s typecheck` bestanden.
-- `pnpm test -- --run` bestanden: 21 Testdateien, 114 Tests (Client, Contracts, Server, Core).
+- `pnpm test -- --run` bestanden: 23 Testdateien, 122 Tests (Client, Contracts, Server, Core).
 - `pnpm run -s check` bestanden: LOC, Hygiene und alle Shinon-Gates.
 - `pnpm audit --prod --json | jq` meldet keine bekannten Schwachstellen.
-- Grid, Contracts, D1-Raid-Freeze, Combat-, Hash- und Replay-Core sowie der lokale Fixture-Auftrag sind durch Tests abgedeckt.
+- Grid, Contracts (v3), D1-Raid-Freeze, Combat-, Hash- und Replay-Core sowie der lokale Fixture-Auftrag sind durch Tests abgedeckt.
 
 ### Befunde mit Priorität
 
-- **P1 — Der Hash sieht den Dungeon nicht:** Aus dem 64×64-Grid fließt nur `route.path.length` in den Kampf. Zwei Dungeons mit gleich langer Route erzeugen denselben Hash, Fallen ohne Wirkung. Gepinnt in `packages/client/test/raid-job.test.ts`. Der Pfad muss als Trail mit Zelltyp und Koordinaten in den Hash eingehen.
+- **P1 — Trail-Hash erledigt:** Aus dem 64×64-Grid fließt seit T1.1 der vollständige Trail (Koordinate plus Zelltyp je Schritt) in den Kampf-Hash; gleich lange Routen unterscheiden sich.
 - **P1 — Client ohne echten Spielfluss:** Visuelle Basis steht (Pixi, World, Kamera, Depth, Occlusion, Actors, FX, Observer, Window-Runtime, Showcase), aber weder Storage noch Net noch servergebundenes Raid-Playback. Showcase rechnet nur lokal.
 - **P1 — Kein vollständiger Raid-Flow:** HTTP, Auth, Queue, Matching, Ghost und Ergebniskonsequenzen fehlen; Core, Contract und lokale Fixture-Ausführung stehen.
 - **P2 — Dokumentationsabstand:** Funktionsgraph und Architektur mischen Ziel und Ist-Stand. Bei jedem Arbeitspaket strikt trennen.
@@ -42,7 +42,7 @@ Nachtrag: Die visuelle Basis ist im Browser lauffähig (`pnpm --filter @floor/cl
 
 | ID | Ergebnis | Abhängigkeit | Fertig, wenn |
 |----|----------|--------------|---------------|
-| T1.1 | Trail-Hash: Pfad als Trail mit Zelltyp und Koordinaten im Kampf-Hash | — | Zwei Dungeons mit gleich langer Route erzeugen unterschiedliche Hashes; Fallenpositionen beeinflussen den Kampf; gepinnter Test in `raid-job.test.ts` grün |
+| T1.1 | Trail-Hash: Pfad als Trail mit Zelltyp und Koordinaten im Kampf-Hash | — | **erledigt** — gleich lange Routen liefern unterschiedliche Hashes; gepinnter Test grün |
 | T1.2 | Raid-Playback mit Timeline, Routen-/Fallenereignissen und Schlussfolgen | T1.1 | Der Nutzer kann die drei entscheidenden Momente des Raids erklären |
 | T1.3 | Ende-zu-Ende-Abnahme der Tag-/Nacht-/Raid-Schleife | T1.1–T1.2 | Ein Fixture-Loop läuft in unter fünf Minuten und erfüllt die Checkliste |
 
@@ -70,7 +70,7 @@ Diese Arbeit wird nach Abschluss von T1 zu T2 promoted. Sie startet nicht parall
 
 ## Nächster konkreter Schritt
 
-T1.1 beginnen: Trail-Hash. Der Pfad muss mit Zelltyp und Koordinaten in den Hash eingehen, sonst zeigt T1.2 nichts, das vom gebauten Dungeon stammt, und Fallen bleiben wirkungslos. Ausgang ist der gepinnte Test in `packages/client/test/raid-job.test.ts`.
+T1.2 beginnen: Raid-Playback mit Timeline und Schlussfolgen auf dem fertigen Trail-Hash. Der Dungeon steckt jetzt im Hash; die Timeline kann Routen- und Fallenereignisse sichtbar machen.
 
 ## Pflegeprotokoll
 

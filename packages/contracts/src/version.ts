@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
-export const sim_version = '0.0.1' as const
-export const CONTRACT_VERSION = 2 as const
+export const sim_version = '0.0.2' as const
+export const CONTRACT_VERSION = 3 as const
 export type ContractVersion = typeof CONTRACT_VERSION
 
 export const contractVersionSchema = z.literal(CONTRACT_VERSION)

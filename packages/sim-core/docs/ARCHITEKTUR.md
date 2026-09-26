@@ -39,12 +39,9 @@ jeder Fixture-Lauf im Test und im Browser wiederholbar. Das ist kein Zufalls-
 feature, sondern die Bedingung dafür, dass ein Replay-Hash überhaupt etwas
 aussagt.
 
-## Bekannte Grenze
+## Trail seit T1.1
 
-Aus dem Grid fließt aktuell nur `route.path.length` in den Kampf. Zwei Dungeons
-mit gleich langer Route erzeugen denselben Hash, obwohl sie sich unterscheiden.
-Der Client-Test `dokumentiert die bekannte Lücke` pinnt das bewusst. Der
-Folgeblock führt den Pfad als Trail mit Zelltyp und Koordinaten in den Hash ein.
+Seit T1.1 fließt der vollständige Trail aus dem Grid in den Kampf: `resolveCombat` zieht die Route, baut `trail[]` mit `x/y/cell` je Schritt und reicht ihn an `simulateCombat`; `fingerprintCombatLog` hasht jede `CombatTrailEntry` vor Units und Events. `replayCombat`/`verifyCombatLog` prüfen den Trail mit. Gleich lange Routen mit anderer Geometrie liefern jetzt unterschiedliche Hashes — der gepinnte Test `raid-job.test.ts` ist grün.
   `resolveCombat` zieht die Route aus dem Grid, `replayCombat` und
   `verifyCombatLog` bestätigen einen gespeicherten Log.
 - `genome`, `items`, `ghost` sind weiterhin offen.
