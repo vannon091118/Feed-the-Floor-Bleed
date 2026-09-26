@@ -14,7 +14,7 @@ Deterministisches Async-Spiel mit geteiltem Core. Der Server nutzt `sim-core` (F
 - `.github/agents/critical-adversarial-reviewer.agent.md` prüft angefragte Trees und Diffs schreibgeschützt gegen `Agents.md` und betroffene Contracts, Domänendokus sowie Tests. Ohne engeren Scope gilt der gesamte Checkout. Die kanonische Governance bleibt ausschließlich in `Agents.md`; der Agent meldet nur belegte Befunde und verändert keine Dateien.
 - `.github/agents/berater.agent.md` liest denselben Stoff, gibt aber ein Urteil statt eines Befundkatalogs: höchstens drei Absätze aus Urteil, einem Beleg und dem Fix, Ton bewusst rau an der Arbeit statt an der Person. Ohne `edit`-Werkzeug; `execute` ist auf lesende Befehle und die Gate-Kommandos `pnpm run -s lint` und `pnpm test` beschränkt. Auch dieses Profil verweist auf `Agents.md`, statt Regeln zu duplizieren.
 
-## Datenfluss T1.1 (belegter Ist-Stand)
+## Datenfluss Trail-Hash (belegter Ist-Stand)
 
 Editor-Grid plus Fixture-Aufstellung → `buildFixtureUpload` erzeugt einen Contract-v3-Upload → `toDungeonGrid` übersetzt die 4096 Zellen in das Laufzeit-Grid → `runFixtureRaid` prüft Schema, Auftragsfrist und Route, rechnet den Kampf über `resolveCombat` mit Trail (`x/y/cell` je Schritt), hasht den vollständigen Trail in `fingerprintCombatLog`, replayt den geparsten Log inklusive Trail-Prüfung und gibt einen durch `RaidJobSchema` validierten Auftrag zurück → `RaidPanel` rendert Stufe, Hash und Kennzahlen. Kein Netz, keine Uhr, kein Serverentscheid.
 
@@ -22,7 +22,7 @@ Ergebnis und vollständiger Log sind zwei Payloads: `ResultPayloadSchema` trägt
 
 ## Datenfluss Visual Foundation (belegter Ist-Stand)
 
-`dungeon-editor/state` hält `grid` und die daraus abgeleitete `route`. Der `visual/observer` liest beide und erzeugt Deskriptoren; er kopiert das Grid nicht, sondern meldet Terrain nur bei geänderter Grid-Referenz. `render` konsumiert die Deskriptoren als persistente Pixi-Views. `worldToScreen` und `screenToWorld` existieren genau einmal in `render/camera` und werden von Renderer, Hit-Test, Drag und Kamera gemeinsam genutzt. `showcase` baut die sichtbare Referenzszene aus `grid`, `route.value.path` und dem echten Core-Log aus `resolveSnapshotRaid`; die Combat-Positionen entstehen aus `routeIndex`/`fromIndex`/`toIndex` abgebildet auf die Route. Der Log trägt seit T1.1 einen Trail-Hash, deshalb steht die Timeline in T1.2 auf fertigem Grund.
+`dungeon-editor/state` hält `grid` und die daraus abgeleitete `route`. Der `visual/observer` liest beide und erzeugt Deskriptoren; er kopiert das Grid nicht, sondern meldet Terrain nur bei geänderter Grid-Referenz. `render` konsumiert die Deskriptoren als persistente Pixi-Views. `worldToScreen` und `screenToWorld` existieren genau einmal in `render/camera` und werden von Renderer, Hit-Test, Drag und Kamera gemeinsam genutzt. `showcase` baut die sichtbare Referenzszene aus `grid`, `route.value.path` und dem echten Core-Log aus `resolveSnapshotRaid`; die Combat-Positionen entstehen aus `routeIndex`/`fromIndex`/`toIndex` abgebildet auf die Route. Der Log trägt einen Trail-Hash, deshalb steht die Timeline in T1.1 auf fertigem Grund.
 
 ## Datenfluss Etagen-Loop (geplanter Zielpfad, technisch)
 

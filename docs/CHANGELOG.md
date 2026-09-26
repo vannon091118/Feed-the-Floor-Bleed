@@ -1,5 +1,9 @@
 # docs/CHANGELOG.md — Global
 
+## 2026-09-26 — Roadmap auf lückenlose aktive Nummerierung nachgerutscht
+
+Die Roadmap trug den erledigten Trail-Hash noch als aktive Zeile T1.1 und vermischte damit abgeschlossene und offene Blöcke in einer Nummerierung. `docs/ROADMAP.md` führt jetzt ausschließlich offene Blöcke und ist lückenlos ab T1.1 durchnummeriert: T1.1 ist das Raid-Playback, T1.2 die Ende-zu-Ende-Abnahme. Der erledigte Trail-Hash ist aus der Tabelle gestrichen und nur noch im Statusblock belegt; abgeschlossene Blöcke behalten ihre historischen Nummern ausschließlich im Append-only-Archiv `docs/historisch/2026-09-25_roadmap-t1-abgeschlossen.md`. `docs/ARCHITEKTUR.md` zieht die zwei Live-Aussagen nach: die Überschrift des Trail-Datenflusses nennt keinen T1.1 mehr, und der Verweis auf die Timeline im Playback zeigt jetzt auf T1.1. Die Umnummerierung ist bewusst auf die aktive Steuerung begrenzt; historische Changelog-Einträge behalten ihre ursprünglichen Blocknummern.
+
 ## 2026-09-26 — Zweiter Custom-Agent `berater`: kurze, zynische Second Opinion
 
 `Agents.md` ließ bis hierher genau eine Custom-Agent-Ausnahme zu, den adversarialen Reviewer. Diese Ausnahme wird bewusst auf zwei Profile erweitert, weil zwei verschiedene Fragen zwei verschiedene Antwortformen brauchen. Die bestehende Frage lautet "ist dieser Tree oder Diff regelkonform", und dafür ist ein belegendes, protokolliertes Vorgehen die richtige Form. Die neue Frage lautet "taugt diese Idee, und wenn nein, warum", und dafür ist ein Protokoll der falsche Rahmen: Man will ein Urteil in wenigen Sätzen, keinen Befundkatalog. `.github/agents/berater.agent.md` bekommt deshalb ein zweites Profil mit eigener Tonlage, aber derselben harten Grenze, dass er nichts ändert.

@@ -4,11 +4,13 @@
 
 Diese Roadmap ist die einzige aktive Reihenfolge für Produkt- und Technikarbeit. Sie trennt den belegten Ist-Stand von der geplanten Zielarchitektur und verhindert, dass unimplementierte Systeme als bereits vorhanden behandelt werden.
 
-## Statusupdate — 2026-09-25
+## Statusupdate — 2026-09-26
 
-Abgeschlossen und nach `docs/historisch/2026-09-25_roadmap-t1-abgeschlossen.md` archiviert: pnpm-only (T1.0), deterministischer Combat-/Hash-/Replay-Core (T1.2), Contract-v2-Ergebnislog und lokale Fixture-Ausführung (T1.3) sowie die sichtbare visuelle Basis (T1.3b). `docs/CONCEPT_REVIEW.md` steht auf ODT-Stand; KI-Vorschläge sind als `[K]` markiert. T1.1 Trail-Hash ist erledigt: `packages/contracts/src/trail.ts` und `CombatLog.trail` plus `CombatTrailEntrySchema`, `packages/sim-core/src/combat/{fingerprint,resolve,simulate,replay}` tragen `x/y/cell` jeder Pfadzelle in den Hash, `sim_version 0.0.1→0.0.2`, `CONTRACT_VERSION 2→3`, gepinnter Test `raid-job.test.ts` von `toBe` auf `not.toBe` gedreht. Nächster aktiver Block ist T1.2: Raid-Playback.
+Die aktive Tabelle führt ausschließlich offene Blöcke und ist lückenlos ab T1.1 durchnummeriert: T1.1 Raid-Playback, T1.2 Ende-zu-Ende-Abnahme. Abgeschlossene Blöcke schleppen keine aktive Nummer mehr mit; sie stehen mit ihren historischen Nummern ausschließlich unter `docs/historisch/2026-09-25_roadmap-t1-abgeschlossen.md` (pnpm-Bootstrap, Combat-/Hash-/Replay-Core, Contract-v2-Ergebnislog mit lokaler Fixture-Ausführung, sichtbare visuelle Basis) und tauchen in der aktiven Tabelle nicht mehr auf.
 
-Nachtrag: Die visuelle Basis ist im Browser lauffähig (`pnpm --filter @floor/client dev`). Die Szene rechnet einen lokalen Fixture-Lauf aus `resolveSnapshotRaid` und entscheidet nichts. Der Hash sieht seit T1.1 den vollen Trail; gleich lange Umwege liefern jetzt unterschiedliche Werte.
+Der Trail-Hash ist erledigt und deshalb aus der Tabelle gestrichen: `packages/contracts/src/trail.ts` und `CombatLog.trail` plus `CombatTrailEntrySchema`, `packages/sim-core/src/combat/{fingerprint,resolve,simulate,replay}` tragen `x/y/cell` jeder Pfadzelle in den Hash, `sim_version 0.0.1→0.0.2`, `CONTRACT_VERSION 2→3`, der gepinnte Test `raid-job.test.ts` ist von `toBe` auf `not.toBe` gedreht.
+
+Nachtrag: Die visuelle Basis ist im Browser lauffähig (`pnpm --filter @floor/client dev`). Die Szene rechnet einen lokalen Fixture-Lauf aus `resolveSnapshotRaid` und entscheidet nichts. Der Hash sieht seit dem Trail-Hash den vollen Trail; gleich lange Umwege liefern jetzt unterschiedliche Werte. `docs/CONCEPT_REVIEW.md` steht auf ODT-Stand; KI-Vorschläge sind als `[K]` markiert.
 
 ## Audit-Snapshot — 2026-09-25
 
@@ -22,7 +24,7 @@ Nachtrag: Die visuelle Basis ist im Browser lauffähig (`pnpm --filter @floor/cl
 
 ### Befunde mit Priorität
 
-- **P1 — Trail-Hash erledigt:** Aus dem 64×64-Grid fließt seit T1.1 der vollständige Trail (Koordinate plus Zelltyp je Schritt) in den Kampf-Hash; gleich lange Routen unterscheiden sich.
+- **P1 — Trail-Hash erledigt:** Aus dem 64×64-Grid fließt seit dem Trail-Hash der vollständige Trail (Koordinate plus Zelltyp je Schritt) in den Kampf-Hash; gleich lange Routen unterscheiden sich.
 - **P1 — Client ohne echten Spielfluss:** Visuelle Basis steht (Pixi, World, Kamera, Depth, Occlusion, Actors, FX, Observer, Window-Runtime, Showcase), aber weder Storage noch Net noch servergebundenes Raid-Playback. Showcase rechnet nur lokal.
 - **P1 — Kein vollständiger Raid-Flow:** HTTP, Auth, Queue, Matching, Ghost und Ergebniskonsequenzen fehlen; Core, Contract und lokale Fixture-Ausführung stehen.
 - **P2 — Dokumentationsabstand:** Funktionsgraph und Architektur mischen Ziel und Ist-Stand. Bei jedem Arbeitspaket strikt trennen.
@@ -42,9 +44,8 @@ Nachtrag: Die visuelle Basis ist im Browser lauffähig (`pnpm --filter @floor/cl
 
 | ID | Ergebnis | Abhängigkeit | Fertig, wenn |
 |----|----------|--------------|---------------|
-| T1.1 | Trail-Hash: Pfad als Trail mit Zelltyp und Koordinaten im Kampf-Hash | — | **erledigt** — gleich lange Routen liefern unterschiedliche Hashes; gepinnter Test grün |
-| T1.2 | Raid-Playback mit Timeline, Routen-/Fallenereignissen und Schlussfolgen | T1.1 | Der Nutzer kann die drei entscheidenden Momente des Raids erklären |
-| T1.3 | Ende-zu-Ende-Abnahme der Tag-/Nacht-/Raid-Schleife | T1.1–T1.2 | Ein Fixture-Loop läuft in unter fünf Minuten und erfüllt die Checkliste |
+| T1.1 | Raid-Playback mit Timeline, Routen-/Fallenereignissen und Schlussfolgen | — | Der Nutzer kann die drei entscheidenden Momente des Raids erklären |
+| T1.2 | Ende-zu-Ende-Abnahme der Tag-/Nacht-/Raid-Schleife | T1.1 | Ein Fixture-Loop läuft in unter fünf Minuten und erfüllt die Checkliste |
 
 **T1-Definition of Done:** Keine unbeabsichtigte Core-Lücke, keine nicht versionierte Payload, keine Cliententscheidung über den Raid-Ausgang, reproduzierbarer Fixture-Seed und ein dokumentierter lokaler Playback.
 
@@ -70,7 +71,7 @@ Diese Arbeit wird nach Abschluss von T1 zu T2 promoted. Sie startet nicht parall
 
 ## Nächster konkreter Schritt
 
-T1.2 beginnen: Raid-Playback mit Timeline und Schlussfolgen auf dem fertigen Trail-Hash. Der Dungeon steckt jetzt im Hash; die Timeline kann Routen- und Fallenereignisse sichtbar machen.
+T1.1 beginnen: Raid-Playback mit Timeline und Schlussfolgen auf dem fertigen Trail-Hash. Der Dungeon steckt im Hash; die Timeline kann Routen- und Fallenereignisse sichtbar machen.
 
 ## Pflegeprotokoll
 
