@@ -27,6 +27,24 @@ Auto-Push und Commit-Pflicht sind by design und gehören derselben Kette an. Die
 - Ein grüner lokaler Lauf ist ausdrücklich kein verpflichtender Remote-Status. Der `Shinon Gate` auf dem PR bleibt maßgeblich, und der lokale Pre-Push-Pass ersetzt ihn nicht.
 - `SHINON_AUTO_PUSH=0` ist für lokale Lifecycle-Tests und für Slices reserviert, deren Push einen ausdrücklichen Auftrag braucht. `SHINON_SKIP_BUMP=1` ist ausschließlich Rekursionsschutz für den Amend und sagt nichts über das Push-Verhalten aus.
 
+## Lokales Gate, Remote-Gate und ihre Parität
+
+- Das lokale Gegenstück zum Job `gate` ist `pnpm run -s gate`. Es fährt dieselben Schritte in derselben Reihenfolge: Typecheck, Test, Lint, `check` und Client-Build. Der Job `gate` in `.github/workflows/shinon.yml` ist die verbindliche Fassung, `pnpm run -s gate` sein Spiegelbild.
+- Die Parität ist nicht Konvention, sondern getestet: `scripts/shinon/tests/gate-parity.test.mjs` liest die `run:`-Befehle des Workflows und die aufgelösten `&&`-Ketten aus `package.json`. Wer einen Schritt im Workflow ergänzt und ihn lokal vergessen hat, bekommt rot. Derselbe Test prüft, dass alle `runs-on`-Angaben auf `-latest` ohne Kernzähler enden, weil größere GitHub-Runner die einzige Stelle sind, an der die Actions-Nutzung für dieses Repository kostenpflichtig würde.
+- `pnpm run -s gate:quick` ist eine **Vorstufe, kein Gate**. Sie fährt Lint, LOC und Doku-Hygiene in wenigen Sekunden und ist eine nachgewiesene Teilmenge von `gate`. Sie ersetzt weder den Commit noch den Push; der vollständige Lauf bleibt `gate` lokal und `Shinon Gate` remote.
+- Das öffentliche Repository macht GitHub-Runner kostenlos. Die Konsequenz ist die gegenteilige der üblichen: Der lokale Lauf ist die schnelle Schleife, der Remote-Lauf ist die unabhängige Prüfung. Beide werden gebraucht, und an keiner Stelle wird am Remote gespart.
+
+## Ausfall von GitHub Actions
+
+`main` verlangt `Shinon Gate` mit `strict`, `enforce_admins` ist aktiv, Force-Push und Löschen sind gesperrt. Starten keine Actions-Jobs, existiert kein Weg mehr nach `main`: auch ein Admin-Push wird mit GH013 abgewiesen. Das ist der einzige echte Single Point of Failure im Repo und der Grund für `scripts/break-glass-main.mjs`.
+
+- **Auslöser.** Genau zwei Bedingungen zusammen: Der Workflow startet nicht (`gh run list` zeigt keinen Lauf oder meldet *"The job was not started because…"*), und die Branch-Protection ist unverändert aktiv. Ein rotes Gate, ein Merge-Konflikt, ein offener Review-Kommentar oder ein Bedienfehler sind **kein** Notfall. Ein rotes Gate ist ein Veto und bleibt eins.
+- **Evidenz vor Lock.** Zuerst `pnpm run -s gate` vollständig grün fahren und das Protokoll als `docs/historisch/<datum>_gate-attestation-<sha>.md` mit Commit-SHA, Node- und pnpm-Version, Testzahl und Ausgabe ablegen. `scripts/shinon/plugins/commit-integrity.mjs` braucht dafür `--from $(git rev-parse origin/main)`; ein symbolischer Ref genügt dort nicht.
+- **Lock.** `node scripts/break-glass-main.mjs lock` serialisiert den Protection-Zustand und setzt ausschließlich `required_status_checks` auf `null`. `enforce_admins`, `required_linear_history`, `required_conversation_resolution` und das Verbot von Force-Pushes bleiben unverändert. Der Push läuft lokal mit derselben Fast-Forward-Vorbedingung, die `promote` prüft.
+- **Restore.** `node scripts/break-glass-main.mjs restore` schreibt den gesicherten Zustand zurück und prüft danach, ob `required_status_checks` wieder stimmen. Lock und Restore gehören in denselben Arbeitsgang; ein Lock ohne Restore ist ein offener Vorfall, kein Geretteter.
+- **Nachweis.** Jede Anwendung landet als Eintrag in `docs/CHANGELOG.md` mit Datum, Anlass, Attestation und den ausgeführten Befehlen. Die zweite Anwendung ist kein Notfall mehr, sondern ein Design-Fehler und gehört als solcher ins Regelwerk.
+- Beide Befehle kennen `--dry-run` und verändern dann nichts. Eine Probelockung gegen das echte `main` ist damit **nicht** geprüft; sie bleibt eine bewusste Auslassung, weil ein unterbrochener Lock `main` ungeschützt ließe.
+
 ## Pull Request und Promotion nach `main`
 
 - Der Weg nach `main` läuft ausschließlich über einen Arbeitsbranch und einen Pull Request, nie über einen Direktpush. `main` verlangt den Required-Status-Check `Shinon Gate` und verifizierte Signaturen und erlaubt keine Merge-Commits.
@@ -43,6 +61,7 @@ Auto-Push und Commit-Pflicht sind by design und gehören derselben Kette an. Die
 
 ## Betriebsdetails und Learnings
 
+- `execSync` läuft unter Windows über `cmd.exe`, nicht über `sh`. Dort ist `^` das Escape-Zeichen, deshalb wird aus einem unquoted `<sha>^{commit}` das Argument `<sha>{commit}` und `git` antwortet mit `Needed a single revision`. Ein Ref in einem Template-String gehört in Anführungszeichen. Unter `/bin/sh` in CI ist dieser Unterschied unsichtbar, lokal auf Windows sichtbar; deshalb fährt der Workflow zusätzlich ein nicht erforderliches Signal auf `windows-latest`, und `scripts/shinon/tests/gates.test.mjs` deckt den Fall mit einem echten SHA ab.
 - Hook-Textänderungen müssen `scripts/shinon/install-hooks.mjs` und die generierten `.husky/*` konsistent behandeln. `.husky/_` ist generiert.
 - Für lokale Lifecycle-Tests `SHINON_AUTO_PUSH=0` verwenden; `SHINON_SKIP_BUMP=1` ist nur der Rekursionsschutz.
 - Ein leerer Core-Source-Bereich kann einzelne Plugins inhaltslos grün lassen; den tatsächlichen Scope und die Abdeckung mitberichten.

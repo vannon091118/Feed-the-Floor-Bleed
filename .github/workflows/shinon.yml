@@ -64,6 +64,53 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  # Derselbe Lauf auf Windows. Die Entwicklerbox ist Windows, und die
+  # Kommandozeile dort ist cmd.exe statt /bin/sh — ein Unterschied, der
+  # stillschweigend scheitern kann. Das öffentliche Repo kostet dafür nichts,
+  # deshalb ist dieses Signal dauerhaft und nicht erforderlich: Es ändert
+  # `Shinon Gate` nicht und blockiert nichts.
+  gate-windows:
+    name: Gate Windows (nur Signal)
+    runs-on: windows-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.3
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Commit integrity
+        if: ${{ github.event_name == 'pull_request' }}
+        run: node scripts/shinon/plugins/commit-integrity.mjs --from ${{ github.event.pull_request.base.sha }}
+
+      - name: Typecheck
+        run: pnpm run -s typecheck
+
+      - name: Lint
+        run: pnpm run -s lint
+
+      - name: Test
+        run: pnpm test -- --run
+
+      - name: Doku- und LOC-Hygiene
+        run: node scripts/check-loc.mjs && node scripts/check-hygiene.mjs
+
   # Shinon erledigt den Rest: Ist der Gate-Job grün, wird der geprüfte
   # PR-Kopf per Fast-Forward nach main geschoben. Das schließt die Lücke,
   # dass main den Status-Check `Shinon Gate` verlangt und ein Direktpush ihn

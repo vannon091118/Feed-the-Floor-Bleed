@@ -1,5 +1,9 @@
 # scripts/shinon/docs/CHANGELOG.md
 
+## 2026-09-26 — commit-integrity repariert, Gate-Parität als Test verankert
+
+`plugins/commit-integrity.mjs` baute die Bereichsauflösung als `git rev-parse --verify <sha>^{commit}` ohne Anführungszeichen. Unter Windows ruft `execSync` `cmd.exe`, und dort ist `^` das Escape-Zeichen; git bekam `<sha>{commit}` und antwortete mit `Needed a single revision`, wodurch der Bereich als nicht prüfbar galt. In CI unter `/bin/sh` blieb der Fehler unsichtbar, der Weg ohne `--from` war nicht betroffen. Der Aufruf ist jetzt gequotet, `tests/gates.test.mjs` deckt den Fall mit einem echten SHA in einem temporären Repository ab, und `tests/gate-parity.test.mjs` stellt den Workflow gegen die lokalen Script-Ketten.
+
 ## 2026-09-26 — Befund: Hook-Texte doppelt gehalten
 
 Keine Codeänderung. Aus dem Befund-Review: `install-hooks.mjs` schreibt die Inhalte der fünf Hook-Dateien (`pre-commit`, `prepare-commit-msg`, `commit-msg`, `post-commit`, `pre-push`) als Stringliterale in `.husky/`, statt sie zu importieren oder aus einer gemeinsamen Quelle zu ziehen. Ein Edit an einem Hook muss derzeit an zwei Orten nachgezogen werden, sonst laufen der installierte und der eingecheckte Hook auseinander. Die Auflösung ist ein Code-Thema und keine Doku-Aufgabe; hier nur als Beobachtung festgehalten.

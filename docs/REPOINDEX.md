@@ -32,7 +32,9 @@
 | `scripts/shinon/engine.mjs` | Shinon Slicer + Runner (Base immer, Core nach Bedarf) |
 | `scripts/shinon/lib/commit-text.mjs` | Einzige Quelle der Commit-Regeln, geteilt von lokalem Hook und CI-Plugin |
 | `scripts/shinon/plugins/*` | Blockierende Governance-Module (global-loc, contract, modularity, dead-code, redundancy, commit-integrity) plus Slice-Plugins |
+| `scripts/shinon/tests/gate-parity.test.mjs` | Paritätsvertrag: vergleicht die `run:`-Befehle des `gate`-Jobs mit dem lokalen `gate`-Script, prüft `gate:quick` als Teilmenge und verbietet kostenpflichtige Runner |
 | `scripts/check-loc.mjs` | LOC-Cap Check |
+| `scripts/break-glass-main.mjs` | Notfallweg bei Ausfall von GitHub Actions: serialisiert den Protection-Zustand, lockt minimal nur `required_status_checks` und stellt wieder her; `--dry-run` verändert nichts |
 | `scripts/check-hygiene.mjs` | Hygiene Check |
 | `scripts/install-requirements.sh` | Bootstrap unter Linux/macOS: prüft Node, pnpm, Git, Python, installiert Dependencies, ruft Gate |
 | `scripts/install-requirements.cmd` | Derselbe Bootstrap unter Windows |
