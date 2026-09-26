@@ -1,11 +1,11 @@
 import { Container, Sprite } from 'pixi.js'
 import {
-  type TerrainPatch,
-  type TerrainTile,
-  WORLD_CELL_PX,
   cellFoot,
   cellToWorld,
   materialById,
+  type TerrainPatch,
+  type TerrainTile,
+  WORLD_CELL_PX,
 } from '../world'
 import { depthValue } from './depth'
 import { materialFilter } from './filters'

@@ -1,4 +1,4 @@
-import { type DungeonGrid, createDungeonGrid, findPath } from '@floor/sim-core'
+import { createDungeonGrid, type DungeonGrid, findPath } from '@floor/sim-core'
 import { computed, signal } from '@preact/signals'
 import { type Brush, paintTile } from './model'
 

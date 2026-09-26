@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'preact/hooks'
 import { grid, route } from '../dungeon-editor/state'
 import type { DragDropCommand } from '../input'
 import { createVisualRuntime } from '../render'
-import { type Showcase, createShowcase } from '../showcase'
+import { createShowcase, type Showcase } from '../showcase'
 import type { ActorKind } from '../world'
 
 export interface WorldHostProps {

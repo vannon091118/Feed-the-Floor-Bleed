@@ -1,8 +1,8 @@
 import {
   CONTRACT_VERSION,
   RaidJobSchema,
-  type UploadRequest,
   sim_version,
+  type UploadRequest,
 } from '@floor/contracts'
 import { describe, expect, it } from 'vitest'
 import { toDungeonGrid } from '../grid'

@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { type DragDropCommand, createDragController } from '../src/input/drag'
+import { createDragController, type DragDropCommand } from '../src/input/drag'
 import type { PointerSample } from '../src/input/pointer'
 import {
-  type ScreenPoint,
   createCamera,
+  type ScreenPoint,
   worldToScreen,
 } from '../src/render/camera'
 import { type ActorDescriptor, cellFoot } from '../src/world'

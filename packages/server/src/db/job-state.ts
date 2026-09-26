@@ -1,20 +1,20 @@
 import {
+  canTransitionRaidJob,
   ErrorCodeSchema,
   RAID_JOB_STATUSES,
   RAID_JOB_TTL_MS,
   type RaidJobStatus,
-  canTransitionRaidJob,
 } from '@floor/contracts'
 import { RaidStoreError } from './errors'
 
+export type { RaidJobStatus }
 /**
  * Status, TTL und Fehlercodes kommen aus `@floor/contracts`. Vor T1.3 standen
  * dieselben Werte an drei Stellen: hier, in der D1-Check-Constraint und im
  * Protokoll — mit der Folge, dass `timeout` in der Datenbank möglich, im
  * Contract aber nicht darstellbar war. Jetzt gibt es genau eine Quelle.
  */
-export { RAID_JOB_STATUSES, RAID_JOB_TTL_MS, canTransitionRaidJob }
-export type { RaidJobStatus }
+export { canTransitionRaidJob, RAID_JOB_STATUSES, RAID_JOB_TTL_MS }
 
 export type RequestedRaidJobStatus = Exclude<RaidJobStatus, 'expired'>
 

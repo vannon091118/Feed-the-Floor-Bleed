@@ -1,13 +1,13 @@
 import {
   CellType,
   type CellTypeValue,
+  cloneDungeonGrid,
   type DungeonGrid,
+  getCell,
   type PathResult,
   type Point,
-  VISIBLE_TILE_SIZE,
-  cloneDungeonGrid,
-  getCell,
   setCell,
+  VISIBLE_TILE_SIZE,
 } from '@floor/sim-core'
 
 export type Brush = 'empty' | 'wall' | 'trap'

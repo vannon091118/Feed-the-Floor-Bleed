@@ -1,6 +1,6 @@
 import type { Point } from '@floor/sim-core'
 import { Sprite } from 'pixi.js'
-import { WORLD_CELL_PX, cellFoot } from '../world'
+import { cellFoot, WORLD_CELL_PX } from '../world'
 import { depthValue } from './depth'
 import { routeTexture } from './route-atlas'
 import type { VisualRuntime } from './runtime'

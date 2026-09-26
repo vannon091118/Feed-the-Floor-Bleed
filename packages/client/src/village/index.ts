@@ -1,19 +1,12 @@
 export {
   ALLOWED_TRANSITIONS,
   canAdvancePhase,
-  type Phase,
   PHASE_ORDER,
+  type Phase,
   type PhaseTransition,
   phaseRank,
   resolvePhaseTransition,
 } from './phase'
-export {
-  dayNight,
-  type DayNightState,
-  recordRaidJob,
-  resetDayNight,
-  setPhase,
-} from './state'
 export {
   completeRaid,
   finishResult,
@@ -21,3 +14,10 @@ export {
   startNight,
   triggerRaid,
 } from './phase-actions'
+export {
+  type DayNightState,
+  dayNight,
+  recordRaidJob,
+  resetDayNight,
+  setPhase,
+} from './state'

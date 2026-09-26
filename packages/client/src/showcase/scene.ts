@@ -1,12 +1,12 @@
 import type { CombatLog, DungeonGrid, PathResult } from '@floor/sim-core'
 import type { DragDropCommand } from '../input/drag'
 import {
-  type VisualRuntime,
   createActorsView,
   createFxView,
   createLightingView,
   createRouteView,
   createTerrainView,
+  type VisualRuntime,
 } from '../render'
 import {
   type CameraState,
@@ -17,8 +17,8 @@ import { createVisualObserver } from '../visual'
 import {
   type ActorDescriptor,
   type ActorKind,
-  WORLD_SIZE_PX,
   cellToWorld,
+  WORLD_SIZE_PX,
 } from '../world'
 import { buildCombatLog } from './combat-source'
 import { bindViewportControls } from './controls'

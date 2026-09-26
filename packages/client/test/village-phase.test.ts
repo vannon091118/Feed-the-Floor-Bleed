@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { fixture } from '../src/fixture-data'
 import {
   ALLOWED_TRANSITIONS,
-  type Phase,
   canAdvancePhase,
+  type Phase,
   phaseRank,
   resolvePhaseTransition,
 } from '../src/village/phase'

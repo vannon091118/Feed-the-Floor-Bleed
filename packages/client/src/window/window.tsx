@@ -1,10 +1,10 @@
 import type { ComponentChildren } from 'preact'
 import { useRef } from 'preact/hooks'
 import {
-  type WindowState,
   closeWindow,
   focusWindow,
   patchWindow,
+  type WindowState,
 } from './store'
 
 export interface GameWindowProps {

@@ -4,8 +4,8 @@ import {
   type CombatSummary,
   type RaidJob,
   type RaidSnapshot,
-  type UploadRequest,
   sim_version,
+  type UploadRequest,
 } from '../src'
 
 export const versions = {

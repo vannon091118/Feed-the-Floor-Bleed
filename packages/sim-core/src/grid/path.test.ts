@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
   CellType,
-  type DungeonGrid,
-  GRID_SIZE,
-  type Point,
   createDungeonGrid,
+  type DungeonGrid,
   findPath,
+  GRID_SIZE,
   hasValidRoute,
   logicCellsPerVisibleTile,
+  type Point,
   setCell,
   visibleTileCount,
 } from './index'

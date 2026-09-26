@@ -1,7 +1,7 @@
 import {
+  getCell,
   LOGIC_CELLS_PER_VISIBLE_TILE,
   VISIBLE_TILE_SIZE,
-  getCell,
 } from '@floor/sim-core'
 import { tileMarker, visibleRouteTiles } from '../dungeon-editor/model'
 import { grid, paintVisibleTile, route } from '../dungeon-editor/state'

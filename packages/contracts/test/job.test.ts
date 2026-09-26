@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
+  canTransitionRaidJob,
+  isTerminalRaidJob,
   RAID_JOB_STATUSES,
   RAID_JOB_TRANSITIONS,
   RaidJobSchema,
-  canTransitionRaidJob,
-  isTerminalRaidJob,
 } from '../src'
 import {
   acceptedJob,

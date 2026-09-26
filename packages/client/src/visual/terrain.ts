@@ -1,16 +1,16 @@
 import {
   type DungeonGrid,
   GRID_SIZE,
-  type Point,
   getCell,
+  type Point,
 } from '@floor/sim-core'
 import {
-  TILES,
-  type TerrainPatch,
-  type TerrainTile,
   cellSeed,
   materialById,
   pickVariant,
+  type TerrainPatch,
+  type TerrainTile,
+  TILES,
 } from '../world'
 
 /** Liest das Grid einmal vollständig in Präsentationsdeskriptoren. */

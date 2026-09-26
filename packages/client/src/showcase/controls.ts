@@ -1,10 +1,10 @@
-import { type DragDropCommand, createDragController } from '../input/drag'
+import { createDragController, type DragDropCommand } from '../input/drag'
 import { actorAtWorld } from '../input/hit-test'
-import { type PointerSample, bindPointer } from '../input/pointer'
+import { bindPointer, type PointerSample } from '../input/pointer'
 import {
   type CameraState,
-  type ScreenPoint,
   panCamera,
+  type ScreenPoint,
   screenToWorld,
   zoomCamera,
 } from '../render/camera'

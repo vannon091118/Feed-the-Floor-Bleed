@@ -2,9 +2,9 @@ import { createRng, nextBelow } from '@floor/sim-core'
 import type { Texture } from 'pixi.js'
 import {
   type MaterialDef,
+  materialById,
   WORLD_CELL_PX,
   WORLD_TILE_PX,
-  materialById,
 } from '../world'
 import { drawingContext, hex, textureOf } from './canvas'
 

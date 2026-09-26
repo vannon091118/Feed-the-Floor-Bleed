@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { SUPPORTED_POLICY_VERSION, parsePolicy } from '../policy-schema.mjs'
-import { POLICY, loadPolicy, validateEnginePlugins } from '../policy.mjs'
+import { loadPolicy, POLICY, validateEnginePlugins } from '../policy.mjs'
+import { parsePolicy, SUPPORTED_POLICY_VERSION } from '../policy-schema.mjs'
 
 function clonePolicy() {
   return JSON.parse(JSON.stringify(POLICY))

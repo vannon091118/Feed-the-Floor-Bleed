@@ -18,14 +18,14 @@ import { fxSeed } from '../src/visual/fx-seed'
 import { routePointAt } from '../src/visual/route-index'
 import { actorVariant } from '../src/visual/variant'
 import {
-  TILES,
-  WORLD_CELL_PX,
   cellFoot,
   cellSeed,
   cellToWorld,
   materialById,
   pickVariant,
+  TILES,
   tileFor,
+  WORLD_CELL_PX,
   worldToCell,
 } from '../src/world'
 

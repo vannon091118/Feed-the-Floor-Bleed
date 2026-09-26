@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
-  FIXED_SCALE,
   absInt,
   clampInt,
   divFixed,
+  FIXED_SCALE,
   isqrt,
   mulFixed,
   sqrtFixed,

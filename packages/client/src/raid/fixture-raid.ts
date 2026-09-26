@@ -1,8 +1,8 @@
 import {
   CONTRACT_VERSION,
+  sim_version,
   type TerminalRaidJob,
   type UploadRequest,
-  sim_version,
 } from '@floor/contracts'
 import {
   type DungeonGrid,

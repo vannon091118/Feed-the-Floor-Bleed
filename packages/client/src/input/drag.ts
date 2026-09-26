@@ -1,9 +1,9 @@
 import type { CameraState } from '../render/camera'
 import type { ActorDescriptor } from '../world'
 import {
+  advance,
   type DragDropCommand,
   type DragState,
-  advance,
   dropCommand,
   passedSlop,
   resolveTarget,
