@@ -136,7 +136,11 @@ jobs:
   promote:
     name: Promote nach main
     needs: gate
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+    # `draft == false` ist Pflicht, nicht Kosmetik: `pull_request` feuert auch
+    # für Entwürfe, und ein Entwurf mit grünem Gate wäre damit ein stiller
+    # Merge nach main. Wer nicht zusammenführen will, lässt den PR als Entwurf
+    # oder den Gate offen.
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

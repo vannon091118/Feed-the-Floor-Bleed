@@ -1,5 +1,9 @@
 # docs/CHANGELOG.md — Global
 
+## 2026-09-27 — Promote landet keine Entwürfe mehr
+
+`promote` verlangt jetzt `github.event.pull_request.draft == false`. `pull_request` feuert auch für Entwürfe, und ein Entwurf mit grünem Gate wäre damit ein stiller Merge nach `main` gewesen — dieselbe Fehlerklasse wie der tote `push`-Trigger, nur in der anderen Richtung. `scripts/shinon/tests/gate-parity.test.mjs` prüft die Bedingung; die Regel steht in `docs/REGELWERK_GIT.md`.
+
 ## 2026-09-26 — Der Push-Pfad ist fail-open, und jetzt steht wenigstens jemand Wache
 
 **Die Frage „warum landen Commits trotz roter Tests" hat eine Antwort, die keine Konfiguration ist.** Branch-Protection prüft einen SHA, keinen Zustand: „dieser SHA war einmal grün" ist nicht „`main` ist gerade gut". Die Pflichtprüfung muss außerdem **vor** dem Push existieren, ein Push-Workflow wird aber vom Push ausgelöst — das wäre zirkulär. Sie erfüllbar machen kann nur der Check des PR-Laufs auf demselben SHA. Daraus folgt die Zweiteilung: Der **PR-Pfad ist fail-closed**, weil `promote` per `needs: gate` hängt und bei rotem Gate übersprungen wird. Der **Push-Pfad ist fail-open**, weil der Lauf berichtet, aber nichts verhindern kann. Das ist keine Schwachstelle der Konfiguration, sondern eine Eigenschaft des Mechanismus.

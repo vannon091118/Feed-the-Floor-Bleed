@@ -20,7 +20,7 @@ plugins/commit-integrity → lib/commit-text.mjs (dieselben Regeln, echte Inhalt
 workflow Shinon Gate (push) → commit-integrity --from <before> → required_status_checks auf main + client-dist (fail-open: meldet nach der Landung, verhindert nichts; bricht commit-integrity ab, sind alle späteren Schritte übersprungen)
 workflow Main-Watchdog (workflow_run: Shinon completed, branches main) → conclusion != success → offener Issue mit Label watchdog + roter Lauf
 workflow Shinon Gate (pull_request) → commit-integrity --from <pull_request.base.sha> → derselbe Status-Kontext
-workflow Shinon Gate (pull_request, needs: gate) → Job promote → git push HEAD:main mit PROMOTE_TOKEN (Fast-Forward des geprüften PR-Kopfes; GITHUB_TOKEN würde den push-Zweig nicht auslösen)
+workflow Shinon Gate (pull_request, needs: gate, draft == false) → Job promote → git push HEAD:main mit PROMOTE_TOKEN (Fast-Forward des geprüften PR-Kopfes; GITHUB_TOKEN würde den push-Zweig nicht auslösen; Entwürfe werden nicht promotet)
 post-commit → git push (wenn SHINON_AUTO_PUSH=1)
 ```
 

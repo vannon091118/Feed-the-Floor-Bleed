@@ -180,6 +180,14 @@ describe('Der push-Zweig auf main bleibt wirklich an', () => {
     expect(jobBlock(workflowText(), 'promote')).not.toContain('contents: write')
   })
 
+  it('promovet keinen Entwurf nach main', () => {
+    // `pull_request` feuert auch für Entwürfe. Ohne diese Bedingung wäre ein
+    // Entwurf mit grünem Gate ein stiller Merge nach main — der Push-Zweig
+    // von 2026-09-26 war nicht das einzige stille Versagen dieser Kette.
+    const promote = jobBlock(workflowText(), 'promote')
+    expect(promote).toContain('github.event.pull_request.draft == false')
+  })
+
   it('koppelt den push-Trigger an das Deploy-Artefakt auf main', () => {
     const gate = gateJobBlock(workflowText())
     expect(workflowText()).toMatch(/^ {2}push:\s*$/m)

@@ -1,5 +1,9 @@
 # scripts/shinon/docs/CHANGELOG.md
 
+## 2026-09-27 — promote-Gate schließt Entwürfe aus
+
+Der Job `promote` in `.github/workflows/shinon.yml` verlangt jetzt `github.event.pull_request.draft == false`. `pull_request` feuert auch für Entwürfe, ein Entwurf mit grünem Gate wäre damit ein stiller Merge nach `main`. `tests/gate-parity.test.mjs` prüft die Bedingung, damit sie nicht still verschwindet.
+
 ## 2026-09-26 — Main-Watchdog meldet rote Push-Läufe auf main
 
 Der Push-Zweig des Shinon-Workflows ist per Konstruktion fail-open: Branch-Protection prüft einen SHA, keinen Zustand, und die Pflichtprüfung für einen Push muss vor dem Push existieren, während ein Push-Workflow vom Push ausgelöst wird. Ein roter Push-Lauf auf `main` kann deshalb nichts mehr aufhalten, nur melden — und genau das ist einmal unbemerkt geblieben. `.github/workflows/main-watchdog.yml` hängt per `workflow_run` am Shinon-Workflow, filtert auf `branches: [main]` und schafft bei `conclusion != 'success'` einen offenen Issue mit dem Label `watchdog`, nachgetragen statt dupliziert, und wird selbst sichtbar rot. `tests/main-watchdog.test.mjs` sichert den Vertrag mit sechs Gegenproben, darunter der Verzicht auf einen kostenpflichtigen Runner und — nach einem Befund im ersten echten Lauf — das Verbot von `actions/checkout` im Watchdog: Ohne `GH_REPO` ermittelt `gh` das Repository über git, bricht ab und der Watchdog ist rot, aber stumm.
