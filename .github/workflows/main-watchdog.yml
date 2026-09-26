@@ -36,6 +36,10 @@ jobs:
       - name: Vorfall als offenen Issue festhalten
         env:
           GH_TOKEN: ${{ github.token }}
+          # `gh` ermittelt das Repository sonst über git — dieser Job hat
+          # bewusst keinen Checkout, der erste Versuch scheiterte an
+          # `fatal: not a git repository` und legte kein Issue an.
+          GH_REPO: ${{ github.repository }}
           REPO: ${{ github.repository }}
           RUN_ID: ${{ github.event.workflow_run.id }}
           RUN_URL: ${{ github.event.workflow_run.html_url }}
@@ -64,8 +68,8 @@ jobs:
           Typecheck, Tests, Lint und Build **übersprungen**. Ein roter Lauf hat
           dann weniger geprüft als ein grüner."
           gh label create watchdog --description "Roter Push-Lauf auf main" --force >/dev/null 2>&1 || true
-          EXISTING=$(gh issue list --state open --label watchdog --limit 100 \
-            --json number,title --jq "[.[] | select(.title | contains(\"${SHORT}\"))][0].number // empty")
+          EXISTING=$(gh issue list --state open --label watchdog --limit 100 --json number,title \
+            | jq -r --arg s "$SHORT" '[.[] | select(.title | contains($s))] | .[0].number // empty')
           if [ -n "$EXISTING" ]; then
             echo "Offener Vorfall ${EXISTING} existiert bereits — nachgetragen."
             gh issue comment "$EXISTING" --body "Erneut rot: Lauf ${RUN_URL} (\`${CONCLUSION}\`)." >/dev/null

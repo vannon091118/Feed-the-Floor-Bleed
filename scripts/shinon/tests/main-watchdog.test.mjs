@@ -56,4 +56,14 @@ describe('Der Main-Watchdog beobachtet rote Push-Läufe auf main', () => {
       expect(runner).toMatch(/^(ubuntu|windows|macos)-latest$/)
     }
   })
+
+  it('kommt ohne Checkout aus, weil gh sonst kein Repository findet', () => {
+    // Der Job hat bewusst keinen Checkout-Schritt. Ohne `GH_REPO` ermittelt
+    // `gh` das Repository über git und bricht mit `fatal: not a git
+    // repository` ab — der Watchdog wird dann zwar rot, legt aber kein Issue
+    // an. Genau das ist beim ersten Lauf passiert.
+    const wf = watchdog()
+    expect(wf).not.toMatch(/actions\/checkout/)
+    expect(wf).toMatch(/GH_REPO:\s*\$\{\{ github\.repository \}\}/)
+  })
 })
