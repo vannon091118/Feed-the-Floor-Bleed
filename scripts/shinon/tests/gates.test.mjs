@@ -166,4 +166,40 @@ describe('Shinon Governance-Gates', () => {
     expect(result.status).toBe(1)
     expect(result.output).toContain('identische Codezeilen')
   })
+
+  it('nimmt eine explizite Basis-Referenz per SHA', () => {
+    // Regression: unquoted `^{commit}` wird unter Windows von cmd.exe escaped
+    // und landet als `<sha>{commit}` bei git. Der leere Bereich macht aus dem
+    // Aufruf einen grünen Pfad, damit der Test die Ref-Auflösung isoliert prüft.
+    const root = makeRoot()
+    const git = (...args) =>
+      spawnSync(
+        'git',
+        [
+          '-c',
+          'user.email=gate@example.invalid',
+          '-c',
+          'user.name=Shinon Gate',
+          ...args,
+        ],
+        { cwd: root, encoding: 'utf8' },
+      )
+    git('init', '--quiet')
+    fs.writeFileSync(path.join(root, 'a.txt'), 'a\n')
+    git('add', 'a.txt')
+    git('commit', '--quiet', '-m', 'fixture')
+    const sha = git('rev-parse', 'HEAD').stdout.trim()
+    const result = spawnSync(
+      'node',
+      [
+        path.join(ROOT, 'scripts/shinon/plugins/commit-integrity.mjs'),
+        '--from',
+        sha,
+      ],
+      { cwd: root, encoding: 'utf8', timeout: 60_000 },
+    )
+    const output = `${result.stdout || ''}\n${result.stderr || ''}`
+    expect(output, output).not.toContain('nicht auflösbar')
+    expect(result.status, output).toBe(0)
+  })
 })

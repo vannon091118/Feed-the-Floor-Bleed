@@ -75,7 +75,12 @@ function resolveRange() {
   }
   if (explicit) {
     try {
-      run(`git rev-parse --verify ${explicit}^{commit}`)
+      // Anführungszeichen sind Pflicht, nicht Kosmetik: Unter Windows ruft
+      // execSync cmd.exe auf, und dort ist ^ das Escape-Zeichen. Unquoted
+      // wird aus `<sha>^{commit}` das Argument `<sha>{commit}` und git
+      // antwortet mit "Needed a single revision". In CI unter /bin/sh fällt
+      // das nicht auf, lokal auf Windows schon.
+      run(`git rev-parse --verify "${explicit}^{commit}"`)
     } catch {
       die(
         `Referenz "${explicit}" ist nicht auflösbar. Bereich nicht prüfbar, Gate darf nicht grün werden.`,
