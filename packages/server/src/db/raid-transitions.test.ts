@@ -4,13 +4,13 @@ import { RAID_JOB_TTL_MS } from './index'
 
 async function acceptedJob(now = 100) {
   const context = setup()
-  const committed = await context.store.commit({
+  const checkpointed = await context.store.checkpoint({
     idempotencyKey: 'job-1',
     attackerId: 'player-1',
     now,
     upload: upload(),
   })
-  return { ...context, job: committed.job }
+  return { ...context, job: checkpointed.job }
 }
 
 describe('D1-Raid-Zustandsautomat', () => {

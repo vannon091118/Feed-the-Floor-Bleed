@@ -19,3 +19,6 @@ skills-lock.json
 # Editor: lokale VSCode-Einstellungen enthalten maschinenbezogene URLs und
 # gehören nicht in den Commit. Wer sie teilen will, braucht Freigabe.
 .vscode/
+
+# Ausgabe der Bündel-Probe aus `pnpm run check:worker` bleibt lokal.
+.wrangler-dry/

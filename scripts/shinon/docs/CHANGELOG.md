@@ -1,5 +1,13 @@
 # scripts/shinon/docs/CHANGELOG.md
 
+## 2026-09-27 — Bündel-Probe im Gate, Parität um Block-`run:` ergänzt
+
+Der Job `gate` bekommt einen unbedingten Schritt „Worker-Bundle prüfen" (`wrangler@4 deploy --dry-run`) zwischen Client-Build und Deploy-Artefakt. Er läuft auch für jeden Pull Request, weil ein kaputter Import im Worker-Rand sonst erst auf `main` auffällt — im Moment des fehlgeschlagenen Builds. `package.json` bekommt `check:worker` als Spiegelbild, angehängt an `gate`; `tests/cloudflare-deploy.test.mjs` mit acht Zusicherungen sichert Config, Einstieg, `run_worker_first`, Bündel-Probe und den unveränderten Worker-Namen.
+
+Der erste Versuch hat die Parität sofort rot gemeldet (`lokal fehlt: npx --yes wrangler@4 deploy --dry-run …`). Das ist der Test, für den er da ist. Dabei kam ein zweiter, älterer Befund heraus: `gate-parity` schnitt `run: |` als Kommando `|` heraus und hätte damit jedes mehrzeilige `run:` als Schein-Kommando verglichen. Die Blockform wird jetzt ausdrücklich übersprungen, mit Begründung im Code.
+
+Der Workflow hatte im ersten Entwurf zusätzlich einen Deploy-Schritt mit `cloudflare/wrangler-action` und einen Wächter auf `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID`. Beides ist entfernt: Die Check-Runs auf `main` zeigen, dass die installierte App `cloudflare-workers-and-pages` den Check `Workers Builds: feed-the-floor-bleed` selbst erzeugt und ihr API-Token selbst verwaltet. `cloudflare-deploy.test.mjs` prüft jetzt das Fehlen eines eigenen Deploy-Schritts und jeder `secrets.CLOUDFLARE`-Referenz — Kommentarzeilen bleiben dabei ausgenommen, weil ein Kommentar das Verbot benennen darf, ohne es zu brechen.
+
 ## 2026-09-27 — promote-Gate schließt Entwürfe aus
 
 Der Job `promote` in `.github/workflows/shinon.yml` verlangt jetzt `github.event.pull_request.draft == false`. `pull_request` feuert auch für Entwürfe, ein Entwurf mit grünem Gate wäre damit ein stiller Merge nach `main`. `tests/gate-parity.test.mjs` prüft die Bedingung, damit sie nicht still verschwindet.

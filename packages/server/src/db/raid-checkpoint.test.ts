@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { setup, upload } from '../../test/raid-fixtures'
 import { RAID_JOB_TTL_MS } from './index'
 
-describe('D1-Raid-Commit', () => {
-  it('committet Snapshot und Job atomar und ist idempotent', async () => {
+describe('D1-Raid-Sync-Checkpoint', () => {
+  it('schreibt Snapshot und Job atomar und ist idempotent', async () => {
     const { db, store } = setup()
     const input = {
       idempotencyKey: 'job-1',
@@ -11,8 +11,8 @@ describe('D1-Raid-Commit', () => {
       now: 100,
       upload: upload(),
     }
-    const first = await store.commit(input)
-    const repeated = await store.commit(input)
+    const first = await store.checkpoint(input)
+    const repeated = await store.checkpoint(input)
     expect(first.idempotent).toBe(false)
     expect(repeated.idempotent).toBe(true)
     expect(repeated.job.expiresAt).toBe(100 + RAID_JOB_TTL_MS)
@@ -26,7 +26,7 @@ describe('D1-Raid-Commit', () => {
     expect('tactics' in repeated.snapshot).toBe(false)
     expect(db.batchCalls).toBe(2)
     await expect(
-      store.commit({
+      store.checkpoint({
         ...input,
         upload: {
           ...input.upload,
@@ -40,14 +40,14 @@ describe('D1-Raid-Commit', () => {
 
   it('rollt den gesamten Batch bei einem offenen-Slot-Konflikt zurück', async () => {
     const { db, store } = setup()
-    const first = await store.commit({
+    const first = await store.checkpoint({
       idempotencyKey: 'job-1',
       attackerId: 'player-1',
       now: 100,
       upload: upload(),
     })
     await expect(
-      store.commit({
+      store.checkpoint({
         idempotencyKey: 'job-2',
         attackerId: 'player-1',
         now: 101,
@@ -57,7 +57,7 @@ describe('D1-Raid-Commit', () => {
     expect(db.hasSnapshot('job-2')).toBe(false)
     const deadline = 100 + RAID_JOB_TTL_MS
     await expect(
-      store.commit({
+      store.checkpoint({
         idempotencyKey: 'job-2',
         attackerId: 'player-1',
         now: deadline + 1,
@@ -74,7 +74,7 @@ describe('D1-Raid-Commit', () => {
     const invalid = upload()
     invalid.dungeon.cells.pop()
     await expect(
-      store.commit({
+      store.checkpoint({
         idempotencyKey: 'job-1',
         attackerId: 'player-1',
         now: 100,

@@ -36,13 +36,13 @@ export interface RaidJobRecord {
   failureCode: string | null
   revision: number
 }
-export interface CommitRaidInput {
+export interface CheckpointRaidInput {
   idempotencyKey: string
   attackerId: string
   now: number
   upload: UploadRequest
 }
-export interface CommitRaidResult {
+export interface CheckpointRaidResult {
   snapshot: RaidSnapshot
   job: RaidJobRecord
   idempotent: boolean

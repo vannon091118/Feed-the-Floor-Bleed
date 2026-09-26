@@ -1,3 +1,14 @@
+/**
+ * Der Sync-Checkpoint: der Moment, in dem ein Raid-Upload als abgeschlossen
+ * gelesen wird — Snapshot und Job in einem einzigen `db.batch`.
+ *
+ * Der Name ist Absicht. Das ist kein Git-Commit und auch kein
+ * Transaktions-Commit aus der Datenbanksprache, sondern ein geprüfter
+ * Fortschrittspunkt: ab hier gilt der hochgeladene Zustand als angekommen und
+ * unveränderlich (`raid_snapshots` ist per Trigger nicht mehr beschreibbar).
+ * Jeder weitere Aufruf mit derselben `idempotencyKey` liefert denselben
+ * Checkpoint zurück, statt einen zweiten anzulegen.
+ */
 import { RaidSnapshotSchema, UploadRequestSchema } from '@floor/contracts'
 import type { D1Database, D1Result } from './d1'
 import { RaidStoreError } from './errors'
@@ -9,13 +20,13 @@ import {
   readJob,
   readSnapshot,
 } from './raid-queries'
-import type { CommitRaidInput, CommitRaidResult } from './raid-records'
+import type { CheckpointRaidInput, CheckpointRaidResult } from './raid-records'
 import { assertId, assertNow } from './raid-records'
 
-export async function commitRaid(
+export async function checkpointRaid(
   db: D1Database,
-  input: CommitRaidInput,
-): Promise<CommitRaidResult> {
+  input: CheckpointRaidInput,
+): Promise<CheckpointRaidResult> {
   assertId(input.idempotencyKey, 'idempotencyKey')
   assertId(input.attackerId, 'attackerId')
   assertNow(input.now)
@@ -67,21 +78,21 @@ export async function commitRaid(
         'Für diesen Angreifer existiert bereits ein offener Raid-Job',
       )
     throw new RaidStoreError(
-      'ATOMIC_COMMIT_FAILED',
-      `D1-Commit fehlgeschlagen: ${String(error)}`,
+      'ATOMIC_CHECKPOINT_FAILED',
+      `D1-Checkpoint fehlgeschlagen: ${String(error)}`,
     )
   }
   if (!results.every((result) => result.success))
     throw new RaidStoreError(
-      'ATOMIC_COMMIT_FAILED',
+      'ATOMIC_CHECKPOINT_FAILED',
       'D1 meldete einen fehlgeschlagenen Batch-Teil',
     )
   const snapshot = await readSnapshot(db, input.idempotencyKey)
   const job = await readJob(db, input.idempotencyKey)
   if (!snapshot || !job)
     throw new RaidStoreError(
-      'ATOMIC_COMMIT_FAILED',
-      'Snapshot oder Job fehlt nach D1-Commit',
+      'ATOMIC_CHECKPOINT_FAILED',
+      'Snapshot oder Job fehlt nach dem D1-Checkpoint',
     )
   if (
     snapshot.payloadJson !== payloadJson ||

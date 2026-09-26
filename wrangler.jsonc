@@ -1,0 +1,56 @@
+// Deploy des kompletten Spiels auf `feed-the-floor-bleed.vannon-fs.workers.dev`.
+//
+// Den Deploy macht nicht dieses Repository: Die installierte App
+// `cloudflare-workers-and-pages` hört auf `main`, baut den Worker aus dieser
+// Datei und legt den Check `Workers Builds: feed-the-floor-bleed` selbst an.
+// Cloudflare erzeugt das API-Token dafür selbst, also braucht das Repository
+// keine Secrets und keinen Deploy-Schritt.
+//
+// Einzige Pflicht im Dashboard (Settings > Build, Feld *Build command*):
+//
+//   pnpm install --frozen-lockfile --ignore-scripts && pnpm --filter @floor/client build
+//
+// Ohne diesen Befehl deployt Wrangler ein Verzeichnis, das es in einem frischen
+// Checkout nicht gibt. Der *Deploy command* bleibt `npx wrangler deploy`.
+//
+// Zwei Ebenen, und sie sind nicht gleich teuer: `assets` liefert den gebauten
+// Client aus, der vollständig im Browser rechnet (`packages/client/src/net` ist
+// nicht verdrahtet), und kommt an der Worker-Vorbehfahrt vorbei. `main` ist der
+// Worker-Rand und läuft nur für `run_worker_first`, also beim Aufruf und bei
+// Sync-Checkpoints. Kein Cron, kein Dauerbetrieb.
+//
+// Der Name muss `feed-the-floor-bleed` bleiben: Die App hängt an genau diesem
+// Worker. Ein anderer Name erzeugt einen zweiten und lässt den Check rot.
+// Vite setzt kein `base`, die Asset-Pfade passen also zur Wurzel;
+// `single-page-application` fängt jede unbekannte Nicht-API-Route ab.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "feed-the-floor-bleed",
+  "main": "./packages/server/src/worker.ts",
+  "compatibility_date": "2026-09-27",
+  "assets": {
+    "directory": "./packages/client/dist",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  }
+
+  // Die D1-Bindung fuer die Sync-Checkpoints ist bewusst noch nicht
+  // eingeschaltet: `wrangler deploy` schlaegt bei einer unbekannten
+  // `database_id` fehl, und ein Spiel, das wegen einer fehlenden Datenbank
+  // nicht ausgeliefert wird, ist schlechter als ein Spiel ohne Sync.
+  // Der Worker laeuft auch ohne Binding; `/api/sync/*` antwortet dann 503.
+  //
+  // Einschalten in drei Schritten:
+  //   1. `pnpm dlx wrangler d1 create raid-jobs` → Ausgabe merken
+  //   2. `pnpm dlx wrangler d1 execute raid-jobs --file packages/server/migrations/001_raid_jobs.sql`
+  //   3. Den Block unten einkommentieren und die `database_id` einsetzen.
+  //
+  // "d1_databases": [
+  //   {
+  //     "binding": "RAID_DB",
+  //     "database_name": "raid-jobs",
+  //     "database_id": "HIER-DIE-ID-EINSETZEN",
+  //     "migrations_dir": "packages/server/migrations"
+  //   }
+  // ],
+}

@@ -74,7 +74,12 @@ function remoteGateCommands() {
   for (const line of gateJobBlock(workflow).split('\n')) {
     const match = line.match(/^\s+run:\s+(.+)$/)
     if (!match) continue
-    for (const part of match[1].split('&&')) {
+    const befehl = match[1].trim()
+    // Die Blockform (`run: |`) kann diese Funktion nicht zerlegen, sie liest
+    // Einzelzeilen. Sie mitzunehmen hiesse, ein Schein-Kommando `|` zu
+    // vergleichen — das faellt beim naechsten Block-Schritt auf, nicht vorher.
+    if (befehl === '|' || befehl === '>') continue
+    for (const part of befehl.split('&&')) {
       const cmd = part.trim()
       if (!cmd) continue
       if (cmd.startsWith('pnpm install')) continue

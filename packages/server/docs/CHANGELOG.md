@@ -1,5 +1,14 @@
 # packages/server/docs/CHANGELOG.md
 
+## 2026-09-27 — Worker-Rand und „Checkpoint" statt „Commit"
+
+- **Umbenennung, weil der Begriff falsch war.** `raid-commit.ts` → `raid-checkpoint.ts`, `commitRaid` → `checkpointRaid`, `CommitRaidInput`/`CommitRaidResult` → `CheckpointRaidInput`/`CheckpointRaidResult`, `ATOMIC_COMMIT_FAILED` → `ATOMIC_CHECKPOINT_FAILED`, `D1RaidStore.commit` → `D1RaidStore.checkpoint`. Der Vorgang ist ein Git-Commit und auch kein Transaktions-Commit aus der Datenbanksprache, sondern ein geprüfter Fortschrittspunkt: ab hier gilt der hochgeladene Zustand als angekommen und ist per Trigger nicht mehr änderbar. Die älteren Einträge unten benutzen noch den alten Namen; sie beschreiben den damaligen Stand und wurden nicht angeschrieben.
+- **`src/worker.ts` neu:** `export default { fetch }` mit drei Routen. `GET /api/health` meldet `syncAktiv`, `POST /api/sync/checkpoint` nimmt den Upload an, `GET /api/sync/job/:id` liest ihn zurück. Der Rand besitzt keine Statuslogik, er bildet nur `RaidStoreError` auf HTTP ab.
+- **Der Zeitstempel kommt vom Server.** `now` ist keine Eingabe mehr, die der Client wählen darf: `expires_at` und `revision` hängen daran, und ein gemeldeter Zeitstempel wäre ein Freibrief, das eigene Job-Fenster zu verlängern.
+- **Ohne D1 läuft das Spiel trotzdem.** Fehlt die Bindung, antworten die Sync-Routen 503 mit `SYNC_NICHT_VERBUNDEN`; die Asset-Auslieferung ist davon unabhängig. Ein fehlender Sync darf keinen spielbaren Stand blockieren.
+- **`@floor/contracts` ist echte Workspace-Abhängigkeit** von `packages/server`. Vorher löste der Import nur über `tsconfig`-Pfade und Vitest-Alias auf; esbuild hätte ihn beim Bündeln des Workers nicht gefunden. Der Bündel-Schritt wäre im Deploy gescheitert statt im Test.
+- **5 Randtests** in `src/worker.test.ts` gegen den SQLite-D1-Doppel: Health mit und ohne Binding, 503 ohne D1, Schreiben mit 201/200 und 409 beim zweiten offenen Job, 404 für fehlende Jobs, 400/405/404 für Eingabe, Methode und Route.
+
 ## 2026-09-26 — Idempotenz gemessen: Wiederholung ist ein No-Op
 
 Keine Codeänderung. Eine Mess-Session gegen den SQLite-D1-Doppel mit Migration und Triggern hat das Verhalten von `commitRaid` bei wiederholtem `idempotencyKey` belegt. Die Beobachtungen sind in `docs/ROADMAP.md` als offene Prüfpunkte eingetragen.

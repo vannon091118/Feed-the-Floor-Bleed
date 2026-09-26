@@ -5,7 +5,7 @@ import {
   canTransitionRaidJob,
   type RequestedRaidJobStatus,
 } from './job-state'
-import { commitRaid } from './raid-commit'
+import { checkpointRaid } from './raid-checkpoint'
 import {
   EXPIRE_ATTACKER_OPEN_JOBS,
   EXPIRE_JOB,
@@ -13,8 +13,8 @@ import {
   UPDATE_JOB_STATUS,
 } from './raid-queries'
 import type {
-  CommitRaidInput,
-  CommitRaidResult,
+  CheckpointRaidInput,
+  CheckpointRaidResult,
   RaidJobRecord,
 } from './raid-records'
 import { assertId, assertNow } from './raid-records'
@@ -22,8 +22,8 @@ import { assertId, assertNow } from './raid-records'
 export class D1RaidStore {
   constructor(private readonly db: D1Database) {}
 
-  commit(input: CommitRaidInput): Promise<CommitRaidResult> {
-    return commitRaid(this.db, input)
+  checkpoint(input: CheckpointRaidInput): Promise<CheckpointRaidResult> {
+    return checkpointRaid(this.db, input)
   }
 
   async transition(

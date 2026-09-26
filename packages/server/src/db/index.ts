@@ -11,8 +11,8 @@ export {
   type RaidJobStatus,
 } from './job-state'
 export type {
-  CommitRaidInput,
-  CommitRaidResult,
+  CheckpointRaidInput,
+  CheckpointRaidResult,
   RaidJobRecord,
 } from './raid-records'
 export { D1RaidStore } from './raid-store'

@@ -21,6 +21,10 @@ workflow Shinon Gate (push) → commit-integrity --from <before> → required_st
 workflow Main-Watchdog (workflow_run: Shinon completed, branches main) → conclusion != success → offener Issue mit Label watchdog + roter Lauf
 workflow Shinon Gate (pull_request) → commit-integrity --from <pull_request.base.sha> → derselbe Status-Kontext
 workflow Shinon Gate (pull_request, needs: gate, draft == false) → Job promote → git push HEAD:main mit PROMOTE_TOKEN (Fast-Forward des geprüften PR-Kopfes; GITHUB_TOKEN würde den push-Zweig nicht auslösen; Entwürfe werden nicht promotet)
+workflow Shinon Gate → pnpm --filter @floor/client build → wrangler deploy --dry-run (unbedingt, auch im PR; kein Deploy, kein Secret)
+push auf main → App cloudflare-workers-and-pages → Build command (pnpm install + Client-Build) → npx wrangler deploy → Check Workers Builds: feed-the-floor-bleed
+package.json check:worker → wrangler deploy --dry-run (Spiegelbild des Bündel-Schritts, von gate-parity verlangt)
+gate-parity → vergleicht nur run:-Einzelzeilen; run: | wird übersprungen, sonst entstünde das Schein-Kommando `|`
 post-commit → git push (wenn SHINON_AUTO_PUSH=1)
 ```
 

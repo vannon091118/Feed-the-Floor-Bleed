@@ -1,0 +1,27 @@
+# docs/historisch/2026-09-26_changelog-agenten-und-visuelle-foundation.md
+
+Append-only Archiv aus `docs/CHANGELOG.md`. Enthaelt die vier Eintraege vom 2026-09-26 zu den Custom-Agent-Profilen, zur Entlastung von `Agents.md` und zur Konsolidierung der visuellen Foundation. Die Texte sind unveraendert; es ist kein Satz verloren gegangen und keiner neu geschrieben.
+
+## 2026-09-26 — Zweiter Custom-Agent `berater`: kurze, zynische Second Opinion
+
+`Agents.md` ließ bis hierher genau eine Custom-Agent-Ausnahme zu, den adversarialen Reviewer. Diese Ausnahme wird bewusst auf zwei Profile erweitert, weil zwei verschiedene Fragen zwei verschiedene Antwortformen brauchen. Die bestehende Frage lautet "ist dieser Tree oder Diff regelkonform", und dafür ist ein belegendes, protokolliertes Vorgehen die richtige Form. Die neue Frage lautet "taugt diese Idee, und wenn nein, warum", und dafür ist ein Protokoll der falsche Rahmen: Man will ein Urteil in wenigen Sätzen, keinen Befundkatalog. `.github/agents/berater.agent.md` bekommt deshalb ein zweites Profil mit eigener Tonlage, aber derselben harten Grenze, dass er nichts ändert.
+
+Das Profil besitzt kein `edit`-Werkzeug; Editieren ist technisch unmöglich und nicht nur per Anweisung untersagt. Es darf über `execute` lesende Befehle fahren, also `git status`, `git diff`, `git log`, `grep`, `cat` sowie die Gate-Kommandos `pnpm run -s lint` und `pnpm test`, weil ein Urteil ohne Blick auf die echte Ausgabe eines Gates eine Meinung wäre. Schreibende Befehle sind im Text ausdrücklich verboten. Diese Grenze ist ehrlich zu benennen: `execute` kann grundsätzlich schreiben, und das Verbot im Prompt ist die schwächere der beiden Kontrollen. Deshalb ist die Tool-Liste bewusst so klein wie möglich gehalten und `edit` nicht enthalten, damit die eine harte Sperre mechanisch gilt und die andere nur die Ausnahme verhindert.
+
+Der Ton ist gewollt rau, aber an der Arbeit und nicht an der Person. Die Vorgabe lautet: Urteil, ein Beleg, ein Fix, höchstens drei Absätze. Füllsätze, Entschuldigungen, Lob ohne Zweck und das Erfinden von Befunden, damit die Antwort nicht leer aussieht, sind ausgeschlossen. Wenn nichts gefunden wird, sagt das Profil das und nennt in einem Halbsatz, was es nicht geprüft hat. Es dupliziert die Repo-Regeln nicht, sondern verweist auf `Agents.md`; eine konkurrierende Regelkopie wäre genau die Sorte Drift, die `Agents.md` verhindert.
+
+`Agents.md` ist an der Ausnahmen-Liste entsprechend nachgezogen, damit die Governance nicht dem Tree widerspricht. `docs/REPOINDEX.md` registriert den neuen Pfad, `docs/STRINGMATRIX.md` führt die Agent-Kennung `agent/berater` mit ihrem Job. Die bestehende Grenze bleibt unverändert: Über diese zwei Profile hinaus sind weitere eigenständige Agent-Dokumente ausgeschlossen und brauchen ausdrückliche Freigabe.
+
+## 2026-09-26 — Agents.md entlastet und Detailregeln aufgeteilt
+
+`Agents.md` ist jetzt ein kurzer verbindlicher Einstieg statt eines tiefen Sammelregelwerks. Architektur/Ownership/LOC, Doku-Hygiene und Git-/Shinon-Lifecycle stehen getrennt in `docs/REGELWERK_ARCHITEKTUR.md`, `docs/REGELWERK_DOKUMENTATION.md` und `docs/REGELWERK_GIT.md`; der Einstieg weist den Zuständigkeitsbereich jeder Quelle aus. Root-Repoindex, Architektur und Funktionsgraph verweisen auf das neue Modell. `Agents.md` bleibt der Grundsatz-Owner, während die Regelwerke ihre jeweiligen Details verbindlich definieren und der Maschinen-Code die Regeln durchsetzt.
+
+## 2026-09-26 — Visuelle Foundation erhält Relief, Route-Licht und konsistente Dungeon-UI
+
+Die vorhandene Pixi-/Preact-Aufteilung bleibt unverändert; verbessert wird die Darstellung innerhalb der bestehenden Render-Owner. Der Client rendert deterministische Bodenvarianten, sichtbare Fake-3D-Wandflächen mit Deckplatte und Kantenlicht, differenzierte Held-/Monster-/Boss-Silhouetten sowie eine beleuchtete Markierung der echten Editorroute. Die Route-View leitet ausschließlich aus `route.path` ab und nutzt die vorhandene depth-sortierte Pixi-Weltebene. CSS gibt Shell, Editorraster, Kontextfenstern und mobilen Ansichten eine gemeinsame warme Dungeon-Kunstsprache.
+
+Die Render-Texturen sind entlang ihrer Aufgabe aufgeteilt (`render/canvas.ts`, `render/tile-atlas.ts`, `render/atlas.ts`). Combat-FX erhalten einen stabil aus Eventfeldern abgeleiteten Seed; Partikelvariation ist damit nicht mehr von einer globalen RNG-Aufrufreihenfolge abhängig. `packages/client/test/visual-foundation.test.ts` deckt die Seed-Stabilität ab. World-/Screen-Transformation, Core-Routenquelle, Observer und Grid-Ownership bleiben unverändert. Pflichtdokus in Root und Client sind mitgezogen.
+
+## 2026-09-26 — Visuelle Route-Abbildung und Actor-Varianten konsolidiert
+
+Im Client-Visual-Bereich waren die boundsafe Route-Index-Abbildung und die Actor-Variantenwahl an Combat-Actors beziehungsweise Leerlaufbesetzung getrennt implementiert. `packages/client/src/visual/route-index.ts` ist nun der gemeinsame Mapper für Combat-Actor, Event-FX und Route-Leerlauf; ein leerer Pfad und Indizes außerhalb des Pfads haben definierte Fallbacks. `packages/client/src/visual/variant.ts` liefert für alle Rollen dieselbe deterministische ID-Variante, sodass ein Actor beim Übergang in Combat nicht seine Optik anhand der Besetzungsposition wechselt. Die Client-Visual-Foundation-Tests prüfen Randindizes, leeren Pfad und Variantenkonsistenz. Architektur-, Funktionsgraph-, Stringmatrix- und Repoindex-Dokus beschreiben die Owner-Grenze.

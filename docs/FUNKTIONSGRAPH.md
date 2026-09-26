@@ -25,9 +25,16 @@ sim-core:genome → sim-core:items (Stein-Tier) + client:raid (Tactic-Board)
 client:storage ↔ client:dungeon-editor/village (lokal)
 client:net → server:sync/matchmaking (Upload/Results sequenziell)
 server:db ↔ server:sync/matchmaking (Defender-State, Pool, Sperren)
+worker:fetch → GET /api/health (Bindings-Status, keine DB-Abfrage)
+worker:fetch → POST /api/sync/checkpoint → server:db:raid-store.checkpoint → D1 (201 neu, 200 idempotent)
+worker:fetch → GET /api/sync/job/:id → server:db:raid-store.getJob → D1
+Assets (Wurzel + /assets/*) → Cloudflare-Asset-Kante, umgeht den Worker vollständig
+wrangler.jsonc → main: server/src/worker.ts + assets: client/dist + run_worker_first /api/* → workers.dev
 scripts/shinon:engine → plugins/* → git hooks (pre-commit/commit-msg/pre-push)
 .github/workflows/shinon.yml → pnpm install --frozen-lockfile + pnpm run check → Shinon Gate bei main-Push und Pull Request; bei grünem PR-Gate promotet der Job promote den Kopf per Fast-Forward mit PROMOTE_TOKEN nach main, worauf der push-Zweig client-dist erzeugt (GITHUB_TOKEN würde ihn nicht auslösen)
 .github/workflows/main-watchdog.yml → workflow_run(Shinon, completed, main) + conclusion != success → offener Issue (Label watchdog) + roter Lauf; beobachtet den fail-open Push-Pfad
+workflow Shinon Gate → pnpm --filter @floor/client build → wrangler deploy --dry-run (unbedingt, auch im PR; kein Deploy, kein Secret)
+push auf main → App cloudflare-workers-and-pages → Build command (pnpm install + Client-Build) → npx wrangler deploy → Check Workers Builds: feed-the-floor-bleed
 .github/agents/critical-adversarial-reviewer → Git-Status/Diffs + Agents.md/Regelwerke + betroffene Dokus/Tests → verifizierte Befunde (schreibgeschützt)
 .github/agents/berater → Code/Diff/Gate-Ausgabe + Agents.md → Urteil + Beleg + Fix, kurz (schreibgeschützt)
 ```

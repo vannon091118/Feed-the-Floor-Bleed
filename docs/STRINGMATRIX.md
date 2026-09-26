@@ -16,6 +16,9 @@
 | `error/timeout` | Auftragsfrist abgelaufen; ausschließlich bei `job/status = expired` | sync/db |
 | `job/status` | `accepted`, `queued`, `running`, `completed`, `failed`, `expired` | contracts |
 | `job/ttl` | 15 Minuten; Kampf-Timeout ist davon getrennt (`summary.stage`) | contracts |
+| `sync/checkpoint` | Fortschrittspunkt, ab dem ein Raid-Upload als angekommen und unveränderlich gilt; `POST /api/sync/checkpoint`, HTTP 201 (neu) oder 200 (idempotent) | server/db |
+| `sync/503` | `SYNC_NICHT_VERBUNDEN` ohne D1-Bindung; das Spiel läuft lokal weiter, es wird nichts gespeichert | server/worker |
+| `deploy/worker` | `run_worker_first: ["/api/*"]`; Assets laufen an der Worker-Vorbeifahrt vorbei, Worker-Zeit nur bei Aufruf und Sync-Checkpoints | root |
 | `agent/critical-adversarial-reviewer` | Schreibgeschützter Tree-/Diff-Review; meldet ausschließlich belegte Governance-, KI-Code-, Contract- oder Scope-Befunde | root |
 | `agent/berater` | Schreibgeschützte Second-Opinion zu Idee, Diff oder Gate-Ausgabe; antwortet kurz und zynisch, ändert nichts | root |
 | `governance/architecture` | Verbindliche Domain-, Ownership-, Datenwahrheits- und LOC-Regeln | root |

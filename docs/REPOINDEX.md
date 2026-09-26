@@ -14,6 +14,8 @@
 | `pnpm-lock.yaml` | Reproduzierbare pnpm-Auflösung für alle Workspace-Projekte |
 | `.github/workflows/shinon.yml` | Pflichtprüfung `Shinon Gate` bei Push auf `main` und PR; Job `promote` schiebt den geprüften PR-Kopf per Fast-Forward mit `PROMOTE_TOKEN` nach `main` |
 | `.github/workflows/main-watchdog.yml` | Meldet jeden roten Push-Lauf auf `main` als offenen Issue mit Label `watchdog`; der Push-Pfad ist per Konstruktion fail-open |
+| `wrangler.jsonc` | Konfiguration für `feed-the-floor-bleed.vannon-fs.workers.dev`, gelesen von der installierten App `cloudflare-workers-and-pages` bei jedem Push auf `main`: Worker-Einstieg `packages/server/src/worker.ts`, Assets aus `packages/client/dist`, `run_worker_first: ["/api/*"]`, D1-Bindung auskommentiert. Kein Deploy-Schritt und kein Cloudflare-Secret im Repo |
+| `scripts/shinon/tests/cloudflare-deploy.test.mjs` | Vertragstest für Worker-Konfiguration, `run_worker_first`, Bündel-Probe, das Fehlen eines eigenen Deploy-Schritts und kostenfreie Runner |
 | `docs/*` | Globale Pflicht-Doku und verbindliche Regelwerke (aktiv ≤200 Zeilen) |
 | `.github/dependabot.yml` | Wöchentliche Dependency-Updates für das pnpm-Workspace (npm-Ökosystem) und den Devcontainer |
 | `.devcontainer/devcontainer.json` | Devcontainer mit TypeScript-Node-Image und pnpm über Corepack |
@@ -21,11 +23,11 @@
 | `docs/CONCEPT_REVIEW_SECURITY.md` | Abgegrenzte manuelle Invalid-Request-/Account-Prüfmarke |
 | `docs/ROADMAP.md` | Audit-basierte Produkt- und Technik-Roadmap mit T1/T2/T3-Promotion |
 | `docs/DEV_REQUIREMENTS.md` | Toolchain-Voraussetzungen, Befehle, Gate-Matrix, Arbeitsablauf und Skills |
-| `docs/historisch/` | Append-only Archiv, u. a. `2026-09-25_roadmap-t1-abgeschlossen.md` mit den abgeschlossenen T1.0/T1.2/T1.3/T1.3b-Blöcken, `2026-09-25_changelog-backend-und-initialstand.md` mit Backend- und Initialphase, `2026-09-25_changelog-t1-kern-und-governance.md` mit T1-Kern und Governance sowie `2026-09-25_changelog-sichtbare-basis-und-tooling.md` mit sichtbarer Basis, Entwicklungsumgebung und Governance-Härtung. Alle Changelog-Archive sind wortgleich aus `docs/CHANGELOG.md` gewandert |
+| `docs/historisch/` | Append-only Archiv, u. a. `2026-09-25_roadmap-t1-abgeschlossen.md` mit den abgeschlossenen T1.0/T1.2/T1.3/T1.3b-Blöcken, `2026-09-25_changelog-backend-und-initialstand.md` mit Backend- und Initialphase, `2026-09-25_changelog-t1-kern-und-governance.md` mit T1-Kern und Governance, `2026-09-25_changelog-sichtbare-basis-und-tooling.md` mit sichtbarer Basis, Entwicklungsumgebung und Governance-Härtung sowie `2026-09-26_changelog-agenten-und-visuelle-foundation.md` mit den Agent-Profilen, der `Agents.md`-Entlastung und der visuellen Foundation. Alle Changelog-Archive sind wortgleich aus `docs/CHANGELOG.md` gewandert |
 | `packages/contracts/src` | Zod-Schemas, sim_version, Trail, Ergebnislog, Auftragsunion |
 | `packages/sim-core/src/*` | Deterministischer Core (PRNG, Math, Grid, Combat, Genome, Items, Hash, Ghost) |
 | `packages/client/src/*` | PWA Client: `world`/`visual`/`render`/`input`/`window`/`showcase` als sichtbare visuelle Basis, `dungeon-editor` als Grid-Owner, `village` als einziger Owner der Tag/Nacht/Raid-Phase, `ui` als Shell und Pixi-Host, `raid` als lokaler Fixture-Auftrag; Route-Index-Mapping und Actor-Varianten sind visuell konsistent |
-| `packages/server/src/*` | Server (DB, Matchmaking, Sync) |
+| `packages/server/src/*` | Server: `db` als Persistenz- und Zustands-Owner, `worker.ts` als schmaler HTTP-Rand (`/api/health`, `/api/sync/checkpoint`, `/api/sync/job/:id`), `matchmaking` und `sync` noch leer |
 | `scripts/bump-version.mjs` | Next-Bump-Zähler mit Basis aus `origin/main` (PATCH→MINOR→MAJOR, verweigert doppelte Nummern) |
 | `.github/workflows/shinon.yml` | Pflichtprüfung für Pull Requests und `main`; Job `promote` schiebt den geprüften PR-Kopf per Fast-Forward nach `main` und löst darüber den Deploy-Pfad auf `main` aus |
 | `.github/workflows/main-watchdog.yml` | Beobachtet die roten Push-Läufe auf `main`, die die Branch-Protection nicht verhindern kann |
