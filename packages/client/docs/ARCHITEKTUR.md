@@ -21,8 +21,11 @@ Simulation bleibt der einzige Owner der Spielentscheidungen.
 - `window/` — Preact-Fenster-Registry mit Fokus, Z-Order, Drag und Resize.
 - `showcase/` — sichtbare Referenzszene, die alle Systeme zusammenschaltet.
 - `dungeon-editor/` — DOM-Raster und der einzige State-Owner des Grids.
-- `ui/` — Shell, Host der Pixi-Welt, Editorraster in DOM.
-- `raid/` — bestehender Contract-v2-Upload und lokaler Fixture-Auftrag.
+- `village/` — einziger Owner der Tag/Nacht/Raid-Phase (`phase.ts` reine
+  Übergangslogik, `state.ts` Signal-Store, `phase-actions.ts` Kommandos).
+- `ui/` — Shell, Host der Pixi-Welt, Editorraster in DOM, Phasen-Panels.
+- `raid/` — bestehender Contract-v3-Upload und lokaler Fixture-Auftrag;
+  das Panel reicht das terminale Ergebnis an den Phase-Store weiter.
 - `fixture-data.ts` — read-only Startdaten.
 
 ## Datenfluss
@@ -39,6 +42,18 @@ Der Editor bleibt DOM: `ui/editor-panel.tsx` malt über `dungeon-editor/state`
 und färbt mit `world/materials`. Pixi rendert dieselbe Welt aus denselben
 Definitionen, aber ohne eigenen Spielzustand.
 
+## Schleife
+
+```
+tag → night → raid → result → tag (Tag +1)
+             ↑        ↓
+             └─ retry ┘ (fehlgeschlagener Auftrag)
+```
+
+`village/state.ts` ist der einzige Phase-Owner; die Shell liest und die
+Panels schreiben nur über `phase-actions`. Ein Skip wie `tag → raid` wird
+in `resolvePhaseTransition` verworfen, der Zustand bleibt unverändert.
+
 ## Grenzen
 
 `render/camera.ts` ist die einzige räumliche Transformation; `render/`, `input/`
@@ -50,6 +65,8 @@ Preact-DOM über der Szene.
 ## Regeln
 
 - `dungeon-editor/state.ts` bleibt der einzige Grid-Owner.
+- `village/state.ts` bleibt der einzige Phase-Owner; keine Komponente hält
+  eine zweite Phase-Wahrheit.
 - Der Observer hält keine Grid-Kopie; Terrain wird nur bei geänderter
   Grid-Referenz neu gelesen, sonst meldet er `terrain: null`.
 - Kein Clientpfad entscheidet den Raid-Ausgang.

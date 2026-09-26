@@ -257,6 +257,26 @@ body {
   margin: 0;
 }
 
+/* Phasen-Schleife: Badge, Phasen-Panels und Hinweistext. */
+.phase-badge {
+  padding: 6px 10px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 13px;
+}
+
+.phase-panel h2 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.phase-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
 /* Fixture-Raid-Panel. Benutzt dieselben Tokens wie die übrige Oberfläche. */
 .panel {
   display: flex;

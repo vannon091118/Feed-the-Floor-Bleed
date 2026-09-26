@@ -37,7 +37,9 @@
 | `src/showcase/combat-source.ts` | Core-Combat-Log als Positionsquelle |
 | `src/showcase/controls.ts` | Viewport-Steuerung: Pan, Zoom, Klick, Drag |
 | `src/showcase/scene.ts` | Treiber, der Observer, Views und Kamera schaltet |
-| `src/ui/shell.tsx` | Shell: Tag/Nacht, Welt, Fenster, Editor |
+| `src/ui/shell.tsx` | Shell: Phasen-Schleife, Welt, Fenster, Editor nach Phase |
+| `src/ui/phase-badge.tsx` | Phasen-Badge mit laufendem Tag in der Topbar |
+| `src/ui/phase-panels.tsx` | Phasen-Panels: Tag, Nacht, Raid, Ergebnis |
 | `src/ui/world-host.tsx` | Stabiler DOM-Host und Lebenszyklus der Pixi-Runtime |
 | `src/ui/editor-panel.tsx` | DOM-Editorraster mit 16×16 sichtbaren Feldern |
 | `src/ui/editor-controls.tsx` | Pinselauswahl und Reset |
@@ -45,9 +47,16 @@
 | `src/ui/styles.css` | Layout, Fensterchrome, Editorraster, Mobile |
 | `src/dungeon-editor/model.ts` | Pure Editor-Regeln (Pinsel, 4x4-Tiles, Marker) |
 | `src/dungeon-editor/state.ts` | Einziger Owner von Grid, Pinsel und Route |
-| `src/raid/fixture-raid.ts` | Contract-v2-Upload und lokaler Fixture-Auftrag |
-| `src/raid/raid-panel.tsx` | Fixture-Raid-Panel, fest in der Shell eingebunden |
+| `src/village/phase.ts` | Phase-Union in Schleifenreihenfolge, erlaubte Übergänge, reine Entscheidungsfunktion |
+| `src/village/state.ts` | DayNightState-Signal (`phase`, `day`, `job`), einziger Schreibpfad `setPhase` |
+| `src/village/phase-actions.ts` | Schleifen-Kommandos: Nacht starten, Raid auslösen, Ergebnis abschließen |
+| `src/village/index.ts` | Barrel der village-Domäne |
+| `src/raid/fixture-raid.ts` | Contract-v3-Upload und lokaler Fixture-Auftrag |
+| `src/raid/raid-panel.tsx` | Probelauf-Panel, reicht den terminalen Auftrag an die Schleife weiter |
+| `src/raid/panel.tsx` | Reine Ergebnis-Darstellung eines TerminalRaidJob |
 | `test/dungeon-editor.test.ts` | State-/Model-Tests der Editor-Logik |
+| `test/village-phase.test.ts` | Phase-Übergänge, Skip-Verbot und Store-Verhalten |
+| `test/day-night-loop.test.ts` | End-to-End-Loop mit Fake-Timern unter 5 s |
 | `test/raid-job.test.ts` | Upload-Gültigkeit, Hash und Auftragszustände |
 | `test/visual-foundation.test.ts` | Tests für World-Definitionen, Kamera, Depth, Observer |
 | `test/input-drag.test.ts` | Slop-Verhalten: ein Down ohne Weg erzeugt keinen Drop |
@@ -55,4 +64,5 @@
 
 Der Client hat wieder einen Einstiegspunkt. `world`, `visual`, `render`, `input`,
 `window` und `showcase` bilden die sichtbare visuelle Basis; `dungeon-editor`
-bleibt der einzige Grid-Owner.
+bleibt der einzige Grid-Owner. `village` besitzt die Tag/Nacht/Raid-Phase,
+`raid` rechnet den Fixture-Auftrag lokal, die Shell schaltet nach Phase.

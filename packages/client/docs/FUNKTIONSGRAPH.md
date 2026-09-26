@@ -44,10 +44,27 @@ dungeon-editor/state (einziger Grid-Owner)
   ├─ grid / brush Signals, route = computed(findPath)
   └─ paintVisibleTile → model.paintTile
 
+village (einziger Phase-Owner der Schleife)
+  ├─ phase: Phase-Union, ALLOWED_TRANSITIONS, resolvePhaseTransition
+  ├─ state: dayNight Signal, setPhase (guarded), recordRaidJob
+  └─ phase-actions: startNight / triggerRaid / completeRaid / finishResult
+
 raid/fixture-raid
   ├─ buildFixtureUpload(grid) → @floor/contracts UploadRequest
   └─ runLocalFixtureRaid(grid) → @floor/sim-core runFixtureRaid
+
+ui (Shell schaltet nach Phase)
+  ├─ shell → world-host + window-layer + Phase-Panel je phase
+  ├─ phase-badge: liest dayNight.phase / dayNight.day
+  ├─ TagPhasePanel → startNight → phase night
+  ├─ NightPhasePanel → triggerRaid → phase raid (Editor bleibt aktiv)
+  ├─ RaidPhasePanel → RaidPanel.onJob → completeRaid(job) → phase result
+  └─ ResultPhasePanel → finishResult(job) → phase tag (completed) | raid (sonst)
 ```
+
+Schleife: `tag → night → raid → result → tag` (Tag +1) beziehungsweise
+`result → raid` als Retry nach fehlgeschlagenem Auftrag. Jeder andere
+Übergang wird vom Store verworfen.
 
 Kurzregeln: `world` definiert nur. `visual` übersetzt ohne Pixi. `render`
 besitzt die Szene. `input` emittiert Commands. Der Observer liest Grid und Route,

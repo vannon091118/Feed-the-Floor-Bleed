@@ -6,7 +6,9 @@ Diese Roadmap ist die einzige aktive Reihenfolge für Produkt- und Technikarbeit
 
 ## Statusupdate — 2026-09-26
 
-Die aktive Tabelle führt ausschließlich offene Blöcke und ist lückenlos ab T1.1 durchnummeriert: T1.1 Raid-Playback, T1.2 Ende-zu-Ende-Abnahme. Abgeschlossene Blöcke schleppen keine aktive Nummer mehr mit; sie stehen mit ihren historischen Nummern ausschließlich unter `docs/historisch/2026-09-25_roadmap-t1-abgeschlossen.md` (pnpm-Bootstrap, Combat-/Hash-/Replay-Core, Contract-v2-Ergebnislog mit lokaler Fixture-Ausführung, sichtbare visuelle Basis) und tauchen in der aktiven Tabelle nicht mehr auf.
+T1.2 (Ende-zu-Ende-Abnahme der Tag/Nacht/Raid-Schleife) ist abgeschlossen: `packages/client/src/village/` besitzt den DayNightState-Store als einzigen Phase-Owner, die Shell schaltet Tag (Dorf-Basisdaten), Nacht (aktiver Editor), Raid (lokaler Fixture-Lauf) und Ergebnis (TerminalRaidJob mit Tagesabschluss oder Retry), und der Loop wurde im Browser durchgeklickt — Tag 18 → Nacht → Raid → Ergebnis `fixture-raid-1` → Tag 19. `test/day-night-loop.test.ts` führt den vollen Loop mit Fake-Timern in unter 5 s aus, `test/village-phase.test.ts` pinnt Übergänge und Skip-Verbot. Der Editor bleibt in Nacht und Raid aktiv, damit eine blockierte Route vor dem Retry reparierbar ist.
+
+Die aktive Tabelle führt ausschließlich offene Blöcke und ist lückenlos durchnummeriert. Abgeschlossene Blöcke stehen mit ihren historischen Nummern unter `docs/historisch/` und tauchen in der aktiven Tabelle nicht mehr auf.
 
 Der Trail-Hash ist erledigt und deshalb aus der Tabelle gestrichen: `packages/contracts/src/trail.ts` und `CombatLog.trail` plus `CombatTrailEntrySchema`, `packages/sim-core/src/combat/{fingerprint,resolve,simulate,replay}` tragen `x/y/cell` jeder Pfadzelle in den Hash, `sim_version 0.0.1→0.0.2`, `CONTRACT_VERSION 2→3`, der gepinnte Test `raid-job.test.ts` ist von `toBe` auf `not.toBe` gedreht.
 
@@ -25,8 +27,8 @@ Nachtrag: Die visuelle Basis ist im Browser lauffähig (`pnpm --filter @floor/cl
 ### Befunde mit Priorität
 
 - **P1 — Trail-Hash erledigt:** Aus dem 64×64-Grid fließt seit dem Trail-Hash der vollständige Trail (Koordinate plus Zelltyp je Schritt) in den Kampf-Hash; gleich lange Routen unterscheiden sich.
-- **P1 — Client ohne echten Spielfluss:** Visuelle Basis steht (Pixi, World, Kamera, Depth, Occlusion, Actors, FX, Observer, Window-Runtime, Showcase), aber weder Storage noch Net noch servergebundenes Raid-Playback. Showcase rechnet nur lokal.
-- **P1 — Kein vollständiger Raid-Flow:** HTTP, Auth, Queue, Matching, Ghost und Ergebniskonsequenzen fehlen; Core, Contract und lokale Fixture-Ausführung stehen.
+- **P1 — Client ohne echten Spielfluss:** Visuelle Basis steht (Pixi, World, Kamera, Depth, Occlusion, Actors, FX, Observer, Window-Runtime, Showcase), die Tag/Nacht/Raid-Schleife läuft als lokaler Fixture-Loop, aber weder Storage noch Net noch servergebundenes Raid-Playback sind vorhanden. Showcase rechnet nur lokal.
+- **P1 — Kein vollständiger Raid-Flow:** HTTP, Auth, Queue, Matching, Ghost und Ergebniskonsequenzen fehlen; Core, Contract, lokale Fixture-Ausführung und die geschlossene Tag/Nacht-Schleife stehen.
 - **P2 — Dokumentationsabstand:** Funktionsgraph und Architektur mischen Ziel und Ist-Stand. Bei jedem Arbeitspaket strikt trennen.
 - **P2 — Testabdeckung:** Contracts, Grid, D1 und Replay-Determinismus abgedeckt, nicht Client-Verhalten, E2E-Raids oder Netzfehler.
 
@@ -45,7 +47,7 @@ Nachtrag: Die visuelle Basis ist im Browser lauffähig (`pnpm --filter @floor/cl
 | ID | Ergebnis | Abhängigkeit | Fertig, wenn |
 |----|----------|--------------|---------------|
 | T1.1 | Raid-Playback mit Timeline, Routen-/Fallenereignissen und Schlussfolgen | — | Der Nutzer kann die drei entscheidenden Momente des Raids erklären |
-| T1.2 | Ende-zu-Ende-Abnahme der Tag-/Nacht-/Raid-Schleife | T1.1 | Ein Fixture-Loop läuft in unter fünf Minuten und erfüllt die Checkliste |
+| T1.2 | Ende-zu-Ende-Abnahme der Tag-/Nacht-/Raid-Schleife | T1.1 | ✅ Erledigt 2026-09-26 — Fixture-Loop läuft in unter fünf Minuten (im Test unter 5 s) und die Schleife ist im Browser abgenommen |
 
 **T1-Definition of Done:** Keine unbeabsichtigte Core-Lücke, keine nicht versionierte Payload, keine Cliententscheidung über den Raid-Ausgang, reproduzierbarer Fixture-Seed und ein dokumentierter lokaler Playback.
 
@@ -71,7 +73,7 @@ Diese Arbeit wird nach Abschluss von T1 zu T2 promoted. Sie startet nicht parall
 
 ## Nächster konkreter Schritt
 
-T1.1 und T1.2 laufen parallel in eigenen Arbeits-Branches: Raid-Playback mit Timeline und Schlussfolgen auf dem fertigen Trail-Hash sowie die Ende-zu-Ende-Abnahme der Tag-/Nacht-/Raid-Schleife. Der Foundation-Audit ist abgeschlossen — 0 CRLF über `.gitattributes` erzwungen, PackageManager-Widerspruch beseitigt, Lockfile bereinigt, alle vier Gates grün. Nach dem Merge der parallelen Branches folgt die gemeinsame Review-Abnahme beider Blöcke.
+T1.2 ist abgeschlossen und im Browser abgenommen: Die Tag-/Nacht-/Raid-Schleife läuft als geschlossener, deterministischer Fixture-Loop über den DayNightState-Store. T1.1 (Raid-Playback mit Timeline) läuft weiterhin in einem eigenen Arbeits-Branch. Der Foundation-Audit ist ebenfalls abgeschlossen — 0 CRLF über `.gitattributes` erzwungen, PackageManager-Widerspruch beseitigt, Lockfile bereinigt, alle vier Gates grün. Nach dem Merge des T1.1-Branches folgt die gemeinsame Review-Abnahme beider Blöcke; danach sind Storage, Netz und die Schlussfolgen auf Dorf und Team die offenen Lücken zum spielfähigen Kern.
 
 ## Pflegeprotokoll
 
