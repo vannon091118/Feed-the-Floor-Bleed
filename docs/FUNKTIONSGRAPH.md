@@ -23,6 +23,7 @@ server:db ↔ server:sync/matchmaking (Defender-State, Pool, Sperren)
 scripts/shinon:engine → plugins/* → git hooks (pre-commit/commit-msg/pre-push)
 .github/workflows/shinon.yml → pnpm install --frozen-lockfile + pnpm run check → Shinon Gate bei jedem main-Push
 .github/agents/critical-adversarial-reviewer → Git-Status/Diffs + Agents.md + betroffene Dokus/Tests → verifizierte Befunde (schreibgeschützt)
+.github/agents/berater → Code/Diff/Gate-Ausgabe + Agents.md → Urteil + Beleg + Fix, kurz (schreibgeschützt)
 ```
 
 - `sim-core` hat keine Kante zu `client`/`server` oder `fs`/`Date`. Zeit kommt als Parameter, nicht aus einer Uhr.

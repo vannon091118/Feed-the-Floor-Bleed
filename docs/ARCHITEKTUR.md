@@ -12,6 +12,7 @@ Deterministisches Async-Spiel mit geteiltem Core. Der Server nutzt `sim-core` (F
 - `server` besitzt D1, Queues, Pool, Defender-State und Replay-Validierung; MMR-Matching und Ghost-Fallback sind geplante Zielmodule, aber keine bestätigten Spielregeln (siehe `docs/CONCEPT_REVIEW.md`).
 - `scripts/shinon` besitzt Commit-Gate + Test-Suite, slice-basiert nach `git diff`. Full-Run nur in `pre-push`.
 - `.github/agents/critical-adversarial-reviewer.agent.md` prüft angefragte Trees und Diffs schreibgeschützt gegen `Agents.md` und betroffene Contracts, Domänendokus sowie Tests. Ohne engeren Scope gilt der gesamte Checkout. Die kanonische Governance bleibt ausschließlich in `Agents.md`; der Agent meldet nur belegte Befunde und verändert keine Dateien.
+- `.github/agents/berater.agent.md` liest denselben Stoff, gibt aber ein Urteil statt eines Befundkatalogs: höchstens drei Absätze aus Urteil, einem Beleg und dem Fix, Ton bewusst rau an der Arbeit statt an der Person. Ohne `edit`-Werkzeug; `execute` ist auf lesende Befehle und die Gate-Kommandos `pnpm run -s lint` und `pnpm test` beschränkt. Auch dieses Profil verweist auf `Agents.md`, statt Regeln zu duplizieren.
 
 ## Datenfluss T1.1 (belegter Ist-Stand)
 
