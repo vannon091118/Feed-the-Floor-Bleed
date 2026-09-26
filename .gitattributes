@@ -16,6 +16,7 @@
 *.cjs       text eol=lf
 *.mts       text eol=lf
 *.json      text eol=lf
+*.jsonc     text eol=lf
 *.yml       text eol=lf
 *.yaml      text eol=lf
 *.sql       text eol=lf
@@ -29,6 +30,10 @@ VERSION     text eol=lf
 .env.example text eol=lf
 .husky/*    text eol=lf
 
+# `.jsonc` (wrangler.jsonc) stand hier nicht und wurde unter Windows als CRLF
+# ausgecheckt: `biome check` meldete dann einen Formatter-Fehler, den es unter
+# Linux nicht gab. Dieselbe Lücke wie bei den Dotfiles, nur eine Endung weiter.
+#
 # Dotfiles ohne Extension: ohne Regel schreibt autocrlf=true sie als CRLF.
 .gitkeep      text eol=lf
 .gitignore    text eol=lf

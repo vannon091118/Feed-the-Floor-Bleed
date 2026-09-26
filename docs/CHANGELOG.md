@@ -1,5 +1,9 @@
 # docs/CHANGELOG.md — Global
 
+## 2026-09-27 — `wrangler.jsonc` stand nicht in `.gitattributes`
+
+Das neue Config war die erste `.jsonc` im Repository, und `.gitattributes` kannte die Endung nicht. Unter Windows schrieb `core.autocrlf=true` deshalb CRLF in die ausgecheckte Datei, und `biome check` meldete daraufhin einen Formatter-Fehler, den es unter Linux nicht gab: der Signal-Job `Gate Windows` wurde beim ersten Push mit dem Worker rot, während `Shinon Gate` grün blieb. Der Blob im Repository war und ist LF; betroffen war nur die Worktree-Kopie. Eine Zeile `*.jsonc text eol=lf` schließt dieselbe Lücke, die dort schon für die Dotfiles ohne Endung beschrieben ist.
+
 ## 2026-09-27 — Das Spiel liegt auf Cloudflare, und der Worker schläft
 
 **`feed-the-floor-bleed.vannon-fs.workers.dev` liefert jetzt das komplette spielbare Spiel aus, und der Worker arbeitet nur, wenn er gebraucht wird.** Der Check `Workers Builds: feed-the-floor-bleed` stand seit dem ersten Cloudflare-Versuch rot, weil das Repository keine Worker-Konfiguration besaß. `wrangler.jsonc` hat jetzt einen `main` auf `packages/server/src/worker.ts`, ein `assets`-Verzeichnis auf das frisch gebaute `packages/client/dist` und `not_found_handling: single-page-application`, damit ein verlinkter Einstieg ohne 404 funktioniert. Gebündelt wurde das lokal mit `wrangler@4 deploy --dry-run`: 12 Asset-Dateien, 139,49 KiB, kein einziger unaufgelöster Import.
