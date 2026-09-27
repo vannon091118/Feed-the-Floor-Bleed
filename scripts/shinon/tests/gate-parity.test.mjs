@@ -19,6 +19,10 @@ const ROOT = path.resolve(
 )
 
 /** Zerlegt eine `&&`-Kette in ihre Einzelbefehle. */
+/**
+ * @param {string} script
+ * @returns {string[]}
+ */
 function splitChain(script) {
   return script
     .split('&&')
@@ -31,6 +35,10 @@ function splitChain(script) {
  * `pnpm test -- --run` und `pnpm --filter @floor/client build` beschreiben
  * denselben Lauf, werden aber unterschiedlich getippt.
  */
+/**
+ * @param {string} command
+ * @returns {string}
+ */
 function canonical(command) {
   let cmd = command.trim()
   cmd = cmd.replace(/^pnpm run -s /, 'pnpm ')
@@ -42,11 +50,20 @@ function canonical(command) {
   }
   return cmd
 } /** Der Block des Jobs `gate`, sauber am nächsten Job abgeschnitten. */
+/**
+ * @param {string} workflow
+ * @returns {string}
+ */
 function gateJobBlock(workflow) {
   return jobBlock(workflow, 'gate')
 }
 
 /** Der Block eines beliebigen Jobs, sauber am nächsten Job abgeschnitten. */
+/**
+ * @param {string} workflow
+ * @param {string} name
+ * @returns {string}
+ */
 function jobBlock(workflow, name) {
   const start = workflow.search(new RegExp(`^ {2}${name}:\\s*$`, 'm'))
   if (start === -1) return ''
@@ -91,6 +108,10 @@ function remoteGateCommands() {
   return new Set(commands)
 }
 
+/**
+ * @param {string} name
+ * @returns {string}
+ */
 function localScript(name) {
   const pkg = JSON.parse(
     fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'),
@@ -106,6 +127,11 @@ function localScript(name) {
  * Zyklen sind möglich und nicht automatisch ein Fehler: `build` ist
  * `pnpm --filter @floor/client build` und zeigt nach der Normalisierung auf
  * sich selbst. Deshalb werden Scripts pro Pfad nur einmal aufgelöst.
+ */
+/**
+ * @param {string} scriptName
+ * @param {Set<string>} [seen]
+ * @returns {Set<string>}
  */
 function expand(scriptName, seen = new Set()) {
   if (seen.has(scriptName)) return new Set()

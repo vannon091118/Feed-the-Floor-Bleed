@@ -8,6 +8,7 @@ import {
   stripComments,
 } from '../lib/source-scan.mjs'
 
+/** @type {string[]} */
 const temporaryRoots = []
 
 afterEach(() => {
@@ -15,12 +16,19 @@ afterEach(() => {
     fs.rmSync(root, { recursive: true, force: true })
 })
 
+/** @returns {string} */
 function makeRoot() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'shinon-source-'))
   temporaryRoots.push(root)
   return root
 }
 
+/**
+ * @param {string} root
+ * @param {string} relativePath
+ * @param {string} [content]
+ * @returns {string}
+ */
 function write(root, relativePath, content = '') {
   const file = path.join(root, relativePath)
   fs.mkdirSync(path.dirname(file), { recursive: true })
@@ -70,6 +78,17 @@ describe('source-scan', () => {
       '',
     ].join('\n')
     expect(countCodeLines(content)).toBe(3)
+  })
+
+  it('zählt Kommentare nach einer Template-Substitution weiter als Kommentar', () => {
+    const placeholder = '$' + '{index}'
+    const content = [
+      `const label = \`Tag ${placeholder}/99\``,
+      '// Kommentar',
+      'const after = 1',
+    ].join('\n')
+    expect(countCodeLines(content)).toBe(2)
+    expect(stripComments(content)).toContain(`Tag ${placeholder}/99`)
   })
 
   it('zählt Code nach einem einzeiligen Blockkommentar und schützt Strings', () => {

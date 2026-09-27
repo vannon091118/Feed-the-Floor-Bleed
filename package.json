@@ -1,7 +1,7 @@
 {
   "name": "feed-the-floor",
   "private": true,
-  "version": "0.0.63",
+  "version": "0.0.64",
   "description": "Feed the Floor: Meet Your Fate — Dorf + Dungeon Keeper + Auto-Battler, deterministisch, async, PWA",
   "type": "module",
   "packageManager": "pnpm@9.12.3",
@@ -21,7 +21,7 @@
     "gate": "pnpm run -s typecheck && pnpm test -- --run && pnpm run -s lint && pnpm run -s check && pnpm --filter @floor/client build && pnpm run -s check:worker",
     "gate:quick": "pnpm run -s lint && node scripts/check-loc.mjs && node scripts/check-hygiene.mjs",
     "typecheck": "tsc --noEmit",
-    "lint": "biome check .",
+    "lint": "biome check --error-on-warnings .",
     "format": "biome check --write .",
     "test": "vitest run",
     "dev": "pnpm --filter @floor/client dev",
@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",
+    "@types/node": "24.19.0",
     "husky": "9.1.7",
     "typescript": "6.0.3",
     "vitest": "5.0.1",

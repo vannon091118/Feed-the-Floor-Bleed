@@ -13,17 +13,33 @@ Simulation bleibt der einzige Owner der Spielentscheidungen.
   Höhe, Occlusion, Materialvarianten und Weltpixelmaße darüber.
 - `visual/` — Visual Observer. Übersetzt Grid, Route und Combat-Log in
   Präsentationsdeskriptoren. Bewusst ohne Pixi-Import, damit die Logik testbar
-  bleibt und der Core nichts über Rendering weiß.
+  bleibt und der Core nichts über Rendering weiß. `daylight.ts` beschreibt die
+  Tönung der vier Schleifenphasen als Überzugsebenen mit Deckkraft; die Farben
+  liegen damit bei den Deskriptoren und nicht mehr in der Schicht, die den
+  Überzug malt, und der Phasenwechsel ist eine Blende statt eines
+  Gradiententauschs. Die Startwerte rechnet `daylightFadeStarts` komplementär,
+  damit die Summe der Deckkräfte auch bei einem Wechsel in eine laufende Blende
+  1 bleibt.
 - `render/` — Pixi-Runtime. Besitzt `Application`, Ebenen, Ticker und Kamera.
   `camera.ts` enthält die einzige `worldToScreen`/`screenToWorld`-Implementierung
   und die Rahmung (`fitCamera`) für beide Welten. `village-layout.ts` hält die
   Präsentationsorte, `village-atlas.ts` die Pixeltexturen, `village-scene.ts`
   die Szene mit anklickbaren Gebäuden und `village-view.ts` deren Einbau in die
   Runtime. `layer-sprite.ts` besitzt die Lebensdauer eines Sprites in einer
-  Ebene, `camera-controls.ts` den Pan/Zoom auf dem Canvas.
-- `input/` — Pointer-Pfad, Hit-Test und Drag. Der Drop emittiert nur einen
-  Command und enthält keine Spielregel.
-- `window/` — Preact-Fenster-Registry mit Fokus, Z-Order, Drag und Resize.
+  Ebene, `camera-controls.ts` den Pan/Zoom auf der Host-Fläche und
+  `camera-keys.ts` den Tastenschritt samt der Props, die diese Fläche
+  fokussierbar und für Vorlesehilfen benannt machen.
+- `input/` — Eingabepfade: Pointer, Hit-Test, Drag und die Pfeiltasten. `arrows.ts`
+  hält die einzige Abbildung Taste → Richtung; Fensterrahmen und Weltansicht
+  fragen sie und rechnen mit ihrer eigenen Schrittweite. Der Drop emittiert nur
+  einen Command und enthält keine Spielregel.
+- `window/` — Preact-Fenster-Registry mit Fokus, Z-Order, Drag, Resize und
+  Tastaturbedienung. `drag.ts` und `keys.ts` sind die beiden Eingabepfade auf
+  dieselbe Box: der Zeiger zieht, die Pfeiltasten schieben, und beide klemmen
+  mit denselben Mindestgrößen und derselben Kopfklemme. `fit.ts` hängt nur die
+  Höhe an den gemessenen Inhaltsblock. Unterhalb von `SHEET_MAX_WIDTH` ist ein
+  Fenster eine Schublade: `windows.css` führt dort die Geometrie allein, und
+  beide Eingabepfade beginnen nicht — sonst wichen Store und Bild voneinander ab.
 - `showcase/` — sichtbare Referenzszene, die alle Systeme zusammenschaltet.
 - `dungeon-editor/` — DOM-Raster und der einzige State-Owner des Grids.
 - `village/` — einziger Owner der Tag/Nacht/Raid-Phase (`phase.ts` reine
@@ -31,10 +47,15 @@ Simulation bleibt der einzige Owner der Spielentscheidungen.
   `settlement.ts` leitet daraus den Dorfblick als reine Funktion ab: Dorfname,
   Tag, Phasentext und das Gildenroster. Es gibt dort keinen Dorfzustand und
   keine Wirtschaftsregel — Dorfwirtschaft bleibt T2.
-- `ui/` — Shell und Bühne. Die Shell ist reines Layout; Topbar, Bühne,
+- `ui/` — Shell und Bühne. Die Shell ist Layout und liest den Phase-Store
+  allein, um je Phase eine Ebene der Tagesstimmung auf den Überzug zu setzen;
+  `daylight-fade.ts` fährt deren Blende ein und hält den Renderlauf aus der
+  laufenden Blende heraus. Sie enthält keine Phase-Aktion und keinen
+  Dorfzustand. Topbar, Bühne,
   Launcher und Fenster lesen ihre Stores selbst. `world-host.tsx` liefert den
-  einzigen Pixi-Host, `scene-switch.ts` tauscht darin Dorf- und Dungeon-Szene,
-  ohne die Runtime neu aufzubauen. `window-launcher.tsx` ist die einzige
+  einzigen Pixi-Host und zugleich das Tastaturziel der Kamera (`role="application"`,
+  beschriftet mit dem Tastenhinweis), `scene-switch.ts` tauscht darin Dorf- und
+  Dungeon-Szene, ohne die Runtime neu aufzubauen. `window-launcher.tsx` ist die einzige
   Startrampe für Kontextfenster, `window-tabs.tsx` ihre Rückkehr in der Topbar.
   Die Topbar ist eine einzeilige Schiene über der Welt, keine Umbruchzone:
   Kontextfenster werden mit festem Abstand unter ihr geöffnet, eine zweizeilige

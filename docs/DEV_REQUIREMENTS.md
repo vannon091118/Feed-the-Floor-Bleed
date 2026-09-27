@@ -24,9 +24,9 @@ Bootstrap: `bash scripts/install-requirements.sh` prüft Node, pnpm, Git und Pyt
 
 | Befehl | Wirkung | Wann |
 |--------|--------|------|
-| `pnpm run -s typecheck` | `tsc --noEmit` über `packages/*/src` und `scripts/` | vor jedem Commit |
+| `pnpm run -s typecheck` | `tsc --noEmit` über `packages/*/src`, `packages/*/test` und `scripts/**/*` einschließlich der `.mjs`; deren Typen sind JSDoc, `allowJs`/`checkJs` und `@types/node` sind gesetzt | vor jedem Commit |
 | `pnpm test -- --run` | Vitest, einmal ohne Watch | vor jedem Commit |
-| `pnpm run -s lint` | Biome Check, formatiert nicht | vor jedem Commit |
+| `pnpm run -s lint` | `biome check --error-on-warnings`, formatiert nicht; Warnungen blockieren | vor jedem Commit |
 | `pnpm run check` | Typecheck, `check-loc`, `check-hygiene`, Shinon `--full` | vor jedem Commit und vor dem Push |
 | `pnpm run check:loc` | nur LOC-Caps | beim Splitten einer Datei |
 | `pnpm run check:hygiene` | nur Doku-Pflicht | beim Doku-Touch |
@@ -36,7 +36,7 @@ Bootstrap: `bash scripts/install-requirements.sh` prüft Node, pnpm, Git und Pyt
 | `node scripts/shinon/engine.mjs` | Slice-Run über den staged Diff | Hook automatisch, manuell zur Diagnose |
 | `node scripts/shinon/engine.mjs --full` | alle Plugins unabhängig vom Diff | entspricht `pre-push` |
 
-`pnpm run check` ist der einzige Befehl, der für „ist mein Stand sauber“ zählt. Ein grüner `typecheck` allein sagt nichts.
+Für „ist mein Stand sauber“ zählt nur die Kombination aus `typecheck`, `test`, `lint` und `check`; ein grüner `typecheck` allein sagt nichts.
 
 ## 3. Gate-Matrix
 

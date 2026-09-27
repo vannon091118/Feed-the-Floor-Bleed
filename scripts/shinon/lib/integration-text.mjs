@@ -7,22 +7,37 @@
  */
 import { checkMessage } from './commit-text.mjs'
 
+/** @typedef {{ action: string, target: string, files?: string[] }} IntegrationRequest */
+
+/** @type {Record<string, string>} */
 const ACTION_LABEL = {
   rebase: 'Rebase',
   merge: 'Merge',
   pr: 'Pull Request',
 }
 
+/**
+ * @param {string} action
+ * @returns {string}
+ */
 export function integrationLabel(action) {
   return ACTION_LABEL[action] ?? action
 }
 
+/**
+ * @param {string[]} files
+ * @returns {string}
+ */
 function fileList(files) {
   const unique = [...new Set(files)].filter(Boolean)
   if (unique.length === 0) return 'keine Dateien'
   return unique.join(', ')
 }
 
+/**
+ * @param {IntegrationRequest} request
+ * @returns {string}
+ */
 export function buildIntegrationBody({ action, target, files = [] }) {
   const label = integrationLabel(action)
   return [
@@ -35,6 +50,10 @@ export function buildIntegrationBody({ action, target, files = [] }) {
   ].join('\n\n')
 }
 
+/**
+ * @param {IntegrationRequest} request
+ * @returns {{ title: string, body: string, text: string }}
+ */
 export function buildIntegrationMessage({ action, target, files = [] }) {
   const label = integrationLabel(action)
   const title = `chore: ${label} ${target} integrieren`
@@ -42,6 +61,11 @@ export function buildIntegrationMessage({ action, target, files = [] }) {
   return { title, body, text: `${title}\n\n${body}\n` }
 }
 
+/**
+ * @param {string} raw
+ * @param {string[]} [files]
+ * @returns {boolean}
+ */
 export function isCompliant(raw, files = []) {
   return checkMessage(raw, files).ok
 }

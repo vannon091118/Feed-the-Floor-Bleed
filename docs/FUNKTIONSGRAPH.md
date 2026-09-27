@@ -23,6 +23,7 @@ client:render:tile-atlas → Pixi-Texturen (deterministische Materialien, Fake-3
 client:visual:route-index → actor-frame/event-fx/route-actors (gemeinsame Route-Index-Abbildung)
 client:visual:variant → actor-frame/route-actors (gemeinsame Actor-Variante)
 client:input:drag → Drop-Command (keine Spielregel im Command)
+client:input:arrows → client:window:keys + client:render:camera-keys (eine Richtungstabelle je Schrittweite des Aufrufers)
 client:window ↔ client:ui (Kontextfenster über der Pixi-Szene)
 sim-core:genome → sim-core:items (Stein-Tier) + client:raid (Tactic-Board)
 client:storage ↔ client:dungeon-editor/village (lokal)
@@ -32,7 +33,7 @@ worker:fetch → GET /api/health (Bindings-Status, keine DB-Abfrage)
 worker:fetch → POST /api/sync/checkpoint → server:db:raid-store.checkpoint → D1 (201 neu, 200 idempotent)
 worker:fetch → GET /api/sync/job/:id → server:db:raid-store.getJob → D1
 Assets (Wurzel + /assets/*) → Cloudflare-Asset-Kante, umgeht den Worker vollständig
-wrangler.jsonc → main: server/src/worker.ts + assets: client/dist + run_worker_first /api/* → workers.dev
+wrangler.jsonc → main: server/src/worker.ts + assets: client/dist + run_worker_first /api/* → workers.dev; observability.logs zeichnet die Worker-Logs auf
 scripts/shinon:engine → plugins/* → git hooks (pre-commit/commit-msg/pre-push)
 .github/workflows/shinon.yml → pnpm install --frozen-lockfile + pnpm run check → Shinon Gate bei main-Push und Pull Request; bei grünem PR-Gate promotet der Job promote den Kopf per Fast-Forward mit PROMOTE_TOKEN nach main, worauf der push-Zweig client-dist erzeugt (GITHUB_TOKEN würde ihn nicht auslösen)
 .github/workflows/main-watchdog.yml → workflow_run(Shinon, completed) + conclusion != success → checkout(main) + gh api (Lauf und Jobs) → scripts/watchdog-classify.mjs → Vorfall oder kein Vorfall → offener Issue (Label watchdog für roten main-Push, promote-blocked für gescheiterten promote auf einem PR) + roter Lauf; schweigt bei rotem Gate und Feature-Branch-Pushes

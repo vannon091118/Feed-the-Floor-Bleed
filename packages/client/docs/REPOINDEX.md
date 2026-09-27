@@ -21,8 +21,10 @@
 | `src/visual/route-index.ts` | Gemeinsames boundsafe Route-Index-Mapping |
 | `src/visual/variant.ts` | Gemeinsame ID-basierte Actor-Variantenwahl |
 | `src/visual/observer.ts` | Diffender Visual Observer, keine zweite Grid-Wahrheit |
+| `src/visual/daylight.ts` | Tönung der vier Schleifenphasen als Überzugsebenen, Ziele und komplementäre Blendenstartwerte |
 | `src/render/camera.ts` | Einzige World↔Screen-Transformation, Pan/Zoom/Clamp und Rahmung |
-| `src/render/camera-controls.ts` | Pan und Zoom auf dem Pixi-Canvas, ohne Zeigereinfang |
+| `src/render/camera-controls.ts` | Pan, Zoom und Tastenschritt auf der Host-Fläche, ohne Zeigereinfang |
+| `src/render/camera-keys.ts` | Tastenschritt der Kamera und die Props, die die Weltansicht fokussierbar machen |
 | `src/render/layer-sprite.ts` | Lebensdauer eines Sprites in einer Ebene (Sichtbarkeit, Abbau) |
 | `src/render/modes.ts` | Rendermodi `village \| editor \| raid` der Runtime |
 | `src/render/layers.ts` | Ebenen-Namen und Z-Ordnung |
@@ -44,7 +46,6 @@
 | `src/render/lighting.ts` | Billiger Lichtrand im Screen-Raum |
 | `src/render/assets.ts` | Optionale Asset-Texturen der Runtime, fehlende bleiben `undefined` |
 | `src/render/dungeon-scene.ts` | Aufbau der Dungeon-Szene aus Observer-Deskriptoren |
-| `src/render/dungeon-views.ts` | Sicht-Objekte der Dungeon-Szene (Terrain, Route, Akteure, FX) |
 | `src/render/editor-grid.ts` | Editorraster als Overlay-Sprite in der Editor-Ebene |
 | `src/render/editor-grid-atlas.ts` | Gepufferte Rastertextur des Editors |
 | `src/render/editor-overlay.ts` | Pinselmarkierung und Lesemarken im Overlay |
@@ -56,13 +57,17 @@
 | `src/input/hit-test.ts` | Screen → Zelle und Actor-Treffer über die Kamera |
 | `src/input/drag.ts` | Drag-Lebenszyklus: Kandidat, Slop, Abschluss-Command |
 | `src/input/drag-target.ts` | Trefferauflösung und Zwischenzustand eines Drags |
+| `src/input/arrows.ts` | Einzige Abbildung Pfeiltaste → Richtung für Fensterrahmen und Weltansicht |
 | `src/window/store.ts` | Fenster-Registry, Fokus und Z-Order als Signals |
-| `src/window/drag.ts` | Zug-Geometrie: sichtbare Fläche, Kopfklemme, Zug- versus Klickgrenze |
-| `src/window/window.tsx` | Verschiebbares Kontextfenster mit Resize-Griff, Inhaltsbereich am Wechselkey |
+| `src/window/drag.ts` | Zug- und Größen-Geometrie: sichtbare Fläche, Kopfklemme, Mindestgrößen, Zeigerfang, Zug- versus Klickgrenze, Schubladengrenze (`SHEET_MAX_WIDTH`) |
+| `src/window/fit.ts` | Hält die Fensterhöhe am gemessenen Inhaltsblock des DOM |
+| `src/window/keys.ts` | Tastenschritt des Fensterrahmens (Pfeiltasten, Umschalt skaliert) und seine Tastatur-Props |
+| `src/window/window.tsx` | Verschiebbares und per Tastatur bewegbares Kontextfenster mit Resize-Griff, inhaltsangepasster Höhe und Inhaltsblock als Messstelle |
 | `src/window/window-layer.tsx` | Fensterschicht über der Welt, berechnet die Inhalts-Signatur |
 | `src/showcase/controls.ts` | Viewport-Steuerung: Pan, Zoom, Klick, Drag |
 | `src/showcase/scene.ts` | Treiber, der Observer, Views und Kamera schaltet |
-| `src/ui/shell.tsx` | Reines Layout: Topbar und Bühne |
+| `src/ui/shell.tsx` | Layout: Topbar und Bühne, setzt die Tagesstimmungsebenen auf den Überzug |
+| `src/ui/daylight-fade.ts` | Fährt die Blende auf den Überzugsebenen ein, ohne dass der Browser sie umkehrt |
 | `src/ui/topbar.tsx` | Wortmarke, Ressourcenstreifen, Phasenanzeige, Ansichtsumschalter, Fenstertabs |
 | `src/ui/view.ts` | Blick-Signal `village \| dungeon`, bewusst kein Phasenzustand |
 | `src/ui/view-switch.tsx` | Segmentierter Umschalter zwischen Dorf- und Dungeon-Blick |
@@ -80,18 +85,18 @@
 | `src/ui/drop-status.tsx` | Rückmeldung über den letzten Zug im Editor |
 | `src/ui/phase-windows.tsx` | Fensterinhalt der Phase und des Editors hinter festen IDs |
 | `src/ui/window-content.tsx` | Fenster-ID → Inhalt, eine Quelle für die Fensterschicht |
-| `src/ui/world-host.tsx` | Stabiler DOM-Host und Lebenszyklus der Pixi-Runtime |
+| `src/ui/world-host.tsx` | Stabiler DOM-Host und Lebenszyklus der Pixi-Runtime, zugleich fokussierbares Tastaturziel der Kamera |
 | `src/ui/editor-panel.tsx` | DOM-Editorraster mit 16×16 sichtbaren Feldern |
 | `src/ui/editor-controls.tsx` | Pinselauswahl und Zurücksetzen |
-| `src/ui/panels.tsx` | Inhalte der Kontextfenster |
+| `src/ui/panels.tsx` | Inhalte der Kontextfenster samt Steuerungslegende mit den Tastenhinweisen |
 | `src/icons/resource-icon.tsx` | SVG-Icons der Ressourcenwerte in der Topbar |
 | `src/resources/catalog.ts` | Feste Ressourcen-IDs, Labels und Icons |
 | `src/ui/styles/index.css` | Einstiegspunkt der Oberflächen-Styles mit fester Importreihenfolge |
 | `src/ui/styles/tokens.css` | Gestaltungsraster: Farbe, Abstand, Radius, Typografie |
 | `src/ui/styles/base.css` | Reset, Seitenhintergrund, Fokus, reduzierte Bewegung |
-| `src/ui/styles/shell.css` | App-Rahmen, Topbar, Bühnenraster, Viewport |
+| `src/ui/styles/shell.css` | App-Rahmen, Topbar, Bühnenraster, Viewport, Tagesüberzug und Ebenenblende |
 | `src/ui/styles/panels.css` | Fenster-Panelflächen, Wertzeilen, Gildenliste, Buttons, Werkzeugstatus |
-| `src/ui/styles/windows.css` | Kontextfenster über der Bühne |
+| `src/ui/styles/windows.css` | Kontextfenster über der Bühne; unter 721 px Schubladenanordnung an der unteren Kante |
 | `src/ui/styles/editor.css` | Pinselwahl und Editorraster |
 | `src/ui/styles/raid.css` | Auftrag, Urteil und Hash |
 | `src/dungeon-editor/model.ts` | Pure Editor-Regeln (Pinsel, 4x4-Tiles, Marker) |
@@ -122,6 +127,9 @@
 | `test/stage-view.test.ts` | Blickwechsel verändert die Spielphase nicht |
 | `test/world-presentation.test.ts` | Anklickbare Dorforte, deterministische Bewohnerbewegung, Kamera-Clamp beider Welten |
 | `test/window-routing.test.ts` | Fenster-ID → Inhalt, Phasenaktion über eine stabile Fenster-ID |
+| `test/daylight.test.ts` | Blendenrechnung und Stylesheet bleiben beieinander |
+| `test/keyboard-access.test.ts` | Fenster- und Kameraschritt samt der geteilten Pfeiltasten-Abbildung |
+| `test/keyboard-wiring.test.ts` | Verdrahtung der Tastaturpfade: Inhalt-Grenze, Schublade, Kamera-Bindung, Legendentexte |
 | `docs/*` | Pflicht-Doku dieser Domäne |
 
 Der Client hat wieder einen Einstiegspunkt. `world`, `visual`, `render`, `input`,
@@ -131,4 +139,7 @@ leitet daraus den Dorfblick ab, `raid` rechnet den Fixture-Auftrag lokal. Die
 Shell ist nur noch Layout; Topbar, Bühne, Launcher und Fenster lesen ihre
 Stores selbst. `ui/view.ts` hält den Blick auf die Bühne, der bewusst keine
 Phase ist. `ui/world-host.tsx` erzeugt genau einen Pixi-Host, `ui/scene-switch.ts`
-tauscht darin Dorf- und Dungeon-Szene.
+tauscht darin Dorf- und Dungeon-Szene. Bedient wird mit Zeiger und Tastatur:
+Fensterrahmen und Weltansicht sind fokussierbar, ihre Schrittlogik liegt in
+`window/keys.ts` und `render/camera-keys.ts`; die Richtung liefert beiden
+`input/arrows.ts`.

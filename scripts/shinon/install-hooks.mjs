@@ -10,12 +10,17 @@ import path from 'node:path'
 
 const ROOT = process.cwd()
 
+/** @param {string} file */
 function ensureExecutable(file) {
   try {
     fs.chmodSync(file, 0o755)
   } catch {}
 }
 
+/**
+ * @param {string} name
+ * @param {string} content
+ */
 function writeHook(name, content) {
   const dir = path.join(ROOT, '.husky')
   fs.mkdirSync(dir, { recursive: true })

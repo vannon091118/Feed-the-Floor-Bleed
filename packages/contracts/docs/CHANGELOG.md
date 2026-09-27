@@ -1,5 +1,9 @@
 # packages/contracts/docs/CHANGELOG.md
 
+## 2026-09-27 — `useOptionalChain` in `combat-log.ts` behoben
+
+`CombatLogSchema.superRefine` prüfte das letzte Ereignis mit `!last || last.type !== 'end'`; die Bedingung ist jetzt `last?.type !== 'end'`. Verhalten unverändert: bei fehlendem `last` liefert `last?.type` `undefined`, der Vergleich ist wahr und der Rest der Bedingung wird nicht ausgewertet. Der Grund ist die Umstellung von `pnpm run -s lint` auf `biome check --error-on-warnings`; weitere Dateien dieser Domäne sind unberührt.
+
 ## 2026-09-26 — Review-Nachgang: nutzloser Zell-Alias in `grid.ts` entfernt
 
 - `packages/contracts/src/grid.ts`: `const cellTypeSchema = CellTypeSchema` war eine reine Weiterleitung mit genau einer Verwendung. Der Alias ist entfernt, `DungeonGridSchema` nutzt `CellTypeSchema` direkt. Import und Verhalten bleiben unverändert.

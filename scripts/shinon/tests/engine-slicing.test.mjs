@@ -15,6 +15,7 @@ const PLUGIN_NAMES = fs
   .readdirSync(path.join(ROOT, 'scripts/shinon/plugins'))
   .filter((file) => file.endsWith('.mjs'))
   .map((file) => path.basename(file, '.mjs'))
+/** @type {string[]} */
 const temporaryRoots = []
 
 afterEach(() => {
@@ -22,6 +23,10 @@ afterEach(() => {
     fs.rmSync(root, { recursive: true, force: true })
 })
 
+/**
+ * @param {string[]} changedFiles
+ * @returns {string}
+ */
 function makeRepo(changedFiles) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'shinon-engine-'))
   temporaryRoots.push(root)
@@ -39,6 +44,9 @@ function makeRepo(changedFiles) {
     fs.writeFileSync(changed, 'export const fixture = true\n')
   }
   execFileSync('git', ['init', '-q'], { cwd: root })
+  // Ohne .gitattributes schreibt autocrlf in dieser Worktree CRLF und `git add`
+  // warnt pro Datei. Das Fixture erzeugt dasselbe LF-Ergebnis wie das Repo.
+  execFileSync('git', ['config', 'core.autocrlf', 'false'], { cwd: root })
   execFileSync('git', ['add', '.'], { cwd: root })
   return root
 }

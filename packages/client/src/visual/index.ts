@@ -1,5 +1,6 @@
 export * from './actor-frame'
 export * from './combat-frame'
+export * from './daylight'
 export * from './event-fx'
 export * from './fx-seed'
 export * from './observer'

@@ -11,7 +11,3 @@
 export function depthValue(footY: number, height: number, tie = 0): number {
   return footY * 1000 + height + Math.min(Math.max(tie, 0), 9)
 }
-
-export function actorTie(index: number): number {
-  return index % 10
-}

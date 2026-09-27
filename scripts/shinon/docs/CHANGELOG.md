@@ -1,5 +1,17 @@
 # scripts/shinon/docs/CHANGELOG.md
 
+## 2026-09-28 — Die Gate-Skripte sind typgeprüft, der Scanner liest Kommentare wieder richtig
+
+`allowJs`, `checkJs` und `@types/node` holen die `.mjs` ins `tsc`-Programm. Damit wurden 192 echte Fehler in `scripts/**` sichtbar — fast alle implizit typisierte Parameter —, die als JSDoc typisiert sind; die Skripte bleiben `.mjs`. Seitdem fällt auch das Programm der Gates unter dieselbe Prüfung, die sie selbst durchsetzen.
+
+Dabei kam ein echter Fehler des Scanners heraus: `stripComments` blieb nach einer Template-Substitution im Template-Zustand, sodass Kommentare danach als Code gezählt wurden. `scripts/bump-version.mjs` riss die 200-Zeilen-Cap dadurch scheinbar. Der Scanner verfolgt die Substitutionsebenen jetzt über `TemplateHead`, `TemplateMiddle` und `TemplateTail` samt Klammerzählung darin; `tests/source-scan.test.mjs` hält den Fall fest.
+
+## 2026-09-27 — Dead-Code-Gate nennt seinen Scope, Fixture ohne CRLF-Rauschen
+
+`plugins/dead-code-gate.mjs` rief `tsc --noEmit --noUnusedLocals --noUnusedParameters` ohne Projektdatei auf und erbte damit still den `include` der Wurzel. Als dort die Testverzeichnisse fehlten, meldete die Zeile „NoUnused geprüft" trotzdem. Der Aufruf nennt jetzt ausdrücklich `-p tsconfig.json`, und die Erfolgsmeldung benennt die geprüfte Menge: NoUnused über das tsconfig-Programm, AST-Muster über die gescannten Quellen inklusive `.mjs`. Zwei unbenutzte Variablen in `engine.mjs` sind entfernt.
+
+`tests/engine-slicing.test.mjs` legte sein temporäres Git-Repository ohne `.gitattributes` an; unter `core.autocrlf=true` schrieb `git add .` deshalb fünfzehn „LF will be replaced by CRLF"-Warnungen pro Lauf. Das Fixture setzt jetzt `core.autocrlf=false` im temporären Repo — dasselbe Ziel wie die LF-Regeln des echten Repositorys, ohne zusätzliche Datei im Fixture-Diff.
+
 ## 2026-09-27 — Bündel-Probe im Gate, Parität um Block-`run:` ergänzt
 
 Der Job `gate` bekommt einen unbedingten Schritt „Worker-Bundle prüfen" (`wrangler@4 deploy --dry-run`) zwischen Client-Build und Deploy-Artefakt. Er läuft auch für jeden Pull Request, weil ein kaputter Import im Worker-Rand sonst erst auf `main` auffällt — im Moment des fehlgeschlagenen Builds. `package.json` bekommt `check:worker` als Spiegelbild, angehängt an `gate`; `tests/cloudflare-deploy.test.mjs` mit acht Zusicherungen sichert Config, Einstieg, `run_worker_first`, Bündel-Probe und den unveränderten Worker-Namen.

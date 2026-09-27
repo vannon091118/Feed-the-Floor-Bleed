@@ -6,12 +6,34 @@ function clonePolicy() {
   return JSON.parse(JSON.stringify(POLICY))
 }
 
+/** @typedef {import('../policy-schema.mjs').PolicyResult | import('../policy.mjs').LoadResult} Result */
+
+/**
+ * Beide Ergebnis-Unions tragen Fehler nur im Fehlerzweig; die Tests prüfen
+ * vorher `ok` und lesen den Zweig hier typrein aus.
+ * @param {Result} result
+ * @returns {string[]}
+ */
+function errorsOf(result) {
+  return 'errors' in result ? result.errors : []
+}
+
+/**
+ * @param {Result} result
+ * @returns {import('../policy-schema.mjs').Policy}
+ */
+function policyOf(result) {
+  if (!('policy' in result))
+    throw new Error('Test erwartet eine gültige Policy')
+  return result.policy
+}
+
 describe('policy schema', () => {
   it('akzeptiert die explizit unterstützte Policy-Version', () => {
     const result = parsePolicy(POLICY)
     expect(result.ok).toBe(true)
     expect(SUPPORTED_POLICY_VERSION).toBe(POLICY.version)
-    expect(result.policy.version).toBe(SUPPORTED_POLICY_VERSION)
+    expect(policyOf(result).version).toBe(SUPPORTED_POLICY_VERSION)
   })
 
   it('hält Engine-Trigger zentral in der Policy', () => {
@@ -58,7 +80,7 @@ describe('policy schema', () => {
     const result = loadPolicy(input)
     expect(result.ok).toBe(false)
     expect(result.usedFallback).toBe(false)
-    expect(result.errors).toEqual(
+    expect(errorsOf(result)).toEqual(
       expect.arrayContaining([expect.stringContaining('Policy-Version 2')]),
     )
   })
@@ -67,15 +89,15 @@ describe('policy schema', () => {
     const result = loadPolicy({ version: 1 })
     expect(result.ok).toBe(false)
     expect(result.usedFallback).toBe(false)
-    expect(result.policy).toBeUndefined()
-    expect(result.errors).toEqual(
+    expect('policy' in result).toBe(false)
+    expect(errorsOf(result)).toEqual(
       expect.arrayContaining([expect.stringContaining('source')]),
     )
   })
 
   it('leitet den globalen Datei-Cap dynamisch aus den Ownership-Caps ab', () => {
-    expect(POLICY.globalLoc.totalCap).toBeUndefined()
-    expect(POLICY.globalLoc.fileCap).toBeUndefined()
+    expect('totalCap' in POLICY.globalLoc).toBe(false)
+    expect('fileCap' in POLICY.globalLoc).toBe(false)
     expect(
       Math.max(...POLICY.locCaps.map((entry) => entry.cap)),
     ).toBeGreaterThan(0)
@@ -86,7 +108,7 @@ describe('policy schema', () => {
     input.globalLoc.roots = 'packages'
     const result = parsePolicy(input)
     expect(result.ok).toBe(false)
-    expect(result.errors).toEqual(
+    expect(errorsOf(result)).toEqual(
       expect.arrayContaining([expect.stringContaining('globalLoc.roots')]),
     )
   })
@@ -96,7 +118,7 @@ describe('policy schema', () => {
     input.globalLoc.roots = 42
     const result = parsePolicy(input)
     expect(result.ok).toBe(false)
-    expect(result.errors).toEqual(
+    expect(errorsOf(result)).toEqual(
       expect.arrayContaining([expect.stringContaining('globalLoc.roots')]),
     )
   })
@@ -106,7 +128,7 @@ describe('policy schema', () => {
     input.source.unexpected = true
     const result = parsePolicy(input)
     expect(result.ok).toBe(false)
-    expect(result.errors).toEqual(
+    expect(errorsOf(result)).toEqual(
       expect.arrayContaining([expect.stringContaining('source.unexpected')]),
     )
   })

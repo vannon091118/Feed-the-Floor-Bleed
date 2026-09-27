@@ -32,8 +32,7 @@ describe('RaidTimeline-Phasen', () => {
     const sections = buildTimelineSections(log)
     const buckets = eventsByPhase(log, sections)
 
-    let total = 0
-    for (const event of log.events) total += 1
+    const total = log.events.length
     expect(
       buckets.route.length + buckets.combat.length + buckets.result.length,
     ).toBe(total)
@@ -116,12 +115,12 @@ describe('RaidTimeline-Scrubber', () => {
     setPlaybackLog(payload.log)
     setScrubTick(0)
     const tickRate = payload.log.config.tickRate
-    const first = stepPlayback(1000 / tickRate, tickRate)
+    const first = stepPlayback(1000 / tickRate)
     expect(first).toBe(1)
     playbackPaused.value = true
-    expect(stepPlayback(1000 / tickRate, tickRate)).toBe(1)
+    expect(stepPlayback(1000 / tickRate)).toBe(1)
     playbackPaused.value = false
-    expect(stepPlayback(1000 / tickRate, tickRate)).toBe(2)
+    expect(stepPlayback(1000 / tickRate)).toBe(2)
   })
 
   it('leitet die aktive Route-Zelle aus move-Ereignissen ab', () => {

@@ -35,8 +35,25 @@ const STATE = path.join(os.tmpdir(), 'shinon-break-glass-protection.json')
 const PROTECTION = `repos/${REPO}/branches/${BRANCH}/protection`
 
 /**
+ * @typedef {object} ProtectionState
+ * @property {{ contexts?: string[], strict?: boolean }} [required_status_checks]
+ * @property {{ enabled?: boolean }} [enforce_admins]
+ * @property {{ enabled?: boolean }} [required_linear_history]
+ * @property {{ enabled?: boolean }} [allow_force_pushes]
+ * @property {{ enabled?: boolean }} [allow_deletions]
+ * @property {{ enabled?: boolean }} [block_creations]
+ * @property {{ enabled?: boolean }} [required_conversation_resolution]
+ * @property {{ enabled?: boolean }} [required_signatures]
+ * @property {object | null} [required_pull_request_reviews]
+ * @property {object | null} [restrictions]
+ */
+
+/**
  * Ruft die `gh`-CLI auf. `input` wird als stdin gereicht, weil
  * `gh api --input -` seinen JSON-Body von dort liest und nicht aus argv.
+ * @param {string[]} args
+ * @param {string | null} [input]
+ * @returns {string}
  */
 function gh(args, input = null) {
   return execFileSync('gh', args, {
@@ -48,16 +65,24 @@ function gh(args, input = null) {
   })
 }
 
+/**
+ * @param {string} msg
+ * @returns {never}
+ */
 function fail(msg) {
   console.error(`💥 break-glass — ${msg}`)
   process.exit(1)
 }
 
+/** @param {string} msg */
 function info(msg) {
   console.log(`🦊 ${msg}`)
 }
 
-/** Liest den aktuellen Protection-Zustand. */
+/**
+ * Liest den aktuellen Protection-Zustand.
+ * @returns {ProtectionState | null}
+ */
 function readProtection() {
   try {
     return JSON.parse(gh(['api', PROTECTION]))
@@ -66,6 +91,7 @@ function readProtection() {
   }
 }
 
+/** @param {ProtectionState | null} state */
 function describe(state) {
   if (!state) {
     console.log('   Protection: nicht lesbar oder nicht gesetzt')
@@ -87,6 +113,10 @@ function describe(state) {
  * Baut den PATCH-Body. Nur `required_status_checks` wird entfernt; alle
  * übrigen Regeln werden unverändert zurückgeschrieben, damit der Lock nicht
  * versehentlich mehr auflockt als beabsichtigt.
+ */
+/**
+ * @param {ProtectionState} before
+ * @returns {Record<string, unknown>}
  */
 function lockBody(before) {
   return {

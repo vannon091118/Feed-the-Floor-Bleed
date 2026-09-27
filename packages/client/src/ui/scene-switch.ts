@@ -72,15 +72,14 @@ export function createSceneSwitch(
       const stopTick = runtime.onTick(({ elapsedMs }) =>
         village?.update(elapsedMs),
       )
-      const canvas = host.querySelector('canvas')
-      const unbind = canvas
-        ? bindCameraControls(
-            canvas,
-            'village',
-            () => runtime.camera,
-            (camera) => runtime.setCamera(camera),
-          )
-        : () => {}
+      // Die Steuerung hängt an der Host-Fläche, nicht am Canvas: sie trägt
+      // Zeiger und Tastatur und ist das fokussierbare Element.
+      const unbind = bindCameraControls(
+        host,
+        'village',
+        () => runtime.camera,
+        (camera) => runtime.setCamera(camera),
+      )
       release = () => {
         unbind()
         stopTick()

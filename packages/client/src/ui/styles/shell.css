@@ -8,6 +8,30 @@
   background: var(--bg);
 }
 
+/* Tagesstimmung: die Palette liegt als Deskriptor im Visual-Owner
+   (`visual/daylight.ts`), die Shell setzt je Phase eine Ebene auf diesen
+   Überzug. Hier steht nur die Fläche: über Welt und Kontextfenstern (z-index 4),
+   unter der Topbar (z-index 5), ohne Klickfang, und der Übergang selbst.
+   Der weiche Wechsel läuft über die Deckkraft der Ebenen und nicht über
+   `background`: Chromium interpoliert keinen Gradienten, eine Deckkraft dagegen
+   zuverlässig. Genau eine Ebene steht im Ruhezustand auf 1; die Startwerte einer
+   Blende rechnet `daylightFadeStarts` komplementär, damit die Summe der
+   Deckkräfte auch bei einer unterbrochenen Blende zu jedem Zeitpunkt 1 bleibt.
+   `base.css` kürzt das bei `prefers-reduced-motion` auf 0,01 ms. */
+.daylight {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  pointer-events: none;
+}
+
+.daylight__layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 900ms ease;
+}
+
 /* --- Topbar ------------------------------------------------------------ */
 
 /* Die Kopfleiste ist eine einzeilige Schiene, keine Umbruchzone.

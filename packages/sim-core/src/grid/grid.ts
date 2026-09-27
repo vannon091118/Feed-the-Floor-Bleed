@@ -86,10 +86,6 @@ export function setCell(
   grid.cells[index] = cell
 }
 
-export function gridSize(): number {
-  return GRID_SIZE
-}
-
 export function visibleTileCount(): number {
   return VISIBLE_TILE_SIZE
 }

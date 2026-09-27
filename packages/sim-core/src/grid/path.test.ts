@@ -29,6 +29,27 @@ function carveStraightRoute(grid: DungeonGrid): void {
   }
 }
 
+/**
+ * Ein Korridor über die volle Rasterbreite: alle geraden Zeilen sind offen und
+ * an abwechselnden Enden verbunden. Jede weitere offene Zelle wäre eine
+ * Abkürzung, also ist der vollständige Durchlauf die längste Route, die sich in
+ * einem 64×64-Raster erzwingen lässt. Der Boss sitzt am linken unteren Ende,
+ * weil der Zickzack nach 32 Verbindern dort ankommt.
+ */
+function carveFullWidthRoute(grid: DungeonGrid): void {
+  for (let y = 1; y < GRID_SIZE; y += 2) {
+    for (let x = 0; x < GRID_SIZE; x += 1) {
+      if (x === grid.boss.x && y === grid.boss.y) continue
+      setCell(grid, { x, y }, CellType.Wall)
+    }
+  }
+  for (let y = 1; y < GRID_SIZE; y += 2) {
+    const x = y % 4 === 1 ? GRID_SIZE - 1 : 0
+    if (x === grid.boss.x && y === grid.boss.y) continue
+    setCell(grid, { x, y }, CellType.Empty)
+  }
+}
+
 describe('dungeon grid', () => {
   it('stores 64x64 logic cells and maps four-by-four cells to a visible tile', () => {
     const grid = createDungeonGrid()
@@ -94,6 +115,23 @@ describe('dungeon grid', () => {
     const grid = createDungeonGrid()
     const point: Point = { x: 64, y: 0 }
     expect(() => setCell(grid, point, CellType.Empty)).toThrow()
+  })
+
+  it('gibt keine Route zurück, die mehr Schritte hat als das Raster Zellen', () => {
+    // Spawn und Boss liegen an den Enden des Zickzacks; die Vorgaben (0|0) und
+    // (63|63) erreichen das linke Ende nicht.
+    const grid = createDungeonGrid({ x: 0, y: 0 }, { x: 0, y: GRID_SIZE - 1 })
+    carveFullWidthRoute(grid)
+
+    const result = findPath(grid)
+
+    // 32 offene Zeilen à 64 Zellen plus 32 Verbinder: kein Schritt fehlt.
+    expect(result.path).toHaveLength(2080)
+    // `ROUTE_SLOTS` in `combat/actions.ts` trennt Takt und Routenschritt mit der
+    // Zahl der Rasterzellen. Der Trenner trägt, weil keine Route eine Zelle
+    // zweimal betritt und damit höchstens so viele Schritte hat wie das Raster
+    // Zellen: 2079 Schritte, größter `routeIndex` 2079.
+    expect(result.path.length).toBeLessThanOrEqual(grid.cells.length)
   })
 
   it('optimizes the fallback for minimum steps, not minimum cost', () => {

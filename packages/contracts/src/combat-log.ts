@@ -83,7 +83,7 @@ export const CombatLogSchema = z
         message: 'Einheiten-IDs müssen eindeutig sein',
       })
     const last = log.events[log.events.length - 1]
-    if (!last || last.type !== 'end' || last.stage !== log.stage)
+    if (last?.type !== 'end' || last.stage !== log.stage)
       context.addIssue({
         code: 'custom',
         message: 'Log schließt mit einem end-Ereignis in der Ergebnisstufe',

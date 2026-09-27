@@ -45,6 +45,10 @@ function lauf(overrides = {}) {
 }
 
 /** Die Job-Liste, wie die Actions-API sie für einen Lauf liefert. */
+/**
+ * @param {[string, string][]} liste
+ * @returns {{ name: string, conclusion: string }[]}
+ */
 function jobs(...liste) {
   return liste.map(([name, conclusion]) => ({ name, conclusion }))
 }
@@ -54,6 +58,10 @@ function jobs(...liste) {
  * geschrieben, damit sie im Markdown nicht mitten im Satz umbrechen; die
  * Zusicherung prüft deshalb gegen die zusammengezogene Fassung und ist damit
  * unabhängig davon, wo der Quelltext umbricht.
+ */
+/**
+ * @param {string} text
+ * @returns {string}
  */
 function flatten(text) {
   return text.replace(/\s+/g, ' ')
@@ -166,6 +174,10 @@ describe('Der Watchdog meldet Vorfälle, nicht Fehlversuche', () => {
 
 describe('Der Watchdog schreibt seinen Befund als Dateien', () => {
   /** Fährt das Skript wirklich, statt seine Exporte aufzurufen. */
+  /**
+   * @param {import('../../watchdog-classify.mjs').WorkflowRun} runObj
+   * @param {import('../../watchdog-classify.mjs').WorkflowJob[]} jobListe
+   */
   function fahren(runObj, jobListe) {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'watchdog-'))
     const out = path.join(dir, 'out')

@@ -63,7 +63,7 @@ export function evaluateStage(
   config: CombatConfig,
 ): CombatStage | 'running' {
   const boss = states.find((unit) => unit.role === 'boss')
-  if (!boss || !boss.alive) return 'heroes-win'
+  if (!boss?.alive) return 'heroes-win'
   const heroesAlive = states.some(
     (unit) => unit.side === 'heroes' && unit.alive,
   )

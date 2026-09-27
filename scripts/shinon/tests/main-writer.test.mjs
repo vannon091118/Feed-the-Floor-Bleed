@@ -33,6 +33,11 @@ const BRANCH = 'refs/heads/fix/x 1111111 refs/heads/fix/x 2222222\n'
  * wird die Sperre, nicht die Suite, und der Abbruch danach ist billiger als ein
  * voller Gate-Lauf in jedem Test.
  */
+/**
+ * @param {string} spec
+ * @param {Record<string, string>} [env]
+ * @returns {import('node:child_process').SpawnSyncReturns<string>}
+ */
 function runHook(spec, env = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'shinon-pre-push-'))
   try {

@@ -4,6 +4,22 @@
 
 Diese Roadmap ist die einzige aktive Reihenfolge für Produkt- und Technikarbeit. Sie trennt den belegten Ist-Stand von der geplanten Zielarchitektur und verhindert, dass unimplementierte Systeme als bereits vorhanden behandelt werden.
 
+## Statusupdate — 2026-09-27 (T2.1 abgeschlossen: Tastaturzugang)
+
+Der letzte offene Punkt aus T2.1 ist gebaut. Bedienbar war bisher alles nur mit dem Zeiger: der Client hatte kein `keydown`, kein `tabIndex` und kein `onKey`. Jetzt ist der Fensterrahmen fokussierbar und wandert mit den Pfeiltasten, Umschalt skaliert mit denselben Mindestgrößen wie der Resize-Griff, und der Fensterrumpf ist ein eigener Fokuspunkt, damit dieselben Pfeiltasten den Inhalt scrollen statt das Fenster zu ziehen. Die Weltansicht trägt `role="application"` mit dem Tastenhinweis im Namen; ihre Kamera schwenkt in Dorf und Dungeon über `render/camera-keys.ts` und zoomt mit `+`/`-`. Die Schrittweite gilt vor dem Zoom, `panCamera` teilt sie durch ihn hindurch. Die Steuerungslegende nennt beide Tastensätze aus ihren Ownern statt als zweiten Text.
+
+Im Browser belegt: das Dorf schwenkt mit drei Pfeiltasten und kehrt mit drei Gegentasten ins gleiche Bild zurück, `=` vergrößert es sichtbar, der Fensterrahmen wanderte von `left: 0` auf `16px` und `top: 82px` auf `98px`, Umschalt-Pfeile änderten die Breite von 354 auf 378 und die Höhe von 241 auf 265, und mit dem Rumpf im Fokus stieg dessen `scrollTop` auf 23 bei unveränderter Fensterlage. Durchgehend ein Canvas, keine Konsolmeldungen.
+
+Zwei Beobachtungen gehören dazu, weil sie sonst als Fehler gelesen werden: Ein Fenster, das breiter ist als das Sichtfeld, bleibt an der linken Kante kleben — das ist die dokumentierte Kopfklemme, sie greift genauso beim Zeiger. Und im Dungeon bewegt der Tastenschritt erst oberhalb der Rahmungs-Zoomstufe, weil die 1024 Pixel breite Welt den Viewport füllt und `clampCamera` die Kamera dann auf der Mitte hält; der Zeigerpfad verhält sich identisch. Der dritte: Fensterbewegung und -größe gelten ab 721 px Breite. Darunter pinnt `ui/styles/windows.css` die Geometrie mit `!important` an die untere Kante — die Karte ist dort eine Schublade und soll bedienbar bleiben, statt über den Rand zu laufen. Diese Anordnung ist dann die alleinige Autorität: `SHEET_MAX_WIDTH` in `window/drag.ts` lässt dort weder Tastenschritt noch Zeigergeste beginnen, und Griff- sowie Skalierzeiger sind im Stylesheet stillgelegt, damit nichts eine Bewegung anbietet, die es nicht gibt. Der vierte: die Abbildung Pfeiltaste → Richtung liegt seit dem 2026-09-28 einmal in `input/arrows.ts`; Fensterrahmen und Kamera fragen sie und rechnen mit ihrer eigenen Schrittweite, die Inhalt-Grenze des Rahmens ist in `test/keyboard-wiring.test.ts` gepinnt.
+
+## Statusupdate — 2026-09-27 (Tagesstimmung entschieden)
+
+Der offene Punkt „Tageslicht-Klasse nach dem UI-Rebase“ ist entschieden und umgesetzt: die Tagesstimmung hängt wieder an der Shell, die Palette selbst liegt seither bei den Präsentationsdeskriptoren in `visual/daylight.ts` und wird von der Shell als Inline-Hintergrund auf den Überzug gesetzt; `ui/styles/shell.css` hält nur dessen Fläche, Lage und Übergang. `test/daylight.test.ts` bindet den Deskriptor an die Phasen-Union und das Stylesheet an den Klassennamen. Die frühere Notiz, die Regeln lägen in `ui/styles/` ungenutzt bereit, war falsch — der Umbau hatte sie mit `styles.css` entfernt; sie sind neu geschrieben. Der Punkt ist aus der Liste der offenen Prüfpunkte gestrichen.
+
+Die Tönung ist im Browser abgenommen: der Überzug folgt der Phase über `tag`, `night`, `raid` und `result`, der Dorfblick wird sichtbar dunkler und kühler.
+
+Nachgezogen am 2026-09-28: Der Wechsel war trotzdem ein Sprung, weil `transition: background` keinen Gradienten interpoliert — Chromium tauscht ihn aus. Der Überzug ist deshalb jetzt ein Stapel aus vier Ebenen, von denen genau eine sichtbar ist; den Wechsel trägt die Deckkraft, und gemessen laufen dabei genau zwei Übergänge. Ein Wechsel mitten in einer laufenden Blende ließ die Deckkraftsumme zunächst auf 0,49 fallen; die Startwerte rechnet seither `daylightFadeStarts` komplementär, und im Dauerfeuer über 29 Schleifendurchläufe hält die Summe bei 1,000. Offen bleibt daraus nur der Tastaturzugang, den T2.1 unter `Fertig, wenn` führt.
+
 ## Statusupdate — 2026-09-26 (zweiter Eintrag)
 
 Ein Korrekturblock an der Client-Oberfläche ist gelaufen, der **kein neues Feature-Track** ist: Der Client hatte kein Dorf, sondern eine Label-Wert-Liste mit vier Fixture-Zahlen, zeigte in jeder Phase das Dungeon-Raster im Viewport und führte Debug-Rückmeldung mit Rohkoordinaten in der Sidebar. `village/settlement.ts` leitet den Dorfblick jetzt als reine Funktion aus Phase-Owner und Fixture ab, `ui/view.ts` führt den Blick `village | dungeon` getrennt von der Spielphase, die Shell ist nur noch Layout, und `ui/styles.css` ist durch acht Style-Module auf gemeinsamen Tokens ersetzt.
@@ -27,7 +43,7 @@ Nachtrag: Die visuelle Basis ist im Browser lauffähig (`pnpm --filter @floor/cl
 ### Grün
 
 - `pnpm run -s typecheck` bestanden.
-- `pnpm test -- --run` bestanden: 23 Testdateien, 122 Tests (Client, Contracts, Server, Core).
+- `pnpm test -- --run` bestanden: 23 Testdateien, 122 Tests (Client, Contracts, Server, Core). Die Zahlen sind die Momentaufnahme dieses Tages und werden hier bewusst nicht nachgeführt; maßgeblich ist der Gate-Lauf auf dem jeweiligen Stand.
 - `pnpm run -s check` bestanden: LOC, Hygiene und alle Shinon-Gates.
 - `pnpm audit --prod --json | jq` meldet keine bekannten Schwachstellen.
 - Grid, Contracts (v3), D1-Raid-Freeze, Combat-, Hash- und Replay-Core sowie der lokale Fixture-Auftrag sind durch Tests abgedeckt.
@@ -52,10 +68,7 @@ Nachtrag: Die visuelle Basis ist im Browser lauffähig (`pnpm --filter @floor/cl
 
 **Ziel:** Ein Nutzer kann eine kleine Welt öffnen, einen Dungeon bauen, einen deterministischen Raid auslösen, das Ergebnis ansehen und eine verständliche Konsequenz sehen.
 
-| ID | Ergebnis | Abhängigkeit | Fertig, wenn |
-|----|----------|--------------|---------------|
-| T1.1 | Raid-Playback mit Timeline, Routen-/Fallenereignissen und Schlussfolgen | — | ✅ Erledigt 2026-09-26 — Commit `c52c46c`; `timeline-model.ts` zerlegt den Log in `route`/`combat`/`result`, `playback.ts` hält Log und Scrubber-Tick als Signale, `phases.tsx` zeigt Trail-Zellen mit Falle-, Spawn- und Boss-Markierung, Ereigniscluster und Ergebnis-Karte. Zwei Testdateien (211 und 82 LOC) |
-| T1.2 | Ende-zu-Ende-Abnahme der Tag-/Nacht-/Raid-Schleife | T1.1 | ✅ Erledigt 2026-09-26 — Fixture-Loop läuft in unter fünf Minuten (im Test unter 5 s) und die Schleife ist im Browser abgenommen |
+T1 ist abgeschlossen. Die beiden erledigten Zeilen standen bis zuletzt als einzige ✅-Zeilen in der aktiven Tabelle und liegen jetzt mit ihrem Abnahme-Beleg in `docs/historisch/2026-09-26_roadmap-t1-blocks.md`, damit die aktive Tabelle nur noch offene Blöcke führt.
 
 **T1-Definition of Done:** Keine unbeabsichtigte Core-Lücke, keine nicht versionierte Payload, keine Cliententscheidung über den Raid-Ausgang, reproduzierbarer Fixture-Seed und ein dokumentierter lokaler Playback.
 
@@ -63,9 +76,10 @@ Nachtrag: Die visuelle Basis ist im Browser lauffähig (`pnpm --filter @floor/cl
 
 T1.1 und T1.2 sind abgeschlossen. Auf ausdrücklichen Auftrag hat das serielle Visual-/Expeditions-Epic Vorrang vor der zuvor vorgeschlagenen Dorfwirtschaft. Es startet kein zweiter Feature-Slice parallel. Verbindliche Regeln, `[K]`-Grenzen und Abhängigkeiten stehen in `docs/VISUAL_GRUNDSATZ.md`.
 
+**T2.1 ist abgeschlossen:** Ressourcenicons, Asset-Loader mit prozeduralem Fallback, die drei Render-Modi und der Tastaturzugang sind implementiert und im Browser belegt. Die Zeile liegt mit ihrem Abnahme-Beleg in `docs/historisch/2026-09-27_roadmap-t2-1.md`, damit die aktive Tabelle nur offene Blöcke führt. Die übergreifende Browser- und Spielzug-Abnahme von T2.1–T2.5 bleibt bei T2.6.
+
 | ID | Ergebnis | Abhängigkeit | LOC ca. | Fertig, wenn |
 |----|----------|--------------|---------|---------------|
-| T2.1 | Ressourcenicons, Pixel-Art-Loader mit Fallback, Dorf-/Editor-/Raid-Renderer-Modi | T1.2, Visual-Grundsatz E1–E6 | 280–430 | Nur Gold/Material aus Quelle; ein Dungeon-Grid; Editor flach, Raid atmosphärisch; Tastaturzugang; fehlende Assets crashen nicht |
 | T2.2 | 10×10-Dorf, Platzierung/Upgrade von Häusern und Werkstätten, horizontales Land, Rückkehrabrechnung/Toast | T2.1, ausdrückliche Balancefreigabe | 320–500 | Einziger Dorf-Owner, keine Überlappung/Überziehung, Werkstattertrag und Tagesabrechnung deterministisch und höchstens einmal pro Expedition |
 | T2.3 | Expedition über mehrere Etagen, Boss-Aussteigen/Weitergehen, Escrow für ungesicherte Beute | T2.2, Kostenfreigabe | 300–470 | Derselbe eingefrorene Verteidiger, Etagen separat geprüft; Etage 2+ null bis fünf gekaufte Slots; quadratische Kosten ohne künstliches Etagenlimit |
 | T2.4 | Deterministische Klassenfähigkeiten als Simulationsinputs und Replay-Events | T2.3, Contract-/Hash-Entwurf | 440–680 | Heal/Buff/Direktschaden am nächsten ganzzahligen Tick, je Held einmal pro Expedition; gleicher Snapshot/Seed/Input ergibt identischen Hash; Contract v4 und Sim-Version abgestimmt |
@@ -85,7 +99,7 @@ T3 startet erst nach dem seriellen T2-Track. Online-Belohnungen und persistierte
 
 ## Nächster konkreter Schritt
 
-S0 (A0 + G) ist mit `docs/VISUAL_GRUNDSATZ.md` schriftlich angelegt. Danach läuft T2.1 als erster Implementierungsslice. Die in `docs/VISUAL_GRUNDSATZ.md` benannten Kosten-, Ertrags-, Drop- und MMR-Zahlen brauchen jeweils ihre ausdrückliche Freigabe vor dem dazugehörigen Verhalten. Jeder Slice wird einzeln geprüft, dokumentiert und gegatet; es gibt keine Parallelimplementierung.
+S0 (A0 + G) ist mit `docs/VISUAL_GRUNDSATZ.md` schriftlich angelegt, T2.1 ist abgeschlossen (Icons, Asset-Loader mit Fallback, drei Render-Modi, Tastaturzugang; Beleg in `docs/historisch/2026-09-27_roadmap-t2-1.md`). Nächster Implementierungsslice ist damit T2.2; er hängt an einer ausdrücklichen Balancefreigabe. Die in `docs/VISUAL_GRUNDSATZ.md` benannten Kosten-, Ertrags-, Drop- und MMR-Zahlen brauchen jeweils ihre ausdrückliche Freigabe vor dem dazugehörigen Verhalten. Jeder Slice wird einzeln geprüft, dokumentiert und gegatet; es gibt keine Parallelimplementierung.
 ## Offene Prüfpunkte aus dem Befund-Review vom 2026-09-26
 
 Diese Punkte stammen aus einer reinen Lese- und Mess-Session. Sie sind **keine** Spielregelentscheidungen und gehören nicht automatisch zum nächsten Block; die Zuordnung ist beim Start des jeweiligen Blocks zu treffen.
@@ -95,7 +109,6 @@ Diese Punkte stammen aus einer reinen Lese- und Mess-Session. Sie sind **keine**
 - **Sweep am Checkpoint-Pfad:** Der Expire-Sweep hängt an `checkpointRaid` statt an einem Cron. Ein Job, den niemand wiederholt, bleibt unbegrenzt `accepted`. Gehört zur Queue-Semantik in T3.
 - **Hash-Semantik:** `CombatHashSchema` ist formstreng, aber bindet nicht, worüber der Hash gebildet wurde. Eine semantische Bindung wäre robuster als die heutige indirekte Trage durch `sim_version` und `CONTRACT_VERSION`. Relevant, sobald der Hash als Inhaltsadresse dienen soll; für die aktuelle Replay-Prüfung ist die Breite ausreichend.
 - **Nicht beantwortet:** Die Byte-Determinismus-Annahme hinter dem `payloadJson`-Vergleich in `raid-checkpoint.ts` wurde nicht abschließend geprüft. Offen bleibt, ob Zod die Shape-Reihenfolge oder die Eingabereihenfolge der Keys im Ausgabeobjekt wahrt und wie `undefined` sowie Zahlformate dort wirken.
-- **Tageslicht-Klasse nach dem UI-Rebase:** `main` band die Tagesphase über `app is-day` an die Shell. Die neue Shell kennt bewusst keine Phase und führt die Klasse nicht mehr; die Sidebar, in die die Tagesstimmung wandern könnte, ist mit dem Dashboard-Abbau vom 2026-09-27 entfallen. Ob die Tagesstimmung in die Topbar oder in die Dorfszene wandert oder entfällt, ist weiterhin eine Design-Entscheidung und ausdrücklich offen; die Regel `.app.is-day` und `.app.is-night` liegt in `ui/styles/` ungenutzt bereit.
 
 ## Pflegeprotokoll
 

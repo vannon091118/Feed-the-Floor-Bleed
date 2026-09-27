@@ -21,8 +21,9 @@ try {
     .map((s) => s.trim())
     .filter(Boolean)
 } catch (error) {
+  const detail = error instanceof Error ? error.message : String(error)
   console.error('💥 Commit-Gate Hard-Fail — staged Dateien nicht ermittelbar')
-  console.error(`   ${error.message}`)
+  console.error(`   ${detail}`)
   process.exit(1)
 }
 

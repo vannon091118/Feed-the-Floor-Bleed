@@ -1,13 +1,14 @@
 import type { ComponentChildren } from 'preact'
 import { useRef } from 'preact/hooks'
-import { draggedHead, isHeadControl } from './drag'
+import * as drag from './drag'
+import { useWindowFit } from './fit'
+import { windowKeyProps } from './keys'
 import {
   closeWindow,
   focusWindow,
   patchWindow,
   type WindowState,
 } from './store'
-
 export interface GameWindowProps {
   win: WindowState
   focused: boolean
@@ -15,27 +16,14 @@ export interface GameWindowProps {
   contentKey: string
   children: ComponentChildren
 }
-
-interface MoveOrigin {
-  pointerX: number
-  pointerY: number
-}
-
-/** Der Resize-Griff ist derselbe Ursprung plus die Fenstergröße. */
-type ResizeOrigin = MoveOrigin & { width: number; height: number }
-
-function capture(event: PointerEvent): void {
-  const target = event.currentTarget as HTMLElement | null
-  target?.setPointerCapture?.(event.pointerId)
-}
-
 /**
- * Ein Kontextfenster. Die Welt bleibt die Navigation; dieses Fenster ist nur
- * eine verschiebbare, fokussierbare Ansicht über ihr.
+ * Ein Kontextfenster: eine verschiebbare, fokussierbare Ansicht über der Welt.
+ * Der Inhaltsbereich hängt an `contentKey`, damit ein Phasenfenster, das seine
+ * ID über die Schleife behält, trotzdem den Inhalt wechseln kann.
  *
- * Der Inhaltsbereich hängt an `contentKey`: Ein Phasenfenster behält seine ID
- * und wechselt trotzdem den Inhalt. Ohne den Wechselkey stünde die alte
- * Scrollposition weiter und man landete mitten im neuen Panel.
+ * Den Zeigerdruck auf Kopf, Griff und Rumpf fängt der Rahmen selbst ab: beides
+ * steigt bis hierher auf, also holt ein Klick das Fenster nach vorn, egal auf
+ * welchem Teil er landet. Die Tastatur steht daneben in `windowKeyProps`.
  */
 export function GameWindow({
   win,
@@ -43,52 +31,51 @@ export function GameWindow({
   contentKey,
   children,
 }: GameWindowProps) {
-  const move = useRef<MoveOrigin | null>(null)
-  const resize = useRef<ResizeOrigin | null>(null)
+  const move = useRef<drag.DragOrigin | null>(null)
+  const resize = useRef<drag.ResizeOrigin | null>(null)
 
+  // In der Schubladenanordnung führt das Layout die Geometrie; dort beginnt
+  // keine Geste, sonst schriebe der Store gegen das Bild.
   const startMove = (event: PointerEvent): void => {
-    focusWindow(win.id)
-    if (isHeadControl(event.target)) return
+    if (drag.isHeadControl(event.target)) return
+    if (!drag.geometryIsUserOwned(event)) return
     move.current = {
       pointerX: event.clientX - win.x,
       pointerY: event.clientY - win.y,
     }
-    capture(event)
+    drag.capturePointer(event)
   }
   const doMove = (event: PointerEvent): void => {
     const origin = move.current
     if (!origin) return
-    const head = draggedHead(event, origin, win)
+    const head = drag.draggedHead(event, origin, win)
     patchWindow(win.id, { x: head.x, y: head.y })
   }
-  const endMove = (): void => {
+  const endDrag = (): void => {
     move.current = null
+    resize.current = null
   }
 
   const startResize = (event: PointerEvent): void => {
-    focusWindow(win.id)
+    if (!drag.geometryIsUserOwned(event)) return
     resize.current = {
+      ...win,
       pointerX: event.clientX,
       pointerY: event.clientY,
-      width: win.width,
-      height: win.height,
     }
-    capture(event)
+    drag.capturePointer(event)
   }
   const doResize = (event: PointerEvent): void => {
     const origin = resize.current
     if (!origin) return
-    patchWindow(win.id, {
-      width: Math.max(180, origin.width + event.clientX - origin.pointerX),
-      height: Math.max(120, origin.height + event.clientY - origin.pointerY),
-    })
-  }
-  const endResize = (): void => {
-    resize.current = null
+    patchWindow(win.id, drag.resizedBox(origin, event))
   }
 
+  const measureBody = useWindowFit(win)
+  const keys = windowKeyProps(win)
   return (
     <section
+      {...keys}
       class={focused ? 'game-window is-focused' : 'game-window'}
       aria-labelledby={`window-title-${win.id.replaceAll(':', '-')}`}
       style={{
@@ -104,8 +91,8 @@ export function GameWindow({
         class="game-window__bar"
         onPointerDown={startMove}
         onPointerMove={doMove}
-        onPointerUp={endMove}
-        onPointerCancel={endMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
       >
         <span
           class="game-window__title"
@@ -122,15 +109,20 @@ export function GameWindow({
           ×
         </button>
       </header>
-      <div class="game-window__body" key={contentKey}>
-        {children}
+      {/* Eigener Fokuspunkt: nur so erreichen die Pfeiltasten den Inhalt und
+          scrollen ihn, statt das Fenster zu verschieben. */}
+      {/* biome-ignore lint/a11y/noNoninteractiveTabindex: Der Rumpf scrollt; ein scrollender Bereich muss mit der Tastatur erreichbar sein, und die Regel sieht `overflow` nicht. */}
+      <div class="game-window__body" key={contentKey} tabIndex={0}>
+        <div class="game-window__content" ref={measureBody}>
+          {children}
+        </div>
       </div>
       <span
         class="game-window__resize"
         onPointerDown={startResize}
         onPointerMove={doResize}
-        onPointerUp={endResize}
-        onPointerCancel={endResize}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
       />
     </section>
   )

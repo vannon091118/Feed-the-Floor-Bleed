@@ -31,6 +31,13 @@ function cellCost(grid: DungeonGrid, point: Point): number {
   return 1
 }
 
+/**
+ * Abstand zweier Rasterpunkte in Schritten.
+ *
+ * Das ist kein Heuristik-Wert der Suche — `search` ist eine Dijkstra-Suche
+ * ohne Schätzterm —, sondern das Bezugsmaß, gegen das `findPath` das
+ * Umwegbudget rechnet.
+ */
 export function manhattan(a: Point, b: Point): number {
   return Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
 }

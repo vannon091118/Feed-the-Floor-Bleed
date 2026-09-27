@@ -154,11 +154,11 @@ export function acceptedJob(): RaidJob {
   return { ...jobBase, status: 'accepted' }
 }
 
-export function completedJob(): RaidJob {
+export function completedJob(): Extract<RaidJob, { status: 'completed' }> {
   return { ...jobBase, status: 'completed', result: result() }
 }
 
-export function failedJob(): RaidJob {
+export function failedJob(): Extract<RaidJob, { status: 'failed' }> {
   return {
     ...jobBase,
     status: 'failed',
@@ -166,7 +166,7 @@ export function failedJob(): RaidJob {
   }
 }
 
-export function expiredJob(): RaidJob {
+export function expiredJob(): Extract<RaidJob, { status: 'expired' }> {
   return {
     ...jobBase,
     status: 'expired',

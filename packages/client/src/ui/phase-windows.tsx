@@ -17,8 +17,9 @@ export function phaseWindowContent() {
   if (phase === 'raid')
     return (
       <>
-        {/* Die Steuerung steht über dem Inhalt: im 260-px-Fenster ist die
-            Trail-Liste länger als der Scrollweg, die Steuerung nicht. */}
+        {/* Die Steuerung steht über der Trail-Liste. Das Fenster wächst mit
+            dem Inhalt bis zur Falz, die Liste überschreitet sie aber um ein
+            Vielfaches — klebend bleibt sie erreichbar. */}
         <TimelineTransport />
         <RaidPhasePanel />
         <RaidTimeline />

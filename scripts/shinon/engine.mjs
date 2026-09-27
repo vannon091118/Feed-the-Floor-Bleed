@@ -11,9 +11,12 @@ import { POLICY } from './policy.mjs'
 
 const ROOT = process.cwd()
 
+/**
+ * @param {{ staged: boolean }} options
+ * @returns {string[]}
+ */
 function getChangedFiles({ staged }) {
   try {
-    const ref = staged ? '--cached' : 'HEAD'
     // staged = git diff --cached --name-only ; unstaged vs HEAD
     const args = staged ? 'diff --cached --name-only' : 'diff --name-only HEAD'
     const out = execSync(`git ${args}`, { encoding: 'utf8', cwd: ROOT })
@@ -26,6 +29,7 @@ function getChangedFiles({ staged }) {
   }
 }
 
+/** @returns {{ name: string, path: string }[]} */
 function loadPlugins() {
   const dir = path.join(ROOT, 'scripts/shinon/plugins')
   if (!fs.existsSync(dir)) return []
@@ -38,6 +42,11 @@ function loadPlugins() {
   return plugins.sort((a, b) => a.name.localeCompare(b.name))
 }
 
+/**
+ * @param {{ name: string, path: string }} plugin
+ * @param {string[]} changedFiles
+ * @returns {{ ok: boolean, stdout: string, stderr: string, code: number | null }}
+ */
 function runPlugin(plugin, changedFiles) {
   const res = spawnSync(
     'node',
@@ -60,7 +69,7 @@ function runPlugin(plugin, changedFiles) {
 function main() {
   const args = process.argv.slice(2)
   const forceFull = args.includes('--full') || args.includes('--push')
-  const staged = !forceFull // pre-commit = staged, pre-push/full = HEAD diff
+  // pre-commit prüft den Index, --full/--push den Stand gegen HEAD.
   const changedFiles = forceFull
     ? (() => {
         try {

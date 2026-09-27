@@ -1,4 +1,8 @@
-import type { TerminalRaidJob } from '@floor/contracts'
+import {
+  CONTRACT_VERSION,
+  sim_version,
+  type TerminalRaidJob,
+} from '@floor/contracts'
 import {
   CellType,
   createDungeonGrid,
@@ -17,15 +21,25 @@ import {
 export const JOB: TerminalRaidJob = {
   status: 'completed',
   id: 'fixture-raid-1',
+  seed: 1,
+  contractVersion: CONTRACT_VERSION,
+  simVersion: sim_version,
+  floor: 1,
+  revision: 1,
+  expiresAt: 900000,
   result: {
     hash: 'h',
-    events: [],
+    token: 'fixture-raid-1',
+    floor: 1,
+    contractVersion: CONTRACT_VERSION,
+    simVersion: sim_version,
     summary: {
       hash: 'h',
       stage: 'heroes-win',
       ticks: 1,
       events: 0,
       attacks: 0,
+      damage: 0,
       heroesAlive: 3,
       monstersAlive: 0,
       bossAlive: false,
@@ -36,7 +50,18 @@ export const JOB: TerminalRaidJob = {
 export const FAILED: TerminalRaidJob = {
   status: 'failed',
   id: 'fixture-raid-1',
-  error: { code: 'blocked', detail: 'Route blockiert' },
+  seed: 1,
+  contractVersion: CONTRACT_VERSION,
+  simVersion: sim_version,
+  floor: 1,
+  revision: 1,
+  expiresAt: 900000,
+  error: {
+    contractVersion: CONTRACT_VERSION,
+    simVersion: sim_version,
+    code: 'blocked',
+    detail: 'Route blockiert',
+  },
 }
 
 /** Beide Route-Ausgänge zumauern erzwingt einen blockierten Auftrag. */

@@ -8,6 +8,15 @@ import { parsePolicy } from './policy-schema.mjs'
 const policyFile = fileURLToPath(new URL('./policy.json', import.meta.url))
 const policyDir = path.dirname(policyFile)
 
+/** @typedef {import('./policy-schema.mjs').Policy} Policy */
+/** @typedef {{ ok: true, policy: Policy, usedFallback: false } | { ok: false, errors: string[], usedFallback: false }} LoadResult */
+
+/**
+ * Stellt sicher, dass Policy-Trigger und Plugin-Dateien deckungsgleich sind.
+ * @param {Policy} policy
+ * @param {string[]} knownPlugins
+ * @returns {{ ok: boolean, errors: string[] }}
+ */
 export function validateEnginePlugins(policy, knownPlugins) {
   const known = new Set(knownPlugins)
   const configured = new Set([
@@ -30,6 +39,11 @@ export function validateEnginePlugins(policy, knownPlugins) {
   return { ok: errors.length === 0, errors }
 }
 
+/**
+ * Validiert eine rohe Policy und liefert sie oder die Schemafehler zurück.
+ * @param {unknown} input
+ * @returns {LoadResult}
+ */
 export function loadPolicy(input) {
   const result = parsePolicy(input)
   return result.ok
@@ -41,8 +55,9 @@ let rawPolicy
 try {
   rawPolicy = JSON.parse(fs.readFileSync(policyFile, 'utf8'))
 } catch (error) {
+  const detail = error instanceof Error ? error.message : String(error)
   console.error(
-    `💥 Policy ungültig — JSON konnte nicht gelesen werden: ${error.message}`,
+    `💥 Policy ungültig — JSON konnte nicht gelesen werden: ${detail}`,
   )
   process.exit(1)
 }

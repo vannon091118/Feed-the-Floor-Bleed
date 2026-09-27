@@ -11,6 +11,10 @@ import { POLICY } from '../policy.mjs'
 const ROOT = process.cwd()
 const { roots, window: WINDOW } = POLICY.redundancy
 
+/**
+ * @param {string} content
+ * @returns {string[]}
+ */
 function normalizedLines(content) {
   return stripComments(content)
     .split('\n')
@@ -26,16 +30,16 @@ function normalizedLines(content) {
 }
 
 const files = collectSourceFiles(roots)
+/** @type {Map<string, { file: string, line: number }[]>} */
 const occurrences = new Map()
 for (const file of files) {
   const lines = normalizedLines(fs.readFileSync(file, 'utf8'))
   for (let index = 0; index <= lines.length - WINDOW; index++) {
     const block = lines.slice(index, index + WINDOW)
     const key = block.join('\n')
-    if (!occurrences.has(key)) occurrences.set(key, [])
-    occurrences
-      .get(key)
-      .push({ file: relativePath(ROOT, file), line: index + 1 })
+    const locations = occurrences.get(key) ?? []
+    locations.push({ file: relativePath(ROOT, file), line: index + 1 })
+    occurrences.set(key, locations)
   }
 }
 const failures = []

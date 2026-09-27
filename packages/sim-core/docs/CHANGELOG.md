@@ -1,5 +1,43 @@
 # packages/sim-core/docs/CHANGELOG.md
 
+## 2026-09-27 — `divFixed` trägt seine Genauigkeitsgrenze und hat einen Test
+
+**Scope:** geändert `src/math/fixed.ts` und `src/math/math.test.ts`. Kein Produktionsaufrufer, kein Verhalten geändert.
+
+`mulFixed` trug seine Mantissengrenze, `divFixed` nicht. Die Grenze liegt hier aber woanders: Genau ist die Division, solange der Zähler `left * FIXED_SCALE` genau darstellbar bleibt, also bis `|left| = 2^53 / FIXED_SCALE` (rund 9,0e12), und nicht erst beim Ergebnis. Darunter greifen drei Dinge zusammen: der Zähler ist exakt, der Quotient bleibt ganzzahlig darstellbar, und weil der wahre Wert mindestens `1 / right` von der Trunkierungsgrenze entfernt liegt, kann die korrekt gerundete Division ihn nicht über eine Ganzzahl hinwegschieben. Oberhalb rundet schon der Zähler um bis zu eine halbe ulp, und das Ergebnis wird falsch — nachgemessen um 1 bei `divFixed(9007199254740994, 1001)` und um 170 bei `divFixed(2 ** 53, 3)`. Deterministisch bleibt es, genau nicht.
+
+`math.test.ts` pinnt beide Seiten der Grenze: die größte exakte Größe in beiden Vorzeichen, einen Fall in Combat-Größenordnung und einen Fall jenseits der Grenze, der die exakte Zahl nicht mehr trifft. `divFixed` hat weiterhin keinen Produktionsaufrufer; die Doku steht, bevor einer entsteht.
+
+## 2026-09-27 — Die längste Route ist getestet, nicht nur kommentiert
+
+**Scope:** neu `carveFullWidthRoute` und ein Fall in `src/grid/path.test.ts`. Produktivcode, Contracts, Hashes und Simulationsverhalten unberührt.
+
+Die Annahme an `ROUTE_SLOTS` stand bisher nur als Kommentar: Eine Route betritt keine Zelle zweimal und hat damit höchstens so viele Schritte wie das Raster Zellen. `carveFullWidthRoute` baut den Korridor, der das prüft — alle geraden Zeilen offen, verbunden an abwechselnden Enden —, und weil jede weitere offene Zelle eine Abkürzung wäre, ist der vollständige Durchlauf die längste Route, die sich in einem 64×64-Raster erzwingen lässt: 32 Durchquerungen der vollen Breite, zusammen 2080 Zellen und 2079 Schritte. Der Test läuft sie ab und hält ihre Länge gegen `grid.cells.length`, womit auch der größte `routeIndex` von 2079 unter dem Trenner 4096 bleibt. Der Boss muss dafür ans linke untere Ende, weil der Zickzack nach 32 Verbindern dort ankommt; das Raster entsteht deshalb mit explizitem Spawn und Boss statt mit den Vorgaben (0|0) und (63|63).
+
+## 2026-09-27 — Ungenutzter Rasterexport entfernt, Stufenprüfung verkürzt
+
+**Scope:** geändert `src/grid/grid.ts` und `src/combat/state.ts`. Contracts, Hashes und Simulationsverhalten unberührt.
+
+`gridSize()` in `src/grid/grid.ts` hatte keinen Aufrufer; der Export ist entfernt. In `src/combat/state.ts` ist `!boss || !boss.alive` zu `!boss?.alive` geworden — dieselbe Aussage, weil ein fehlender Boss kurzschließt und der zweite Vergleich dann ohnehin wahr ist. Anlass war die Umstellung von `pnpm run -s lint` auf `biome check --error-on-warnings` und der jetzt vollständige Typecheck der Testverzeichnisse, die beide Symbole vorher nicht sahen.
+
+## 2026-09-27 — Review der Kernannahmen: Saatindex abgeleitet, Mantissengrenze gepinnt, Streuung getestet
+
+**Scope:** geändert `src/combat/actions.ts`, `src/combat/combat.test.ts`, `src/grid/path-search.ts`, `src/math/fixed.ts` und `src/math/math.test.ts`. Contracts, Verhalten und Hashes unberührt.
+
+Ein Review der Kernannahmen hat fünf Punkte gemeldet. Drei betrafen Code und sind nachgezogen, zwei waren Beobachtungen: Der Saatindex kodierte Takt und Routenschritt als `tick * 4096 + routeIndex`, die 4096 kam aber nirgendwo her. Sie ist die Zahl der Rasterzellen, der Faktor heißt jetzt `ROUTE_SLOTS = GRID_SIZE * GRID_SIZE` und ein größeres Raster zieht ihn mit; die Annahme dahinter — eine Route betritt keine Zelle zweimal und hat damit höchstens so viele Schritte wie das Raster Zellen — steht als Kommentar an der Konstanten. Das gemeldete Raster von 128×128 trifft nicht zu: `GRID_SIZE` ist 64, es gibt 4096 Zellen, und `buildCombatUnits` leitet jeden `routeIndex` aus `routeLength - 1` ab.
+
+`mulFixed` trägt jetzt seine Genauigkeitsgrenze. Das Produkt darf über der Mantissengrenze 2^53 liegen, weil die Multiplikation relativ rundet und `FIXED_SCALE` den Fehler anschließend teilt; erst ab einem Ergebnis dieser Größe weicht das Ganzzahlergebnis ab. Die Combat-Werte liegen bei 1,6e4 mal 1e3, also elf Größenordnungen darunter, und `math.test.ts` pinnt beide Seiten der Grenze. Ein Wurf bei Überschreitung wäre ein Wächter für Eingaben, die heute niemand erzeugen kann.
+
+`manhattan` war im Review als ungenutzte Heuristik gelesen worden. Es ist der Bezugsabstand für das Umwegbudget in `findPath` und kein Schätzterm der Suche — `search` bleibt vollständiges Dijkstra; ein Kommentar an der Funktion sagt das jetzt, damit die nächste Lesung nicht wieder darüber stolpert.
+
+`damageFor` ist neu testgedeckt: Normalfall, negative Streuung und Verteidigung über dem Angriff. `variancePermille` ist im Contract ein freies Ganzzahlfeld, negativ also erlaubt, und beide Randfälle enden auf `damageFloor` — negativer Schaden kann nicht entstehen.
+
+Zwei der fünf Punkte waren Fehlannahmen und brauchen keinen Code. Die Vermutung, `mulFixed` breche den Determinismus über Plattformgrenzen, trifft nicht zu: `*`, `/` und `Math.trunc` sind IEEE-Operationen und auf jeder konformen Engine bitgleich, und oberhalb der Mantissengrenze ist das Ergebnis falsch, aber nicht verschieden — nachgemessen weicht `mulFixed(9007199254740994, 1001)` um genau 2 vom exakten `9016206453995734` ab. Und die acht leeren Namespaces (`sim-core/genome`, `ghost`, `items`, `client/net`, `storage`, `inventory`, `server/matchmaking`, `sync`) enthalten nur `.gitkeep` und stehen bereits als nicht implementiert in `docs/CONCEPT_REVIEW.md` und `docs/ROADMAP.md`; die Pflichtdoku war dort schon richtig, also kein Delta.
+
+Der Kommentar an `ROUTE_SLOTS` nennt jetzt zusätzlich den Mechanismus hinter der Annahme: das `closed`-Feld in `search` verhindert, dass eine Zelle erneut expandiert wird. Genau dieses fehlende Bindeglied war der Anlass des Befunds, obwohl die Annahme selbst nie falsch war.
+
+**Nicht geändert:** Der Determinismus steht nicht zur Debatte. `*`, `/` und `Math.trunc` sind IEEE-Operationen und liefern auf jeder konformen Engine dasselbe Ergebnis; ein Genauigkeitsverlust wäre ein falscher, aber kein plattformabhängiger Hash. Die leeren geplanten Domänen (`genome`, `ghost`, `items`, `net`, `storage`, `inventory`, `matchmaking`, `sync`) sind in `docs/CONCEPT_REVIEW.md` als nicht implementiert und in `docs/ROADMAP.md` als T2/T3 geführt.
+
 ## 2026-09-26 — Review-Nachgang T1.1: toter Trail-Vergleich, Lint und Wrapper
 
 - `src/combat/replay.ts`: `verifyCombatLog` enthielt nach T1.1 einen Längen- und Zellvergleich des Trails. Der war wirkungslos, weil `replayCombat` `log.trail` unverändert an `simulateCombat` durchreicht und der Vergleich damit jedes Element mit sich selbst verglich — der Block konnte nie `false` liefern. Er ist entfernt; der Trail bleibt über `fingerprintCombatLog` im Hash abgesichert.

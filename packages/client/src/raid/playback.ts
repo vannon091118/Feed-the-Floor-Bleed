@@ -88,7 +88,3 @@ export const playbackRouteIndex = computed(() => {
   }
   return index
 })
-
-export function sectionsOf(): TimelineSections | null {
-  return playbackLog.value?.sections ?? null
-}

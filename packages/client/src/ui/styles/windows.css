@@ -6,15 +6,19 @@
   pointer-events: none;
 }
 
+/* Der Rand ist ein Ring außerhalb der Box, kein Border: ein Border zählt in
+   die Höhe, und der inhaltsangepasste Zuschnitt stünde dann dauerhaft einen
+   Pixel zu kurz — genug für einen Scrollbalken am kurzen Inhalt. */
 .game-window {
   position: absolute;
   display: flex;
   min-width: 200px;
   flex-direction: column;
-  border: 1px solid rgba(236, 231, 214, 0.2);
   border-radius: 14px;
   background: rgba(24, 28, 34, 0.72);
-  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.32);
+  box-shadow:
+    0 0 0 1px rgba(236, 231, 214, 0.2),
+    0 18px 54px rgba(0, 0, 0, 0.32);
   backdrop-filter: blur(20px) saturate(1.24);
   -webkit-backdrop-filter: blur(20px) saturate(1.24);
   pointer-events: auto;
@@ -22,7 +26,9 @@
 }
 
 .game-window.is-focused {
-  border-color: rgba(246, 207, 138, 0.76);
+  box-shadow:
+    0 0 0 1px rgba(246, 207, 138, 0.76),
+    0 18px 54px rgba(0, 0, 0, 0.32);
 }
 
 .game-window__bar {
@@ -62,12 +68,16 @@
   color: white;
 }
 
+/* Der Rumpf füllt nur; der Inhalt darin trägt den Rand und wird gemessen. */
 .game-window__body {
   flex: 1;
-  padding: var(--space-3);
   overflow: auto;
   font-size: 12px;
   line-height: 1.5;
+}
+
+.game-window__content {
+  padding: var(--space-3);
 }
 
 .game-window__resize {
@@ -80,6 +90,12 @@
   touch-action: none;
 }
 
+/* Schmale Anzeigen: das Fenster ist eine Schublade an der unteren Kante statt
+   einer freien Karte. Diese Anordnung führt die Geometrie allein — `left`, `top`
+   und `width` gewinnen mit `!important` gegen den Store, und deshalb beginnt
+   dort weder eine Zeigergeste noch ein Tastenschritt (`window/drag.ts` fragt
+   dieselbe Grenze ab); sonst liefen Store und Bild auseinander. Die Zahl steht
+   auch in `SHEET_MAX_WIDTH`; der Test vergleicht beide Seiten. */
 @media (max-width: 720px) {
   .game-window {
     position: fixed;
@@ -90,5 +106,15 @@
     left: 10px !important;
     width: auto !important;
     max-height: 65dvh;
+  }
+
+  /* Kein Griff- und kein Skalierzeiger für eine Bewegung, die es hier nicht
+     gibt. */
+  .game-window__bar {
+    cursor: default;
+  }
+
+  .game-window__resize {
+    display: none;
   }
 }

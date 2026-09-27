@@ -1,6 +1,20 @@
+import { GRID_SIZE } from '../grid'
 import { createRng, deriveSeed, nextBelow } from '../prng'
 import { damageFor } from './state'
 import type { CombatConfig, CombatEvent, CombatUnitState } from './types'
+
+/**
+ * Trennschritt zwischen Takt und Aktionsort im Saatindex.
+ *
+ * Eine Route betritt keine Zelle zweimal — `search` in `grid/path-search.ts`
+ * führt dafür das `closed`-Feld und expandiert keine Zelle erneut —, also hat
+ * keine Route mehr Schritte als das Raster Zellen. Mit diesem Faktor kodiert
+ * `tick * ROUTE_SLOTS + routeIndex` jeden Takt eindeutig, solange kein
+ * `routeIndex` darüber liegt; ein größeres Raster zieht den Trenner mit, statt
+ * still zu kollidieren. `grid/path.test.ts` fährt die längste Route ab, die das
+ * Raster erzwingt, und hält sie unter dieser Zahl.
+ */
+const ROUTE_SLOTS = GRID_SIZE * GRID_SIZE
 
 export function applyAttack(
   actor: CombatUnitState,
@@ -11,7 +25,7 @@ export function applyAttack(
   config: CombatConfig,
 ): void {
   const rng = createRng(
-    deriveSeed(seed, tick * 4096 + actor.routeIndex, target.routeIndex),
+    deriveSeed(seed, tick * ROUTE_SLOTS + actor.routeIndex, target.routeIndex),
   )
   const swing = config.varianceSwing
   const spread = nextBelow(rng, swing * 2 + 1) - swing

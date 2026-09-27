@@ -10,6 +10,10 @@ import { POLICY } from '../policy.mjs'
 const ROOT = process.cwd()
 const failures = []
 
+/**
+ * @param {string} file
+ * @returns {ts.ScriptKind}
+ */
 function scriptKind(file) {
   if (file.endsWith('.tsx')) return ts.ScriptKind.TSX
   if (file.endsWith('.jsx')) return ts.ScriptKind.JSX
@@ -17,6 +21,11 @@ function scriptKind(file) {
   return ts.ScriptKind.JS
 }
 
+/**
+ * @param {string} file
+ * @param {string} content
+ * @returns {string}
+ */
 function deadCodePattern(file, content) {
   const source = ts.createSourceFile(
     file,
@@ -26,6 +35,7 @@ function deadCodePattern(file, content) {
     scriptKind(file),
   )
   let message = ''
+  /** @param {ts.Node} node */
   function visit(node) {
     if (message) return
     if (node.kind === ts.SyntaxKind.DebuggerStatement) message = 'debugger'
@@ -59,7 +69,14 @@ if (!fs.existsSync(tsc))
 else {
   const result = spawnSync(
     process.execPath,
-    [tsc, '--noEmit', '--noUnusedLocals', '--noUnusedParameters'],
+    [
+      tsc,
+      '--noEmit',
+      '--noUnusedLocals',
+      '--noUnusedParameters',
+      '-p',
+      path.join(ROOT, 'tsconfig.json'),
+    ],
     {
       cwd: ROOT,
       encoding: 'utf8',
@@ -77,5 +94,5 @@ if (failures.length > 0) {
   process.exit(1)
 }
 console.log(
-  `✅ Dead-Code-Gate ok — ${files.length} Quellen, NoUnused und AST-Muster geprüft.`,
+  `✅ Dead-Code-Gate ok — NoUnused über das tsconfig-Programm (packages/*/src, packages/*/test, scripts/**/* mit .mjs), AST-Muster über ${files.length} Quellen inklusive .mjs.`,
 )

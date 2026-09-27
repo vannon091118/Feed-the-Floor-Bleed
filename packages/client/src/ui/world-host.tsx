@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'preact/hooks'
 import type { DragDropCommand } from '../input'
 import { stepPlayback } from '../raid/playback'
 import { createVisualRuntime, type VisualRuntime } from '../render'
+import { CAMERA_KEY_HINT, cameraSurfaceProps } from '../render/camera-keys'
 import type { RenderMode } from '../render/modes'
 import type { ActorKind } from '../world'
 import { createSceneSwitch, type SceneSwitch } from './scene-switch'
@@ -83,7 +84,16 @@ export function WorldHost({
 
   return (
     <div class="world-host" data-render-mode={mode}>
-      <div class="world-host__canvas" ref={hostRef} aria-hidden="true" />
+      {/* Tragefläche für Zeiger und Tastatur der Kamera; fokussierbar und
+          benannt, damit die Pfeiltasten hier ankommen. */}
+      {/* Zeiger und Tastatur der Kamera hängen an dieser Fläche; ihre
+          Tastatur-Props liefert der Kamera-Owner. */}
+      <section
+        class="world-host__canvas"
+        ref={hostRef}
+        aria-label={CAMERA_KEY_HINT}
+        {...cameraSurfaceProps()}
+      />
       {children && <div class="world-host__content">{children}</div>}
     </div>
   )

@@ -6,6 +6,7 @@ import { collectSourceFiles, relativePath } from '../lib/source-scan.mjs'
 import { POLICY } from '../policy.mjs'
 
 const ROOT = process.cwd()
+/** @type {Record<string, string>} */
 const DOMAINS = POLICY.modularity.domains
 const ALLOWED = Object.fromEntries(
   Object.entries(POLICY.modularity.allowed).map(([owner, allowed]) => [
@@ -15,6 +16,11 @@ const ALLOWED = Object.fromEntries(
 )
 const failures = []
 
+/**
+ * @param {string} root
+ * @param {string} candidate
+ * @returns {boolean}
+ */
 function isInside(root, candidate) {
   const rel = path.relative(root, candidate)
   return (
@@ -23,6 +29,10 @@ function isInside(root, candidate) {
   )
 }
 
+/**
+ * @param {string} file
+ * @returns {string | undefined}
+ */
 function domainFor(file) {
   const rel = relativePath(ROOT, file)
   return Object.keys(DOMAINS).find((owner) =>
@@ -30,6 +40,10 @@ function domainFor(file) {
   )
 }
 
+/**
+ * @param {string} content
+ * @returns {string[]}
+ */
 function importsOf(content) {
   const patterns = [
     /(?:import|export)\s+(?:[^'";]*?\s+from\s+)?['"]([^'"]+)['"]/g,
@@ -40,6 +54,12 @@ function importsOf(content) {
   )
 }
 
+/**
+ * @param {string} file
+ * @param {string} specifier
+ * @param {string} owner
+ * @returns {string | null}
+ */
 function targetFor(file, specifier, owner) {
   if (specifier.startsWith('.')) {
     const resolved = path.resolve(path.dirname(file), specifier)
@@ -48,7 +68,7 @@ function targetFor(file, specifier, owner) {
         `${relativePath(ROOT, file)}: Owner ${owner} verlässt mit ${specifier} das eigene Package`,
       )
     }
-    const targetOwner = domainFor(resolved)
+    const targetOwner = domainFor(resolved) ?? null
     return targetOwner === owner ? null : targetOwner
   }
 
@@ -72,6 +92,7 @@ function targetFor(file, specifier, owner) {
 const files = collectSourceFiles(
   Object.values(DOMAINS).map((root) => path.join(ROOT, root, 'src')),
 )
+/** @type {Map<string, Set<string>>} */
 const graph = new Map(Object.keys(DOMAINS).map((owner) => [owner, new Set()]))
 for (const file of files) {
   const owner = domainFor(file)
@@ -87,10 +108,15 @@ for (const file of files) {
         `${relativePath(ROOT, file)}: ${specifier} verletzt ${owner}-Grenze zu ${targetOwner}`,
       )
     }
-    graph.get(owner).add(targetOwner)
+    graph.get(owner)?.add(targetOwner)
   }
 }
 
+/**
+ * @param {string} node
+ * @param {string[]} stack
+ * @param {Set<string>} done
+ */
 function visit(node, stack, done) {
   if (stack.includes(node)) {
     failures.push(`Import-Zyklus: ${[...stack, node].join(' → ')}`)

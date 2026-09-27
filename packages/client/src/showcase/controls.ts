@@ -3,11 +3,13 @@ import { actorAtWorld } from '../input/hit-test'
 import { bindPointer, type PointerSample } from '../input/pointer'
 import {
   type CameraState,
+  type CameraWorld,
   panCamera,
   type ScreenPoint,
   screenToWorld,
   zoomCamera,
 } from '../render/camera'
+import { bindCameraKeys } from '../render/camera-keys'
 import type { ActorDescriptor, ActorKind } from '../world'
 
 export interface ControlsDeps {
@@ -25,6 +27,9 @@ export interface ViewportControls {
 
 const CLICK_SLOP = 5
 const GRAB_RADIUS = 12
+
+/** Beide Dungeon-Blicke teilen sich eine Weltgröße. */
+const DUNGEON: CameraWorld = 'dungeon'
 
 /** Vor dem Slop ist noch offen, ob die Geste ein Drag oder ein Pan wird. */
 type GestureMode = 'undecided' | 'drag' | 'pan'
@@ -116,10 +121,17 @@ export function bindViewportControls(deps: ControlsDeps): ViewportControls {
     )
   }
   deps.element.addEventListener('wheel', onWheel)
+  const unbindKeys = bindCameraKeys(
+    deps.element,
+    DUNGEON,
+    deps.camera,
+    deps.setCamera,
+  )
 
   return {
     dispose() {
       unbindPointer()
+      unbindKeys()
       deps.element.removeEventListener('wheel', onWheel)
       drag.cancel()
     },

@@ -45,6 +45,7 @@
 | `timeline/aria` | `Raid-Phasen`, `Ein Tick zurück`, `Tick-Index`, `Wiedergabe fortsetzen`, `Wiedergabe pausieren` |
 | `launcher/aria` | `Aktion`, `Dungeon-Editor`, `Gildenroster`, `Routenbilanz`, `Steuerung` jeweils mit dem Zusatz `als Fenster öffnen` — sichtbarer Text und ARIA-Beschriftung nennen dasselbe Ziel |
 | `window/aria` | Der Fensterkopf ist die Beschriftung (`aria-labelledby` auf die Titelzeile), der Schließen-Knopf heißt `Fenster schließen`, der Tab-Knopf `<Titel> schließen` |
+| `window/fit-height` | Fensterhöhe = Inhalt plus 40 px Kopf, mindestens 120 px, höchstens der Platz von der Oberkante bis zur Falz — der Inhalt scrollt dann im Fenster, der Kopf bleibt sichtbar |
 
 `ui/tabs` ist mit der alten visuellen Schicht entfallen. Das Phasenfenster
 schaltet seit T1.2 nach `village/state.ts`; die alte lokale Tag/Nacht-Notiz ist

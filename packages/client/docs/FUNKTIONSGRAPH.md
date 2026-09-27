@@ -14,12 +14,16 @@ visual (ohne Pixi)
   ├─ route-actors: routeActors(route.path)
   ├─ event-fx: eventFx(event, route.path)
   ├─ fx-seed: fxSeed(event) → stabile, präsentationslokale ID
+  ├─ daylight: daylightLayers / daylightTargets / daylightFadeStarts → Ebenen,
+  │            Ruhezustand und Blendenstart mit Deckkraftsumme 1
   └─ observer: createVisualObserver().observe({grid, route, combat, tick})
 
 render (Pixi)
   ├─ camera: worldToScreen / screenToWorld / fitCamera (einzige Quelle)
   ├─ runtime: createVisualRuntime(host) → Application, Ebenen, Ticker
-  ├─ camera-controls: bindCameraControls(canvas, world, …) (Pan/Zoom)
+  ├─ camera-controls: bindCameraControls(surface, world, …) (Pan/Zoom auf der Host-Fläche)
+  ├─ camera-keys: cameraAfterKey / bindCameraKeys / cameraSurfaceProps (Tastenschritt,
+  │                Richtung aus input/arrows)
   ├─ layer-sprite: addLayerSprite(layer, texture) (Sichtbarkeit, Abbau)
   ├─ canvas: gemeinsame Canvas-/Textur-Helfer
   ├─ atlas: Barrel der Textur-Owner
@@ -40,14 +44,18 @@ render (Pixi)
 input
   ├─ pointer: bindPointer(element, handlers)   (Pointer Events, Maus+Touch)
   ├─ hit-test: cellAtScreen / actorAtWorld     → render/camera
+  ├─ arrows: arrowDirection(key) → {dx, dy}    (eine Tabelle für beide Tastaturpfade)
   ├─ drag: createDragController(...).onDrop(command)  (Kandidat → Slop → Zug)
   └─ drag-target: resolveTarget / passedSlop / advance / dropCommand
 
 window (Preact)
   ├─ store: windows / focusedId Signals, openWindow / close / focus / patch
   ├─ drag: visibleArea / clampHead (Kopf bleibt im Sichtfeld) /
-  │         isHeadControl (Knopfdruck ist kein Zug) / draggedHead
-  └─ window-layer: WindowLayer → GameWindow (Drag, Resize),
+  │         isHeadControl (Knopfdruck ist kein Zug) / draggedHead / capturePointer
+  ├─ keys: boxAfterKey (Pfeiltasten verschieben, Umschalt skaliert; Richtung
+  │         aus input/arrows) / windowKeyProps (tabIndex und onKeyDown des Rahmens)
+  ├─ fit: useWindowFit (Inhaltsblock messen, Höhe patchen)
+  └─ window-layer: WindowLayer → GameWindow (Drag, Resize, Tastatur),
        contentSignature(Inhalt) → contentKey des Inhaltsbereichs
 
 showcase
@@ -58,7 +66,7 @@ ui
   ├─ view: stageView Signal (village | dungeon), showView  (Navigation, keine Phase)
   ├─ shell: reines Layout → topbar + stage
   ├─ topbar → phase-badge + view-switch + Ressourcenstreifen + window-tabs
-  ├─ stage → world-host (Pixi) + window-launcher + window-layer
+  ├─ stage → world-host (Pixi, Tastaturziel der Kamera) + window-launcher + window-layer
   │    └─ world-host → createVisualRuntime (einmalig) → scene-switch
   │         └─ scene-switch → village-view | showcase, je genau eine lebende Szene
   └─ window-launcher → openWindow (phase | editor | team | route | legend)
@@ -90,6 +98,7 @@ raid (besitzt den Lauf; die Timeline liest ihn, rechnet nichts)
 
 ui (Phasenfenster schaltet nach Phase, Bühne nach Blick)
   ├─ shell → topbar + stage, kennt keine Phase
+  ├─ daylight-fade: fadeDaylight(overlay, activeIndex) (Blende der Ebenen)
   ├─ phase-badge: liest dayNight.phase / dayNight.day
   ├─ village-host → village/settlement (Weltbeschriftung, kein Panel)
   ├─ TagPhasePanel → startNight → phase night

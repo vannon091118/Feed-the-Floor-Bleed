@@ -14,8 +14,13 @@ import { POLICY } from './shinon/policy.mjs'
 
 const CAPS = POLICY.locCaps
 
+/**
+ * @param {string} file
+ * @returns {{ prefix: string, cap: number, owner: string } | null}
+ */
 function capFor(file) {
   // längster Prefix gewinnt
+  /** @type {{ prefix: string, cap: number, owner: string } | null} */
   let best = null
   for (const c of CAPS) {
     if (file === c.prefix || file.startsWith(`${c.prefix}/`)) {

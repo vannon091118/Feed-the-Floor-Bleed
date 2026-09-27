@@ -32,6 +32,18 @@
     "directory": "./packages/client/dist",
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*"]
+  },
+
+  // Logs des Workers werden aufgezeichnet statt nur im Live-Stream zu laufen.
+  // Der Worker ist der einzige Ort, an dem ein Fehler ohne Client entsteht:
+  // ein 5xx aus `/api/sync/*` ist im Browser nicht sichtbar. Ohne persistente
+  // Logs waere er nur zu sehen, wenn gerade jemand im Dashboard zuschaut.
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true,
+      "persist": true
+    }
   }
 
   // Die D1-Bindung fuer die Sync-Checkpoints ist bewusst noch nicht

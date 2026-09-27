@@ -34,11 +34,23 @@ export const NO_INCIDENT = 'none'
 const PROMOTE_JOB = 'Promote nach main'
 
 /**
+ * @typedef {object} WorkflowRun Lauf-Objekt aus der Actions-API.
+ * @property {string} head_sha
+ * @property {string} html_url
+ * @property {string} [head_branch]
+ * @property {string} [event]
+ * @property {string} [conclusion]
+ * @property {{ full_name?: string }} [repository]
+ */
+/** @typedef {{ name: string, conclusion?: string }} WorkflowJob */
+/** @typedef {{ report: boolean, kind: string, reason: string }} WatchdogDecision */
+
+/**
  * Entscheidet, ob der Lauf gemeldet wird.
  *
- * @param {object} run Lauf-Objekt aus der Actions-API.
- * @param {Array<{name: string, conclusion: string}>} jobs Jobs des Laufs.
- * @returns {{report: boolean, kind: string, reason: string}}
+ * @param {WorkflowRun} run Lauf-Objekt aus der Actions-API.
+ * @param {WorkflowJob[]} [jobs] Jobs des Laufs.
+ * @returns {WatchdogDecision}
  */
 export function classify(run, jobs = []) {
   const { event, head_branch: branch, conclusion } = run
@@ -91,6 +103,11 @@ export function classify(run, jobs = []) {
 /**
  * Titel, Label und Fließtext für den Vorfall. Beide Texte sind statisch, damit
  * ein Issue nicht von einem fehlgeschlagenen Aufruf abhängt.
+ */
+/**
+ * @param {WorkflowRun} run
+ * @param {WatchdogDecision} decision
+ * @returns {{ label: string, headline: string, title: string, body: string }}
  */
 export function renderIssue(run, decision) {
   const short = run.head_sha.slice(0, 7)
@@ -156,7 +173,11 @@ und schliesse den Issue — nicht einfach schliessen.`,
   throw new Error(`Kein Vorfall-Text für kind=${decision.kind}`)
 }
 
-/** Schreibt den Befund als Dateien, damit mehrzeilige Texte ohne Escaping durchgehen. */
+/**
+ * Schreibt den Befund als Dateien, damit mehrzeilige Texte ohne Escaping durchgehen.
+ * @param {string} dir
+ * @param {Record<string, string>} payload
+ */
 function writeReport(dir, payload) {
   fs.mkdirSync(dir, { recursive: true })
   for (const [key, value] of Object.entries(payload)) {
@@ -164,6 +185,7 @@ function writeReport(dir, payload) {
   }
 }
 
+/** @param {string[]} argv */
 function main(argv) {
   const outIndex = argv.indexOf('--out')
   const out = outIndex === -1 ? null : argv[outIndex + 1]

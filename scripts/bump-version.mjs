@@ -19,6 +19,8 @@ import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 
+/** @typedef {{ major: number, minor: number, patch: number }} Version */
+
 const ROOT = process.cwd()
 const VERSION_FILE = path.join(ROOT, 'VERSION')
 const BASE_REF = 'origin/main'
@@ -32,12 +34,20 @@ const PACKAGE_FILES = [
   path.join(ROOT, 'packages/server/package.json'),
 ]
 
+/**
+ * @param {string} v
+ * @returns {Version}
+ */
 function parse(v) {
   const m = v.trim().match(/^(\d+)\.(\d+)\.(\d+)$/)
   if (!m) throw new Error(`Ungültige Version "${v}" — erwartet X.Y.Z`)
   return { major: Number(m[1]), minor: Number(m[2]), patch: Number(m[3]) }
 }
 
+/**
+ * @param {Version} current
+ * @returns {Version}
+ */
 function bump({ major, minor, patch }) {
   patch += 1
   if (patch > 99) {
@@ -51,10 +61,20 @@ function bump({ major, minor, patch }) {
   return { major, minor, patch }
 }
 
+/**
+ * @param {Version} v
+ * @returns {string}
+ */
 function fmt({ major, minor, patch }) {
   return `${major}.${minor}.${patch}`
 }
 
+/**
+ * @param {string} content
+ * @param {string} version
+ * @param {string} file
+ * @returns {string}
+ */
 function replaceVersion(content, version, file) {
   const pattern = /("version"\s*:\s*")[^"]+(")/
   if (!pattern.test(content))
@@ -62,7 +82,11 @@ function replaceVersion(content, version, file) {
   return content.replace(pattern, `$1${version}$2`)
 }
 
-/** Ein git-Aufruf. Scheitert er oder gibt es die Ref nicht, ist das `null`. */
+/**
+ * Ein git-Aufruf. Scheitert er oder gibt es die Ref nicht, ist das `null`.
+ * @param {string[]} args
+ * @returns {string | null}
+ */
 function git(args) {
   try {
     return execFileSync('git', args, {
@@ -80,6 +104,10 @@ function git(args) {
  * unterschiedlichen lokalen Ständen zählen; ohne Netz fällt der Zähler auf
  * den lokalen main-Zweig zurück und sagt das vorher.
  */
+/**
+ * @param {string | null} explicitRef
+ * @returns {{ ref: string, version: string } | null}
+ */
 function authorityBase(explicitRef) {
   for (const ref of explicitRef ? [explicitRef] : [BASE_REF, FALLBACK_REF]) {
     const version = git(['show', `${ref}:VERSION`])
@@ -95,7 +123,12 @@ function authorityBase(explicitRef) {
  * darf deshalb nicht fünfzig Prozesse kosten: `git cat-file --batch` liest
  * alle Inhalte in einem Durchgang.
  */
+/**
+ * @param {string} ref
+ * @returns {Set<string>}
+ */
 function usedVersions(ref) {
+  /** @type {Set<string>} */
   const used = new Set()
   const shas = git([
     'log',
@@ -136,11 +169,16 @@ function usedVersions(ref) {
   return used
 }
 
+/** @returns {string} */
 function readLocal() {
   return fmt(parse(fs.readFileSync(VERSION_FILE, 'utf8')))
 }
 
-/** Schreibt den neuen Stand in VERSION und alle Manifeste, mit Rückfall. */
+/**
+ * Schreibt den neuen Stand in VERSION und alle Manifeste, mit Rückfall.
+ * @param {string} next
+ * @param {string} previous
+ */
 function write(next, previous) {
   const toUpdate = []
   for (const pf of PACKAGE_FILES) {
@@ -150,8 +188,9 @@ function write(next, previous) {
     try {
       pkg = JSON.parse(content)
     } catch (e) {
+      const detail = e instanceof Error ? e.message : String(e)
       throw new Error(
-        `Ungültiges JSON in ${path.relative(ROOT, pf)}: ${e.message}`,
+        `Ungültiges JSON in ${path.relative(ROOT, pf)}: ${detail}`,
       )
     }
     if (pkg.version !== next) toUpdate.push({ pf, content })
@@ -215,6 +254,7 @@ function main() {
 try {
   main()
 } catch (e) {
-  console.error(`💥 bump-version Fail — ${e.message}`)
+  const detail = e instanceof Error ? e.message : String(e)
+  console.error(`💥 bump-version Fail — ${detail}`)
   process.exit(1)
 }

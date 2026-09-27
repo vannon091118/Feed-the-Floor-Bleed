@@ -10,12 +10,18 @@ const migration = readFileSync(
   'utf8',
 )
 
+/** @returns {import('node:sqlite').DatabaseSync} */
 function database() {
   const db = new DatabaseSync(':memory:')
   db.exec(migration)
   return db
 }
 
+/**
+ * @param {import('node:sqlite').DatabaseSync} db
+ * @param {string} [id]
+ * @param {string | null} [requestKey]
+ */
 function insertSnapshot(db, id = 'snapshot-1', requestKey = id) {
   db.prepare(
     'INSERT INTO raid_snapshots (id, request_key, sim_version, payload_json, created_at) VALUES (?, ?, ?, ?, ?)',
@@ -71,7 +77,7 @@ describe('D1-Raid-Migration', () => {
     expect(
       db
         .prepare('SELECT target_snapshot_id FROM raid_jobs WHERE id = ?')
-        .get('job-1').target_snapshot_id,
+        .get('job-1')?.target_snapshot_id,
     ).toBeNull()
     db.prepare('UPDATE raid_jobs SET target_snapshot_id = ? WHERE id = ?').run(
       'target-1',

@@ -4,15 +4,22 @@ import { unloadRaidLog } from '../src/raid/combat-source'
 import { TimelineTransport } from '../src/raid/timeline'
 import { BuildingPanel } from '../src/ui/panels'
 import { phaseWindowContent } from '../src/ui/phase-windows'
+import windowsCss from '../src/ui/styles/windows.css?raw'
 import { windowContent } from '../src/ui/window-content'
 import { startNight, triggerRaid } from '../src/village/phase-actions'
 import { dayNight, resetDayNight } from '../src/village/state'
 import {
   clampHead,
   draggedHead,
+  fittedHeight,
+  geometryIsUserOwned,
   HEAD_HEIGHT,
   isHeadControl,
+  SHEET_MAX_WIDTH,
+  sheetOwnsLayout,
+  type VisibleArea,
 } from '../src/window/drag'
+import { boxAfterKey, MOVE_STEP } from '../src/window/keys'
 import {
   closeWindow,
   openWindow,
@@ -32,9 +39,11 @@ function textContent(node: ComponentChildren): string {
   if (Array.isArray(node)) return node.map(textContent).join(' ')
   if (node && typeof node === 'object' && 'props' in node) {
     const vnode = node as VNode<{ children?: ComponentChildren }>
-    // Panels sind zustandsfrei; sie lassen sich hier direkt aufrufen.
-    if (typeof vnode.type === 'function')
-      return textContent(vnode.type(vnode.props as never))
+    // Panels sind zustandsfrei; sie lassen sich hier direkt aufrufen. Der Cast
+    // nimmt die Klassenkomponente aus `ComponentType`, die nicht aufrufbar ist.
+    const render = vnode.type as (props: never) => ComponentChildren
+    if (typeof render === 'function')
+      return textContent(render(vnode.props as never))
     return textContent(vnode.props.children)
   }
   return ''
@@ -130,6 +139,19 @@ describe('Fensterkopf-Klemmung', () => {
     expect(clampHead({ x: 200, y: 100, width: 1600 }, AREA).x).toBe(0)
   })
 
+  it('passt die Fensterhöhe an langen Inhalt an und hält den Kopf bedienbar', () => {
+    // Die Raid-Timeline ist mit über 3000 px länger als jeder Viewport:
+    // Der Fit begrenzt sie auf die Fläche, der Inhalt scrollt, der Kopf bleibt.
+    expect(fittedHeight(3100, { width: 1440, height: 900 })).toBe(900)
+    expect(fittedHeight(600, { width: 1440, height: 900 })).toBe(
+      600 + HEAD_HEIGHT,
+    )
+    // Ein Fenster unterhalb des oberen Randes endet an der Falz, nicht darunter.
+    expect(fittedHeight(3100, { width: 1440, height: 900 }, 82)).toBe(818)
+    // Kurzer Inhalt läuft nicht unter die Mindesthöhe des Resize-Griffs.
+    expect(fittedHeight(0, { width: 1440, height: 900 })).toBe(120)
+  })
+
   it('rechnet den Zugweg eines Zeigers ohne DOM-Zugriff nach', () => {
     const ereignis = {
       clientX: 300,
@@ -157,8 +179,65 @@ describe('Fensterkopf-Klemmung', () => {
     // Ohne diese Grenze nimmt der Zeiger-Capture der Leiste den Klick mit.
     const knopf = { closest: (sel: string) => (sel === 'button' ? {} : null) }
     const titel = { closest: () => null }
-    expect(isHeadControl(knopf)).toBe(true)
-    expect(isHeadControl(titel)).toBe(false)
+    expect(isHeadControl(knopf as unknown as EventTarget)).toBe(true)
+    expect(isHeadControl(titel as unknown as EventTarget)).toBe(false)
     expect(isHeadControl(null)).toBe(false)
+  })
+})
+
+/**
+ * Unterhalb von 721 px ist ein Fenster eine Schublade: `windows.css` pinnt
+ * `left`, `top` und `width` mit `!important` an die untere Kante. Dort ist die
+ * Anordnung die Autorität über die Geometrie; bewegte der Store sie trotzdem,
+ * zeigte das Bild etwas anderes als der Store, und auf schmalen Anzeigen passierte
+ * sichtbar nichts. Deshalb beginnt in der Schublade weder eine Geste noch ein
+ * Tastenschritt — und auch kein Griff- oder Skalierzeiger.
+ */
+describe('Schubladenanordnung', () => {
+  const SCHMAL: VisibleArea = { width: 644, height: 651 }
+  const BREIT: VisibleArea = { width: 721, height: 900 }
+  const fenster = {
+    id: 'phase',
+    title: 'Aktion',
+    x: 36,
+    y: 82,
+    width: 330,
+    height: 247,
+    z: 10,
+  }
+
+  it('nennt dieselbe Grenze wie das Stylesheet', () => {
+    const schmal = windowsCss.slice(
+      windowsCss.indexOf(`@media (max-width: ${SHEET_MAX_WIDTH}px)`),
+    )
+    expect(schmal).not.toBe('')
+    expect(schmal).toContain('cursor: default')
+    expect(schmal).toMatch(/\.game-window__resize\s*\{[^}]*display: none/)
+  })
+
+  it('kennt die Grenze und lässt dort keinen Tastenschritt zu', () => {
+    expect(sheetOwnsLayout(SCHMAL)).toBe(true)
+    expect(sheetOwnsLayout(BREIT)).toBe(false)
+    for (const key of ['ArrowRight', 'ArrowDown'])
+      expect(boxAfterKey(fenster, key, false, SCHMAL)).toBeNull()
+    expect(boxAfterKey(fenster, 'ArrowRight', true, SCHMAL)).toBeNull()
+    // Dieselbe Taste oberhalb der Grenze: ein Schritt wie bisher.
+    expect(boxAfterKey(fenster, 'ArrowRight', false, BREIT)).toEqual({
+      x: fenster.x + MOVE_STEP,
+      y: fenster.y,
+    })
+  })
+
+  it('beginnt keine Zeigergeste, wenn die Anordnung führt', () => {
+    const ereignis = (width: number): Event =>
+      ({
+        currentTarget: {
+          ownerDocument: {
+            documentElement: { clientWidth: width, clientHeight: 900 },
+          },
+        },
+      }) as unknown as Event
+    expect(geometryIsUserOwned(ereignis(SCHMAL.width))).toBe(false)
+    expect(geometryIsUserOwned(ereignis(BREIT.width))).toBe(true)
   })
 })

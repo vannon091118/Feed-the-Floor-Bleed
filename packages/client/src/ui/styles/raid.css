@@ -65,12 +65,12 @@
   color: var(--text);
   background: rgba(229, 180, 92, 0.14);
 }
-/* Am Oberkant des Fensterinhalts klebend: die Steuerung bleibt bedienbar,
-   egal wie weit die Trail-Liste unten gescrollt ist. Die negativen Ränder
-   überbrücken das Padding des Fensterinhalts, damit der Balken randlos sitzt. */
+/* Am Oberrand des Fensterinhalts klebend: die Steuerung bleibt bedienbar,
+   egal wie weit die Trail-Liste unten gescrollt ist. Das Padding trägt der
+   Inhaltsblock, deshalb klebt der Balken bei 0 statt negativ. */
 .timeline-scrubber {
   position: sticky;
-  top: calc(-1 * var(--space-3));
+  top: 0;
   z-index: 1;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;

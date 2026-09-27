@@ -72,6 +72,14 @@ export const policySchema = z
   })
   .strict()
 
+/** @typedef {import('zod').infer<typeof policySchema>} Policy */
+/** @typedef {{ ok: true, policy: Policy } | { ok: false, errors: string[] }} PolicyResult */
+
+/**
+ * Prüft eine rohe Policy gegen das strikte Schema.
+ * @param {unknown} input
+ * @returns {PolicyResult}
+ */
 export function parsePolicy(input) {
   const result = policySchema.safeParse(input)
   if (result.success) {

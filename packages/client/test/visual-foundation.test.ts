@@ -13,7 +13,7 @@ import {
 } from '../src/render/camera'
 import { depthValue } from '../src/render/depth'
 import { createVisualObserver } from '../src/visual'
-import { combatFrame, routeActors } from '../src/visual/combat-frame'
+import { routeActors } from '../src/visual/combat-frame'
 import { fxSeed } from '../src/visual/fx-seed'
 import { routePointAt } from '../src/visual/route-index'
 import { actorVariant } from '../src/visual/variant'

@@ -12,6 +12,10 @@ const ROOT = process.cwd()
 const SEP = '\u001e'
 const REC = '\u001d'
 
+/**
+ * @param {string} cmd
+ * @returns {string}
+ */
 function run(cmd) {
   return execSync(cmd, {
     encoding: 'utf8',
@@ -30,6 +34,11 @@ function run(cmd) {
  * und ein reines Body-Gate fälschlich rot machen würde. Geprüft werden deshalb
  * die Inhalts-Commits; der Merge selbst steht über seine Eltern im Bereich.
  */
+/**
+ * @param {string | null} from
+ * @param {string} to
+ * @returns {{ sha: string, message: string }[]}
+ */
 function commitsBetween(from, to) {
   const range = from ? `${from}..${to}` : to
   const fmt = ['%H', '%B'].join(REC) + SEP
@@ -44,6 +53,10 @@ function commitsBetween(from, to) {
     })
 }
 
+/**
+ * @param {string} sha
+ * @returns {string[]}
+ */
 function filesOf(sha) {
   const out = run(`git show --name-only --format="" ${sha}`)
   return out
@@ -53,6 +66,11 @@ function filesOf(sha) {
     .filter((f) => !f.startsWith(REC))
 }
 
+/**
+ * @param {string | null} from
+ * @param {string} to
+ * @returns {number}
+ */
 function mergeCount(from, to) {
   const range = from ? `${from}..${to}` : to
   try {
@@ -100,13 +118,18 @@ function resolveRange() {
   }
 }
 
+/**
+ * @param {string} msg
+ * @returns {never}
+ */
 function die(msg) {
   console.error(`💥 commit-integrity — ${msg}`)
   process.exit(1)
 }
 
 const { from, to } = resolveRange()
-let commits
+/** @type {{ sha: string, message: string }[]} */
+let commits = []
 try {
   commits = commitsBetween(from, to)
 } catch {

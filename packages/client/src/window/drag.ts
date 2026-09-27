@@ -14,6 +14,9 @@ export interface DragOrigin {
   pointerY: number
 }
 
+/** Ausgangsgröße eines Skalierzugs: die Fensterbox plus der Zeigerstand. */
+export type ResizeOrigin = DragOrigin & { width: number; height: number }
+
 export interface HeadBox {
   x: number
   y: number
@@ -41,6 +44,23 @@ export interface VisibleArea {
 export const HEAD_HEIGHT = 40
 
 /**
+ * Kleinstmögliche Fensterhöhe, nach unten wie beim Resize-Griff.
+ *
+ * `window.tsx` klemmt den Resize auf 120; der Fit darf nicht darunter liegen,
+ * sonst würde das Anpassen an einen kurzen Inhalt das Fenster schrumpfen lassen,
+ * wo der Griff es nicht schrumpfen lässt.
+ */
+export const MIN_WINDOW_HEIGHT = 120
+
+/**
+ * Kleinste Fensterbreite, nach unten wie beim Resize-Griff.
+ *
+ * Der Tastaturschritt in `keys.ts` klemmt mit demselben Wert; er steht hier,
+ * weil `resizedBox` ihn schon führt.
+ */
+export const MIN_WINDOW_WIDTH = 180
+
+/**
  * Sichtbare Fläche des Fenstersystems.
  *
  * Die App ist viewportgroß (`height: 100dvh`, `body` ohne Scroll), deshalb
@@ -49,6 +69,37 @@ export const HEAD_HEIGHT = 40
 export function visibleArea(source: EventTarget | null): VisibleArea {
   const doc = (source as Element | null)?.ownerDocument?.documentElement
   return { width: doc?.clientWidth ?? 0, height: doc?.clientHeight ?? 0 }
+}
+
+/**
+ * Breite, bis zu der ein Fenster eine Schublade ist.
+ *
+ * Darunter pinnt `windows.css` `left`, `top` und `width` mit `!important` an die
+ * untere Kante: die Karte soll auf schmalen Anzeigen bedienbar bleiben, statt als
+ * freie Fläche über den Rand zu laufen. Diese Anordnung ist dort die alleinige
+ * Autorität über die Geometrie — Bewegung und Größe gehören dann nicht dem
+ * Nutzer. Ohne diese Grenze schriebe die Tastatur weiter in den Store, während
+ * das Bild stünde, und beides liefe still auseinander.
+ *
+ * Die Zahl steht auch in `windows.css` an der Medienabfrage — CSS liest keine
+ * TypeScript-Konstanten; der Test vergleicht beide Seiten.
+ */
+export const SHEET_MAX_WIDTH = 720
+
+/** Führt die Schubladenanordnung die Geometrie, statt sie dem Nutzer zu lassen? */
+export function sheetOwnsLayout(area: VisibleArea): boolean {
+  return area.width <= SHEET_MAX_WIDTH
+}
+
+/**
+ * Darf der Nutzer dieses Fenster gerade bewegen und skalieren?
+ *
+ * Zeiger und Tastatur fragen dieselbe Grenze ab: in der Schublade beginnt keine
+ * Geste und kein Tastenschritt, damit der Store nicht von dem abweicht, was zu
+ * sehen ist.
+ */
+export function geometryIsUserOwned(event: Event): boolean {
+  return !sheetOwnsLayout(visibleArea(event.currentTarget))
 }
 
 /**
@@ -82,6 +133,17 @@ export function isHeadControl(target: EventTarget | null): boolean {
   return Boolean((target as Element | null)?.closest?.('button'))
 }
 
+/**
+ * Nimmt den Zeiger für die Dauer einer Geste an.
+ *
+ * Ohne die Annahme reißt die Bewegung ab, sobald der Zeiger die Leiste schnell
+ * verlässt; die Folgeereignisse gingen dann an das Element darunter.
+ */
+export function capturePointer(event: PointerEvent): void {
+  const target = event.currentTarget as HTMLElement | null
+  target?.setPointerCapture?.(event.pointerId)
+}
+
 /** Position, die der Zeiger für dieses Fenster anstrebte. */
 export function draggedHead(
   event: PointerEvent,
@@ -96,4 +158,45 @@ export function draggedHead(
     },
     visibleArea(event.currentTarget),
   )
+}
+
+/**
+ * Höhe, die ein Fenster braucht, um seinen Inhalt ganz zu zeigen.
+ *
+ * Rein rechnend: Kopf plus Inhaltsfläche, geklemmt auf die Mindesthöhe des
+ * Resize-Griffs und den Platz zwischen `top` und der Falz. `top` ist die
+ * Fensteroberkante; ohne sie wüchse ein Fenster unterhalb des oberen Randes
+ * über die Falz hinaus und der untere Teil wäre nicht mehr im Sichtfeld —
+ * dann scrollt der Inhalt lieber im Fenster. Der Falz bleibt die Grenze, der
+ * Kopf liegt nie unter ihr.
+ */
+export function fittedHeight(
+  contentHeight: number,
+  area: VisibleArea,
+  top = 0,
+): number {
+  const wanted = Math.max(0, contentHeight) + HEAD_HEIGHT
+  return Math.max(MIN_WINDOW_HEIGHT, Math.min(wanted, area.height - top))
+}
+
+/**
+ * Größe, die der Resize-Griff aus einem Zeigerstand macht.
+ *
+ * Denselben Klemmen wie der Fit: der Griff darf nicht unter die Mindesthöhe,
+ * die Breite nicht unter die Mindestbreite des Rumpfs.
+ */
+export function resizedBox(
+  origin: DragOrigin & { width: number; height: number },
+  event: PointerEvent,
+): { width: number; height: number } {
+  return {
+    width: Math.max(
+      MIN_WINDOW_WIDTH,
+      origin.width + event.clientX - origin.pointerX,
+    ),
+    height: Math.max(
+      MIN_WINDOW_HEIGHT,
+      origin.height + event.clientY - origin.pointerY,
+    ),
+  }
 }

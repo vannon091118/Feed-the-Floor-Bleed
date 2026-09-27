@@ -1,7 +1,9 @@
 import { route } from '../dungeon-editor/state'
 import { fixture } from '../fixture-data'
+import { CAMERA_KEY_HINT } from '../render/camera-keys'
 import { VILLAGE_BUILDINGS } from '../render/village-layout'
 import { villageOutlook } from '../village'
+import { WINDOW_KEY_HINT } from '../window/keys'
 import { buildingLabel } from './building-label'
 import { RosterList } from './roster-list'
 import { Stats } from './stats'
@@ -13,6 +15,9 @@ function finite(value: number): string {
 const LEGEND: readonly string[] = [
   'Ziehen auf freier Fläche: Kamera schwenken',
   'Mausrad: Zoom',
+  CAMERA_KEY_HINT,
+  'Tabulator: von Bedienelement zu Bedienelement, Fensterrahmen inklusive',
+  WINDOW_KEY_HINT,
   'Klick auf eine Kreatur: Kontextfenster',
   'Kreatur ziehen: Drop-Command, keine eigene Spielregel',
   'Editor rastert DOM, die laufende Welt rastert Pixi',

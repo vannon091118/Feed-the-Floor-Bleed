@@ -4,6 +4,7 @@ import {
   panCamera,
   zoomCamera,
 } from './camera'
+import { bindCameraKeys } from './camera-keys'
 
 interface Point {
   x: number
@@ -12,9 +13,15 @@ interface Point {
 
 const PAN_SLOP = 4
 
-/** Weltkamera-Steuerung; DOM-Overlays bleiben scrollbar und Fenster draggable. */
+/**
+ * Weltkamera-Steuerung; DOM-Overlays bleiben scrollbar und Fenster draggable.
+ *
+ * Zeiger und Tastatur liegen auf derselben Fläche: der Canvas füllt sie, und
+ * eine Taste braucht ohnehin ein fokussierbares Element. Ein Zug auf einem
+ * Fenster erreicht die Fläche nicht, weil die Fensterschicht darüber liegt.
+ */
 export function bindCameraControls(
-  canvas: HTMLCanvasElement,
+  surface: HTMLElement,
   world: CameraWorld,
   getCamera: () => CameraState,
   setCamera: (camera: CameraState) => void,
@@ -46,16 +53,18 @@ export function bindCameraControls(
     setCamera(zoomCamera(getCamera(), event.deltaY < 0 ? 1.1 : 0.9, world))
   }
 
-  canvas.addEventListener('pointerdown', down)
-  canvas.addEventListener('pointermove', move)
-  canvas.addEventListener('pointerup', up)
-  canvas.addEventListener('pointercancel', up)
-  canvas.addEventListener('wheel', wheel, { passive: false })
+  surface.addEventListener('pointerdown', down)
+  surface.addEventListener('pointermove', move)
+  surface.addEventListener('pointerup', up)
+  surface.addEventListener('pointercancel', up)
+  surface.addEventListener('wheel', wheel, { passive: false })
+  const unbindKeys = bindCameraKeys(surface, world, getCamera, setCamera)
   return () => {
-    canvas.removeEventListener('pointerdown', down)
-    canvas.removeEventListener('pointermove', move)
-    canvas.removeEventListener('pointerup', up)
-    canvas.removeEventListener('pointercancel', up)
-    canvas.removeEventListener('wheel', wheel)
+    unbindKeys()
+    surface.removeEventListener('pointerdown', down)
+    surface.removeEventListener('pointermove', move)
+    surface.removeEventListener('pointerup', up)
+    surface.removeEventListener('pointercancel', up)
+    surface.removeEventListener('wheel', wheel)
   }
 }

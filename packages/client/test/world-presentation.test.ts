@@ -1,4 +1,4 @@
-import { Texture } from 'pixi.js'
+import { type FederatedPointerEvent, Texture } from 'pixi.js'
 import { describe, expect, it } from 'vitest'
 import {
   clampCamera,
@@ -34,7 +34,8 @@ describe('Lebendige Dorfpräsentation', () => {
 
     expect(buildings).toHaveLength(VILLAGE_BUILDINGS.length)
     for (const building of buildings) {
-      building.emit('pointertap')
+      // Pixi verlangt für `pointertap` ein Ereignisobjekt; die Szene liest es nicht.
+      building.emit('pointertap', {} as FederatedPointerEvent)
     }
     expect(clicked).toEqual(VILLAGE_BUILDINGS.map(({ id }) => id))
     scene.container.destroy({ children: true })

@@ -37,6 +37,7 @@ export function WindowLauncher({ view }: { view: StageView }) {
         title={`${title} als Fenster öffnen`}
         aria-label={`${title} als Fenster öffnen`}
         onClick={() =>
+          // 260 ist nur die Öffnungsgröße: window/fit.ts misst danach nach.
           openWindow({
             id: 'phase',
             title,

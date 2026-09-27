@@ -1,5 +1,115 @@
 # packages/client/docs/CHANGELOG.md
 
+## 2026-09-28 — Die Pfeiltasten-Abbildung bekommt einen Eigentümer
+
+**Der Befund.** `window/keys.ts` und `render/camera-keys.ts` bildeten dieselbe Sache zweimal ab — Pfeiltaste zu Richtung, je vier Ternäre und eigene Schrittkonstanten, rund ein Dutzend Zeilen —, und die beiden Kopien hätten auseinanderlaufen können, ohne dass ein Gate etwas merkte. Zugleich behauptete `keys.ts` für `boxAfterKey` „rein rechnend“, während `windowKeyProps` als einzige Stelle das DOM liest; die Grenze, dass ein Tastenanschlag aus dem Fensterinhalt dem Inhalt gehört, stand in keiner Prüfung. `input/arrows.ts` hält die Abbildung jetzt allein (`arrowDirection`, rein rechnend, ohne DOM, Richtung als `{dx, dy}`); die Schrittweite bleibt bei den Aufrufern, weil sie sich unterscheidet — 16 px im Fenster, 48 px in der Weltansicht. Das Verhalten ist unverändert, es gibt keine neue Taste.
+
+**Die Zusagen, gepinnt.** `test/keyboard-access.test.ts` prüft die vier Richtungen und die Ruhe bei jeder anderen Taste; die Datei ist dafür geteilt, weil sie den globalen Datei-Cap riss — die Verdrahtung liegt in `test/keyboard-wiring.test.ts`. Dort fährt ein gestelltes `keydown` die echten Handler: am Rahmen verschiebt es das Fenster um 16 px, holt es nach vorn und ruft `preventDefault`; dasselbe Ereignis mit einem Ziel aus dem Rumpf lässt es stehen und ruft `preventDefault` nicht; in der Schubladenanordnung bewegt dieselbe Taste nichts. Ein Browser-Nachweis wurde für diesen Slice nicht wiederholt: die Tastenwege selbst trägt der T2.1-Eintrag, geändert hat sich nur, wer die Richtung liefert.
+
+## 2026-09-28 — In der Schublade führt die Anordnung die Fenstergeometrie
+
+**Der Befund.** Unterhalb von 721 px pinnt `windows.css` `left`, `top` und `width` mit `!important` an die untere Kante — auf schmalen Anzeigen ist ein Fenster eine Schublade statt einer freien Karte. Tastatur und Zeiger schrieben trotzdem weiter in den Fenster-Store: gemessen wanderte er bei 644 px von 36 auf 52 und 68, während das Bild bei 10/342 mit 624 px Breite stehen blieb. Store und sichtbarer Zustand liefen still auseinander, und keine Doku nannte die Grenze.
+
+**Die Entscheidung: die Anordnung ist dort die Autorität.** Den Weg „Bewegung funktioniert auch in der Schublade“ hätte nur die Layout-Regel geräumt — dann läge eine 330 px breite Karte frei auf einem 360-px-Display statt an der unteren Kante, und die Anzeige verlöre genau die Affordanz, für die sie da ist. `window/drag.ts` führt deshalb die Grenze selbst (`SHEET_MAX_WIDTH`, `sheetOwnsLayout`): In der Schublade gibt es keinen Tastenschritt (`boxAfterKey` gibt `null` zurück) und keine beginnende Zeigergeste (`geometryIsUserOwned`), und der Store kann gar nicht erst abweichen. Damit die Grenze nicht nur im Verhalten steht, sind Griff- und Skalierzeiger dort ebenfalls weg (`cursor: default`, Resize-Griff `display: none`).
+
+**Der Test.** `test/window-routing.test.ts` pinnt beides: `sheetOwnsLayout` an der Grenze (644 führt die Anordnung, 721 nicht), `boxAfterKey` ohne Schritt darunter und mit Schritt darüber, `geometryIsUserOwned` für beide Breiten — und dass `windows.css` dieselbe Medienabfrage und dieselben zwei stillgelegten Affordanzen trägt.
+
+**Im Browser.** Bei 644 px, echte Tasten und ein Zeigerzug auf der Leiste: Store `left: 20px; top: 82px` **unverändert**, Bild unverändert bei `10,342 624×247`, Leiste `cursor: default`, Griff `display: none`. Zurück bei 1280 px: dieselbe Pfeiltaste schiebt den Store von 20 auf 36, und das Bild folgt exakt (`36,82 330×265`, Breite 330 = Store); ein Zug von +60/+50 landet bei `96,132` in Store und Bild zugleich, Leiste wieder `cursor: grab`. Store und Bild stimmen in beiden Breiten überein.
+
+**Gates:** typecheck 0, 261 Tests in 41 Dateien, Lint 0, LOC-Caps ok, Hygiene ok, Shinon PASS, Client-Build und Worker-Dry-Run ok.
+
+## 2026-09-28 — Die Blende übersteht auch den nächsten Phasenwechsel
+
+**Der Befund.** Läuft eine Blende noch und kommt der nächste Phasenwechsel, kehrte der Browser die laufende Blende um und kürzte sie: Die Summe der Deckkräfte fiel gemessen auf **0,487** (19 Stichproben unter 0,97 über rund 0,3 s), der Tagesüberzug verlor sichtbar die halbe Tönung. Der Eintrag darunter beschrieb die Summe 1 deshalb nur für den isolierten Wechsel.
+
+**Die Entscheidung.** Die Startwerte rechnet jetzt der Visual-Owner: `daylightFadeStarts` lässt die ausgehenden Ebenen auf ihrem Ist-Wert starten und die neue auf dem Komplement — im Ruhezustand sind das 0, aus einer halb gelaufenen Blende etwa 0,5. `ui/daylight-fade.ts` fährt die Blende ein: erst `transition: none` samt Ist-Wert, dann ein erzwungener Stilwechsel, dann die Ziele über den Übergang aus `shell.css`. Ohne den Zwischenschritt kehrt der Browser die laufende Blende um; mit ihm setzt jede Ebene von ihrem Ist-Wert neu an. Die Blende gehört damit dem Applier, nicht dem Renderlauf: Preact hält nur Tönung und Reihenfolge der Ebenen und überschreibt nichts, was gerade läuft.
+
+**Der Test.** `test/daylight.test.ts` pinnt die Rechnung statt der Verdrahtung: Ruhezustand (genau eine Ebene auf 1, Summe 1), Startwerte aus dem Ruhezustand (`[1,0,0,0]`) und aus einer halb gelaufenen Blende (`[0,2,0,3,0,5,0]`), die Summe an fünf Stützstellen über den ganzen Verlauf einer unterbrochenen Blende und die Deckelung von Ausreißern. Dazu weiter Ebenen, Namen und `transition: opacity` mit der Zahl aus `DAYLIGHT_FADE_MS`.
+
+**Im Browser.** Einzeldatei-Produktionsbuild, echte Klicks, Stichproben alle 25–30 ms auf allen vier Ebenen. Isolierter Wechsel Tag → Nacht: 45 Stichproben, Summe **1,000** in jeder, zwei laufende Übergänge (`opacity`, 900 ms). Unterbrochener Wechsel („Nacht vorbereiten“, 300 ms später „Raid auslösen“): 62 Stichproben, kein Wert unter **0,999**, größte Abweichung 0,001 (die Stichprobe rundet auf drei Stellen) — an derselben Stelle standen vorher 0,487. Dauerfeuer, so schnell die Oberfläche es zulässt: 114 Klicks, 29 Schleifendurchläufe von Tag 18 auf Tag 47, 236 Stichproben, kleinster Wert **1,000**, größte Abweichung **0,000**. Die Schleife läuft dabei vollständig durch (Tag 47 → Nacht → Raid mit Timeline → Ergebnis → Tag 48), ein `<canvas>`, keine Konsolenmeldung.
+
+**Gates:** typecheck 0, 258 Tests in 41 Dateien, Lint 0, LOC-Caps ok (228 Quelldateien), Hygiene ok, Shinon PASS, Client-Build und Worker-Dry-Run ok.
+
+## 2026-09-28 — Der Tageswechsel ist eine Blende, kein Gradiententausch
+
+**Der Befund.** Der Überzug deklarierte `transition: background 900ms`, und der Wechsel sprang trotzdem. Chromium interpoliert keinen Gradienten, es tauscht ihn aus — im selben Fenster nachgemessen: ein Gradient mit derselben Deklaration hat nach dem Wertwechsel **keine** laufende Animation und steht sofort auf dem neuen Wert, eine Farbfläche mit derselben Deklaration hat eine und liegt auf halbem Weg dazwischen. Die Deklaration war Fassade; die vier Phasen sind gesprungen, seit es den Überzug gibt.
+
+**Die Entscheidung.** Nicht mehr der Gradient wechselt, sondern die Deckkraft. `visual/daylight.ts` liefert statt einer Zeichenkette je Phase jetzt `daylightLayers(phase)`: alle vier Ebenen in fester Reihenfolge, genau eine mit Deckkraft 1. Die Shell rendert sie als Kinder des Überzugs, `shell.css` hängt Deckkraft und Übergang an `DAYLIGHT_LAYER_CLASS`. Weil auch die unsichtbaren Ebenen im DOM bleiben, laufen beim Wechsel zwei Deckkräfte gegenläufig — die alte nach unten, die neue nach oben. Ihre Summe bleibt dabei 1, die Tönung blendet also über, statt kurz zu verschwinden — solange die Blende allein läuft; läuft sie in die nächste, war das nicht mehr wahr, und der Eintrag darüber behebt genau das.
+
+**Der Test.** `test/daylight.test.ts` pinnt die Ebenen statt nur die Verdrahtung: feste Reihenfolge, genau eine sichtbare je Phase, vier unterscheidbare Tönungen, `transition: opacity` am Ebenennamen — und dass `transition: background` nicht zurückkehrt.
+
+**Im Browser.** Im Einzeldatei-Produktionsbuild, Tag 18, „Nacht vorbereiten" als echter Klick: genau zwei Übergänge laufen, `opacity`, 900 ms, `ease`. Die beteiligten Ebenen stehen 0/150/300/450/600/750/900 ms nach dem Start auf `0,978/0,697/0,334/0,163/0,05/0,01/0` und `0,022/0,303/0,666/0,837/0,95/0,99/1` — Summe durchgehend 1 beim isolierten Wechsel, keine Zwischenlücke. Die Schleife läuft dabei vollständig durch: „Auftrag rechnen" → Ergebnis → „Nächsten Tag beginnen" (Tag 19) → „Nacht vorbereiten". Nach dem Ausblenden stehen alle vier Ebenen im DOM mit der Summe 1, und der Überzug bleibt `pointer-events: none` bei `z-index: 4` als letztes Kind des Rahmens — `elementFromPoint` trifft die Topbar, nicht ihn.
+
+**Gates:** typecheck 0, 255 Tests in 41 Dateien, Lint 0, LOC-Caps ok (227 Quelldateien), Hygiene ok, Shinon PASS.
+
+## 2026-09-27 — Die Tagespalette zieht in den Visual-Owner
+
+**Der Befund.** Die vier Phasen-Tönungen standen als CSS-Regeln in `ui/styles/shell.css` — in der Schicht, die den Überzug malt, nicht in der, die die Darstellung beschreibt. Jede Farbänderung war damit ein Griff in die Darstellung, und die Kopplung an die Phasen-Union hing an vier Selektorstrings: verschwand einer, blieb die Phase stumm getönt.
+
+**Die Entscheidung.** `visual/daylight.ts` beschreibt die Tönung je Phase als `Record<Phase, string>`; der Zugriff ist über die Union erschöpfend, eine neue Phase ist deshalb ein Typfehler statt einer stillen Lücke. Die Shell liest die Phase weiter aus dem Store und setzt die Zeichenkette als Inline-Hintergrund auf den Überzug, `shell.css` hält nur noch dessen Fläche, Lage und Übergang. Der Name des Überzugs (`DAYLIGHT_CLASS`) kommt aus demselben Modul, damit beide Seiten denselben Vertrag lesen. Das Attribut `data-phase` am App-Rahmen ist entfallen: nach dem Umzug hatte es keinen Abnehmer mehr.
+
+**Der Grund für ein echtes Element.** Der Überzug war ein `::after`. Er ist jetzt ein `<div aria-hidden="true">` als letztes Kind des Rahmens — ein Element mit eigenem Inline-Stil, das genau die Zeichenkette des Deskriptors trägt, ohne Zwischenstation. Am Bildschirm gemessen ist der Übergang dabei unverändert: `transition: background 900ms` bleibt deklariert, aber **Chromium interpoliert Gradients nicht** — `getAnimations()` bleibt leer und der Wert springt sofort. Das galt schon für die vier Selektorregeln davor; nachgemessen mit einem gradient- und einem farbfreien Gegenstück, bei dem dieselbe Deklaration sauber animiert. Der Punkt steht jetzt als Kommentar in `shell.css`, damit die Deklaration nicht als Fade missverstanden wird.
+
+**Der Test.** `test/daylight.test.ts` prüft jetzt vier Dinge: jede Phase hat eine Tönung mit Farbe, die vier Tönungen sind unterscheidbar, `shell.css` hängt ihre Regeln an `DAYLIGHT_CLASS`, und im Stylesheet steht kein einziger Gradient — die Palette kann also nicht zurücksickern. Dazu bleiben die Überzugsregeln `pointer-events: none` und `transition: background` gepinnt.
+
+**Im Browser.** Alle vier Phasen durchgeklickt: die Tönung des Überzugs ist `rgba(224, 173, 85, 0.16)` im Tag, `rgba(96, 126, 196, 0.22)` in der Nacht, `rgba(216, 119, 106, 0.2)` im Raid und `rgba(224, 173, 85, 0.1) | rgba(8, 10, 16, 0.34)` im Ergebnis, jeweils exakt der Deskriptorwert. Der Überzug bleibt `pointer-events: none` bei `z-index: 4`, liegt als letztes Kind über den Kontextfenstern und unter der Topbar, und `elementFromPoint` trifft die Topbar statt ihn. Nach „Nächsten Tag beginnen“ steht der Tag auf 19 und die Tag-Tönung ist zurück. Ein Canvas, keine Konsolmeldung.
+
+**Gates:** typecheck 0, 251 Tests in 41 Dateien, Lint 0, LOC-Caps ok, Hygiene ok.
+
+## 2026-09-27 — Die Oberfläche lässt sich ohne Zeiger bedienen
+
+**Der Befund.** T2.1 führte den Tastaturzugang als letzten offenen Punkt, und der Client hatte dafür keine einzige Anschlussstelle: kein `keydown`, kein `tabIndex`, kein `onKey`. Ein Fenster ließ sich verschieben und skalieren, aber nicht mit der Tastatur bewegen; die Weltansicht folgte Pan und Zoom, aber keine Pfeiltaste erreichte sie.
+
+**Die Entscheidung.** Zwei Owner statt einer Sammelstelle. `window/keys.ts` rechnet den Schritt für Fenster — Pfeiltasten verschieben, Umschalt skaliert, mit denselben Mindestgrößen und derselben Kopfklemme wie der Zeiger — und liefert dem Rahmen seine Props; damit ist der Rahmen das Bedienziel der Tastatur, wie die Leiste das des Zeigers. `render/camera-keys.ts` bedient beide Kameras, das Dorf über `bindCameraControls` und den Dungeon über `bindViewportControls`, auf derselben fokussierbaren Fläche. Deren Schrittweite gilt vor dem Zoom, `panCamera` teilt sie durch ihn hindurch, damit eine Pfeiltaste in jeder Zoomstufe gleich weit über den Bildschirm schiebt.
+
+**Die Grenze im eigenen Haus.** Der Fensterrumpf ist ein eigener Fokuspunkt, sonst wäre dieselbe Pfeiltaste zweideutig: im Rahmen verschiebt sie das Fenster, im Rumpf scrollt sie den Inhalt. `windowKeyProps` lässt Tasten aus dem Inhalt deshalb unangetastet — ein Fenster mit unerreichbarem Inhalt wäre der teurere Fehler, weil die Trail-Liste länger ist als jedes Fenster. An zwei Stellen brauchte es dafür eine begründete Ausnahme von `a11y/noNoninteractiveTabindex`: ein scrollender Bereich und eine Fläche, die die Tasten selbst verbraucht, sind für die Regel nicht sichtbar.
+
+**Der Test.** `test/keyboard-access.test.ts` pinnt die Rechnung statt der Verdrahtung: Verschieben um die Schrittweite, Klemmung am Rand, Mindestgrößen beim Skalieren, Kameraschrittweite, Zoombelegung von `+`/`-` samt Zweitbelegung und Ruhe bei fremden Tasten. Ein Fall prüft, dass die Steuerungslegende beide Hinweise führt; die Texte kommen aus den Ownern, ein zweiter im Panel würde den Test nicht passieren.
+
+**Im Browser.** Der Einzeldatei-Build, durchgeklickt und getastet: das Dorf schwenkt mit drei Pfeiltasten und kehrt mit drei Gegentasten ins gleiche Bild zurück, `=` vergrößert es sichtbar. Der Fensterrahmen wanderte von `left: 0` auf `16px` und `top: 82px` auf `98px`, Umschalt-Pfeile änderten die Breite von 354 auf 378 und die Höhe von 241 auf 265, und mit dem Rumpf im Fokus stieg dessen `scrollTop` auf 23, während das Fenster auf `top: 98px` stehen blieb. Tab führt vom Rahmen zum Schließen-Knopf. Ein Canvas, keine Konsolmeldung. Im Dungeon bewegt der Tastenschritt erst oberhalb der Rahmungs-Zoomstufe, weil `clampCamera` die Kamera auf der Mitte hält, solange die 1024 Pixel breite Welt den Viewport füllt — der Zeigerpfad verhält sich identisch.
+
+**Gates:** typecheck 0, 248 Tests in 41 Dateien, Lint 0, LOC-Caps ok, Hygiene ok, Shinon PASS.
+
+## 2026-09-27 — Die Tagesstimmung hängt wieder an der Shell
+
+**Der Befund.** Der Phasenwechsel war am Bildschirm unsichtbar: `PhaseBadge` wechselte den Text von „Tag" auf „Nacht", Raid und Ergebnis, aber die Oberfläche blieb gleich. Die Regeln `.app.is-day` und `.app.is-night` aus `main` sind mit dem alten `styles.css` verschwunden. Sie lagen also nicht mehr „ungenutzt bereit", wie `docs/ROADMAP.md` es führte — sie existierten nicht mehr. Damit war der offene Punkt aus dem UI-Rebase keine Frage des Anschließens, sondern des Neuschreibens.
+
+**Die Entscheidung.** Der Auftraggeber hat den Weg über die Shell gewählt: `<main class="app">` trägt `data-phase` direkt aus dem Store. Die Shell bleibt layout-nah — sie liest den Phase-Store für diese eine Darstellung, enthält aber weiterhin keine Phase-Aktion und keinen Dorfzustand, und `village/state.ts` bleibt der einzige Owner. Vier Gradients in `ui/styles/shell.css` tönen Tag (warm von oben), Nacht (kühl von unten), Raid (rot getönt) und Ergebnis (Dämmerung). Der Überzug liegt bei z-index 4 über Welt und Kontextfenstern, unter der Topbar, und ist klickdurchlässig; `base.css` kürzt die 900-ms-Transition bei `prefers-reduced-motion` auf 0,01 ms.
+
+**Der Test.** `test/daylight.test.ts` bindet das Stylesheet an die Phasen-Union: für jede Phase aus `PHASE_ORDER` muss eine `[data-phase="…"]`-Regel existieren. Genau diese Kopplung fehlte, als die Regeln still verschwanden; der Test pinnt sie ohne DOM. Gelesen wird das Stylesheet über `?raw`, weil die Testverzeichnisse im `tsc`-Programm liegen und dieses keine Node-Typdefinitionen kennt.
+
+**Im Browser.** Die Schleife im Produktionsbuild durchgeklickt: `data-phase` steht auf `tag`, danach auf `night` und `raid`, und das berechnete `::after`-Background wechselt von `radial-gradient(120% 80% at 50% 0px, rgba(224, 173, 85, 0.16), …)` über `rgba(96, 126, 196, 0.22)` auf `rgba(216, 119, 106, 0.2)`. Die Transition läuft als `background 0.9s`, der Überzug bleibt `pointer-events: none` bei `z-index: 4`. Der Dorfblick wird sichtbar dunkler und kühl getönt, sobald die Nacht beginnt. Durchgehend ein `<canvas>`, keine Konsolenfehler, genau eine Netzwerkanfrage — das HTML selbst.
+
+**Gates:** typecheck 0, Lint 0, Tests grün, LOC-Caps ok, Hygiene ok, Shinon PASS.
+
+## 2026-09-27 — Tote Symbole entfernt und die Tests in den Typecheck geholt
+
+**Der Befund war eine Lücke im Programm, nicht im Code.** `tsconfig.json` listete `packages/*/test/**/*` nicht, deshalb sah `tsc` nur die neun `*.test.ts` unter `src/` und keine einzige der Testdateien in den `test/`-Verzeichnissen. Das `dead-code-gate` lief mit demselben `include` und meldete trotzdem „NoUnused geprüft". Erst als das Programm die Tests enthielt, wurden zwölf echte Typfehler sichtbar — unter anderem fehlende Pflichtfelder in `test/raid-fixtures.ts` und drei `stepPlayback`-Aufrufe mit zwei Argumenten — und mit ihnen vier Importe, die seit dem Umbau niemand mehr benutzte.
+
+**Was entfallen ist.** `render/dungeon-views.ts` war eine sechszeilige Re-Export-Fassade ohne Importeur; sie ist gelöscht. `render/modes.ts` führt nur noch `RenderMode` und `DungeonRenderMode`, die beide typseitig gebraucht werden. `gridSize` in `sim-core/src/grid/grid.ts` und `sectionsOf` in `raid/playback.ts` hatten keinen Aufrufer. In `render/depth.ts` ist die ungenutzte Vergleichsfunktion `actorTie` weg; `depthValue` bleibt die einzige Sortierquelle.
+
+**In den Tests.** Die sechs Client-Testdateien sind jetzt Teil des Programms; die vier toten Symbole (`event`, `TerminalRaidJob`, `type Phase`, `combatFrame`) und die daraus folgenden Typfehler sind bereinigt, `test/raid-fixtures.ts` erzeugt gültige Contract-v3-Envelopes. `docs/REPOINDEX.md` führt die gelöschte Fassade nicht mehr.
+
+**Gates:** typecheck 0, Lint 0 (`biome check --error-on-warnings`), 238 Tests in 39 Dateien grün, LOC-Caps ok, Hygiene ok, Shinon PASS.
+
+## 2026-09-27 — Das Raidfenster wächst mit seinem Inhalt
+
+**Scope:** neu `window/fit.ts`; geändert `window/drag.ts`, `window/window.tsx`, `ui/phase-windows.tsx`, `ui/window-launcher.tsx`, `ui/styles/windows.css`, `ui/styles/raid.css` und `test/window-routing.test.ts`. Store und Panels unberührt.
+
+**Der Befund.** Das Phasenfenster öffnete in der Raid-Phase mit 260 px, die Trail-Liste darunter ist mit über 3000 px länger als jeder Viewport. Die Steuerung klebte am Oberrand des Inhalts, doch das Fenster blieb ein schmaler Streifen: der Rest der Timeline lag dauerhaft unter der Falz und war nur über den Fenster-Scrollbalken erreichbar. Eine größere Öffnungsgröße im Launcher wäre eine zweite Schätzung gewesen — die echte Höhe kennt nur das DOM.
+
+**Der Fit.** `drag.ts` rechnet rein: `fittedHeight` ist Kopf plus gemessene Inhaltsfläche, geklemmt auf die Mindesthöhe des Resize-Griffs und den Platz zwischen Fensteroberkante und Falz. Damit endet ein angepasstes Fenster an der Unterkante des Sichtfelds statt darunter, und ein Inhalt, der auch dann nicht passt, scrollt im Fenster, statt das Fenster aus dem Bild zu schieben. `resizedBox` bündelt die Resize-Klemmung, damit Griff und Fit dieselben Grenzen lesen.
+
+**Die Messung.** `window/fit.ts` übersetzt DOM in Store: ein ResizeObserver am Inhaltsblock meldet dessen Höhe, `window.tsx` patcht ausschließlich die Höhe; Breite und Lage bleiben am Nutzer. Beobachtet wird der Block und nicht der Fensterrumpf — der Rumpf füllt als Flex-Kind genau die Fensterhöhe und hätte dem Fit seine eigene Wirkung zurückgemeldet, bis jedes Fenster am Anschlag stand. Dafür trägt jetzt `.game-window__content` das Padding und `.game-window__body` füllt nur noch und scrollt; die klebende Raid-Steuerung klebt deshalb bei `top: 0` statt negativ, sonst schnitte der Rumpf ihren oberen Rand ab.
+
+Vier Details stecken in der Messung, jedes aus einem beobachteten Fehler. Der Beobachter entsteht im Ref und nicht in einem Effekt: Effekte laufen nach dem Aufbau, zu dem der Ref den Knoten liefert — beim ersten Aufbau gäbe es sonst nichts zu beobachten und nie eine erste Messung. Der Ref behält seine Identität über die Renderdurchläufe, sonst hinge sich der Beobachter bei jedem Durchlauf neu an. Gemessen wird aufgerundet und erst im nächsten Frame gepatcht: ein angebrochenes Pixel Resthöhe öffnet einen Scrollbalken, den der Fit gerade vermeiden soll, und ein Patch mitten im Zustellschritt des Beobachters meldet dem Browser eine Beobachterschleife. Der Rahmen des Fensters liegt als Ring außerhalb der Box statt als Border: ein Border zählt in die Höhe und der Zuschnitt stünde dauerhaft einen Pixel zu kurz. Ein Zug am Resize-Griff bleibt stehen, weil der Fit den Inhaltsblock misst und nicht die Fenstergröße.
+
+**Tests.** `fittedHeight` ist rein und ohne DOM getestet: 3100 px Inhalt an einer 900-px-Fläche ergibt 900, 600 px ergeben 640 (Inhalt plus Kopf), bei einer Oberkante von 82 px endet das Fenster bei 818, 0 ergibt die Mindesthöhe. 13 Tests in `window-routing.test.ts`.
+
+**Im Browser.** Im Produktionsbuild bei 1440 × 1000: Das Raidfenster wächst von 260 auf 918 px, seine Unterkante liegt auf der Falz bei 1000 px, und bei 3876 px Inhalt scrollt es innen, während die Steuerung am Oberrand sichtbar bleibt. Ein Canvas, Topbar und Dorfblick unverändert, keine Konsolenfehler. Der kurze Tag-Inhalt endet dagegen ohne Scrollbalken bei 265 px.
+
+**Gates:** typecheck 0, Lint 0 (8 Baseline-Warnungen in nicht angefassten Dateien), 234 Tests in 39 Dateien grün, LOC ok (`window.tsx` 119/120, `drag.ts` 69, `fit.ts` 21), Hygiene ok, Shinon PASS.
+
 ## 2026-09-27 — Die drei offenen Punkte geprüft: zwei erledigt, einer accessorisch nachgezogen
 
 **Scope:** geändert `ui/window-launcher.tsx`, `ui/styles/panels.css`, `window/window.tsx` (nur die ARIA-Verdrahtung des Kopfes, keine Logik) sowie `docs/REPOINDEX.md` und `docs/STRINGMATRIX.md`. `render/village-*`, `ui/world-host.tsx`, `ui/stage.tsx` und die Dorf-Szene unberührt.
@@ -84,114 +194,6 @@
 
 **Gates:** typecheck 0, Lint 0, 209 Tests grün (79 im Client, zwei neu in `window-routing.test.ts`), Shinon PASS. Der LOC-Gate hat `window/window.tsx` nach der Ergänzung über das Cap gehoben (124 gegen 120 Code-Zeilen); `ResizeOrigin` ist jetzt `MoveOrigin & { width, height }` — dieselbe Aussage, ein Interface weniger.
 
-## 2026-09-27 — Raid-Replay gehört dem Raid, nicht der Szene
-
-**Scope:** neu `raid/combat-source.ts`; `showcase/combat-source.ts` entfallen. Geändert: `showcase/scene.ts`, `raid/playback.ts`, `raid/raid-panel.tsx`, `village/phase-actions.ts`, `ui/world-host.tsx` sowie `test/raid-playback-wiring.test.ts` und `test/raid-timeline.test.ts`.
-
-**Der Befund.** `playbackLog` wurde ausschließlich von `showcase/combat-source.ts` gesetzt, und das nur beim Aufbau der Dungeon-Szene. Im Dorf — der Standardansicht — war der Store deshalb leer: `RaidTimeline` gab `null` zurück, und das Panel sagte dauerhaft, der vollständige Log werde „hier nicht angezeigt". Die Raid-Phase endete im Dorf in einem toten Endpunkt, ohne jeden Hinweis auf den nötigen Blickwechsel. Derselbe Besitzer trieb auch den Tick: ohne Dungeon-Szene gab es keine Uhr.
-
-**Die Korrektur.** Der Log wandert in das Raid-Fach. `raid/combat-source.ts` ist der einzige Schreibpfad: `buildCombatLog` rechnet denselben Core-Aufruf wie bisher, `loadRaidLog` legt das Ergebnis in den Store und `unloadRaidLog` räumt ihn mit dem Tag auf. Ausgelöst wird das vom Raid-Lebenszyklus selbst — `triggerRaid` lädt, `finishResult` räumt auf, ein gescheiterter Auftrag lässt den Lauf weiterlaufen. Ein Effekt hält den Log mit dem Grid synchron, weil das Grid im Raid-Editor noch löschbar ist; ohne geladenen Log rechnet der Editor keinen Kampf vor. Die Takt-Rate kommt jetzt aus dem geladenen Log statt aus dem Aufrufer, damit kein Zweitleser sie pflegt.
-
-**Der Takt.** `stepPlayback(deltaMs)` hängt am Runtime-Ticker in `ui/world-host.tsx`, nicht an der lebenden Szene. `showcase/scene.ts` liest Log und Tick im Raid-Modus nur noch aus dem Store und zeigt im Editor-Modus wieder die Leerlaufbesetzung der Route — genau die Aufgabe, die `visual/route-actors.ts` seit jeher beschreibt. Damit läuft ein Replay im Dorf wie im Dungeon, ohne dass die Ansicht umschaltet und ohne eine zweite Quelle für Tick-Daten.
-
-**Belegt im Browser, nicht im Test.** Vollständiger Pfad Tag 18 → Nacht → Raid im **Dorf** gehalten: Die Timeline erscheint im Kontextfenster, der Tick läuft 60 → 219 → über 255 in den nächsten Durchlauf, Pause friert bei 40 ein, „Kampf-Phase" springt auf Tick 83, „Auftrag rechnen" liefert denselben Hash `94ba1954` wie aus dem Dungeon, und mit „Nächsten Tag beginnen" verschwindet der Log (Tag 19, Panel „Die Nacht vorbereiten", keine Rest-Timeline). Durchgehend genau ein `<canvas>`, `data-render-mode` bleibt `village` — kein stilles Umschalten. Die Gegenprobe im Dungeon: Editor zeigt Helden am Start und Boss am Ziel, der Raid-Modus rendert weiter den Kampf bei laufender Timeline. Keine Konsolenfehler.
-
 **Gates:** typecheck 0, Lint 0 Fehler, 209 Tests grün (77 im Client, davon 10 in der Verdrahtung und 2 in der Log-Quelle), LOC-Caps und Shinon ohne Befund.
 
-## 2026-09-27 — Dashboard abgebaut: eine lebende Welt mit kontextuellen Fenstern
-
-**Scope:** `render/village-layout.ts`, `village-atlas.ts`, `village-scene.ts`, `village-view.ts`, `camera.ts`, `camera-controls.ts`, `layer-sprite.ts`, `runtime.ts` und `ui/world-host.tsx`, `ui/scene-switch.ts`, `ui/window-launcher.tsx`, `ui/window-tabs.tsx`, `ui/building-label.ts`, `ui/stage.tsx`, `ui/topbar.tsx` sowie die Styles. `ui/sidebar.tsx` und `ui/window-tools.tsx` sind entfallen. Neu: `test/world-presentation.test.ts` und `test/window-routing.test.ts`.
-
-**Ein Canvas, eine Runtime.** Vorher gab es zwei Pixi-Besitzer und zwei dargestellte Dörfer. Jetzt erzeugt `ui/world-host.tsx` genau einen Host und genau eine `createVisualRuntime`; `ui/scene-switch.ts` hält genau eine lebende Szene und baut beim Blickwechsel die andere auf, ohne Runtime oder Canvas anzufassen. Editor und Raid teilen sich die Dungeon-Szene, das Dorf hängt seine Animation über `runtime.onTick` an denselben Ticker. Im Browser über vier Blickwechsel geprüft: jedes Mal genau ein `<canvas>`.
-
-**Die Welt ist die Navigation.** Die Dorfszene ist eine 1000×640 große Pixelkarte mit anklickbaren Gebäuden, Bäumen und deterministisch laufenden Bewohnern; `fitCamera` rahmt sie, `render/camera-controls.ts` schwenkt und zoomt auf dem Canvas. Hinter dem Weltrechteck liegt eine `TilingSprite`-Wiese, damit breite Viewports keinen schwarzen Rand zeigen. Ein Klick auf ein Gebäude öffnet ein transluzentes Kontextfenster mit sprechendem Namen — `Rathaus`, nicht `hall`. Der Dorfblick bleibt Präsentation: kein Dorfzustand, keine Wirtschaftsregel.
-
-**Kontextfenster statt Dashboard.** Die Sidebar ist gelöscht. `ui/window-launcher.tsx` ist die einzige Startrampe und liegt als transluzente Schiene über der Welt, `ui/window-tabs.tsx` führt die offenen Fenster in der Topbar zurück. Die Fenster-Registry staffelt neue Fenster, damit nichts deckungsgleich startet. Das Phasenfenster behält seine ID über die Schleife hinweg und zieht seinen Titel bei jedem Phasenwechsel nach — geprüft über `Tag → Nacht`. Doppelte Phasen- und Editor-Launcher in der Topbar sind entfallen; Fenster tragen nur noch Titel, Focus und Z-Order.
-
-**Gates:** `pnpm run -s typecheck`, `pnpm test -- --run` (37 Dateien, 204 Tests), `pnpm run -s lint` (0 Fehler, 8 Baseline-Warnungen in nicht angefassten Dateien), `node scripts/shinon/engine.mjs --full` und `pnpm --filter @floor/client build` sind grün. Drei Gate-Verstöße aus dem Umbau wurden behoben: LOC-Cap in `world-host.tsx` (Szenenwechsel nach `scene-switch.ts`) und `runtime.ts` (Rahmung nach `fitCamera`), Redundanz zwischen `editor-grid.ts` und `lighting.ts` (gemeinsamer `layer-sprite.ts`).
-
-**Abnahme:** Im Browser geprüft — ein Canvas, Dorf mit laufenden Bewohnern, Gebäudeklick öffnet das richtige Fenster, Tag → Nacht zieht den Fenstertitel nach, Blickwechsel in beide Richtungen, Pan und Zoom, keine Konsolenfehler. **Offen:** Auf hohen Viewports bleibt das Dorfbild oben und unten von Wiese umgeben, weil die Karte querformat ist; Wirtschaft, Expeditionen und ein dauerhaft gepflegter Dorfblick bleiben T2.
-
-## 2026-09-26 — Oberflächen-Rebase: Raid-Timeline und Editor-Sichtbarkeit erhalten
-
-Der UI-Slice wurde per Rebase auf den aktuellen `main` gezogen, weil er fünf Commits und zwei Toolchain-Migrationen zurücklag und deshalb allein rot war. Die Konflikte waren nicht mechanisch, deshalb ist das Ergebnis dokumentiert.
-
-**Die Raid-Timeline war der eigentliche Verlust.** Der Branch kannte die Timeline nicht: `sidebar.tsx` montierte sie nicht, und die sechzehn Timeline-Regeln aus `styles.css` fehlten im aufgeteilten Stylesheet. `sidebar.tsx` rendert sie jetzt in der Raid-Phase über dem Raid-Panel, und die Regeln sind nach `styles/raid.css` überführt. Die Selektormenge wurde gegen `main` geprüft: alle fünfzehn Timeline-Selektoren sind vorhanden, es fehlt keiner.
-
-**Der Editor bleibt an die Phase gebunden.** Der Branch koppelte das Editorwerkzeug zusätzlich an den Dungeon-Blick, obwohl sein eigener Kommentar das Gegenteil behauptet. Übernommen ist die phase-gebundene Variante aus `main`, damit die im Browser abgenommene T1.2-Schleife nicht stillschweigend verliert, dass der Editor in Nacht und Raid offen ist. Der ungenutzte `stageView`-Import ist damit entfallen.
-
-**Der Domain-Barrel ist eine Vereinigung.** `village/index.ts` exportiert jetzt die Phase-Owner aus `main` und die Settlement-Typen des Branches gemeinsam; `settlement.ts` bleibt die reine Funktion des Dorfblicks und trägt weiterhin keine Wirtschaftsregel.
-
-**Was bewusst offen bleibt.** Die Klassenbindung `app is-day` aus `main` ist nicht wiederhergestellt: Die Shell des Branchs kennt bewusst keine Phase, und sie zurückzuholen hieße, genau die Entkopplung wieder aufzubrechen, die der Slice herstellt. Das ist eine Design-Entscheidung und als offener Punkt in `docs/ROADMAP.md` vermerkt. Die Browser-Abnahme steht weiterhin aus.
-
-## 2026-09-26 — Oberfläche modularisiert, Dorfblick und Blickumschalter ergänzt
-
-**Scope:** `packages/client/src/ui/` vollständig umgebaut, `src/village/settlement.ts` neu, `src/raid/panel.tsx` um `raidOutcomeText` erweitert, `test/village-settlement.test.ts` und `test/stage-view.test.ts` neu.
-
-**Befund:** Das „Dashboard" war eine offene Label-Wert-Liste mit vier Fixture-Konstanten, der Viewport zeigte in jeder Phase das Dungeon-Raster, und der Drag-Status zeigte rohe Kennungen mit Zellkoordinaten in der Sidebar. `styles.css` war eine 630-zeilige Datei mit drei erfundenen Panel-Optiken und totem `is-night`-Theming, das die Shell nie setzte. `shell.tsx` stand bei 96 von erlaubten 120 LOC, hatte also keinen Raum für Feature-Arbeit.
-
-**Der Dorfblick:** `village/settlement.ts` leitet aus dem Phase-Owner und den Fixture-Daten Gebiete (Rathaus, Gilde, Verteidiger-Gehege), das Gildenroster und die Bilanz der letzten Nacht ab. Es ist eine reine Funktion ohne eigenen Dorfzustand und ohne Wirtschaftsregel: Arbeiterverteilung, Gold-Ausgaben, Landkauf und Beute-Verkauf bleiben T2. Die Startbasis aus `fixture.workers` und `fixture.attractiveness` ist in der Oberfläche ausdrücklich als Startbasis gekennzeichnet, damit nichts als veränderlich ausgegeben wird, was es nicht ist. Die Karte für das Gehege zeigt eine echte Belegung; Lebensbalken gibt es nur dort, wo etwas zählbar belegt ist, keine Hochrechnung ohne Maximum.
-
-**Blick statt Phasenlogik:** `ui/view.ts` hält `stageView` (`village | dungeon`) als Navigation, nicht als Spielzustand. Die Topbar schaltet um, ohne Phase oder Grid zu berühren — `test/stage-view.test.ts` pinnt genau das. Der Dungeon-Host wird beim Wechsel neu aufgebaut, weil Preact ihn genau einmal mountet; der Fensterlayer liegt außerhalb der Auswahl, damit offene Fenster den Blickwechsel überleben. Das Editorwerkzeug erscheint nur im Dungeon-Blick, seine Bau-Erlaubnis kommt weiter aus der Phase.
-
-**Modularisierung:** Die Shell ist reines Layout und kennt keine Phase. `topbar`, `stage`, `sidebar`, `view-switch`, `window-tools`, `window-content`, `village-view`, `roster-list`, `stats` und `actor-label` haben je einen Job. `roster-list` und `stats` sind geteilte Darstellungskomponenten statt Kopiervorgänge — der Redundancy-Gate hatte eine zweite Heldenstruktur zu Recht angemahnt, der Typ kommt jetzt einmal aus `fixture-data`. `styles.css` ist durch `styles/` mit acht Modulen ersetzt, eingebunden über `styles/index.css`; alle Panels, Fenster und das Editorraster benutzen dieselben Flächen-, Kanten- und Tiefen-Tokens.
-
-**Ausgabe-Korrektheit:** Interne Kennungen erscheinen nicht mehr im Bildschirm — Fenster tragen `Mara` statt `hero-mara`, der Werkzeugstatus meldet `Frost 2 → Feld 3,4`. Die Sidebar zeigt je Phase nur Auftrag und Hauptaktion; der Standort selbst steht im Dorfblick, damit er nicht als Wertetabelle nebenbei existiert. Ergebnis- und Fehlertext kommen über `raidOutcomeText` aus einer Quelle, damit Panel und Dorfblick nicht getrennt formulieren.
-
-**Verifikation:** `pnpm run -s typecheck`, `pnpm test -- --run` (28 Dateien, 148 Tests) und `pnpm run -s check` sind grün, der Vite-Build löst die Style-Kette vollständig auf. **Offen:** Die Abnahme im Browser steht aus — in dieser Umgebung gibt es weder Chrome noch ein DOM-Testsetup, die neue Oberfläche ist also nicht am Bildschirm gesehen worden. Grüne Gates belegen Korrektheit, nicht das Aussehen.
-
-## 2026-09-26 — Raid-Timeline verdrahtet
-
-Die Timeline war gebaut, aber nicht angeschlossen: `ui/shell.tsx` hat sie nie gerendert, `showcase/scene.ts` hat einen eigenen `playback`-Zähler geführt, und für die elf Klassen der Timeline gab es kein CSS. Die Shell rendert jetzt `<RaidTimeline />` in der Raid-Phase neben dem Probelauf-Panel; `styles.css` trägt die elf Klassen `raid-timeline`, `timeline-phase-nav`, `timeline-phase-step`, `timeline-scrubber`, `timeline-scrub-step`, `timeline-scrub-readout`, `timeline-phase`, `timeline-trail`, `timeline-clusters`, `timeline-cluster-type`, `timeline-facts` und `timeline-hint` in den bestehenden Farbtokens.
-
-Der zweite Teil war wichtiger als der erste. Die Szene hat den Tick lokal über `playback += deltaMs / (1000 / tickRate)` fortgeschrieben und dabei `stepPlayback` sowie `playbackPaused` ignoriert; ein Scrubber-Stand wäre sofort wieder überschrieben worden, die Anzeige wäre wirkungslos gewesen. `scene.ts` ruft jetzt `stepPlayback` auf und lässt den Store den Tick halten. Die Routenposition liest `playbackRouteIndex` und fällt nur dann auf die Helmenposition des Observers zurück, wenn noch kein Log vorliegt; damit ist der bisher ungenutzte Store-Wert an der Stelle verdrahtet, für die sein Kommentar ihn vorsah.
-
-`test/raid-timeline.test.ts` deckt die Verdrahtung jetzt ab: ohne Log steht der Tick, im Spiel läuft er, ein gesetzter Scrubber-Stand wird übernommen und läuft ohne Pause weiter, mit Pause bleibt er exakt stehen, und die Routenposition folgt dem Scrubber-Tick statt der Helmenposition.
-
-## 2026-09-26 — Render-Animation ohne Sinus vereinheitlicht
-
-`render/animation.ts` nutzt jetzt eine glatte deterministische Periodik für Bob, Schritt, Squash und Schwanken; `render/actors.ts` verwendet denselben Kurven-Owner für die Schritthöhe. Ein Regressionstest prüft Wiederholbarkeit, Periodengrenzen, Wertebereiche und bisherige Amplituden.
-
-## 2026-09-26 — Route-Mapping und Actor-Varianten vereinheitlicht
-
-`visual/route-index.ts` ist die einzige boundsafe Abbildung von Combat-/FX-Indizes auf den bestehenden `route.path`; Actor-Frame, Event-FX und Leerlaufbesetzung verwenden dieselbe Funktion. `visual/variant.ts` liefert für beide Actor-Pfade dieselbe deterministische, ID-basierte Variante. Damit ist die zuvor abweichende positionsbasierte Editor-Variante beseitigt. Tests decken Grenzindizes, leeren Pfad und Variantenkonsistenz ab.
-
-## 2026-09-26 — Showcase-Optik auf Materialrelief, Route und Charaktere gehoben
-
-Der Foundation-Stand rendert jetzt aus deterministischen Materialtexturen differenzierte Bodenkacheln und Wände mit Deckplatte, sichtbarer Frontfläche, Kantenlicht und Schatten, statt die Wandtextur nur in die Höhe zu strecken. `render/route.ts` zeigt `route.path` als warme, leuchtende Marker und hebt die aktuelle Position eines Helden hervor; es speichert keine eigene Grid- oder Route-Wahrheit und legt Marker in dieselbe depth-sortierte Welt-Ebene. Die prozeduralen Actor-Silhouetten unterscheiden Held, Monster und Boss über Farben und Formen, und die Blickrichtung folgt `facing`. Die globale UI-Haut in `src/ui/styles.css` hat eine passende Dungeon-Palette, gerahmten Viewport, lesbare Panels, sichtbare Fokuszustände und ein mobiles Layout bekommen.
-
-Der Atlas wurde entlang seiner Zuständigkeiten geteilt: `render/canvas.ts` besitzt Canvas/Textur-Helfer, `render/tile-atlas.ts` Boden-/Mauertexturen, `render/route-atlas.ts` Route-Lichter, `render/actor-atlas.ts` Silhouetten und `render/atmosphere-atlas.ts` Glow/Vignette. `visual/fx-seed.ts` erzeugt aus allen relevanten Combat-Event-Feldern einen stabilen Präsentationsseed; `render/fx.ts` leitet die Partikelvariation je Effekt/Partikel daraus ab, statt von einem fortlaufenden Emissions-RNG abhängig zu sein. `test/visual-foundation.test.ts` pinnt die stabile Seed-Ableitung und bestehende Route-/Observer-Grenzen.
-
-Der Render-/Visual-Code bleibt innerhalb der Ownership-Caps: Actor-Frame, Event-FX und Leerlauf-Route-Akteure liegen in eigenen kleinen Modulen statt einer großen Sammeldatei.
-
-## 2026-09-26 — Modularer Schnitt für Atlas und Combat-Visuals
-
-`render/atlas.ts` bleibt als Barrel; Actor-Silhouetten, Atmosphärentexturen, Boden-/Wandtexturen und Routenleuchten liegen separat in `actor-atlas.ts`, `atmosphere-atlas.ts`, `tile-atlas.ts` und `route-atlas.ts`. Im Pixi-freien `visual`-Owner sind `combatActors`, `eventFx`, `fxSeed` und die Leerlaufroute in eigenständige Dateien getrennt. Das hält die strengen Dateien-Caps ein und isoliert jeweilige Darstellungsjobs, ohne neue Raum- oder Grid-Owner einzuführen.
-
-## 2026-09-26 — T1.2: Tag/Nacht/Raid-Schleife als geschlossener Fixture-Loop
-
-- `src/village/` neu: `phase.ts` hält die Phase-Union in Schleifenreihenfolge, die erlaubten Übergänge und die reine Entscheidungsfunktion `resolvePhaseTransition`; `state.ts` besitzt das DayNightState-Signal (`phase`, `day`, `job`) mit `setPhase` als einzigem Schreibpfad und Job-Aufnahme nur aus der Raid-Phase; `phase-actions.ts` liefert `startNight`, `triggerRaid`, `completeRaid`, `finishResult` und `retryAfterResult`. Der Store ist Preact-Signals, keine externe Lib. `result → tag` zählt den Tag hoch und löscht den Auftrag, `result → raid` ist der deterministische Retry.
-- `src/raid/raid-panel.tsx` ist auf Props umgestellt (`onJob`), die Ergebnis-Darstellung liegt als reine Sicht `RaidResultView` in `src/raid/panel.tsx`. Damit führt die Schleife das terminale TerminalRaidJob in die Result-Phase, statt dass das Panel einen eigenen Laufzustand neben dem Store hält.
-- `src/ui/phase-badge.tsx` und `src/ui/phase-panels.tsx` neu, `src/ui/shell.tsx` liest die Phase aus dem Store statt aus `useState`: Tag zeigt Dorf-Basisdaten aus den Fixture-Ressourcen und „Nacht starten“, Nacht hält Editor und Controls aktiv und schaltet über „Raid auslösen“, Raid reicht das Core-Ergebnis über `completeRaid` in die Result-Phase, Result zeigt Auftrag und Urteil mit „Nächsten Tag beginnen“ oder „Erneut versuchen“. Der Editor bleibt in Nacht und Raid sichtbar, damit eine blockierte Route vor dem Retry reparierbar bleibt. `src/ui/styles.css` um Badge und Phase-Panel ergänzt.
-- `test/village-phase.test.ts` neu: Reihenfolge, Skip-Verbot, Tag-Zähler, Retry-Nachfolge und Job-Aufnahme nur aus der Raid-Phase. `test/day-night-loop.test.ts` neu: voller Loop mit Fake-Timern (nur `setTimeout`/`clearTimeout`, die Uhr bleibt messbar), Sieg- und Fehlschlagpfad, dreifacher Wiederholungsloop mit identischem Hash und Zeitbudget unter 5 s; `afterEach` verlangt einen leeren Timer-Zähler. Im Browser wurde der Loop End-to-End durchgeklickt: Tag 18 → Nacht → Raid → Ergebnis `fixture-raid-1` → Tag 19.
-
-## 2026-09-26 — Client-Stringmatrix auf Trail-v3 nachgezogen
-
-- `docs/STRINGMATRIX.md`: Der Eintrag `raid/trail` behauptete weiterhin, der Combat-Log trage keinen Trail-Hash und die Anzeige nutze `route.path`. Das widersprach dem T1.1-Stand, den `test/raid-job.test.ts` bereits festschreibt. Seit T1.1 trägt `CombatLog.trail` je Schritt `x/y/cell` und `fingerprintCombatLog` hasht den vollständigen Trail; der Eintrag beschreibt jetzt genau das statt der überholten Lücke.
-
-## 2026-09-26 — Review-Nachgang: stiller Testdurchlauf entschärft
-
-- `test/raid-job.test.ts`: vier Tests sprangen bei einem nicht abgeschlossenen Auftrag mit `return` heraus und waren dann grün, ohne die Hash-Aussage überhaupt zu treffen. Vor jeder Weiche steht jetzt ein explizites `expect(status).toBe('completed')` beziehungsweise `('failed')`; der Guard bleibt nur noch für die Typverengung. Der Trailtest, der genau die T1.1-Absicherung zeigt, kann damit nicht mehr stillschweigend durchlaufen.
-
-## 2026-09-25 — Drei Review-Findings behoben: Kamera, Drag-Slop, Raid-Panel
-
-- `src/render/runtime.ts` rechnete die World-to-Screen-Matrix ein zweites Mal. `applyCamera` holt den Container-Ursprung jetzt über `worldToScreen` aus `camera.ts`; die Regel „genau eine Transformation" ist damit im Code und nicht nur in der Doku gültig.
-- `src/input/drag.ts` aktivierte den Drag bei jedem Pointer-Down. Dadurch war jeder Klick auf einen Actor gleichzeitig ein Drop, und der Klickpfad zum Kontextfenster lief nie. Ein Down registriert jetzt nur noch einen Kandidaten; erst eine Bewegung über den Slop macht daraus einen aktiven Zug.
-- `src/input/drag-target.ts` neu: `resolveTarget`, `passedSlop`, `advance` und `dropCommand` kapseln Trefferauflösung und Zwischenzustand eines Drags.
-- `src/showcase/controls.ts` entscheidet die Geste erst nach dem Slop: auf einem Actor ein Drag, sonst ein Pan, ohne Weg ein Klick.
-- `src/ui/shell.tsx` rendert `src/raid/raid-panel.tsx` wieder. Der lokale Fixture-Raid ist damit im Browser auslösbar.
-- `src/ui/styles.css` ergänzt die Klassen des Raid-Panels aus den vorhandenen Tokens.
-- `test/input-drag.test.ts` belegt, dass ein Down ohne Weg keinen Drop erzeugt, ein Zug erst nach dem Slop aktiv wird und außerhalb des Greifradius kein Kandidat entsteht.
-
-
-Die Einträge der ersten Stunden stehen in `historisch/2026-09-25_client-aufbau.md`.
+Die Oberfläche-Modularisierung vom 2026-09-26 steht in `historisch/2026-09-26_client-oberflaeche-modularisiert.md`; die Raid-Timeline-Verdrahtung und der Oberflächen-Rebase in `historisch/2026-09-26_client-raid-timeline.md`, die Render-Foundation-Einträge (Animation ohne Sinus, Route-Mapping und Actor-Varianten, Showcase-Optik, Atlas-Schnitt) in `historisch/2026-09-26_client-render-fundament.md`, der Raid-Replay samt Tick in `historisch/2026-09-27_client-raid-replay.md`, der Dashboard-Abbau mit der lebenden Welt in `historisch/2026-09-27_client-dashboard-abbau.md`, die Einträge der ersten Stunden in `historisch/2026-09-25_client-aufbau.md`.

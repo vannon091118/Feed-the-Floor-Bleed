@@ -25,6 +25,7 @@ const ACTIVE_CAP = 200
 
 let failed = false
 
+/** @param {string} file @returns {number} */
 function lineCount(file) {
   const c = fs.readFileSync(file, 'utf8')
   return c.split('\n').length

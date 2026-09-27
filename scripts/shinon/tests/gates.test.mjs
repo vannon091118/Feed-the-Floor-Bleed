@@ -10,6 +10,7 @@ const ROOT = path.resolve(
   '../../..',
 )
 const FIXTURES = path.join(ROOT, 'scripts/shinon/tests/fixtures')
+/** @type {string[]} */
 const temporaryRoots = []
 
 afterEach(() => {
@@ -17,18 +18,30 @@ afterEach(() => {
     fs.rmSync(root, { recursive: true, force: true })
 })
 
+/** @returns {string} */
 function makeRoot() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'shinon-gate-'))
   temporaryRoots.push(root)
   return root
 }
 
+/**
+ * @param {string} root
+ * @param {string} fixture
+ * @param {string} target
+ */
 function copyFixture(root, fixture, target) {
   const destination = path.join(root, target)
   fs.mkdirSync(path.dirname(destination), { recursive: true })
   fs.copyFileSync(path.join(FIXTURES, fixture), destination)
 }
 
+/**
+ * @param {string} name
+ * @param {string} root
+ * @param {Record<string, string>} [env]
+ * @returns {{ status: number | null, output: string }}
+ */
 function runGate(name, root, env = {}) {
   const result = spawnSync(
     'node',
@@ -172,6 +185,7 @@ describe('Shinon Governance-Gates', () => {
     // und landet als `<sha>{commit}` bei git. Der leere Bereich macht aus dem
     // Aufruf einen grünen Pfad, damit der Test die Ref-Auflösung isoliert prüft.
     const root = makeRoot()
+    /** @param {...string} args */
     const git = (...args) =>
       spawnSync(
         'git',

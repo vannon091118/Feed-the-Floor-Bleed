@@ -20,6 +20,7 @@ const ROOT = path.resolve(
   '../../..',
 )
 const SCRIPT = path.join(ROOT, 'scripts/bump-version.mjs')
+/** @type {string[]} */
 const roots = []
 
 afterEach(() => {
@@ -27,6 +28,11 @@ afterEach(() => {
     fs.rmSync(root, { recursive: true, force: true })
 })
 
+/**
+ * @param {string} root
+ * @param {...string} args
+ * @returns {string}
+ */
 function git(root, ...args) {
   const result = spawnSync('git', args, { cwd: root, encoding: 'utf8' })
   if (result.status !== 0)
@@ -34,14 +40,20 @@ function git(root, ...args) {
   return result.stdout.trim()
 }
 
+/**
+ * @param {string} root
+ * @param {string} version
+ */
 function writeVersion(root, version) {
   fs.writeFileSync(path.join(root, 'VERSION'), `${version}\n`, 'utf8')
 }
 
+/** @param {string} root @returns {string} */
 function readVersion(root) {
   return fs.readFileSync(path.join(root, 'VERSION'), 'utf8').trim()
 }
 
+/** @returns {string} */
 function emptyRepo() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'shinon-bump-'))
   roots.push(root)
@@ -55,6 +67,10 @@ function emptyRepo() {
 /**
  * Ein Repo, dessen `main` die Versionskette `chain` in der Reihenfolge trägt.
  * Eine Kette muss nicht aufsteigend sein — genau daran prüft der Wächter.
+ */
+/**
+ * @param {string[]} chain
+ * @returns {string}
  */
 function repoWithChain(chain) {
   const root = emptyRepo()
@@ -71,6 +87,11 @@ function repoWithChain(chain) {
   return root
 }
 
+/**
+ * @param {string} root
+ * @param {...string} args
+ * @returns {{ status: number | null, stdout: string, stderr: string }}
+ */
 function bump(root, ...args) {
   const result = spawnSync('node', [SCRIPT, ...args], {
     cwd: root,

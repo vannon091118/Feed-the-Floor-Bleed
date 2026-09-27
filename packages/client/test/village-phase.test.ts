@@ -1,10 +1,8 @@
-import type { TerminalRaidJob } from '@floor/contracts'
 import { describe, expect, it } from 'vitest'
 import { fixture } from '../src/fixture-data'
 import {
   ALLOWED_TRANSITIONS,
   canAdvancePhase,
-  type Phase,
   phaseRank,
   resolvePhaseTransition,
 } from '../src/village/phase'
