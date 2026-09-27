@@ -18,7 +18,7 @@ Jeder Raid-Snapshot, jedes Ergebnis, jeder Log und jeder Auftrag führt verpflic
 | `snapshot.activeTeam` | 1..5 × `{ heroId: non-empty string, temporaryFatigue: safe integer, temporaryInjury: safe integer }` |
 | `snapshot.dungeon` | `DungeonGrid` mit 4096 Zellen und Koordinaten 0..63 |
 
-Keine weiteren Werte, Formeln oder Balancing-Regeln sind Teil des v2-Snapshotvertrags.
+Keine weiteren Werte, Formeln oder Balancing-Regeln sind Teil des v3-Snapshotvertrags.
 
 ## Ergebnislog und Auftrag
 
@@ -52,6 +52,8 @@ mit `result` sind nicht darstellbar.
 |--------------|------|
 | Ziel gesperrt | `blocked` |
 | Replay-Hash passt nicht | `invalid-hash` |
+| Ungültige Anfrage | `invalid-request` |
 | Defender geschützt | `protected` |
+| Frist abgelaufen | `timeout` |
 
 Unbekannte Codes, fehlende Pflichtfelder und zusätzliche Felder werden durch `.strict()` abgewiesen. Contract v1/v2 wird von v3 nicht akzeptiert.
