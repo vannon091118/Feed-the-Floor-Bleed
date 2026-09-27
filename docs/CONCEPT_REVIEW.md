@@ -32,7 +32,7 @@
 - Matching über einen internen Stärke-/MMR-Wert; zufällige Zuweisung statt freier Pool-Auswahl.
 - Kein passender Spieler: CPU-/prozedural generierter Gegner auf eigener Stärke.
 - Nach vollständigem **oder abgebrochenem** Raid wird der angegriffene Spieler nur lokal für diesen Angreifer aus dessen Player-ID-Pool gesperrt; ein Abbruch zählt mit.
-- Nur der eigene Angriff übermittelt etwas an den Server; der Zustand bleibt bis zum nächsten Commit fix. Beim Dungeon-Speichern erinnert ein Toast an den nötigen Angriff.
+- Nur der eigene Angriff übermittelt etwas an den Server; der Zustand bleibt bis zum nächsten Sync-Checkpoint fix. Beim Dungeon-Speichern erinnert ein Toast an den nötigen Angriff.
 
 ### KI-Vorschläge zu Raid/Backend `[K]`
 
@@ -61,7 +61,7 @@
 
 - Freies Graben auf dem 64×64-Raster; Boss in einer Aktion frei platzierbar.
 - Helden nehmen den Weg mit den wenigsten Tiles.
-- Beim Bau/Commit muss immer eine Route frei sein, sonst Hard-Block.
+- Beim Bau/Sync-Checkpoint muss immer eine Route frei sein, sonst Hard-Block.
 - Man darf neue Wege graben und alte zumauern.
 
 ### Technische Korrektur `[N]`
@@ -76,8 +76,7 @@
 
 ## 5. Boss, Beute und Items `[N]`
 
-- Boss besiegt: Der Boss verliert 1 von maximal 5 ausrüstbaren Monstersteinen; der Angreifer erhält 50 % der Herstellungs-Essenzen.
-- Beute ist eine Phantom-Kopie (Session 2026-09-25).
+- Boss besiegt: Beute ist eine Phantom-Kopie (Session 2026-09-25); der Angreifer erhält eine System-Kopie von 1 von maximal 5 Monstersteinen sowie 50 % der Herstellungs-Essenzen. Der Verteidiger verliert keine Live-Ressourcen oder Steine.
 - Items: 9 Slots, 5 Seltenheitsstufen.
 - Helden im MVP rein menschlich, Fokus auf Portrait-Ansicht.
 - Spells nur über Klasse und Ausrüstung; aktive Spells ausschließlich über Unique Items.
@@ -111,5 +110,5 @@
 
 ## 9. Abnahmegrenze
 
-- Implementiert: 64×64-Grid, Pathfinding, Contract-v2-Freeze und D1-Jobstatus. Nicht implementiert: HTTP, Queue, Matching, Ghost, Combat, Replay, Client-End-to-End, Moral, Zucht, Items und Dorf-Ökonomie.
+- Implementiert: 64×64-Grid, Pathfinding, Contract-v3, D1-Jobstatus, Trail-Hash, deterministischer Combat- und Replay-Core sowie lokale Tag/Nacht/Raid-Schleife (T1 abgeschlossen). Nicht implementiert: echtes HTTP-Netzwerk/Auth, Queue, Remote-Matching, Ghost-Fallback, Moral-Verlustfolgen, Zucht-UI, Items und Dorf-Ökonomie (T2/T3).
 - Alle `[K]`-Punkte sind keine Implementierungsfreigabe.

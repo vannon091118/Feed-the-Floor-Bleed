@@ -16,9 +16,9 @@ Die aktive Arbeitsreihenfolge besitzt ausschließlich `docs/ROADMAP.md`. T1 (Ker
 - `.github/agents/critical-adversarial-reviewer.agent.md` prüft angefragte Trees und Diffs schreibgeschützt gegen `Agents.md`, die dort verlinkten Regelwerke und betroffene Contracts, Domänendokus sowie Tests. Ohne engeren Scope gilt der gesamte Checkout. Governance-Grundsätze liegen in `Agents.md`, Detailregeln in den dort verlinkten Regelwerken; das Profil kopiert sie nicht.
 - `.github/agents/berater.agent.md` liest denselben Stoff, gibt aber ein Urteil statt eines Befundkatalogs: höchstens drei Absätze aus Urteil, einem Beleg und dem Fix, Ton bewusst rau an der Arbeit statt an der Person. Ohne `edit`-Werkzeug; `execute` ist auf lesende Befehle und die Gate-Kommandos `pnpm run -s lint` und `pnpm test` beschränkt. Auch dieses Profil verweist auf `Agents.md`, statt Regeln zu duplizieren.
 
-## Datenfluss Trail-Hash (belegter Ist-Stand)
+## Datenfluss Trail-Hash (belegter Ist-Stand, lokaler Fixture-Mock)
 
-Editor-Grid plus Fixture-Aufstellung → `buildFixtureUpload` erzeugt einen Contract-v3-Upload → `toDungeonGrid` übersetzt die 4096 Zellen in das Laufzeit-Grid → `runFixtureRaid` prüft Schema, Auftragsfrist und Route, rechnet den Kampf über `resolveCombat` mit Trail (`x/y/cell` je Schritt), hasht den vollständigen Trail in `fingerprintCombatLog`, replayt den geparsten Log inklusive Trail-Prüfung und gibt einen durch `RaidJobSchema` validierten Auftrag zurück → `RaidPanel` rendert Stufe, Hash und Kennzahlen. Kein Netz, keine Uhr, kein Serverentscheid.
+Editor-Grid plus Fixture-Aufstellung (lokaler Mock mangels Backend-Matching) → `buildFixtureUpload` erzeugt einen Contract-v3-Upload → `toDungeonGrid` übersetzt die 4096 Zellen in das Laufzeit-Grid → `runFixtureRaid` prüft Schema, Auftragsfrist und Route, rechnet den Kampf über `resolveCombat` mit Trail (`x/y/cell` je Schritt), hasht den vollständigen Trail in `fingerprintCombatLog`, replayt den geparsten Log inklusive Trail-Prüfung und gibt einen durch `RaidJobSchema` validierten Auftrag zurück → `RaidPanel` rendert Stufe, Hash und Kennzahlen. Kein Netz, keine Uhr, kein Serverentscheid.
 
 Ergebnis und vollständiger Log sind zwei Payloads: `ResultPayloadSchema` trägt `token`, `floor`, `hash` und die typisierte Summary, `RaidLogPayloadSchema` zusätzlich den Log inklusive `trail`. Das hält die D1-Zeile klein und lässt den Log bei Bedarf nachladen.
 
@@ -32,7 +32,7 @@ Push auf `main` → App `cloudflare-workers-and-pages` baut den Worker aus `wran
 
 ## Datenfluss Etagen-Loop (geplanter Zielpfad, technisch)
 
-Client `Upload(v2-Raid-Freeze + Taktiken)` → Server friert den vollständigen eigenen Snapshot in D1 ein → Server wählt MMR-Band-Ziel oder Ghost → Queue übergibt den Job → Headless-Worker berechnet den Kampf serverseitig → D1 speichert Ergebnis oder Timeout-Verlust → Client erhält Status/Playback. Kein Pre-Leak tieferer Etagen.
+Client `Upload(v3-Raid-Freeze + Taktiken)` → Server friert den vollständigen eigenen Snapshot in D1 ein → Server wählt MMR-Band-Ziel (fremder Floor) oder Ghost → Queue übergibt den Job → Headless-Worker berechnet den Kampf serverseitig → D1 speichert Ergebnis oder Timeout-Verlust → Client erhält Status/Playback. Kein Pre-Leak tieferer Etagen.
 
 ## Versionierung
 

@@ -19,12 +19,12 @@ Autoritative Instanz für Defender-State, Pool, Validierung und Progression-Tor.
 - Tests verwenden einen schlanken transaktionalen SQLite-D1-Adapter statt eines zweiten Zustandsmodells.
 
 - `001_raid_jobs.sql` legt `raid_snapshots`, `raid_jobs`, Unveränderlichkeits-Trigger, TTL- und Slot-Constraints an.
-- Der vollständige `RaidSnapshot` wird vor D1-Zugriff über Contract v2 validiert.
+- Der vollständige `RaidSnapshot` wird vor D1-Zugriff über Contract v3 validiert.
 - Der Store persistiert genau `resources`, `monsterSlots`, `activeTeam` und `dungeon`. Upload-Taktiken werden nicht als Teil des Raid-Freeze gespeichert.
 - Ein einzelner D1-Batch beendet fällige Altjobs und schreibt den Sync-Checkpoint aus Snapshot plus `accepted`-Job. Bei jeder Batch-Abweichung bleibt der vorherige Zustand erhalten.
 - `idempotencyKey` ist zugleich Snapshot-/Job-ID. Gleiche Schlüssel+Daten liefern denselben Job; abweichende Daten oder ein bereits offener Job desselben Angreifers ergeben einen Fehler.
 - `raid_jobs.snapshot_id` referenziert den unveränderlichen Angreifer-Freeze.
-- `raid_jobs.target_snapshot_id` ist initially `NULL`, referenziert später einen eigenen unveränderlichen Ziel-Freeze und ist nach dem ersten Setzen nicht mehr änderbar. Matching und das Setzen der Referenz sind nicht Teil dieses Passes.
+- `raid_jobs.target_snapshot_id` ist initially `NULL`, referenziert später den unveränderlichen Ziel-Freeze des verteidigenden Gegners (fremder Floor oder Ghost) und ist nach dem ersten Setzen nicht mehr änderbar. Matching und das Setzen der Referenz sind nicht Teil dieses Passes.
 - Snapshots sind per SQLite-Trigger unveränderlich. Nur Jobstatus, Revisionszähler und terminale Ergebnismetadaten sind veränderlich.
 
 ## Zustandsautomat

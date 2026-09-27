@@ -14,6 +14,6 @@
 | `src/worker.ts` | Worker-Rand für `feed-the-floor-bleed.vannon-fs.workers.dev`: `/api/health`, `/api/sync/checkpoint`, `/api/sync/job/:id` |
 | `src/worker.test.ts` | Randtests gegen den SQLite-D1-Doppel: Health, 503 ohne D1, Idempotenz, 409, 404, 400/405 |
 | `test/sqlite-d1.mjs` | Schlanker transaktionaler SQLite-D1-Testadapter |
-| `test/raid-fixtures.ts` | Vollständige Contract-v2-Raid-Snapshots |
+| `test/raid-fixtures.ts` | Vollständige Contract-v3-Raid-Snapshots |
 | `src/matchmaking/` | Pool, Zielauswahl, Ghost — noch leer |
 | `src/sync/` | Queue, Token, Replay — noch leer; der HTTP-Rand liegt in `src/worker.ts` |

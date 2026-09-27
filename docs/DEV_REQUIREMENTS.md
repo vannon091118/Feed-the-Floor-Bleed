@@ -94,8 +94,8 @@ nicht den PR.
 |-------|-------|--------|-------|
 | `zod` | `3.23.8` | **hart gepinnt** | `scripts/shinon/policy.json` prüft die Version im `schema-contract`-Gate wörtlich. Die Kopplung ist Absicht: Client und Server teilen dieselben Schema-Instanzen, ein Versatz erzeugt zwei Wahrheiten. Verschärfend verweigert zod v4 `Infinity` in `z.number()`, und der Contract nutzt `Infinity` absichtlich als Sentinel für `unreachable`. |
 | `typescript` | `<7` | **Obergrenze 6.x** | Ab TypeScript 7 exportiert das Paket nur noch `version` und `versionMajorMinor`. Die klassische Compiler-API (`createScanner`, `createSourceFile`, `SyntaxKind`, `isIfStatement`) entfällt, und darauf bauen `scripts/shinon/lib/source-scan.mjs` und das `dead-code-gate` auf. Ein Bump auf 7.x macht zwei Gates still wirkend grün statt rot. |
-| `vitest` | `<5` | Obergrenze 4.x, 5.x nur mit Config-Fix | Ab 5.x ist der Default-Timeout 5 s. `scripts/shinon/tests/engine-slicing.test.mjs` legt ein echtes Git-Repo an und startet die Engine als Kindprozess; unter Parallel-Last braucht der Lauf rund 8 s. Der Test scheitert dann an der Zeit statt an der Aussage. Zusätzlich ist `--reporter=basic` entfallen. |
-| `@biomejs/biome` | `<2` | Obergrenze 1.x, 2.x nur mit Code-Fix | Biome 2 führt neue Regeln ein und migriert `rules.recommended` nach `rules.preset`. Der Sprung trifft Bestandscode und verlangt Änderungen, die über Versionsnummern hinausgehen. |
+| `vitest` | `5.0.1` | **aktiv auf 5.x (<6)** | Mit `vitest.config.ts` (`testTimeout: 30_000`) ist der 5-Sekunden-Default-Timeout für den Engine-Slicing-Test gelöst. Obergrenze bleibt vorerst `<6`. |
+| `@biomejs/biome` | `2.5.14` | **aktiv auf 2.x (<3)** | `biome.json` nutzt bereits `rules.preset` statt `rules.recommended`. Obergrenze bleibt vorerst `<3`. |
 
 Der Zod-Pin ist die einzige Grenze, die `scripts/shinon/policy.json` selbst
 durchsetzt. Die drei übrigen sind Einschätzungen aus realen Bump-Versuchen und
@@ -107,7 +107,7 @@ festgeschrieben werden, ist eine offene Entscheidung.
 
 `package.json` darf keine `pnpm`-Runtime-Dependency führen, das kollidiert mit `packageManager`. Ein `package-lock.json` im Working Tree bricht den Remote-Gate. Leere `historisch/`- und Source-Domänenordner brauchen `.gitkeep`, sonst schlägt Fresh-Clone-Hygiene fehl. Hook-Änderungen müssen `scripts/shinon/install-hooks.mjs` und die generierten `.husky/*` gemeinsam treffen. `SHINON_SKIP_BUMP=1` schützt nur die Post-Commit-Recursion, `SHINON_AUTO_PUSH=0` ist der sichere lokale Lifecycle-Test. `scripts/bump-version.mjs` liest die Basis aus `origin/main` und fällt ohne erreichbare Basis auf lokal zurück; `node scripts/bump-version.mjs --next` fragt ohne Schreibzugriff. `core-determinism` und `false-positive` können bei leerer Core-Source grün werden; ein grüner Full-Run ist erst mit echter Source-Abdeckung aussagekräftig.
 
-## 7. Toolchain-Pins und ihre Gründe
+## 8. Toolchain-Pins und ihre Gründe
 
 Drei Pins sind nicht veraltete Schranken, sondern bewusste Entscheidungen. Ein Dependabot-Bump darauf ist eine Task für sich und braucht eine ausdrückliche Freigabe.
 
