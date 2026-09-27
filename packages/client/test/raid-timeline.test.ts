@@ -1,12 +1,7 @@
 import { RaidLogPayloadSchema } from '@floor/contracts'
-import {
-  CellType,
-  createDungeonGrid,
-  findPath,
-  resolveSnapshotRaid,
-  setCell,
-} from '@floor/sim-core'
+import { CellType, findPath } from '@floor/sim-core'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { buildCombatLog } from '../src/raid/combat-source'
 import {
   playbackLog,
   playbackPaused,
@@ -24,21 +19,7 @@ import {
   resultCard,
   trailBadge,
 } from '../src/raid/timeline-model'
-import { buildCombatLog } from '../src/showcase/combat-source'
-
-function fixtureLog() {
-  const grid = createDungeonGrid()
-  const route = findPath(grid)
-  const raid = resolveSnapshotRaid({
-    grid,
-    seed: 4242,
-    teamSize: 3,
-    monsterSlots: 2,
-    floor: 1,
-    token: 'timeline-test',
-  })
-  return { grid, route, payload: raid.log, log: raid.log.log }
-}
+import { blockedGrid, fixtureRaidLog } from './raid-fixtures'
 
 beforeEach(() => {
   setPlaybackLog(null)
@@ -47,7 +28,7 @@ beforeEach(() => {
 
 describe('RaidTimeline-Phasen', () => {
   it('zeigt die richtige Anzahl Ereignisse pro Phase', () => {
-    const { log } = fixtureLog()
+    const { log } = fixtureRaidLog()
     const sections = buildTimelineSections(log)
     const buckets = eventsByPhase(log, sections)
 
@@ -68,7 +49,7 @@ describe('RaidTimeline-Phasen', () => {
   })
 
   it('ordnet die Phasen über phaseForTick korrekt', () => {
-    const { log } = fixtureLog()
+    const { log } = fixtureRaidLog()
     const sections = buildTimelineSections(log)
     expect(sections.combatStart).toBeGreaterThan(0)
     expect(phaseForTick(sections, 0)).toBe('route')
@@ -84,7 +65,7 @@ describe('RaidTimeline-Phasen', () => {
     expect(trailBadge(CellType.Trap)).toBe('trap')
     expect(trailBadge(CellType.Spawn)).toBe('spawn')
     expect(trailBadge(CellType.Boss)).toBe('boss')
-    const { log } = fixtureLog()
+    const { log } = fixtureRaidLog()
     const badges = new Set(
       log.trail
         .map((entry) => trailBadge(entry.cell))
@@ -99,14 +80,14 @@ describe('RaidTimeline-Scrubber', () => {
   it('löst keinen Core-Replay aus: Log-Wechsel nur bei neuem Log-Objekt', () => {
     const spy = vi.spyOn(Math, 'random')
     try {
-      const first = fixtureLog()
+      const first = fixtureRaidLog()
       setPlaybackLog(first.log)
       expect(playbackLog.value?.log).toBe(first.log)
 
       setPlaybackLog(first.log)
       expect(playbackLog.value?.log).toBe(first.log)
 
-      const again = fixtureLog()
+      const again = fixtureRaidLog()
       setPlaybackLog(again.log)
       expect(playbackLog.value?.log).toBe(again.log)
       expect(playbackTick.value).toBe(0)
@@ -120,7 +101,7 @@ describe('RaidTimeline-Scrubber', () => {
   })
 
   it('klemmt Scrub-Ticks aufs Log-Ende und pausiert deterministisch', () => {
-    const { payload } = fixtureLog()
+    const { payload } = fixtureRaidLog()
     setPlaybackLog(payload.log)
     const lastTick = payload.log.ticks
     setScrubTick(lastTick + 100)
@@ -131,7 +112,7 @@ describe('RaidTimeline-Scrubber', () => {
   })
 
   it('stepPlayback läuft weiter, Pause friert den Scrubber ein', () => {
-    const { payload } = fixtureLog()
+    const { payload } = fixtureRaidLog()
     setPlaybackLog(payload.log)
     setScrubTick(0)
     const tickRate = payload.log.config.tickRate
@@ -144,7 +125,7 @@ describe('RaidTimeline-Scrubber', () => {
   })
 
   it('leitet die aktive Route-Zelle aus move-Ereignissen ab', () => {
-    const { payload } = fixtureLog()
+    const { payload } = fixtureRaidLog()
     setPlaybackLog(payload.log)
     setScrubTick(0)
     expect(playbackRouteIndex.value).toBe(-1)
@@ -157,7 +138,7 @@ describe('RaidTimeline-Scrubber', () => {
 
 describe('RaidTimeline-Ergebnis-Phase', () => {
   it('zeigt die Timeout-Karte bei Stage timeout', () => {
-    const { payload } = fixtureLog()
+    const { payload } = fixtureRaidLog()
     const log = payload.log
     const timeoutLog = {
       ...log,
@@ -176,7 +157,7 @@ describe('RaidTimeline-Ergebnis-Phase', () => {
   })
 
   it('zählt Überlebende aus Todesereignissen ohne zweite Simulation', () => {
-    const { payload } = fixtureLog()
+    const { payload } = fixtureRaidLog()
     const log = payload.log
     const card = resultCard(log)
     const dead = log.events.filter((event) => event.type === 'death').length
@@ -188,24 +169,17 @@ describe('RaidTimeline-Ergebnis-Phase', () => {
   })
 })
 
-describe('RaidTimeline-Szenenquelle', () => {
-  it('liefert für blockierte Route null und leert den Store', () => {
-    const grid = createDungeonGrid()
-    grid.cells[63 * 64 + 62] = CellType.Wall
-    grid.cells[62 * 64 + 63] = CellType.Wall
-    const route = findPath(grid)
+describe('Raid-Log aus dem Core', () => {
+  it('rechnet denselben Lauf wie die Route, ohne den Store anzufassen', () => {
+    const { grid, route, log } = fixtureRaidLog()
     const combat = buildCombatLog(grid, route)
-    expect(combat).toBeNull()
+    expect(combat).toEqual(log)
+    expect(combat?.trail.length).toBe(route.path.length)
     expect(playbackLog.value).toBeNull()
-    expect(playbackRouteIndex.value).toBe(-1)
   })
 
-  it('reicht denselben Log an den Store weiter, den die Szene nutzt', () => {
-    const grid = createDungeonGrid()
-    const route = findPath(grid)
-    const combat = buildCombatLog(grid, route)
-    expect(combat).not.toBeNull()
-    expect(playbackLog.value?.log).toBe(combat)
-    expect(playbackLog.value?.sections.trail.length).toBe(route.path.length)
+  it('liefert für eine blockierte Route null', () => {
+    const blocked = blockedGrid()
+    expect(buildCombatLog(blocked, findPath(blocked))).toBeNull()
   })
 })

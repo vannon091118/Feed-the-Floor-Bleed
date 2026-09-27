@@ -98,6 +98,7 @@ export function bindViewportControls(deps: ControlsDeps): ViewportControls {
           deps.camera(),
           origin.x - sample.screen.x,
           origin.y - sample.screen.y,
+          'dungeon',
         ),
       )
       downScreen = sample.screen
@@ -110,7 +111,9 @@ export function bindViewportControls(deps: ControlsDeps): ViewportControls {
   })
 
   const onWheel = (event: WheelEvent): void => {
-    deps.setCamera(zoomCamera(deps.camera(), event.deltaY < 0 ? 1.1 : 0.9))
+    deps.setCamera(
+      zoomCamera(deps.camera(), event.deltaY < 0 ? 1.1 : 0.9, 'dungeon'),
+    )
   }
   deps.element.addEventListener('wheel', onWheel)
 

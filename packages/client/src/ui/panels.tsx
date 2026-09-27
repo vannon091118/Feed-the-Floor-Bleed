@@ -1,5 +1,8 @@
 import { route } from '../dungeon-editor/state'
+import { fixture } from '../fixture-data'
+import { VILLAGE_BUILDINGS } from '../render/village-layout'
 import { villageOutlook } from '../village'
+import { buildingLabel } from './building-label'
 import { RosterList } from './roster-list'
 import { Stats } from './stats'
 
@@ -30,6 +33,27 @@ export function RoutePanel() {
         ['Umweg', finite(current.detourCost)],
       ]}
     />
+  )
+}
+
+export function BuildingPanel({ buildingId }: { buildingId: string }) {
+  const building = VILLAGE_BUILDINGS.find((entry) => entry.id === buildingId)
+  if (!building) return <p class="raid-note">Ort nicht gefunden.</p>
+  return (
+    <div class="context-details">
+      <strong>{buildingLabel(building.kind)}</strong>
+      <p>
+        {building.kind === 'workshop'
+          ? 'Materialproduktion · Noch nicht freigeschaltet'
+          : 'Dorfort · Noch nicht ausbaubar'}
+      </p>
+      {building.kind === 'house' && (
+        <p>
+          Startbasis: {fixture.workers} Arbeiter · Attraktivität{' '}
+          {fixture.attractiveness}
+        </p>
+      )}
+    </div>
   )
 }
 

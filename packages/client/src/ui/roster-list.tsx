@@ -5,7 +5,6 @@ export interface RosterListProps {
 }
 
 function RosterRow({ hero }: { hero: Hero }) {
-  const tone = hero.injury > 0 ? 'alert' : 'ok'
   return (
     <div class="roster__row">
       <div class="roster__head">
@@ -15,7 +14,7 @@ function RosterRow({ hero }: { hero: Hero }) {
       <div class="roster__meta">
         <span class="tnum">{hero.hp} HP</span>
         <span>Müdigkeit {hero.fatigue}</span>
-        <span data-tone={tone}>
+        <span>
           {hero.injury > 0 ? `Verletzt (${hero.injury})` : 'unverletzt'}
         </span>
       </div>
@@ -24,11 +23,8 @@ function RosterRow({ hero }: { hero: Hero }) {
 }
 
 /**
- * Die Gildenliste.
- *
- * Einmal im Dorfblick und einmal im Team-Fenster benutzt, damit derselbe
- * Zustand nirgends anders dargestellt wird. Reine Darstellung ohne eigenen
- * Zustand — Verletzung färbt die Zeile, HP stehen als Zahl daneben.
+ * Die Gildenliste des Team-Fensters. Reine Darstellung ohne eigenen Zustand:
+ * HP, Müdigkeit und Verletzung stehen als Zahl und Wort in der Zeile.
  */
 export function RosterList({ heroes }: RosterListProps) {
   return (

@@ -1,0 +1,6 @@
+export { createActorsView } from './actors'
+export { createEditorGridView } from './editor-grid'
+export { createEditorOverlay } from './editor-overlay'
+export { createFxView } from './fx'
+export { createRouteView } from './route'
+export { createTerrainView } from './terrain'

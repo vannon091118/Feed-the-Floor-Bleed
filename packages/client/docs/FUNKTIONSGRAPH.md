@@ -17,14 +17,19 @@ visual (ohne Pixi)
   └─ observer: createVisualObserver().observe({grid, route, combat, tick})
 
 render (Pixi)
-  ├─ camera: worldToScreen / screenToWorld (einzige Quelle)
+  ├─ camera: worldToScreen / screenToWorld / fitCamera (einzige Quelle)
   ├─ runtime: createVisualRuntime(host) → Application, Ebenen, Ticker
+  ├─ camera-controls: bindCameraControls(canvas, world, …) (Pan/Zoom)
+  ├─ layer-sprite: addLayerSprite(layer, texture) (Sichtbarkeit, Abbau)
   ├─ canvas: gemeinsame Canvas-/Textur-Helfer
   ├─ atlas: Barrel der Textur-Owner
   ├─ tile-atlas: deterministische Boden-/Wandtexturen
   ├─ route-atlas: gepufferte Markertexturen
   ├─ actor-atlas: Actor-Silhouetten
   ├─ atmosphere-atlas: Glow-/Vignette-Texturen
+  ├─ village-layout / village-atlas: Dorforte und Pixeltexturen
+  ├─ village-scene: createVillageScene(textures, onBuildingClick) + update(ms)
+  ├─ village-view: createVillageView(runtime, onBuildingClick)
   ├─ terrain: createTerrainView(runtime).apply(patch)
   ├─ route: createRouteView(runtime).apply(route.path, activeIndex)
   ├─ actors: createActorsView(runtime).apply(actors) + update(clock)
@@ -40,19 +45,23 @@ input
 
 window (Preact)
   ├─ store: windows / focusedId Signals, openWindow / close / focus / patch
-  └─ window-layer: WindowLayer → GameWindow (Drag, Resize)
+  ├─ drag: visibleArea / clampHead (Kopf bleibt im Sichtfeld) /
+  │         isHeadControl (Knopfdruck ist kein Zug) / draggedHead
+  └─ window-layer: WindowLayer → GameWindow (Drag, Resize),
+       contentSignature(Inhalt) → contentKey des Inhaltsbereichs
 
 showcase
-  ├─ combat-source: buildCombatLog(grid, route) → sim-core resolveSnapshotRaid
   ├─ controls: bindViewportControls (Pan, Zoom, Klick, Drag)
   └─ scene: createShowcase → observer + Views + Kamera + Ticker
 
 ui
   ├─ view: stageView Signal (village | dungeon), showView  (Navigation, keine Phase)
-  ├─ shell: reines Layout → topbar + stage + sidebar
-  ├─ topbar → phase-badge + view-switch + Ressourcenstreifen + window-tools
-  ├─ stage → village-view | world-host (Pixi) + window-layer
-  └─ sidebar → phase-panel je Phase + (Nacht/Raid + Dungeon-Blick) editorwerkzeug
+  ├─ shell: reines Layout → topbar + stage
+  ├─ topbar → phase-badge + view-switch + Ressourcenstreifen + window-tabs
+  ├─ stage → world-host (Pixi) + window-launcher + window-layer
+  │    └─ world-host → createVisualRuntime (einmalig) → scene-switch
+  │         └─ scene-switch → village-view | showcase, je genau eine lebende Szene
+  └─ window-launcher → openWindow (phase | editor | team | route | legend)
 
 dungeon-editor/state (einziger Grid-Owner)
   ├─ grid / brush Signals, route = computed(findPath)
@@ -62,27 +71,31 @@ village (einziger Phase-Owner der Schleife)
   ├─ phase: Phase-Union, ALLOWED_TRANSITIONS, resolvePhaseTransition
   ├─ state: dayNight Signal, setPhase (guarded), recordRaidJob
   ├─ phase-actions: startNight / triggerRaid / completeRaid / finishResult
-  └─ settlement: villageOutlook() → Gebiete + Roster + Bilanz der letzten Nacht
+  └─ settlement: villageOutlook() → Dorfname, Tag, Phasentext + Gildenroster
 
 raid/fixture-raid
   ├─ buildFixtureUpload(grid) → @floor/contracts UploadRequest
   └─ runLocalFixtureRaid(grid) → @floor/sim-core runFixtureRaid
 
-raid/timeline (liest den Log, rechnet nichts)
+raid (besitzt den Lauf; die Timeline liest ihn, rechnet nichts)
+  ├─ combat-source: buildCombatLog(current, path) → sim-core resolveSnapshotRaid,
+  │                 loadRaidLog / unloadRaidLog → setPlaybackLog (einziger Schreibpfad)
   ├─ playback: playbackLog / playbackTick / playbackPaused, stepPlayback,
   │            setScrubTick, playbackRouteIndex
   ├─ timeline-model: buildTimelineSections, phaseForTick, clusterEvents,
   │                 trailBadge, resultCard
   ├─ phase-nav: drei Phasen-Knöpfe → setScrubTick(Phasenbeginn)
-  └─ raid-timeline: PhaseNav + RoutePhase + CombatPhase + ResultPhase + Scrubber
+  ├─ raid-timeline: TimelineTransport (Scrubber, Play/Pause) + PhaseNav +
+  │                RoutePhase + CombatPhase + ResultPhase
 
-ui (Sidebar schaltet nach Phase, Bühne nach Blick)
-  ├─ shell → topbar + stage (bühne + sidebar), kennt keine Phase
+ui (Phasenfenster schaltet nach Phase, Bühne nach Blick)
+  ├─ shell → topbar + stage, kennt keine Phase
   ├─ phase-badge: liest dayNight.phase / dayNight.day
-  ├─ village-view → village/settlement + raid/panel (raidOutcomeText) + roster-list
+  ├─ village-host → village/settlement (Weltbeschriftung, kein Panel)
   ├─ TagPhasePanel → startNight → phase night
   ├─ NightPhasePanel → triggerRaid → phase raid (Editor bleibt aktiv)
   ├─ RaidPhasePanel → RaidPanel.onJob → completeRaid(job) → phase result
+  ├─ TimelineTransport (nur phase raid, über dem Inhalt, sticky) → Scrubber
   ├─ RaidTimeline (nur phase raid) → setScrubTick / playbackPaused
   └─ ResultPhasePanel → finishResult(job) → phase tag (completed) | raid (sonst)
 ```
@@ -91,10 +104,14 @@ Schleife: `tag → night → raid → result → tag` (Tag +1) beziehungsweise
 `result → raid` als Retry nach fehlgeschlagenem Auftrag. Jeder andere
 Übergang wird vom Store verworfen.
 
-Die Timeline liest denselben Log, den `showcase/combat-source.ts` über
-`setPlaybackLog` in den Store legt. `showcase/scene.ts` treibt den Tick über
-`stepPlayback`; es gibt keinen zweiten Zähler. Der Scrubber schreibt
-ausschließlich `playbackTick` und löst keinen Core-Aufruf aus.
+Den Log legt allein `raid/combat-source.ts` in den Store: `triggerRaid` lädt
+ihn, `finishResult` räumt ihn mit dem Tag auf, und ein Effekt folgt dem Grid,
+solange ein Raid läuft. Den Tick treibt der Runtime-Ticker in
+`ui/world-host.tsx` über `stepPlayback` — nicht die Szene, damit der Replay im
+Dorf genauso läuft wie im Dungeon. `showcase/scene.ts` liest Log und Tick im
+Raid-Modus nur noch; es gibt keinen zweiten Zähler und keinen zweiten Log.
+Der Scrubber schreibt ausschließlich `playbackTick` und löst keinen Core-Aufruf
+aus.
 
 Kurzregeln: `world` definiert nur. `visual` übersetzt ohne Pixi. `render`
 besitzt die Szene. `input` emittiert Commands. Der Observer liest Grid und Route,

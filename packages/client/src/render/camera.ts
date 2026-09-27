@@ -1,4 +1,5 @@
 import { WORLD_SIZE_PX, type WorldPoint } from '../world'
+import { VILLAGE_WORLD_HEIGHT, VILLAGE_WORLD_WIDTH } from './village-layout'
 
 export interface CameraState {
   /** Weltkoordinate, die aktuell in der Viewport-Mitte liegt. */
@@ -14,12 +15,15 @@ export interface ScreenPoint {
   y: number
 }
 
-/**
- * Die einzige World↔Screen-Transformation des Clients.
- *
- * Renderer, Pointer-Hit-Test und Drag benutzen genau diese zwei Funktionen.
- * Eine zweite Umrechnung irgendwo sonst wäre ein sofortiger Divergenzfehler.
- */
+export type CameraWorld = 'dungeon' | 'village'
+
+function worldSize(world: CameraWorld): { width: number; height: number } {
+  return world === 'village'
+    ? { width: VILLAGE_WORLD_WIDTH, height: VILLAGE_WORLD_HEIGHT }
+    : { width: WORLD_SIZE_PX, height: WORLD_SIZE_PX }
+}
+
+/** Einzige World↔Screen-Transformation für beide Welten. */
 export function worldToScreen(
   camera: CameraState,
   world: WorldPoint,
@@ -53,23 +57,33 @@ export function createCamera(
   }
 }
 
-function clampAxis(value: number, halfSpan: number): number {
+function clampAxis(value: number, halfSpan: number, extent: number): number {
   const min = halfSpan
-  const max = WORLD_SIZE_PX - halfSpan
-  if (max <= min) return WORLD_SIZE_PX / 2
+  const max = extent - halfSpan
+  if (max <= min) return extent / 2
   if (value < min) return min
   if (value > max) return max
   return value
 }
 
-/** Hält die Kamera im Weltrechteck; kleinere Welten rasten auf die Mitte. */
-export function clampCamera(camera: CameraState): CameraState {
-  const halfWidth = camera.viewportWidth / (2 * camera.zoom)
-  const halfHeight = camera.viewportHeight / (2 * camera.zoom)
+/** Hält Kamera im gewählten Weltrechteck; die Geometrie bleibt unverändert. */
+export function clampCamera(
+  camera: CameraState,
+  world: CameraWorld = 'dungeon',
+): CameraState {
+  const size = worldSize(world)
   return {
     ...camera,
-    x: clampAxis(camera.x, halfWidth),
-    y: clampAxis(camera.y, halfHeight),
+    x: clampAxis(
+      camera.x,
+      camera.viewportWidth / (2 * camera.zoom),
+      size.width,
+    ),
+    y: clampAxis(
+      camera.y,
+      camera.viewportHeight / (2 * camera.zoom),
+      size.height,
+    ),
   }
 }
 
@@ -77,30 +91,63 @@ export function resizeCamera(
   camera: CameraState,
   viewportWidth: number,
   viewportHeight: number,
+  world: CameraWorld = 'dungeon',
 ): CameraState {
-  return clampCamera({ ...camera, viewportWidth, viewportHeight })
+  return clampCamera({ ...camera, viewportWidth, viewportHeight }, world)
 }
 
 export function panCamera(
   camera: CameraState,
   dx: number,
   dy: number,
+  world: CameraWorld = 'dungeon',
 ): CameraState {
-  return clampCamera({
-    ...camera,
-    x: camera.x + dx / camera.zoom,
-    y: camera.y + dy / camera.zoom,
-  })
+  return clampCamera(
+    {
+      ...camera,
+      x: camera.x + dx / camera.zoom,
+      y: camera.y + dy / camera.zoom,
+    },
+    world,
+  )
 }
 
 export function centerCameraOn(
   camera: CameraState,
   target: WorldPoint,
+  world: CameraWorld = 'dungeon',
 ): CameraState {
-  return clampCamera({ ...camera, x: target.x, y: target.y })
+  return clampCamera({ ...camera, x: target.x, y: target.y }, world)
 }
 
-export function zoomCamera(camera: CameraState, factor: number): CameraState {
+export function zoomCamera(
+  camera: CameraState,
+  factor: number,
+  world: CameraWorld = 'dungeon',
+): CameraState {
   const zoom = Math.min(4, Math.max(0.5, camera.zoom * factor))
-  return clampCamera({ ...camera, zoom })
+  return clampCamera({ ...camera, zoom }, world)
+}
+
+/** Zentriert das Weltrechteck im Viewport; Owner der Rahmung ist die Szene. */
+export function fitCamera(
+  camera: CameraState,
+  world: CameraWorld,
+  maxZoom = 1.5,
+): CameraState {
+  const size = worldSize(world)
+  const zoom = Math.min(
+    maxZoom,
+    Math.max(
+      0.5,
+      Math.min(
+        camera.viewportWidth / size.width,
+        camera.viewportHeight / size.height,
+      ),
+    ),
+  )
+  return clampCamera(
+    { ...camera, x: size.width / 2, y: size.height / 2, zoom },
+    world,
+  )
 }

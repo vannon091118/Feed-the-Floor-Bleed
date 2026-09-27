@@ -1,29 +1,23 @@
-import { Sprite } from 'pixi.js'
 import { vignetteTexture } from './atmosphere-atlas'
+import { addLayerSprite } from './layer-sprite'
 import type { VisualRuntime } from './runtime'
 
 export interface LightingView {
   resize(width: number, height: number): void
+  setVisible(visible: boolean): void
   dispose(): void
 }
 
 /** Dunkle Ränder als billige Lichtwirkung; kein Per-Pixel-Licht. */
 export function createLightingView(runtime: VisualRuntime): LightingView {
-  const sprite = new Sprite(vignetteTexture())
-  sprite.anchor.set(0)
-  runtime.layers.overlay.addChild(sprite)
+  const vignette = addLayerSprite(runtime.layers.overlay, vignetteTexture())
+  vignette.sprite.anchor.set(0)
 
   const resize = (width: number, height: number): void => {
-    sprite.width = width
-    sprite.height = height
+    vignette.sprite.width = width
+    vignette.sprite.height = height
   }
   resize(runtime.camera.viewportWidth, runtime.camera.viewportHeight)
 
-  return {
-    resize,
-    dispose() {
-      sprite.parent?.removeChild(sprite)
-      sprite.destroy()
-    },
-  }
+  return { resize, setVisible: vignette.setVisible, dispose: vignette.dispose }
 }

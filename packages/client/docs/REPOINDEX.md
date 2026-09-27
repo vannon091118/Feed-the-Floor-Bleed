@@ -21,7 +21,10 @@
 | `src/visual/route-index.ts` | Gemeinsames boundsafe Route-Index-Mapping |
 | `src/visual/variant.ts` | Gemeinsame ID-basierte Actor-Variantenwahl |
 | `src/visual/observer.ts` | Diffender Visual Observer, keine zweite Grid-Wahrheit |
-| `src/render/camera.ts` | Einzige World↔Screen-Transformation, Pan/Zoom/Clamp |
+| `src/render/camera.ts` | Einzige World↔Screen-Transformation, Pan/Zoom/Clamp und Rahmung |
+| `src/render/camera-controls.ts` | Pan und Zoom auf dem Pixi-Canvas, ohne Zeigereinfang |
+| `src/render/layer-sprite.ts` | Lebensdauer eines Sprites in einer Ebene (Sichtbarkeit, Abbau) |
+| `src/render/modes.ts` | Rendermodi `village \| editor \| raid` der Runtime |
 | `src/render/layers.ts` | Ebenen-Namen und Z-Ordnung |
 | `src/render/depth.ts` | Fußpunkt-basierte Tiefenschlüssel |
 | `src/render/canvas.ts` | Gemeinsame Canvas- und Textur-Helfer |
@@ -39,41 +42,55 @@
 | `src/render/fx.ts` | Gepooltes FX-System ohne Objektallokation pro Treffer |
 | `src/render/fx-styles.ts` | Stiltabelle je FX-Art |
 | `src/render/lighting.ts` | Billiger Lichtrand im Screen-Raum |
+| `src/render/assets.ts` | Optionale Asset-Texturen der Runtime, fehlende bleiben `undefined` |
+| `src/render/dungeon-scene.ts` | Aufbau der Dungeon-Szene aus Observer-Deskriptoren |
+| `src/render/dungeon-views.ts` | Sicht-Objekte der Dungeon-Szene (Terrain, Route, Akteure, FX) |
+| `src/render/editor-grid.ts` | Editorraster als Overlay-Sprite in der Editor-Ebene |
+| `src/render/editor-grid-atlas.ts` | Gepufferte Rastertextur des Editors |
+| `src/render/editor-overlay.ts` | Pinselmarkierung und Lesemarken im Overlay |
+| `src/render/village-layout.ts` | Weltmaße, Dorforte und Baumstellen des Präsentationsdorfs |
+| `src/render/village-atlas.ts` | Pixeltexturen für Boden, Bäume, Gebäude und Bewohner |
+| `src/render/village-scene.ts` | Dorfszene mit Wiesenhintergrund, anklickbaren Gebäuden, laufenden Bewohnern |
+| `src/render/village-view.ts` | Einbau der Dorfszene in die geteilte Runtime, Kamera-Rahmung |
 | `src/input/pointer.ts` | Einheitlicher Pointer-Pfad für Maus und Touch |
 | `src/input/hit-test.ts` | Screen → Zelle und Actor-Treffer über die Kamera |
 | `src/input/drag.ts` | Drag-Lebenszyklus: Kandidat, Slop, Abschluss-Command |
 | `src/input/drag-target.ts` | Trefferauflösung und Zwischenzustand eines Drags |
 | `src/window/store.ts` | Fenster-Registry, Fokus und Z-Order als Signals |
-| `src/window/window.tsx` | Verschiebbares Kontextfenster mit Resize-Griff |
-| `src/window/window-layer.tsx` | Fensterschicht über der Welt |
-| `src/showcase/combat-source.ts` | Core-Combat-Log als Positionsquelle |
+| `src/window/drag.ts` | Zug-Geometrie: sichtbare Fläche, Kopfklemme, Zug- versus Klickgrenze |
+| `src/window/window.tsx` | Verschiebbares Kontextfenster mit Resize-Griff, Inhaltsbereich am Wechselkey |
+| `src/window/window-layer.tsx` | Fensterschicht über der Welt, berechnet die Inhalts-Signatur |
 | `src/showcase/controls.ts` | Viewport-Steuerung: Pan, Zoom, Klick, Drag |
 | `src/showcase/scene.ts` | Treiber, der Observer, Views und Kamera schaltet |
-| `src/ui/shell.tsx` | Reines Layout: Topbar, Bühne, Sidebar |
-| `src/ui/topbar.tsx` | Wortmarke, Ressourcenstreifen, Phasenanzeige, Ansichtsumschalter, Werkzeuge |
+| `src/ui/shell.tsx` | Reines Layout: Topbar und Bühne |
+| `src/ui/topbar.tsx` | Wortmarke, Ressourcenstreifen, Phasenanzeige, Ansichtsumschalter, Fenstertabs |
 | `src/ui/view.ts` | Blick-Signal `village \| dungeon`, bewusst kein Phasenzustand |
 | `src/ui/view-switch.tsx` | Segmentierter Umschalter zwischen Dorf- und Dungeon-Blick |
-| `src/ui/stage.tsx` | Bühne: genau eine Ansicht im Viewport, Fensterlayer darüber |
-| `src/ui/sidebar.tsx` | Sidebar: Panel der Phase, Editorwerkzeug nur im Dungeon-Blick |
-| `src/ui/village-view.tsx` | Dorfblick: Ort, Gilde, Bilanz der letzten Nacht |
-| `src/ui/roster-list.tsx` | Gildenliste, geteilt von Dorfblick und Team-Fenster |
+| `src/ui/stage.tsx` | Bühne: Pixi-Host, Weltbeschriftung, Launcher und Fensterlayer |
+| `src/ui/village-host.tsx` | Weltbeschriftung über der Dorfszene, keine eigene Pixi-Runtime |
+| `src/ui/scene-switch.ts` | Hält genau eine lebende Szene in der stabilen Runtime |
+| `src/ui/window-launcher.tsx` | Einzige Startrampe für Kontextfenster über der Welt |
+| `src/ui/window-tabs.tsx` | Offene Kontextfenster als Tabs in der Topbar |
+| `src/ui/roster-list.tsx` | Gildenliste des Team-Fensters, eine Darstellung für den Gildenzustand |
 | `src/ui/stats.tsx` | Beschriftete Wertzeilen statt offener Label-Wert-Listen |
 | `src/ui/phase-badge.tsx` | Schleifen-Anzeige mit laufendem Tag in der Topbar |
 | `src/ui/phase-panels.tsx` | Phasen-Panels: Auftrag und Hauptaktion je Phase |
 | `src/ui/actor-label.ts` | Kennung → sprechender Name für Fenster und Werkzeugstatus |
+| `src/ui/building-label.ts` | `BuildingKind` → sprechender Ortsname, einzige Label-Quelle |
 | `src/ui/drop-status.tsx` | Rückmeldung über den letzten Zug im Editor |
-| `src/ui/window-tools.tsx` | Schnellfenster der Topbar mit kaskadierenden Startlagen |
+| `src/ui/phase-windows.tsx` | Fensterinhalt der Phase und des Editors hinter festen IDs |
 | `src/ui/window-content.tsx` | Fenster-ID → Inhalt, eine Quelle für die Fensterschicht |
 | `src/ui/world-host.tsx` | Stabiler DOM-Host und Lebenszyklus der Pixi-Runtime |
 | `src/ui/editor-panel.tsx` | DOM-Editorraster mit 16×16 sichtbaren Feldern |
 | `src/ui/editor-controls.tsx` | Pinselauswahl und Zurücksetzen |
 | `src/ui/panels.tsx` | Inhalte der Kontextfenster |
+| `src/icons/resource-icon.tsx` | SVG-Icons der Ressourcenwerte in der Topbar |
+| `src/resources/catalog.ts` | Feste Ressourcen-IDs, Labels und Icons |
 | `src/ui/styles/index.css` | Einstiegspunkt der Oberflächen-Styles mit fester Importreihenfolge |
 | `src/ui/styles/tokens.css` | Gestaltungsraster: Farbe, Abstand, Radius, Typografie |
 | `src/ui/styles/base.css` | Reset, Seitenhintergrund, Fokus, reduzierte Bewegung |
 | `src/ui/styles/shell.css` | App-Rahmen, Topbar, Bühnenraster, Viewport |
-| `src/ui/styles/village.css` | Gebietskarten, Gildenliste, Belegungsbalken |
-| `src/ui/styles/panels.css` | Sidebar-Flächen, Wertzeilen, Buttons, Werkzeugstatus |
+| `src/ui/styles/panels.css` | Fenster-Panelflächen, Wertzeilen, Gildenliste, Buttons, Werkzeugstatus |
 | `src/ui/styles/windows.css` | Kontextfenster über der Bühne |
 | `src/ui/styles/editor.css` | Pinselwahl und Editorraster |
 | `src/ui/styles/raid.css` | Auftrag, Urteil und Hash |
@@ -81,16 +98,17 @@
 | `src/dungeon-editor/state.ts` | Einziger Owner von Grid, Pinsel und Route |
 | `src/village/phase.ts` | Phase-Union in Schleifenreihenfolge, erlaubte Übergänge, reine Entscheidungsfunktion |
 | `src/village/state.ts` | DayNightState-Signal (`phase`, `day`, `job`), einziger Schreibpfad `setPhase` |
-| `src/village/phase-actions.ts` | Schleifen-Kommandos: Nacht starten, Raid auslösen, Ergebnis abschließen |
+| `src/village/phase-actions.ts` | Schleifen-Kommandos: Nacht starten, Raid auslösen (lädt den Log), Ergebnis abschließen (räumt ihn auf) |
 | `src/village/settlement.ts` | Dorfblick als reine Ableitung aus Phase-Owner und Fixture, ohne Wirtschaft |
 | `src/village/index.ts` | Barrel der village-Domäne |
 | `src/raid/fixture-raid.ts` | Contract-v3-Upload und lokaler Fixture-Auftrag |
+| `src/raid/combat-source.ts` | Einziger Besitzer des Raid-Logs: Core-Aufruf, Lade-/Entlade-Pfad, Plan-Synchronisierung |
 | `src/raid/raid-panel.tsx` | Probelauf-Panel, reicht den terminalen Auftrag an die Schleife weiter |
 | `src/raid/panel.tsx` | Reine Ergebnis-Darstellung eines TerminalRaidJob |
 | `src/raid/playback.ts` | Playback-Store: Log, Tick, Pause, abgeleitete Routenposition |
 | `src/raid/timeline-model.ts` | Reine Abschnitts-, Phasen- und Ergebnismodelle des Logs |
-| `src/raid/timeline.tsx` | Re-Export der Timeline für die Shell |
-| `src/raid/raid-timeline.tsx` | Scrubber, Play/Pause und Phasen-Reihen in der Raid-Phase |
+| `src/raid/timeline.tsx` | Re-Export von Timeline und Steuerung für die Shell |
+| `src/raid/raid-timeline.tsx` | `TimelineTransport` (Scrubber, Play/Pause) und die drei Phasenreihen |
 | `src/raid/phase-nav.tsx` | Drei Phasen-Knöpfe, setzen den Scrubber auf den Phasenbeginn |
 | `src/raid/phases.tsx` | Routen-, Kampf- und Ergebnisdarstellung der Timeline |
 | `test/dungeon-editor.test.ts` | State-/Model-Tests der Editor-Logik |
@@ -100,13 +118,17 @@
 | `test/visual-foundation.test.ts` | Tests für World-Definitionen, Kamera, Depth, Observer |
 | `test/render-animation.test.ts` | Periodik, Determinismus, Grenzen und Amplituden der Render-Animation |
 | `test/input-drag.test.ts` | Slop-Verhalten: ein Down ohne Weg erzeugt keinen Drop |
-| `test/village-settlement.test.ts` | Dorf-Ableitung gegen echten Loop-Zustand und Auftragsstatus |
+| `test/village-settlement.test.ts` | Dorfblick: Name, Tag, Phase und Roster ohne Kopie |
 | `test/stage-view.test.ts` | Blickwechsel verändert die Spielphase nicht |
+| `test/world-presentation.test.ts` | Anklickbare Dorforte, deterministische Bewohnerbewegung, Kamera-Clamp beider Welten |
+| `test/window-routing.test.ts` | Fenster-ID → Inhalt, Phasenaktion über eine stabile Fenster-ID |
 | `docs/*` | Pflicht-Doku dieser Domäne |
 
 Der Client hat wieder einen Einstiegspunkt. `world`, `visual`, `render`, `input`,
 `window` und `showcase` bilden die sichtbare visuelle Basis; `dungeon-editor`
 bleibt der einzige Grid-Owner. `village` besitzt die Tag/Nacht/Raid-Phase und
 leitet daraus den Dorfblick ab, `raid` rechnet den Fixture-Auftrag lokal. Die
-Shell ist nur noch Layout; Topbar, Bühne und Sidebar lesen ihre Stores selbst.
-`ui/view.ts` hält den Blick auf die Bühne, der bewusst keine Phase ist.
+Shell ist nur noch Layout; Topbar, Bühne, Launcher und Fenster lesen ihre
+Stores selbst. `ui/view.ts` hält den Blick auf die Bühne, der bewusst keine
+Phase ist. `ui/world-host.tsx` erzeugt genau einen Pixi-Host, `ui/scene-switch.ts`
+tauscht darin Dorf- und Dungeon-Szene.

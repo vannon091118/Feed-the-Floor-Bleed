@@ -12,6 +12,20 @@
 - Beute: Phantom-Kopie. Der Angreifer erhält System-Loot, der Verteidiger verliert keine Live-Ressourcen. `[N]`
 - Doku-Regel: KI-Vorschläge dürfen nicht mehr als bestätigte Regeln geführt werden. `[N]`
 
+## 0a. Visual- und Expeditionsentscheidungen vom 2026-09-27
+
+Die vollständige Detail- und Sprintquelle ist `docs/VISUAL_GRUNDSATZ.md`; die folgenden neueren Nutzerfestlegungen übersteuern widersprechende alte Notizen:
+
+- Ressourcen im Epic sind nur Gold und Materialien. Gold stammt aus besiegten Gegnern, abhängig von Stärke/Generation; Material stammt aus ausgebauten Gebäuden/Werkstätten. Keine dynamischen Ressourcen-Plugins und keine zusätzliche Ressource. `[N]`
+- Eine Expedition ist ein Turn über beliebig viele Etagen desselben unveränderlichen Verteidigers. Nach jedem Boss ist Ausstieg (Run-Beute sichern) oder Weitergehen (ungesicherte Beute riskieren) möglich. Bei jeder Rückkehr, auch nach Niederlage, wird Dorfwirtschaft genau einmal abgerechnet. Niederlage kostet nur ungesicherte Run-Beute. HP, Buffs und verbrauchte Fähigkeiten bleiben über Etagen erhalten. `[N]`
+- Etage 1 startet mit fünf Monsterplätzen; jede spätere Etage mit null und kann bis zu fünf Material-Slots freischalten. Etagen- und Slotkosten wachsen quadratisch; Basiswerte bleiben bis zur Freigabe `[K]`. `[N/K]`
+- Aktive Heldenbewegung/-zielwahl bleibt automatisch. Jede Klasse hat eine feste Fähigkeit; Heal, Direktschaden und Team-Buff sind manuelle Eingaben am nächsten ganzzahligen Simulationstick und je Held einmal pro Expedition. Freigegebene Basiswirkungen: 25 % Max-HP Heilung, 25 % Max-HP Direktschaden, +20 % Angriff bis Rückkehr. Unique Items erhalten später einen getrennten Fähigkeitskatalog; sie aktivieren im ersten Epic keine Extraaktion. `[N]`
+- Inventar: neun globale Plätze plus separater Unique-Slot je Held. Bossdrop wird deterministisch serverseitig gerollt, Duplikate werden vermieden; bei vollem Rucksack wird die Belohnung sicher vorgemerkt. Drop-Pool und Gewichte sind `[K]`. `[N/K]`
+- Visual-Assets sind selbst erstellte Pixel-Art-Rastergrafik plus handgeschriebene SVG-Icons. Referenzbilder sind keine Assets. Eine Pixi-Runtime zeigt Dorf, flachen Editor und atmosphärischen Raid aus gemeinsamem World-/Grid-Owner; Tastaturzugang bleibt über DOM-Controls erhalten. `[N]`
+- Google- und E-Mail/Passwort-Anmeldung über Firebase Auth; Firebase-UID ist Kontoschlüssel. Dev-Identität/-Datenbank/-Wipe bleiben von Live getrennt. Anbieterwerte und externe Projektanlage werden nicht ins Repository hardcodiert oder durch Implementierung provisioniert. `[N]`
+- Online-Fortschritt gilt erst nach serverseitiger Authentifizierung, deterministischer Replayprüfung und idempotentem Persistenz-Commit als autoritativ. Der Client darf lokal rechnen und rendern. `[N]`
+- Gold-/Materialmengen, Startbestände, Bau-/Upgrade-/Landkosten, Haus-/Werkstatteffekte, Drop-Weights und Matchband bleiben gesperrte Balancewerte. Vorschläge `[K]` brauchen ausdrückliche Nutzerfreigabe, bevor sie Simulation oder Fortschritt beeinflussen. `[N]`
+
 ## 1. Spielform und Kernloop `[N]`
 
 - Persistentes Webspiel, asynchroner Multiplayer, kein Echtzeit-MMO.

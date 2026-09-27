@@ -65,11 +65,21 @@
   color: var(--text);
   background: rgba(229, 180, 92, 0.14);
 }
+/* Am Oberkant des Fensterinhalts klebend: die Steuerung bleibt bedienbar,
+   egal wie weit die Trail-Liste unten gescrollt ist. Die negativen Ränder
+   überbrücken das Padding des Fensterinhalts, damit der Balken randlos sitzt. */
 .timeline-scrubber {
+  position: sticky;
+  top: calc(-1 * var(--space-3));
+  z-index: 1;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 6px;
   align-items: center;
+  margin: 0 calc(-1 * var(--space-3)) 10px;
+  padding: 8px var(--space-3);
+  border-bottom: 1px solid var(--line-soft);
+  background: rgba(24, 28, 34, 0.94);
 }
 .timeline-scrub-step {
   width: 24px;

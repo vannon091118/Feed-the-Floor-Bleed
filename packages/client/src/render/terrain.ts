@@ -7,26 +7,34 @@ import {
   type TerrainTile,
   WORLD_CELL_PX,
 } from '../world'
+import { optionalTexture } from './assets'
 import { depthValue } from './depth'
 import { materialFilter } from './filters'
+import type { DungeonRenderMode } from './modes'
 import type { VisualRuntime } from './runtime'
 import { tileTexture, wallTexture } from './tile-atlas'
 
 export interface TerrainView {
   apply(patch: TerrainPatch | null): void
+  setMode(mode: DungeonRenderMode): void
   dispose(): void
 }
 
 /**
  * Boden und Blöcke als persistente Sprites.
  *
- * Boden liegt in der flachen Terrain-Ebene, occludierende Zellen wandern in die
- * sortierbare Welt-Ebene. Dadurch verdeckt eine Wand einen Actor, der hinter
- * ihr steht, ohne dass ein Actor-Sprite eigenes Tiefenwissen braucht.
+ * Editor und Raid konsumieren dieselben Terrain-Deskriptoren. Der Editor legt
+ * alle Zellen flach in ein Raster; im Raid wandern occludierende Wände in die
+ * sortierbare Welt-Ebene. Fehlende lokale Grafiken behalten die Canvas-Textur.
  */
-export function createTerrainView(runtime: VisualRuntime): TerrainView {
+export function createTerrainView(
+  runtime: VisualRuntime,
+  mode: DungeonRenderMode,
+): TerrainView {
+  let activeMode = mode
   const floors = new Map<number, Sprite>()
   const blocks = new Map<number, Sprite>()
+  const tiles = new Map<number, TerrainTile>()
   const materialLayers = new Map<string, Container>()
 
   const floorLayer = (materialId: string): Container => {
@@ -54,13 +62,25 @@ export function createTerrainView(runtime: VisualRuntime): TerrainView {
     }
   }
 
+  const floorTexture = (materialId: string, variant: number) => {
+    const local = optionalTexture(runtime.assets, `dungeon.floor.${materialId}`)
+    const texture = local ?? tileTexture(materialId, variant)
+    texture.source.scaleMode = 'nearest'
+    return texture
+  }
+
   const place = (tile: TerrainTile): void => {
     discard(tile.index)
     const foot = cellFoot(tile.cell)
-    if (tile.occludes) {
-      const sprite = new Sprite(
-        wallTexture(tile.materialId, tile.variant, tile.height),
+    if (tile.occludes && activeMode === 'raid') {
+      const local = optionalTexture(
+        runtime.assets,
+        `dungeon.wall.${tile.materialId}`,
       )
+      const texture =
+        local ?? wallTexture(tile.materialId, tile.variant, tile.height)
+      texture.source.scaleMode = 'nearest'
+      const sprite = new Sprite(texture)
       sprite.anchor.set(0.5, 1)
       sprite.x = foot.x
       sprite.y = foot.y
@@ -69,16 +89,20 @@ export function createTerrainView(runtime: VisualRuntime): TerrainView {
       sprite.zIndex = depthValue(foot.y, tile.height)
       runtime.layers.world.addChild(sprite)
       blocks.set(tile.index, sprite)
-    } else {
-      const sprite = new Sprite(tileTexture(tile.materialId, tile.variant))
-      const origin = cellToWorld(tile.cell)
-      sprite.width = WORLD_CELL_PX
-      sprite.height = WORLD_CELL_PX
-      sprite.x = origin.x
-      sprite.y = origin.y
-      floorLayer(tile.materialId).addChild(sprite)
-      floors.set(tile.index, sprite)
+      return
     }
+
+    // Im flachen Editor werden Wände als Stein-Zellen gerendert; die
+    // Editor-Overlay-Ebene kennzeichnet sie klar, ohne Fake-3D-Höhe.
+    const materialId = tile.occludes ? 'stone' : tile.materialId
+    const sprite = new Sprite(floorTexture(materialId, tile.variant))
+    const origin = cellToWorld(tile.cell)
+    sprite.width = WORLD_CELL_PX
+    sprite.height = WORLD_CELL_PX
+    sprite.x = origin.x
+    sprite.y = origin.y
+    floorLayer(materialId).addChild(sprite)
+    floors.set(tile.index, sprite)
   }
 
   return {
@@ -86,8 +110,18 @@ export function createTerrainView(runtime: VisualRuntime): TerrainView {
       if (!patch) return
       if (patch.reset) {
         for (const index of [...floors.keys(), ...blocks.keys()]) discard(index)
+        tiles.clear()
       }
-      for (const tile of patch.changed) place(tile)
+      for (const tile of patch.changed) {
+        place(tile)
+        tiles.set(tile.index, tile)
+      }
+    },
+    setMode(nextMode) {
+      if (activeMode === nextMode) return
+      activeMode = nextMode
+      for (const index of [...floors.keys(), ...blocks.keys()]) discard(index)
+      for (const tile of tiles.values()) place(tile)
     },
     dispose() {
       for (const index of [...floors.keys(), ...blocks.keys()]) discard(index)
@@ -96,6 +130,7 @@ export function createTerrainView(runtime: VisualRuntime): TerrainView {
         container.destroy({ children: true })
       }
       materialLayers.clear()
+      tiles.clear()
     },
   }
 }

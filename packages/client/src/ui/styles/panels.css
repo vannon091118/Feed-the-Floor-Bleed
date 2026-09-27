@@ -1,17 +1,6 @@
-/* Seitenleiste und Bedienflächen.
+/* Bedienflächen.
    Eine Fläche, eine Kante, eine Tiefe — Panels erfinden keine eigene
    Optik mehr, sie benutzen die Tokens. */
-.sidebar {
-  display: flex;
-  min-width: 0;
-  min-height: 0;
-  flex-direction: column;
-  gap: var(--space-3);
-  overflow: auto;
-  scrollbar-color: var(--line-strong) transparent;
-  scrollbar-width: thin;
-}
-
 .panel {
   display: flex;
   flex-direction: column;
@@ -64,6 +53,49 @@
   color: var(--text);
   font-family: var(--font-mono);
   font-size: 12px;
+}
+
+/* --- Gildenliste ------------------------------------------------------- */
+
+/* Eine Zeile je Held. Verletzung färbt den Zustand, HP stehen als Zahl daneben. */
+.roster {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.roster__row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.roster__head {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.roster__name {
+  color: var(--text-strong);
+  font-weight: 600;
+}
+
+.roster__role {
+  color: var(--faint);
+  font-size: 11px;
+}
+
+.roster__meta {
+  display: flex;
+  gap: var(--space-3);
+  color: var(--muted);
+  font-size: 11px;
 }
 
 /* --- Buttons ----------------------------------------------------------- */
@@ -150,7 +182,7 @@
 
 /* --- Werkzeugstatus ---------------------------------------------------- */
 
-/* Rückmeldung des Drag-Zugs. Gehört zum Werkzeug, nicht zur Sidebar. */
+/* Rückmeldung des Drag-Zugs. Gehört zum Werkzeug, nicht in die Fenster. */
 .tool-status {
   margin: 0;
   padding: var(--space-2) var(--space-3);
@@ -164,10 +196,17 @@
   color: var(--text);
 }
 
+.context-details {
+  display: grid;
+  gap: var(--space-2);
+  color: var(--muted);
+}
+
 /* --- Phasenanzeige ----------------------------------------------------- */
 
 .phase-badge {
   display: inline-flex;
+  flex: 0 0 auto;
   gap: var(--space-2);
   align-items: center;
   padding: 5px var(--space-3);
@@ -176,6 +215,7 @@
   color: var(--muted);
   font-size: 12px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .phase-badge__day {

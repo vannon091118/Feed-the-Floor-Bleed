@@ -1,4 +1,11 @@
-import { ActorPanel, LegendPanel, RoutePanel, TeamPanel } from './panels'
+import {
+  ActorPanel,
+  BuildingPanel,
+  LegendPanel,
+  RoutePanel,
+  TeamPanel,
+} from './panels'
+import { editorWindowContent, phaseWindowContent } from './phase-windows'
 
 /**
  * Inhalt hinter einer Fenster-ID.
@@ -8,6 +15,10 @@ import { ActorPanel, LegendPanel, RoutePanel, TeamPanel } from './panels'
  */
 export function windowContent(id: string) {
   if (id.startsWith('actor:')) return <ActorPanel windowId={id} />
+  if (id.startsWith('building:'))
+    return <BuildingPanel buildingId={id.slice('building:'.length)} />
+  if (id === 'phase') return phaseWindowContent()
+  if (id === 'editor') return editorWindowContent()
   if (id === 'team') return <TeamPanel />
   if (id === 'route') return <RoutePanel />
   if (id === 'legend') return <LegendPanel />

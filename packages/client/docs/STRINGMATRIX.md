@@ -37,25 +37,29 @@
 | `phase/transitions` | erlaubt: `tag→night`, `night→raid`, `raid→result`, `result→tag`, `result→raid`; jeder andere Übergang wird verworfen |
 | `phase/day` | Start `fixture.day` (18), Zähler hoch bei `result→tag`, Auftrag wird dabei gelöscht |
 | `phase/actions` | `startNight`, `triggerRaid`, `completeRaid` (nur aus `raid`), `finishResult` (Nachfolge nach Auftragsstatus) |
+| `phase/tag-note` | `Der Ort ist die Welt selbst, die Gilde steht im Gildenfenster.` — Verweis des Tag-Panels auf Ort und Gilde |
 | `view/id` | `'village' \| 'dungeon'` — Bühnenblick, phasenunabhängig, einziger Owner `ui/view.ts` |
 | `view/default` | `'village'` — der erste Eindruck ist der Ort, nicht das Raster |
-| `district/tone` | `'idle' \| 'accent' \| 'ok' \| 'alert'` — Kartenkante im Dorfblick, kein Ampelsystem |
-| `district/id` | `rathaus`, `gilde`, `gehege` — Orte aus `village/settlement.ts` |
 | `timeline/phase-label` | `Routen-Phase`, `Kampf-Phase`, `Ergebnis-Phase` — Beschriftung der drei Knöpfe |
 | `timeline/scrub-readout` | `Tick 12/225 · Kampf-Phase` — Position und Phase im Scrubber |
 | `timeline/aria` | `Raid-Phasen`, `Ein Tick zurück`, `Tick-Index`, `Wiedergabe fortsetzen`, `Wiedergabe pausieren` |
+| `launcher/aria` | `Aktion`, `Dungeon-Editor`, `Gildenroster`, `Routenbilanz`, `Steuerung` jeweils mit dem Zusatz `als Fenster öffnen` — sichtbarer Text und ARIA-Beschriftung nennen dasselbe Ziel |
+| `window/aria` | Der Fensterkopf ist die Beschriftung (`aria-labelledby` auf die Titelzeile), der Schließen-Knopf heißt `Fenster schließen`, der Tab-Knopf `<Titel> schließen` |
 
-`ui/tabs` ist mit der alten visuellen Schicht entfallen. Die Sidebar schaltet
-seit T1.2 nach `village/state.ts`; die alte lokale Tag/Nacht-Notiz ist
+`ui/tabs` ist mit der alten visuellen Schicht entfallen. Das Phasenfenster
+schaltet seit T1.2 nach `village/state.ts`; die alte lokale Tag/Nacht-Notiz ist
 überholt. Die Welt bleibt die Navigation, der Editor bleibt in Nacht und Raid
 aktiv — seine Sichtbarkeit hängt allein an der Phase, weil Bauen in der Nacht
 passiert; der Blick ist eine Navigationsfrage und bindet das Werkzeug nicht.
 
-Die Sidebar zeigt je Phase nur noch den Auftrag und eine Hauptaktion. Zahlen
-und Zustände des Dorfs stehen im Dorfblick (`ui/village-view.tsx`), damit der
-Ort nicht als Wertetabelle nebenbei existiert. Kennungen aus Roster und
-Verteidiger-Gehege erscheinen nie roh: `ui/actor-label.ts` übersetzt sie in
-Namen und Zählung.
+Das Phasenfenster zeigt je Phase nur noch den Auftrag und eine Hauptaktion.
+Der Ort ist die Welt selbst: `ui/village-host.tsx` beschriftet sie, ein
+angeklicktes Dorfort öffnet sein Kontextfenster. Die Gilde steht als
+`RosterList` im Team-Fenster, damit der Ort nicht als Wertetabelle nebenbei
+existiert. Kennungen aus Roster
+und Verteidiger-Gehege erscheinen nie roh: `ui/actor-label.ts` übersetzt sie in
+Namen und Zählung, `ui/building-label.ts` die Dorforte in Rathaus, Gilde,
+Wohnhaus und Werkstatt.
 
 Die Timeline-Klassen `raid-timeline`, `timeline-phase-nav`, `timeline-phase-step`,
 `timeline-scrubber`, `timeline-scrub-step`, `timeline-scrub-readout`,
@@ -63,3 +67,13 @@ Die Timeline-Klassen `raid-timeline`, `timeline-phase-nav`, `timeline-phase-step
 `timeline-facts` und `timeline-hint` gehören zu `src/raid/raid-timeline.tsx`,
 `phase-nav.tsx` und `phases.tsx`. Sie erscheinen ausschließlich in der
 Raid-Phase und sind mit dem UI-Rebase nach `ui/styles/raid.css` überführt.
+`timeline-scrubber` klebt dabei am Oberkant des Fensterinhalts: die
+Wiedergabe-Steuerung muss ohne Scrollen erreichbar bleiben, während die
+Trail-Zellen darunter durchlaufen.
+
+Die Topbar bleibt auf jeder Breite eine Zeile (`flex-wrap: nowrap`). Ihre Höhe
+ist damit fest, und Kontextfenster stehen immer darunter; unter 1040 px
+verschwindet der Markenname, die Fenstertabs schrumpfen und scrollen statt die
+Schiene umzubrechen. Bricht sie um, läge sie über dem Fensterkopf und nähme
+dem Fenster die Klicks — deshalb ist Umbruch hier ausgeschlossen und nicht
+nur unerwünscht.

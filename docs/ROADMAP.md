@@ -59,30 +59,33 @@ Nachtrag: Die visuelle Basis ist im Browser lauffähig (`pnpm --filter @floor/cl
 
 **T1-Definition of Done:** Keine unbeabsichtigte Core-Lücke, keine nicht versionierte Payload, keine Cliententscheidung über den Raid-Ausgang, reproduzierbarer Fixture-Seed und ein dokumentierter lokaler Playback.
 
-## T2 — Alltagstiefe nach T1
+## T2 — Alltagstiefe und Visual-Epic nach T1
 
-Diese Arbeit wird erst nach Abschluss von T1 zu T1 promoted und anschließend einzeln abgearbeitet. Mit dem Abschluss von T1.1 und T1.2 ist diese Bedingung erfüllt; T2 ist damit der aktive Bereich.
+T1.1 und T1.2 sind abgeschlossen. Auf ausdrücklichen Auftrag hat das serielle Visual-/Expeditions-Epic Vorrang vor der zuvor vorgeschlagenen Dorfwirtschaft. Es startet kein zweiter Feature-Slice parallel. Verbindliche Regeln, `[K]`-Grenzen und Abhängigkeiten stehen in `docs/VISUAL_GRUNDSATZ.md`.
 
-- Dorfwirtschaft mit Arbeitern, Attraktivität und Materialbedarf.
-- Inventar, Ausrüstung und sichtbare Phantom-Loot-Umsetzung.
-- Zucht, Generationen, Mutationen und reproduzierbare Stammbäume.
-- Persistenter lokaler Spielstand und echter asynchroner Job-Status.
-- Erweiterte Taktiken mit sichtbaren Regeln und Risikoauswirkung.
+| ID | Ergebnis | Abhängigkeit | LOC ca. | Fertig, wenn |
+|----|----------|--------------|---------|---------------|
+| T2.1 | Ressourcenicons, Pixel-Art-Loader mit Fallback, Dorf-/Editor-/Raid-Renderer-Modi | T1.2, Visual-Grundsatz E1–E6 | 280–430 | Nur Gold/Material aus Quelle; ein Dungeon-Grid; Editor flach, Raid atmosphärisch; Tastaturzugang; fehlende Assets crashen nicht |
+| T2.2 | 10×10-Dorf, Platzierung/Upgrade von Häusern und Werkstätten, horizontales Land, Rückkehrabrechnung/Toast | T2.1, ausdrückliche Balancefreigabe | 320–500 | Einziger Dorf-Owner, keine Überlappung/Überziehung, Werkstattertrag und Tagesabrechnung deterministisch und höchstens einmal pro Expedition |
+| T2.3 | Expedition über mehrere Etagen, Boss-Aussteigen/Weitergehen, Escrow für ungesicherte Beute | T2.2, Kostenfreigabe | 300–470 | Derselbe eingefrorene Verteidiger, Etagen separat geprüft; Etage 2+ null bis fünf gekaufte Slots; quadratische Kosten ohne künstliches Etagenlimit |
+| T2.4 | Deterministische Klassenfähigkeiten als Simulationsinputs und Replay-Events | T2.3, Contract-/Hash-Entwurf | 440–680 | Heal/Buff/Direktschaden am nächsten ganzzahligen Tick, je Held einmal pro Expedition; gleicher Snapshot/Seed/Input ergibt identischen Hash; Contract v4 und Sim-Version abgestimmt |
+| T2.5 | 9 Inventarplätze, Unique-Slots, seeded Bossdrops, Duplikatschutz und vorgemerkter Drop | T2.4, Drop-Balancefreigabe | 230–390 | Drop kann nicht dupliziert oder durch volles Inventar verloren werden; Unique-Aktionen bleiben bis Folgefreigabe inaktiv |
+| T2.6 | Browser- und Spielzug-Abnahme von T2.1–T2.5 | T2.1–T2.5 | 100–180 | Accessibility, Asset-Fallback, Stadtbau, Ausstieg/Niederlage und Einmalabrechnung im Browser geprüft; passende Gates grün |
 
-## T3 — Systemische Erweiterung nach T2
+## T3 — Autorität und asynchroner Multiplayer
 
-Diese Arbeit wird nach Abschluss von T2 zu T2 promoted. Sie startet nicht parallel zum ersten T2-Block.
+T3 startet erst nach dem seriellen T2-Track. Online-Belohnungen und persistierter Fortschritt bleiben gesperrt, bis Authentifizierung und Replay-Prüfung vollständig durchgesetzt sind.
 
-- MMR-Matching mit noch offenem Stärkeband und Ghost-Fallback (KI-Vorschlag, siehe `docs/CONCEPT_REVIEW.md`).
-- Vollständige Queue-, Reconnect-, Retry- und Timeout-Semantik.
-- Autorisierte Endpunkte, Rate-Limits, Audit-Log und Missbrauchserkennung.
-- PWA-Installierbarkeit, Offline-Editor-Stand und produktionsfähige Deployment-Konfiguration.
-- Seed-/Build-Teilen und Replay-Inspektion ohne Live-Matchmaking.
+| ID | Ergebnis | Abhängigkeit | LOC ca. | Fertig, wenn |
+|----|----------|--------------|---------|---------------|
+| T3.1 | Firebase Google-/E-Mail-Auth und isolierte Dev-Umgebung samt Dev-Wipe-Sperre | T2.5, Firebase-Projektwerte durch Nutzer | 300–460 | Firebase-UID ist Identität; falsche Claims und clientgewählte UID werden verworfen; Wipe ausschließlich in isolierter Dev-Datenbank |
+| T3.2 | Profil-/Stadt-/Run-Persistenz und serverseitiges Replay-/Belohnungs-Gate | T3.1, lokale D1-Migrationstests | 420–670 | Server replayt Freeze, Seed und Input vor jedem atomaren Reward-Commit; Retry ist idempotent; fremde Identität/Manipulation bringt keinen Fortschritt |
+| T3.3 | Pool, fremde Zielauswahl, Self-Match-Sperre und deterministischer Ghost-Fallback | T3.2, Match-Balancefreigabe | 300–510 | Ziel bleibt während der Expedition unverändert; Selbstmatch unmöglich; leerer Pool ergibt reproduzierbaren Ghost; MMR-Band nicht erraten |
+| T3.4 | Ende-zu-Ende-/Betriebsabnahme für Auth, Persistenz und Multiplayer | T3.1–T3.3 | 100–180 | Emulator-/Testdaten, Security-Fälle und vollständige Gates grün; echte Cloud-/D1-Provisionierung bleibt separat freigegeben |
 
 ## Nächster konkreter Schritt
 
-T1.1 und T1.2 sind abgeschlossen; damit ist T1 geschlossen und T2 wird nach der Prioritätsregel zu T1 promoted. Als erster T2-Block bietet sich die Dorfwirtschaft an, weil das Tag-Panel bereits Gold, Material, Arbeiter und Attraktivität aus den Fixture-Daten liest und damit eine sichtbare Datengrundlage hat. Der Foundation-Audit bleibt gültig: 0 CRLF über `.gitattributes` erzwungen, PackageManager-Widerspruch beseitigt, Lockfile bereinigt. Vor dem Start ist der im Abschnitt „Offene Prüfpunkte“ behandelte T2-1-Branch als Rebase auf aktuellen `main` zu ziehen und die Editor-Sichtbarkeit in `sidebar.tsx` zu entscheiden, damit nicht parallel zum ersten Block gearbeitet wird.
-
+S0 (A0 + G) ist mit `docs/VISUAL_GRUNDSATZ.md` schriftlich angelegt. Danach läuft T2.1 als erster Implementierungsslice. Die in `docs/VISUAL_GRUNDSATZ.md` benannten Kosten-, Ertrags-, Drop- und MMR-Zahlen brauchen jeweils ihre ausdrückliche Freigabe vor dem dazugehörigen Verhalten. Jeder Slice wird einzeln geprüft, dokumentiert und gegatet; es gibt keine Parallelimplementierung.
 ## Offene Prüfpunkte aus dem Befund-Review vom 2026-09-26
 
 Diese Punkte stammen aus einer reinen Lese- und Mess-Session. Sie sind **keine** Spielregelentscheidungen und gehören nicht automatisch zum nächsten Block; die Zuordnung ist beim Start des jeweiligen Blocks zu treffen.
@@ -92,7 +95,7 @@ Diese Punkte stammen aus einer reinen Lese- und Mess-Session. Sie sind **keine**
 - **Sweep am Checkpoint-Pfad:** Der Expire-Sweep hängt an `checkpointRaid` statt an einem Cron. Ein Job, den niemand wiederholt, bleibt unbegrenzt `accepted`. Gehört zur Queue-Semantik in T3.
 - **Hash-Semantik:** `CombatHashSchema` ist formstreng, aber bindet nicht, worüber der Hash gebildet wurde. Eine semantische Bindung wäre robuster als die heutige indirekte Trage durch `sim_version` und `CONTRACT_VERSION`. Relevant, sobald der Hash als Inhaltsadresse dienen soll; für die aktuelle Replay-Prüfung ist die Breite ausreichend.
 - **Nicht beantwortet:** Die Byte-Determinismus-Annahme hinter dem `payloadJson`-Vergleich in `raid-checkpoint.ts` wurde nicht abschließend geprüft. Offen bleibt, ob Zod die Shape-Reihenfolge oder die Eingabereihenfolge der Keys im Ausgabeobjekt wahrt und wie `undefined` sowie Zahlformate dort wirken.
-- **Tageslicht-Klasse nach dem UI-Rebase:** `main` band die Tagesphase über `app is-day` an die Shell. Die neue Shell kennt bewusst keine Phase und führt die Klasse nicht mehr. Ob die Tagesstimmung in die Topbar oder in die Sidebar wandert oder entfällt, ist eine Design-Entscheidung und ausdrücklich offen; die Regel `.app.is-day` und `.app.is-night` liegt in `ui/styles/` ungenutzt bereit.
+- **Tageslicht-Klasse nach dem UI-Rebase:** `main` band die Tagesphase über `app is-day` an die Shell. Die neue Shell kennt bewusst keine Phase und führt die Klasse nicht mehr; die Sidebar, in die die Tagesstimmung wandern könnte, ist mit dem Dashboard-Abbau vom 2026-09-27 entfallen. Ob die Tagesstimmung in die Topbar oder in die Dorfszene wandert oder entfällt, ist weiterhin eine Design-Entscheidung und ausdrücklich offen; die Regel `.app.is-day` und `.app.is-night` liegt in `ui/styles/` ungenutzt bereit.
 
 ## Pflegeprotokoll
 

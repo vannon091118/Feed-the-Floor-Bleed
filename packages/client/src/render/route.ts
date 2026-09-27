@@ -2,20 +2,26 @@ import type { Point } from '@floor/sim-core'
 import { Sprite } from 'pixi.js'
 import { cellFoot, WORLD_CELL_PX } from '../world'
 import { depthValue } from './depth'
+import type { DungeonRenderMode } from './modes'
 import { routeTexture } from './route-atlas'
 import type { VisualRuntime } from './runtime'
 
 export interface RouteView {
+  setMode(mode: DungeonRenderMode): void
   apply(path: readonly Point[], activeIndex?: number): void
   dispose(): void
 }
 
 /** Rendert nur eine Ableitung von route.path; besitzt keine Raumdaten selbst. */
-export function createRouteView(runtime: VisualRuntime): RouteView {
+export function createRouteView(
+  runtime: VisualRuntime,
+  initialMode: DungeonRenderMode,
+): RouteView {
   const markers: Array<{ sprite: Sprite; index: number }> = []
   let currentPath: readonly Point[] | null = null
   let activeIndex = -1
   let pathStride = 1
+  let mode = initialMode
 
   const updateActive = (nextIndex: number): void => {
     if (activeIndex === nextIndex) return
@@ -24,7 +30,8 @@ export function createRouteView(runtime: VisualRuntime): RouteView {
       const active =
         nextIndex >= 0 && Math.abs(marker.index - nextIndex) <= pathStride
       marker.sprite.texture = routeTexture(active ? 'blue' : 'gold')
-      marker.sprite.alpha = active ? 0.92 : 0.54
+      marker.sprite.alpha =
+        mode === 'editor' ? (active ? 0.98 : 0.78) : active ? 0.92 : 0.54
       const size = WORLD_CELL_PX * (active ? 2.5 : 2)
       marker.sprite.width = size
       marker.sprite.height = size
@@ -32,6 +39,10 @@ export function createRouteView(runtime: VisualRuntime): RouteView {
   }
 
   return {
+    setMode(nextMode) {
+      mode = nextMode
+      updateActive(activeIndex)
+    },
     apply(path, nextActiveIndex = -1) {
       if (currentPath !== path) {
         currentPath = path

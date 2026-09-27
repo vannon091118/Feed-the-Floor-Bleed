@@ -22,6 +22,7 @@
 | `docs/CONCEPT_REVIEW.md` | Kanonische ODT-Festlegungen (`[N]`/`[K]`/`[O]`) zu Sync, Snapshot, Matching, Beute und Pathfinding |
 | `docs/CONCEPT_REVIEW_SECURITY.md` | Abgegrenzte manuelle Invalid-Request-/Account-Prüfmarke |
 | `docs/ROADMAP.md` | Audit-basierte Produkt- und Technik-Roadmap mit T1/T2/T3-Promotion |
+| `docs/VISUAL_GRUNDSATZ.md` | Freigegebene E1–E6-Visual-/Asset-Grundsätze, Expeditionsregeln, Balancefreigaben und serielle Sprintfolge |
 | `docs/DEV_REQUIREMENTS.md` | Toolchain-Voraussetzungen, Befehle, Gate-Matrix, Arbeitsablauf und Skills |
 | `docs/historisch/` | Append-only Archiv, u. a. `2026-09-25_roadmap-t1-abgeschlossen.md` mit den abgeschlossenen T1.0/T1.2/T1.3/T1.3b-Blöcken, `2026-09-25_changelog-backend-und-initialstand.md` mit Backend- und Initialphase, `2026-09-25_changelog-t1-kern-und-governance.md` mit T1-Kern und Governance, `2026-09-25_changelog-sichtbare-basis-und-tooling.md` mit sichtbarer Basis, Entwicklungsumgebung und Governance-Härtung sowie `2026-09-26_changelog-agenten-und-visuelle-foundation.md` mit den Agent-Profilen, der `Agents.md`-Entlastung und der visuellen Foundation sowie `2026-09-26_changelog-promote-und-roadmap.md` mit dem Promote-Job und der Roadmap-Nummerierung und `2026-09-26_changelog-konsistenz-und-foundation.md` mit dem Verankerungs-Pass, der T1.2-Abnahme und dem Foundation-Audit. Alle Changelog-Archive sind wortgleich aus `docs/CHANGELOG.md` gewandert |
 | `packages/contracts/src` | Zod-Schemas, sim_version, Trail, Ergebnislog, Auftragsunion |

@@ -13,7 +13,10 @@ client:raid:fixture-raid → sim-core:runFixtureRaid → client:ui:panels (Anzei
 client:world → client:visual + client:render + client:dungeon-editor (Definitionen)
 client:dungeon-editor:state → client:visual:observer → client:render (Deskriptoren, ohne Pixi)
 client:render:camera → client:input:hit-test + client:showcase:controls (einzige World-Screen-Transformation)
-client:showcase:combat-source → sim-core:resolveSnapshotRaid → client:render (echter Core-Log)
+client:ui:world-host → client:render:runtime (eine Pixi-Runtime) → client:ui:scene-switch
+client:ui:scene-switch → client:render:village-view | client:showcase:scene (je eine lebende Szene)
+client:ui:world-host → client:raid:playback (Replay-Takt am Runtime-Ticker, szenenunabhängig)
+client:raid:combat-source → sim-core:resolveSnapshotRaid → client:raid:playback (echter Core-Log, ein Besitzer)
 client:showcase:scene → client:render:route (Marker aus route.path, keine zweite Positionsquelle)
 client:visual:combat-frame → client:render:fx (stabiler Event-Seed → gepoolte Partikel)
 client:render:tile-atlas → Pixi-Texturen (deterministische Materialien, Fake-3D-Wände)

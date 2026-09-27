@@ -1,0 +1,81 @@
+import type { CombatLog } from '@floor/contracts'
+import {
+  type DungeonGrid,
+  hasValidRoute,
+  type PathResult,
+  resolveSnapshotRaid,
+} from '@floor/sim-core'
+import { effect } from '@preact/signals'
+import { grid, route } from '../dungeon-editor/state'
+import { fixture, fixtureRaid } from '../fixture-data'
+import { setPlaybackLog } from './playback'
+
+function occupiedSlots(): number {
+  return fixture.monsterSlots.filter((slot) => slot.monsterId).length
+}
+
+/**
+ * Rechnet denselben Core-Log, den der Fixture-Raid nutzt — rein, ohne Zustand.
+ *
+ * Die Auftragsantwort trägt nur die Kurzfassung; die Timeline braucht Einheiten
+ * und Ereignisse. Es entsteht kein zweiter Kampfpfad: derselbe Core-Aufruf,
+ * dieselbe Quelle für `routeIndex`.
+ */
+export function buildCombatLog(
+  current: DungeonGrid,
+  path: PathResult,
+): CombatLog | null {
+  if (path.mode === 'unreachable' || !hasValidRoute(current)) return null
+  return resolveSnapshotRaid({
+    grid: current,
+    teamSize: fixture.team.length,
+    monsterSlots: occupiedSlots(),
+    seed: fixtureRaid.seed,
+    floor: fixtureRaid.floor,
+    token: fixtureRaid.jobId,
+  }).log.log
+}
+
+/** Der Plan, aus dem der geladene Log stammt, plus ob ein Raid geladen ist. */
+let loaded = false
+let source: { grid: DungeonGrid; route: PathResult } | null = null
+
+function publish(current: DungeonGrid, path: PathResult): CombatLog | null {
+  source = { grid: current, route: path }
+  const log = buildCombatLog(current, path)
+  setPlaybackLog(log)
+  return log
+}
+
+/**
+ * Einziger Besitzer des Raid-Logs, unabhängig von der lebenden Szene.
+ *
+ * Der Raid lädt seinen Lauf hier, das Dorf genauso: die Timeline hängt am
+ * Playback-Store, nicht an einer Pixi-Szene. `unloadRaidLog` beendet den Lauf,
+ * damit der nächste Tag nicht die Karte von gestern abspielt.
+ */
+export function loadRaidLog(): CombatLog | null {
+  loaded = true
+  return publish(grid.value, route.value)
+}
+
+export function unloadRaidLog(): void {
+  loaded = false
+  source = null
+  setPlaybackLog(null)
+}
+
+/**
+ * Hält den Log mit dem Plan synchron, solange ein Raid geladen ist.
+ *
+ * Das Grid bleibt im Raid-Editor löschbar; ohne diesen Effekt zeigte die
+ * Timeline einen Lauf, den das Grid nicht mehr beschreibt. Ohne geladenen Log
+ * rechnet der Editor keinen Kampf vor — der Effekt liest nur Grid und Route.
+ */
+effect(() => {
+  const current = grid.value
+  const path = route.value
+  if (!loaded) return
+  if (source?.grid === current && source?.route === path) return
+  publish(current, path)
+})

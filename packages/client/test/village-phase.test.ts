@@ -15,31 +15,7 @@ import {
   triggerRaid,
 } from '../src/village/phase-actions'
 import { dayNight, resetDayNight, setPhase } from '../src/village/state'
-
-const JOB: TerminalRaidJob = {
-  status: 'completed',
-  id: 'fixture-raid-1',
-  result: {
-    hash: 'h',
-    events: [],
-    summary: {
-      hash: 'h',
-      stage: 'heroes-win',
-      ticks: 1,
-      events: 0,
-      attacks: 0,
-      heroesAlive: 3,
-      monstersAlive: 0,
-      bossAlive: false,
-    },
-  },
-}
-
-const FAILED: TerminalRaidJob = {
-  status: 'failed',
-  id: 'fixture-raid-1',
-  error: { code: 'blocked', detail: 'Route blockiert' },
-}
+import { FAILED, JOB } from './raid-fixtures'
 
 describe('Phase-Reihenfolge', () => {
   it('ordnet die vier Phasen exakt der Schleifenreihenfolge zu', () => {

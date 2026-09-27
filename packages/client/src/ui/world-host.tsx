@@ -1,34 +1,41 @@
+import type { ComponentChildren } from 'preact'
 import { useEffect, useRef } from 'preact/hooks'
-import { grid, route } from '../dungeon-editor/state'
 import type { DragDropCommand } from '../input'
-import { createVisualRuntime } from '../render'
-import { createShowcase, type Showcase } from '../showcase'
+import { stepPlayback } from '../raid/playback'
+import { createVisualRuntime, type VisualRuntime } from '../render'
+import type { RenderMode } from '../render/modes'
 import type { ActorKind } from '../world'
+import { createSceneSwitch, type SceneSwitch } from './scene-switch'
 
 export interface WorldHostProps {
   onActorClick: (actorId: string, kind: ActorKind) => void
   onDrop: (command: DragDropCommand) => void
+  onBuildingClick: (buildingId: string) => void
+  mode: RenderMode
+  children?: ComponentChildren
 }
 
-/**
- * Stabiler DOM-Mountpunkt für die Spielwelt.
- *
- * Preact erzeugt genau ein Host-Element und startet einmalig die Runtime.
- * Danach besitzt Pixi Stage, Ticker und Display Objects; die UI rendert keine
- * Sprites als Komponenten und bleibt von der Szene unabhängig.
- */
-export function WorldHost(props: WorldHostProps) {
+/** Preact liefert nur den Host-Knoten; Szenen und Pixi gehören `scene-switch.ts`. */
+export function WorldHost({
+  onActorClick,
+  onBuildingClick,
+  onDrop,
+  mode,
+  children,
+}: WorldHostProps) {
   const hostRef = useRef<HTMLDivElement>(null)
-  const propsRef = useRef(props)
-  propsRef.current = props
+  const runtimeRef = useRef<VisualRuntime | null>(null)
+  const sceneRef = useRef<SceneSwitch | null>(null)
+  const propsRef = useRef({ onActorClick, onBuildingClick, onDrop })
+  const modeRef = useRef(mode)
+  propsRef.current = { onActorClick, onBuildingClick, onDrop }
 
   useEffect(() => {
     const host = hostRef.current
     if (!host) return
-    let showcase: Showcase | null = null
-    let disposeRuntime: (() => void) | null = null
-    let resizeObserver: ResizeObserver | null = null
     let disposed = false
+    let observer: ResizeObserver | null = null
+    let stopPlayback: (() => void) | null = null
 
     const boot = async (): Promise<void> => {
       const runtime = await createVisualRuntime(host)
@@ -36,32 +43,48 @@ export function WorldHost(props: WorldHostProps) {
         runtime.dispose()
         return
       }
-      disposeRuntime = () => runtime.dispose()
-      showcase = createShowcase({
-        runtime,
-        element: host,
-        getGrid: () => grid.value,
-        getRoute: () => route.value,
-        onActorClick: (actorId, kind) =>
-          propsRef.current.onActorClick(actorId, kind),
+      runtimeRef.current = runtime
+      // Der Replay-Takt hängt am Runtime-Ticker, nicht an der lebenden Szene:
+      // an der Szene gezogen liefe er nur im Dungeon und stünde im Dorf still.
+      stopPlayback = runtime.onTick(({ deltaMs }) => {
+        stepPlayback(deltaMs)
+      })
+      const scenes = createSceneSwitch(runtime, host, modeRef.current, {
+        onActorClick: (id, kind) => propsRef.current.onActorClick(id, kind),
+        onBuildingClick: (id) => propsRef.current.onBuildingClick(id),
         onDrop: (command) => propsRef.current.onDrop(command),
       })
-      const applySize = (): void => {
-        showcase?.resize(host.clientWidth, host.clientHeight)
+      sceneRef.current = scenes
+      const resize = (): void => {
+        runtime.resize(host.clientWidth, host.clientHeight)
+        scenes.resize(host.clientWidth, host.clientHeight)
       }
-      applySize()
-      resizeObserver = new ResizeObserver(applySize)
-      resizeObserver.observe(host)
+      resize()
+      observer = new ResizeObserver(resize)
+      observer.observe(host)
     }
     void boot()
 
     return () => {
       disposed = true
-      resizeObserver?.disconnect()
-      showcase?.dispose()
-      disposeRuntime?.()
+      observer?.disconnect()
+      stopPlayback?.()
+      stopPlayback = null
+      sceneRef.current?.destroy()
+      sceneRef.current = null
+      runtimeRef.current?.dispose()
+      runtimeRef.current = null
     }
   }, [])
 
-  return <div class="world-host" ref={hostRef} />
+  useEffect(() => {
+    sceneRef.current?.setMode(mode)
+  }, [mode])
+
+  return (
+    <div class="world-host" data-render-mode={mode}>
+      <div class="world-host__canvas" ref={hostRef} aria-hidden="true" />
+      {children && <div class="world-host__content">{children}</div>}
+    </div>
+  )
 }

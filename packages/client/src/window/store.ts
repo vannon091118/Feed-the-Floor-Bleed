@@ -44,6 +44,28 @@ function highestId(list: readonly WindowState[]): string | null {
   return best
 }
 
+/**
+ * Versetzt ein neues Fenster, wenn dort schon eines klebt.
+ *
+ * Ohne Kaskade starten Kontextfenster deckungsgleich und verdecken sich
+ * gegenseitig; der Tab in der Topbar bliebe der einzige Unterschied.
+ */
+function place(init: WindowInit): { x: number; y: number } {
+  const baseX = init.x ?? 24
+  const baseY = init.y ?? 24
+  let offset = 0
+  for (let step = 0; step < 6; step += 1) {
+    const covered = windows.value.some(
+      (win) =>
+        Math.abs(win.x - (baseX + offset)) < 48 &&
+        Math.abs(win.y - (baseY + offset)) < 48,
+    )
+    if (!covered) return { x: baseX + offset, y: baseY + offset }
+    offset += 28
+  }
+  return { x: baseX + offset, y: baseY + offset }
+}
+
 /** Öffnet ein Fenster oder holt ein vorhandenes nach vorn. */
 export function openWindow(init: WindowInit): void {
   if (find(init.id)) {
@@ -51,13 +73,14 @@ export function openWindow(init: WindowInit): void {
     return
   }
   topZ += 1
+  const spot = place(init)
   windows.value = [
     ...windows.value,
     {
       id: init.id,
       title: init.title,
-      x: init.x ?? 24,
-      y: init.y ?? 24,
+      x: spot.x,
+      y: spot.y,
       width: init.width ?? 260,
       height: init.height ?? 220,
       z: topZ,
@@ -80,6 +103,12 @@ export function focusWindow(id: string): void {
     win.id === id ? { ...win, z } : win,
   )
   focusedId.value = id
+}
+
+export function updateWindowTitle(id: string, title: string): void {
+  windows.value = windows.value.map((win) =>
+    win.id === id ? { ...win, title } : win,
+  )
 }
 
 export function patchWindow(id: string, patch: WindowPatch): void {

@@ -1,25 +1,43 @@
 /* Rahmen der Anwendung: Topbar, Bühnenraster und Bühne.
    Enthält alles, was unabhängig vom Inhalt der Bühne gleich bleibt. */
 .app {
-  display: flex;
-  height: 100%;
+  position: relative;
+  width: 100%;
+  height: 100dvh;
   min-height: 0;
-  flex-direction: column;
   background: var(--bg);
 }
 
 /* --- Topbar ------------------------------------------------------------ */
 
+/* Die Kopfleiste ist eine einzeilige Schiene, keine Umbruchzone.
+   Fenster werden mit festem Abstand unter ihr geöffnet; bricht die Schiene
+   um, liegt sie über dem Fensterkopf und verschluckt dessen Klicks. Der
+   Fenstertabs ist deshalb das elastische Element, alles andere behält seine
+   Breite. `pointer-events: none` lässt die Lücken der transluzenten Schiene
+   an die Welt durch — ein Fensterkopf, der unter die Schiene gezogen wurde,
+   bleibt dort bedienbar. */
 .topbar {
-  z-index: 2;
+  position: absolute;
+  z-index: 5;
+  top: 0;
+  right: 0;
+  left: 0;
   display: flex;
   min-height: 60px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: var(--space-3) var(--space-5);
   align-items: center;
   padding: var(--space-3) clamp(var(--space-4), 2.2vw, 28px);
-  border-bottom: 1px solid var(--line-soft);
-  background: var(--surface-sunken);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(12, 14, 18, 0.7);
+  backdrop-filter: blur(18px) saturate(1.25);
+  -webkit-backdrop-filter: blur(18px) saturate(1.25);
+  pointer-events: none;
+}
+
+.topbar > * {
+  pointer-events: auto;
 }
 
 .brand {
@@ -56,11 +74,16 @@
   display: flex;
   min-width: 84px;
   gap: var(--space-2);
-  align-items: baseline;
+  align-items: center;
   padding: 5px var(--space-3);
   border: 1px solid var(--line);
   border-radius: var(--radius-pill);
   background: var(--surface);
+}
+
+.resource__icon {
+  flex: 0 0 auto;
+  image-rendering: pixelated;
 }
 
 .resource__value {
@@ -110,52 +133,85 @@
   color: var(--accent-strong);
 }
 
-/* --- Werkzeuge --------------------------------------------------------- */
+/* --- Offene Kontextfenster -------------------------------------------- */
 
-.tool-group {
+.window-tabs {
   display: flex;
-  gap: var(--space-1);
-  margin-left: auto;
+  min-width: 0;
+  max-width: min(34vw, 420px);
+  gap: 4px;
+  align-items: center;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.window-tab {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.window-tab__focus,
+.window-tab__close {
+  min-height: 30px;
+  border: 0;
+  background: transparent;
+  color: rgba(245, 242, 232, 0.78);
+  cursor: pointer;
+}
+
+.window-tab__focus {
+  max-width: 160px;
+  padding: 4px 10px 4px 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.window-tab__close {
+  width: 28px;
+  border-radius: 50%;
+  color: rgba(245, 242, 232, 0.52);
+  font-size: 16px;
+}
+
+.window-tab__focus[aria-current="page"] {
+  color: var(--accent-strong);
+}
+
+.window-tab__close:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.12);
 }
 
 /* --- Bühne ------------------------------------------------------------- */
 
 .stage {
-  display: grid;
-  flex: 1;
+  position: absolute;
+  inset: 0;
   min-width: 0;
   min-height: 0;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 330px);
-  gap: var(--space-3);
-  padding: var(--space-3) clamp(var(--space-3), 1.8vw, 26px)
-    clamp(var(--space-4), 2vw, 20px);
 }
 
 .viewport {
-  position: relative;
+  position: absolute;
+  inset: 0;
   min-width: 0;
   min-height: 0;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
   background: var(--surface-sunken);
   overflow: hidden;
 }
 
-.viewport--village {
-  padding: clamp(var(--space-4), 2.4vw, 28px);
-  background:
-    radial-gradient(
-      ellipse at 50% 0%,
-      rgba(224, 173, 85, 0.07),
-      transparent 62%
-    ),
-    var(--surface-sunken);
-  overflow: auto;
-}
-
 .world-host {
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
 }
 
 .world-host canvas {
@@ -165,35 +221,141 @@
   touch-action: none;
 }
 
-@media (max-width: 960px) {
-  .stage {
-    grid-template-columns: minmax(0, 1fr) minmax(250px, 29vw);
+.world-host__canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.world-host__content {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+}
+
+.stage-windows {
+  position: absolute;
+  z-index: 3;
+  top: 82px;
+  right: clamp(14px, 2vw, 28px);
+  display: flex;
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(15, 18, 22, 0.48);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+}
+
+.stage-window-opener {
+  min-height: 34px;
+  padding: 6px 14px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(245, 242, 232, 0.82);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.stage-window-opener:hover {
+  border-color: rgba(238, 192, 106, 0.5);
+  background: rgba(238, 192, 106, 0.15);
+  color: #fff3d0;
+}
+
+.editor-window {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.world-hud {
+  position: absolute;
+  top: clamp(78px, 10vh, 104px);
+  left: clamp(14px, 3vw, 30px);
+  display: flex;
+  max-width: min(420px, calc(100% - 28px));
+  flex-direction: column;
+  padding: 10px 14px;
+  border: 1px solid rgba(230, 238, 218, 0.16);
+  border-radius: 12px;
+  background: rgba(12, 18, 17, 0.48);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(12px) saturate(1.25);
+  -webkit-backdrop-filter: blur(12px) saturate(1.25);
+  pointer-events: none;
+}
+
+.world-hud__eyebrow,
+.world-hud__hint {
+  color: rgba(245, 242, 226, 0.68);
+  font-size: 10px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.world-hud__title {
+  color: #fff8e9;
+  font-family: var(--font-display);
+  font-size: clamp(22px, 3vw, 34px);
+  line-height: 1.2;
+}
+
+.world-hud__caption {
+  color: rgba(245, 242, 226, 0.84);
+  font-size: 12px;
+}
+
+.world-hud__hint {
+  margin-top: 4px;
+  opacity: 0.72;
+}
+
+/* Erste Opfer bei knapper Breite ist der Markenname: der Phasenstand, der
+   Ansichtswechsel, die Tabs und die Ressourcen sind Spielstand, die Marke
+   nicht. Die Marke bleibt. */
+@media (max-width: 1040px) {
+  .brand__name {
+    display: none;
   }
 }
 
 @media (max-width: 720px) {
-  body {
-    overflow: auto;
-  }
-
-  #app,
-  .app {
-    min-height: 100dvh;
-    height: auto;
-  }
-
+  /* Die Schiene bleibt auch hier eine Zeile; nur Abstände und Laufweite
+     gehen an die Enge, damit der Dorfblick frei bleibt. */
   .topbar {
     gap: var(--space-2);
     padding: var(--space-2) var(--space-3);
+    overflow-x: auto;
+    scrollbar-width: none;
   }
 
-  .tool-group {
-    margin-left: 0;
+  .brand__name {
+    display: none;
   }
 
-  .stage {
-    min-height: calc(100dvh - 110px);
-    grid-template-columns: 1fr;
-    grid-template-rows: minmax(50vh, 1fr) auto;
+  .window-tabs {
+    order: 1;
+    max-width: 46vw;
+  }
+
+  .stage-windows {
+    top: auto;
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    border-radius: 18px;
+  }
+
+  .stage-window-opener {
+    padding-inline: 10px;
+  }
+
+  .world-hud {
+    top: 78px;
+    max-width: min(360px, calc(100% - 28px));
   }
 }

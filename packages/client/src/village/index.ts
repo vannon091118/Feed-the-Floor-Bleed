@@ -14,13 +14,7 @@ export {
   startNight,
   triggerRaid,
 } from './phase-actions'
-export {
-  type DistrictTone,
-  type NightRecord,
-  type VillageDistrict,
-  type VillageOutlook,
-  villageOutlook,
-} from './settlement'
+export { type VillageOutlook, villageOutlook } from './settlement'
 export {
   type DayNightState,
   dayNight,

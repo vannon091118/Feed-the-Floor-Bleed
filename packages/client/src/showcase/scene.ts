@@ -1,27 +1,21 @@
-import type { CombatLog, DungeonGrid, PathResult } from '@floor/sim-core'
+import type { DungeonGrid, PathResult } from '@floor/sim-core'
 import type { DragDropCommand } from '../input/drag'
-import { playbackRouteIndex, stepPlayback } from '../raid/playback'
-import {
-  createActorsView,
-  createFxView,
-  createLightingView,
-  createRouteView,
-  createTerrainView,
-  type VisualRuntime,
-} from '../render'
+import { playbackLog, playbackRouteIndex, playbackTick } from '../raid/playback'
 import {
   type CameraState,
   centerCameraOn,
   createCamera,
 } from '../render/camera'
-import { createVisualObserver } from '../visual'
+import { createDungeonScene } from '../render/dungeon-scene'
+import { createLightingView } from '../render/lighting'
+import type { DungeonRenderMode } from '../render/modes'
+import type { VisualRuntime } from '../render/runtime'
 import {
   type ActorDescriptor,
   type ActorKind,
   cellToWorld,
   WORLD_SIZE_PX,
 } from '../world'
-import { buildCombatLog } from './combat-source'
 import { bindViewportControls } from './controls'
 
 export interface ShowcaseDeps {
@@ -29,12 +23,14 @@ export interface ShowcaseDeps {
   element: HTMLElement
   getGrid: () => DungeonGrid
   getRoute: () => PathResult
+  getMode?: () => DungeonRenderMode
   onActorClick?: (actorId: string, kind: ActorKind) => void
   onDrop?: (command: DragDropCommand) => void
 }
 
 export interface Showcase {
   resize(width: number, height: number): void
+  setMode(mode: DungeonRenderMode): void
   dispose(): void
 }
 
@@ -47,24 +43,24 @@ function centerOnRoute(camera: CameraState, route: PathResult): CameraState {
     })
   }
   const world = cellToWorld(path[Math.floor(path.length / 2)])
-  return centerCameraOn(camera, { x: world.x, y: world.y })
+  return centerCameraOn(camera, world)
 }
 
 /**
- * Verbindet Beobachter, Kamera, Views und Pointer zu einer sichtbaren Szene.
+ * Verbindet Observer, Kamera, Views und Pointer zu einer Pixi-Dungeon-Szene.
  *
- * Alle Positionen stammen aus `grid`/`route`, die Kampfpositionen aus dem
- * echten Core-Log. Die Szene hält nur abgeleitete Präsentationsdaten und
- * schreibt nie in Grid oder Core zurück.
+ * Editor und Raid konsumieren dasselbe Grid und denselben VisualObserver. Der
+ * Präsentationsmodus ändert nur Wandhöhe, Route-Deckkraft und Gridoverlay.
+ * Core-Log, Route und Spielzustand bleiben außerhalb der Render-Ebene.
  */
 export function createShowcase(deps: ShowcaseDeps): Showcase {
   const { runtime, element } = deps
-  const terrain = createTerrainView(runtime)
-  const routeView = createRouteView(runtime)
-  const actors = createActorsView(runtime)
-  const fx = createFxView(runtime)
+  let mode = deps.getMode?.() ?? 'editor'
+  runtime.setMode(mode)
+
+  const dungeon = createDungeonScene(runtime, mode)
   const lighting = createLightingView(runtime)
-  const observer = createVisualObserver()
+  lighting.setVisible(mode === 'raid')
 
   let camera = centerOnRoute(
     createCamera(runtime.camera.viewportWidth, runtime.camera.viewportHeight),
@@ -72,10 +68,6 @@ export function createShowcase(deps: ShowcaseDeps): Showcase {
   )
   runtime.setCamera(camera)
 
-  let combat: CombatLog | null = null
-  let combatGrid: DungeonGrid | null = null
-  let combatRoute: PathResult | null = null
-  let playback = 0
   let visibleActors: ActorDescriptor[] = []
 
   const controls = bindViewportControls({
@@ -91,43 +83,20 @@ export function createShowcase(deps: ShowcaseDeps): Showcase {
   })
 
   const stopTick = runtime.onTick(({ deltaMs, elapsedMs }) => {
-    const grid = deps.getGrid()
-    const route = deps.getRoute()
-    if (grid !== combatGrid || route !== combatRoute) {
-      combatGrid = grid
-      combatRoute = route
-      playback = 0
-      combat = buildCombatLog(grid, route)
-    }
-    if (combat) {
-      playback = stepPlayback(deltaMs, combat.config.tickRate)
-    } else {
-      playback = 0
-    }
-    const delta = observer.observe({
-      grid,
-      route,
+    // Die Szene liest den Raid-Store, sie besitzt ihn nicht: Log und Tick
+    // kommen aus dem Raid-Fach und laufen im Dorf genauso weiter. Im
+    // Editor-Modus zeigt die Szene die Leerlaufbesetzung der Route.
+    const combat = mode === 'raid' ? (playbackLog.value?.log ?? null) : null
+    dungeon.update({
+      grid: deps.getGrid(),
+      route: deps.getRoute(),
       combat,
-      playbackTick: Math.floor(playback),
+      playbackTick: playbackTick.value,
+      routeIndex: playbackRouteIndex.value,
+      deltaMs,
+      elapsedMs,
     })
-    terrain.apply(delta.terrain)
-    // Der Scrubber bestimmt die Route: er zählt die Bewegungsereignisse des
-    // Logs bis zum aktuellen Tick. Ohne Log — noch vor dem ersten Aufbau —
-    // führt die Helmenposition aus dem Observer.
-    const lead = delta.actors.find((actor) => actor.kind === 'hero')
-    const fromLead = lead
-      ? route.path.findIndex(
-          (cell) => cell.x === lead.cell.x && cell.y === lead.cell.y,
-        )
-      : -1
-    const routeIndex =
-      playbackRouteIndex.value >= 0 ? playbackRouteIndex.value : fromLead
-    routeView.apply(route.path, routeIndex)
-    actors.apply(delta.actors)
-    visibleActors = delta.actors
-    fx.emit(delta.fx)
-    fx.update(deltaMs)
-    actors.update(elapsedMs)
+    visibleActors = []
   })
 
   return {
@@ -136,13 +105,17 @@ export function createShowcase(deps: ShowcaseDeps): Showcase {
       camera = runtime.camera
       lighting.resize(width, height)
     },
+    setMode(nextMode) {
+      if (mode === nextMode) return
+      mode = nextMode
+      runtime.setMode(nextMode)
+      dungeon.setMode(nextMode)
+      lighting.setVisible(nextMode === 'raid')
+    },
     dispose() {
       stopTick()
       controls.dispose()
-      terrain.dispose()
-      routeView.dispose()
-      actors.dispose()
-      fx.dispose()
+      dungeon.dispose()
       lighting.dispose()
     },
   }

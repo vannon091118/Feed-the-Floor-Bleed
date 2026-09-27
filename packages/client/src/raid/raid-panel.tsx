@@ -32,8 +32,9 @@ export function RaidPanel({
         Der Lauf rechnet lokal im Core, ohne Netz und ohne Serverentscheid.
       </p>
       <p className="raid-note">
-        Ergebnis, Log, Fehler und Timeout sind Contract-v3-Payloads. Der
-        vollständige Log ist ein eigenes Artefakt und wird hier nicht angezeigt.
+        Ergebnis, Fehler und Timeout sind Contract-v3-Payloads. Der vollständige
+        Log steht als Timeline unter diesem Panel — sie läuft im Dorf wie im
+        Dungeon.
       </p>
     </section>
   )

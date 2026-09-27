@@ -1,1 +1,1 @@
-export { RaidTimeline } from './raid-timeline'
+export { RaidTimeline, TimelineTransport } from './raid-timeline'

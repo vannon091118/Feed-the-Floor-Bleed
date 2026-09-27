@@ -7,8 +7,9 @@ import { dayNight } from '../village/state'
 import { RoutePanel } from './panels'
 
 /**
- * Tag: der Bürgermeister erteilt den Auftrag. Zahlen stehen im Dorfblick,
- * hier steht nur der Auftrag und seine Hauptaktion.
+ * Tag: der Bürgermeister erteilt den Auftrag. Der Ort ist die Welt, die
+ * Gilde steht im Gildenfenster; hier steht nur der Auftrag und seine
+ * Hauptaktion.
  */
 export function TagPhasePanel() {
   return (
@@ -16,7 +17,7 @@ export function TagPhasePanel() {
       <p class="eyebrow">Tag · Bürgermeister</p>
       <h2 class="panel__title">Die Nacht vorbereiten</h2>
       <p class="panel__note">
-        Ort, Gilde und Bilanz der letzten Nacht stehen im Dorfblick. Den Plan
+        Der Ort ist die Welt selbst, die Gilde steht im Gildenfenster. Den Plan
         für den heutigen Zug legst du im Dungeon.
       </p>
       <button

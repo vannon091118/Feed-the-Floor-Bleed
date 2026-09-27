@@ -1,4 +1,5 @@
 import type { TerminalRaidJob } from '@floor/contracts'
+import { loadRaidLog, unloadRaidLog } from '../raid/combat-source'
 import { recordRaidJob, setPhase } from './state'
 
 /**
@@ -20,17 +21,28 @@ export function completeRaid(job: TerminalRaidJob): boolean {
   return setPhase('result')
 }
 
+/**
+ * Raid starten. Der angenommene Übergang lädt den Lauf in den Playback-Store:
+ * Die Timeline hängt am Raid, nicht an einer Ansicht, also darf sie weder im
+ * Dorf noch im Dungeon auf eine Szene warten.
+ */
 export function triggerRaid(): boolean {
-  return setPhase('raid')
+  const started = setPhase('raid')
+  if (started) loadRaidLog()
+  return started
 }
 
 /**
  * Ergebnisphase abschließen. Ein abgeschlossener Auftrag zählt den Tag hoch
  * und startet den nächsten Morgen, jeder andere Auftrag führt zurück in den
  * Raid und lässt die Nacht weiterlaufen. Beides geht über dieselbe Guarde.
+ * Mit dem Tag endet auch der Lauf: Log und Tick gehören dem neuen Tag nicht.
  */
 export function finishResult(job: TerminalRaidJob): boolean {
-  return setPhase(job.status === 'completed' ? 'tag' : 'raid')
+  const done = job.status === 'completed'
+  if (!setPhase(done ? 'tag' : 'raid')) return false
+  if (done) unloadRaidLog()
+  return true
 }
 
 /** UI-Frage: darf der Raid nach einem Ergebnis noch einmal laufen? */

@@ -1,9 +1,7 @@
-/* Kontextfenster über der Bühne.
-   Bewusst dichter und ruhiger als die Sidebar: ein Fenster ist ein Werkzeug
-   auf dem Bild, kein Bereich der Seite. */
+/* Kontextfenster als Glasflächen über der laufenden Welt. */
 .window-layer {
   position: absolute;
-  z-index: 2;
+  z-index: 4;
   inset: 0;
   pointer-events: none;
 }
@@ -13,27 +11,29 @@
   display: flex;
   min-width: 200px;
   flex-direction: column;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-md);
-  background: var(--surface-raised);
-  box-shadow: var(--elevation-2);
+  border: 1px solid rgba(236, 231, 214, 0.2);
+  border-radius: 14px;
+  background: rgba(24, 28, 34, 0.72);
+  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(20px) saturate(1.24);
+  -webkit-backdrop-filter: blur(20px) saturate(1.24);
   pointer-events: auto;
   overflow: hidden;
 }
 
 .game-window.is-focused {
-  border-color: var(--accent);
+  border-color: rgba(246, 207, 138, 0.76);
 }
 
 .game-window__bar {
   display: flex;
-  min-height: 38px;
+  min-height: 40px;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
-  padding: 6px 10px;
-  border-bottom: 1px solid var(--line-soft);
-  background: var(--surface);
+  padding: 6px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(12, 15, 19, 0.38);
   cursor: grab;
   touch-action: none;
 }
@@ -51,15 +51,15 @@
   border: 0;
   border-radius: 50%;
   background: transparent;
-  color: var(--faint);
+  color: rgba(255, 255, 255, 0.65);
   font-size: 17px;
   line-height: 1;
   cursor: pointer;
 }
 
 .game-window__close:hover {
-  background: var(--line-soft);
-  color: var(--text);
+  background: rgba(255, 255, 255, 0.14);
+  color: white;
 }
 
 .game-window__body {
@@ -83,13 +83,12 @@
 @media (max-width: 720px) {
   .game-window {
     position: fixed;
-    z-index: 3;
+    z-index: 6;
     top: auto !important;
     right: 10px;
-    bottom: 10px;
+    bottom: 62px;
     left: 10px !important;
     width: auto !important;
-    height: auto !important;
-    max-height: 60dvh;
+    max-height: 65dvh;
   }
 }
