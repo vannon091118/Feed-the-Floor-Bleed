@@ -1,5 +1,28 @@
 #!/usr/bin/env sh
 # Shinon pre-push — Full Test-Suite (alle Plugins, letzte Sicherung)
+# Davor die Sperre auf den Default-Branch. Branch-Protection prüft einen
+# Status-Check auf einem SHA, nicht den Weg dorthin, und strict wirkt nur auf
+# Merges: Ein lokaler Push auf einen SHA, dessen Shinon Gate aus dem PR-Lauf
+# schon grün ist, wird akzeptiert. Die Sperre sitzt deshalb hier.
 set -e
+
+main_branch="${SHINON_MAIN_BRANCH:-$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||' || true)}"
+main_branch="${main_branch:-main}"
+main_ref="refs/heads/$main_branch"
+
+# git übergibt die Refspecs auf stdin: lokaler Ref, lokale SHA, entfernter Ref, entfernte SHA.
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+  if [ "$remote_ref" = "$main_ref" ]; then
+    if [ "${SHINON_ALLOW_MAIN_PUSH:-0}" = "1" ]; then
+      echo "🦊 Shinon pre-push — Push auf $remote_ref freigegeben (SHINON_ALLOW_MAIN_PUSH=1, nur mit break-glass-Lock)."
+    else
+      echo "💥 Shinon pre-push — Push auf $remote_ref verweigert."
+      echo "   Nach main schiebt nur der Job promote, und zwar nach grünem Gate."
+      echo "   Notfallweg: node scripts/break-glass-main.mjs lock, dann SHINON_ALLOW_MAIN_PUSH=1 git push, dann restore."
+      exit 1
+    fi
+  fi
+done
+
 echo "🦊 Shinon pre-push — Full Test-Suite..."
 node scripts/shinon/engine.mjs --full

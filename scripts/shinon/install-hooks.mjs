@@ -63,7 +63,9 @@ node scripts/shinon/prepare-commit-msg.mjs "$1" "$2"
 writeHook(
   'post-commit',
   `#!/usr/bin/env sh
-# Shinon post-commit — Version bump (mechanisch) + Auto-Push
+# Shinon post-commit — Version bump (mechanisch) + Auto-Push auf den Feature-Branch
+# Der Auto-Push schiebt niemals den Default-Branch. Der Weg nach main ist der
+# Job promote nach einem grünen Gate; siehe docs/REGELWERK_GIT.md.
 set -e
 if [ "\${SHINON_SKIP_BUMP:-0}" = "1" ]; then
   echo "🦊 Shinon post-commit — Bump übersprungen (SHINON_SKIP_BUMP=1)"
@@ -96,7 +98,11 @@ Automatisch synchronisierte Versionsdateien: VERSION, package.json, packages/con
   fi
   if [ "\${SHINON_AUTO_PUSH:-1}" = "1" ]; then
     branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
-    if [ -n "$branch" ] && [ "$branch" != "HEAD" ]; then
+    main_branch="\${SHINON_MAIN_BRANCH:-$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||' || true)}"
+    main_branch="\${main_branch:-main}"
+    if [ "$branch" = "$main_branch" ]; then
+      echo "🦊 Shinon post-commit — kein Auto-Push auf $branch. Der Job promote schiebt nach main, erst nach grünem Gate."
+    elif [ -n "$branch" ] && [ "$branch" != "HEAD" ]; then
       echo "🦊 Shinon post-commit — Auto-Push $branch @ $NEW_VER..."
       if ! git push 2>&1; then
         echo "💥 Auto-Push fehlgeschlagen — Push muss manuell wiederholt werden"
@@ -112,7 +118,30 @@ writeHook(
   'pre-push',
   `#!/usr/bin/env sh
 # Shinon pre-push — Full Test-Suite (alle Plugins, letzte Sicherung)
+# Davor die Sperre auf den Default-Branch. Branch-Protection prüft einen
+# Status-Check auf einem SHA, nicht den Weg dorthin, und strict wirkt nur auf
+# Merges: Ein lokaler Push auf einen SHA, dessen Shinon Gate aus dem PR-Lauf
+# schon grün ist, wird akzeptiert. Die Sperre sitzt deshalb hier.
 set -e
+
+main_branch="\${SHINON_MAIN_BRANCH:-$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||' || true)}"
+main_branch="\${main_branch:-main}"
+main_ref="refs/heads/$main_branch"
+
+# git übergibt die Refspecs auf stdin: lokaler Ref, lokale SHA, entfernter Ref, entfernte SHA.
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+  if [ "$remote_ref" = "$main_ref" ]; then
+    if [ "\${SHINON_ALLOW_MAIN_PUSH:-0}" = "1" ]; then
+      echo "🦊 Shinon pre-push — Push auf $remote_ref freigegeben (SHINON_ALLOW_MAIN_PUSH=1, nur mit break-glass-Lock)."
+    else
+      echo "💥 Shinon pre-push — Push auf $remote_ref verweigert."
+      echo "   Nach main schiebt nur der Job promote, und zwar nach grünem Gate."
+      echo "   Notfallweg: node scripts/break-glass-main.mjs lock, dann SHINON_ALLOW_MAIN_PUSH=1 git push, dann restore."
+      exit 1
+    fi
+  fi
+done
+
 echo "🦊 Shinon pre-push — Full Test-Suite..."
 node scripts/shinon/engine.mjs --full
 `,

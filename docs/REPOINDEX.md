@@ -23,7 +23,7 @@
 | `docs/CONCEPT_REVIEW_SECURITY.md` | Abgegrenzte manuelle Invalid-Request-/Account-Prüfmarke |
 | `docs/ROADMAP.md` | Audit-basierte Produkt- und Technik-Roadmap mit T1/T2/T3-Promotion |
 | `docs/DEV_REQUIREMENTS.md` | Toolchain-Voraussetzungen, Befehle, Gate-Matrix, Arbeitsablauf und Skills |
-| `docs/historisch/` | Append-only Archiv, u. a. `2026-09-25_roadmap-t1-abgeschlossen.md` mit den abgeschlossenen T1.0/T1.2/T1.3/T1.3b-Blöcken, `2026-09-25_changelog-backend-und-initialstand.md` mit Backend- und Initialphase, `2026-09-25_changelog-t1-kern-und-governance.md` mit T1-Kern und Governance, `2026-09-25_changelog-sichtbare-basis-und-tooling.md` mit sichtbarer Basis, Entwicklungsumgebung und Governance-Härtung sowie `2026-09-26_changelog-agenten-und-visuelle-foundation.md` mit den Agent-Profilen, der `Agents.md`-Entlastung und der visuellen Foundation. Alle Changelog-Archive sind wortgleich aus `docs/CHANGELOG.md` gewandert |
+| `docs/historisch/` | Append-only Archiv, u. a. `2026-09-25_roadmap-t1-abgeschlossen.md` mit den abgeschlossenen T1.0/T1.2/T1.3/T1.3b-Blöcken, `2026-09-25_changelog-backend-und-initialstand.md` mit Backend- und Initialphase, `2026-09-25_changelog-t1-kern-und-governance.md` mit T1-Kern und Governance, `2026-09-25_changelog-sichtbare-basis-und-tooling.md` mit sichtbarer Basis, Entwicklungsumgebung und Governance-Härtung sowie `2026-09-26_changelog-agenten-und-visuelle-foundation.md` mit den Agent-Profilen, der `Agents.md`-Entlastung und der visuellen Foundation sowie `2026-09-26_changelog-promote-und-roadmap.md` mit dem Promote-Job und der Roadmap-Nummerierung. Alle Changelog-Archive sind wortgleich aus `docs/CHANGELOG.md` gewandert |
 | `packages/contracts/src` | Zod-Schemas, sim_version, Trail, Ergebnislog, Auftragsunion |
 | `packages/sim-core/src/*` | Deterministischer Core (PRNG, Math, Grid, Combat, Genome, Items, Hash, Ghost) |
 | `packages/client/src/*` | PWA Client: `world`/`visual`/`render`/`input`/`window`/`showcase` als sichtbare visuelle Basis, `dungeon-editor` als Grid-Owner, `village` als einziger Owner der Tag/Nacht/Raid-Phase, `ui` als Shell und Pixi-Host, `raid` als lokaler Fixture-Auftrag; Route-Index-Mapping und Actor-Varianten sind visuell konsistent |
@@ -37,6 +37,7 @@
 | `scripts/shinon/lib/commit-text.mjs` | Einzige Quelle der Commit-Regeln, geteilt von lokalem Hook und CI-Plugin |
 | `scripts/shinon/plugins/*` | Blockierende Governance-Module (global-loc, contract, modularity, dead-code, redundancy, commit-integrity) plus Slice-Plugins |
 | `scripts/shinon/tests/gate-parity.test.mjs` | Paritätsvertrag: vergleicht die `run:`-Befehle des `gate`-Jobs mit dem lokalen `gate`-Script, prüft `gate:quick` als Teilmenge und verbietet kostenpflichtige Runner |
+| `scripts/shinon/tests/main-writer.test.mjs` | Einziger Schreiber nach `main`: fährt den echten `pre-push`-Hook mit einer `main`-Refspec, verlangt Ablehnung vor der Suite, Durchlass für Feature-Branches, ausdrückliche Freigabe für den Notfallweg und die Sperre auch im Generator `install-hooks.mjs` |
 | `scripts/check-loc.mjs` | LOC-Cap Check |
 | `scripts/break-glass-main.mjs` | Notfallweg bei Ausfall von GitHub Actions: serialisiert den Protection-Zustand, lockt minimal nur `required_status_checks` und stellt wieder her; `--dry-run` verändert nichts |
 | `scripts/check-hygiene.mjs` | Hygiene Check |

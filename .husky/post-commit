@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
-# Shinon post-commit — Version bump (mechanisch) + Auto-Push
+# Shinon post-commit — Version bump (mechanisch) + Auto-Push auf den Feature-Branch
+# Der Auto-Push schiebt niemals den Default-Branch. Der Weg nach main ist der
+# Job promote nach einem grünen Gate; siehe docs/REGELWERK_GIT.md.
 set -e
 if [ "${SHINON_SKIP_BUMP:-0}" = "1" ]; then
   echo "🦊 Shinon post-commit — Bump übersprungen (SHINON_SKIP_BUMP=1)"
@@ -32,7 +34,11 @@ Automatisch synchronisierte Versionsdateien: VERSION, package.json, packages/con
   fi
   if [ "${SHINON_AUTO_PUSH:-1}" = "1" ]; then
     branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
-    if [ -n "$branch" ] && [ "$branch" != "HEAD" ]; then
+    main_branch="${SHINON_MAIN_BRANCH:-$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||' || true)}"
+    main_branch="${main_branch:-main}"
+    if [ "$branch" = "$main_branch" ]; then
+      echo "🦊 Shinon post-commit — kein Auto-Push auf $branch. Der Job promote schiebt nach main, erst nach grünem Gate."
+    elif [ -n "$branch" ] && [ "$branch" != "HEAD" ]; then
       echo "🦊 Shinon post-commit — Auto-Push $branch @ $NEW_VER..."
       if ! git push 2>&1; then
         echo "💥 Auto-Push fehlgeschlagen — Push muss manuell wiederholt werden"
