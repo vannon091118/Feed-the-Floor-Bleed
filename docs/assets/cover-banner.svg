@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" width="100%" height="100%">
+  <defs>
+    <!-- Village Gradients -->
+    <linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4CA1AF"/>
+      <stop offset="100%" stop-color="#C4E0E5"/>
+    </linearGradient>
+    <linearGradient id="grass" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#56ab2f"/>
+      <stop offset="100%" stop-color="#a8e063"/>
+    </linearGradient>
+    
+    <!-- Dungeon Gradients -->
+    <linearGradient id="abyss" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#140014"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </linearGradient>
+    <radialGradient id="lava" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff0000" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#140014" stop-opacity="0"/>
+    </radialGradient>
+    
+    <!-- Shader Effects -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    
+    <filter id="evil-glitch" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="3" result="noise" />
+      <feColorMatrix type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 3 -1" in="noise" result="coloredNoise" />
+      <feDisplacementMap in="SourceGraphic" in2="coloredNoise" scale="8" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+
+    <filter id="holy-light" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="10" result="blur" />
+      <feComponentTransfer in="blur" result="glow">
+        <feFuncA type="linear" slope="1.5" />
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode in="glow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <clipPath id="top-half">
+      <rect x="0" y="0" width="1200" height="200" />
+    </clipPath>
+    <clipPath id="bottom-half">
+      <rect x="0" y="200" width="1200" height="200" />
+    </clipPath>
+    
+    <!-- Pattern for Dungeon Grid -->
+    <pattern id="dungeon-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#330033" stroke-width="2" />
+    </pattern>
+  </defs>
+
+  <!-- TOP HALF: THE VILLAGE -->
+  <g clip-path="url(#top-half)">
+    <rect x="0" y="0" width="1200" height="200" fill="url(#sky)" />
+    <!-- Sun -->
+    <circle cx="600" cy="180" r="100" fill="#FFD700" filter="url(#holy-light)" opacity="0.8"/>
+    <circle cx="600" cy="180" r="80" fill="#FFF8DC" />
+    
+    <!-- Hills -->
+    <path d="M0 200 Q 150 120 300 200 Q 450 140 600 200 Q 750 110 900 200 Q 1050 150 1200 200 L 1200 200 L 0 200 Z" fill="url(#grass)" opacity="0.9"/>
+    
+    <!-- Text -->
+    <text x="600" y="120" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="900" font-size="72" fill="#ffffff" text-anchor="middle" filter="url(#holy-light)" letter-spacing="4">FEED THE FLOOR</text>
+    <text x="600" y="170" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="700" font-size="24" fill="#333333" text-anchor="middle" letter-spacing="8">OBEN BIST DU DER BÜRGERMEISTER</text>
+  </g>
+
+  <!-- BOTTOM HALF: THE DUNGEON -->
+  <g clip-path="url(#bottom-half)">
+    <rect x="0" y="200" width="1200" height="200" fill="url(#abyss)" />
+    <rect x="0" y="200" width="1200" height="200" fill="url(#dungeon-grid)" />
+    
+    <!-- Lava Glow -->
+    <rect x="400" y="200" width="400" height="200" fill="url(#lava)" />
+    
+    <!-- Evil Eyes -->
+    <path d="M 500 280 Q 520 270 540 280 Q 520 290 500 280 Z" fill="#ff0000" filter="url(#glow)"/>
+    <path d="M 660 280 Q 680 270 700 280 Q 680 290 660 280 Z" fill="#ff0000" filter="url(#glow)"/>
+    
+    <text x="600" y="320" font-family="'Courier New', Courier, monospace" font-weight="900" font-size="64" fill="#ff2a2a" text-anchor="middle" filter="url(#evil-glitch)" letter-spacing="2">MEET YOUR FATE</text>
+    <text x="600" y="370" font-family="'Courier New', Courier, monospace" font-weight="700" font-size="20" fill="#990000" text-anchor="middle" letter-spacing="6">UNTEN BIST DU DER DUNGEON MASTER</text>
+  </g>
+  
+  <!-- Divider -->
+  <rect x="0" y="198" width="1200" height="4" fill="#000000" />
+  <line x1="0" y1="200" x2="1200" y2="200" stroke="#ff0055" stroke-width="2" filter="url(#glow)" opacity="0.8"/>
+</svg>

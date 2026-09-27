@@ -5,20 +5,33 @@ name: Main-Watchdog
 # Status-Check vor dem Push, ein Push-Workflow wird aber vom Push ausgelöst.
 # Ein roter Push-Lauf auf main kann deshalb nichts mehr aufhalten — er kann nur
 # melden. Am 2026-09-25 um 23:13Z lag so ein roter Lauf 21 Stunden unbeachtet
-# auf main, während 22 weitere rote Läufe einliefen. Dieser Workflow sorgt dafür,
-# dass eine solche Meldung nicht wieder untergeht.
+# auf main, während 22 weitere rote Läufe einliefen.
 #
 # `workflow_run` greift unabhängig davon, was den Shinon-Lauf ausgelöst hat, und
-# feuert auch dann, wenn der Auslöser ein GITHUB_TOKEN war. Der Branch-Filter
-# greift auf den Kopf-Branch des auslösenden Laufs, also genau auf `main`.
-
+# feuert auch dann, wenn der Auslöser ein GITHUB_TOKEN war.
+#
+# Es gibt zwei Arten von Vorfall, und der Filter lag früher falsch. Der Filter
+# `branches: [main]` griff auf den Kopf-Branch des auslösenden Laufs und damit
+# nur auf Pushes. Sechs rote Läufe auf `fix/promote-draft-guard` am
+# 2026-09-26 zwischen 21:28Z und 23:52Z fielen dadurch durch, sechs Pull
+# Requests wurden als MERGED geführt, und kein Watchdog meldete etwas. Der
+# entscheidende Fall ist der zweite: Das Gate war grün, `promote` ist rot, der
+# Commit ist **nicht** gelandet und wartet auf niemanden.
+#
+# Die Entscheidung liegt deshalb in `scripts/watchdog-classify.mjs`, nicht in
+# einem `if:`. Das Skript kennt beide Arten und kennt ausdrücklich den
+# Nicht-Vorfall: Ein rotes Gate auf einem Pull Request ist das Gate bei seiner
+# Arbeit, und jeder Fehlversuch eines Entwicklers würde sonst ein Issue erzeugen.
 on:
   workflow_run:
     workflows: [Shinon]
     types: [completed]
-    branches: [main]
 
 permissions:
+  # `actions: read` liest die Jobs des auslösenden Laufs. Ohne diese Berechtigung
+  # lässt sich "Gate grün, promote rot" nicht von "Gate rot" unterscheiden, und
+  # die Unterscheidung ist der Auftrag dieses Workflows.
+  actions: read
   contents: read
   issues: write
 
@@ -28,56 +41,81 @@ concurrency:
 
 jobs:
   watchdog:
-    name: Roter Push-Lauf auf main
+    name: Shinon-Vorfall melden
+    # Nur ein roter Lauf startet überhaupt einen Runner. Der `workflow_run` ohne
+    # Branch-Filter feuert für jeden abgeschlossenen Shinon-Lauf, und die
+    # allermeisten davon sind grün.
     if: ${{ github.event.workflow_run.conclusion != 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Vorfall als offenen Issue festhalten
+      - name: Klassifizierer aus main holen
+        uses: actions/checkout@v4
+        with:
+          # Ausdrücklich der Default-Branch, nie der auslösende Lauf: Sonst
+          # könnte ein Pull Request über `watchdog-classify.mjs` bestimmen, was
+          # als Vorfall gemeldet wird. Der Klassifizierer ist Werkzeug der
+          # Wache und darf nicht vom Meldepflichtigen stammen.
+          ref: ${{ github.event.repository.default_branch }}
+      - name: Lauf und Jobs holen
         env:
           GH_TOKEN: ${{ github.token }}
-          # `gh` ermittelt das Repository sonst über git — dieser Job hat
-          # bewusst keinen Checkout, der erste Versuch scheiterte an
-          # `fatal: not a git repository` und legte kein Issue an.
+          # `gh` ermittelt das Repository sonst über git — dieses Feld bleibt
+          # trotz Checkout gesetzt, weil der Aufruf ohne Repository-Angabe mit
+          # `fatal: not a git repository` scheitern kann.
           GH_REPO: ${{ github.repository }}
-          REPO: ${{ github.repository }}
           RUN_ID: ${{ github.event.workflow_run.id }}
-          RUN_URL: ${{ github.event.workflow_run.html_url }}
-          SHA: ${{ github.event.workflow_run.head_sha }}
-          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+        run: |
+          gh api "repos/$GH_REPO/actions/runs/$RUN_ID" > run.json
+          gh api "repos/$GH_REPO/actions/runs/$RUN_ID/jobs?per_page=100" > jobs.json
+      - name: Vorfall oder kein Vorfall
+        id: vorfall
+        env:
+          OUT: ${{ runner.temp }}/vorfall
+        run: |
+          # Dateien statt GITHUB_OUTPUT: Der Issue-Text ist mehrzeilig, und ein
+          # Heredoc-Format im Workflow wäre eine zweite, ungetestete Wahrheit.
+          node scripts/watchdog-classify.mjs run.json jobs.json --out "$OUT"
+          report=$(cat "$OUT/report")
+          kind=$(cat "$OUT/kind")
+          echo "report=$report" >> "$GITHUB_OUTPUT"
+          echo "kind=$kind" >> "$GITHUB_OUTPUT"
+          echo "Grund: $(cat "$OUT/reason")"
+      - name: Vorfall als offenes Issue festhalten
+        if: steps.vorfall.outputs.report == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          OUT: ${{ runner.temp }}/vorfall
         run: |
           set -euo pipefail
-          SHORT="${SHA:0:7}"
-          TITLE="Roter Push-Lauf auf main: ${SHORT} (${CONCLUSION})"
-          BODY="Ein Shinon-Push-Lauf auf \`main\` ist rot gelaufen. Der Lauf prüft
-          \`main\` nach der Landung und konnte den Commit deshalb nicht verhindern.
-
-          | | |
-          |---|---|
-          | Lauf | ${RUN_URL} |
-          | Commit | \`${SHA}\` |
-          | Ergebnis | \`${CONCLUSION}\` |
-          | Repo | \`${REPO}\` |
-
-          Der Push-Pfad ist per Konstruktion fail-open; die Sperre ist der
-          PR-Gate über \`needs: gate\`. Dieser Issue ist der Nachweis, dass ein
-          roter Push-Lauf bemerkt wurde. Behebe die Ursache und schließe den
-          Issue — nicht einfach schliessen.
-
-          Beachte die Schrittliste des Laufs: bricht \`commit-integrity\` ab, sind
-          Typecheck, Tests, Lint und Build **übersprungen**. Ein roter Lauf hat
-          dann weniger geprüft als ein grüner."
-          gh label create watchdog --description "Roter Push-Lauf auf main" --force >/dev/null 2>&1 || true
-          EXISTING=$(gh issue list --state open --label watchdog --limit 100 --json number,title \
+          TITLE=$(cat "$OUT/title")
+          BODY=$(cat "$OUT/body")
+          LABEL=$(cat "$OUT/label")
+          KIND=$(cat "$OUT/kind")
+          SHORT=$(cat "$OUT/short")
+          gh label create "$LABEL" --description "Rot gelaufener Shinon-Lauf: $KIND" --force >/dev/null 2>&1 || true
+          EXISTING=$(gh issue list --state open --label "$LABEL" --limit 100 --json number,title \
             | jq -r --arg s "$SHORT" '[.[] | select(.title | contains($s))] | .[0].number // empty')
           if [ -n "$EXISTING" ]; then
             echo "Offener Vorfall ${EXISTING} existiert bereits — nachgetragen."
-            gh issue comment "$EXISTING" --body "Erneut rot: Lauf ${RUN_URL} (\`${CONCLUSION}\`)." >/dev/null
+            gh issue comment "$EXISTING" --body "$BODY" >/dev/null
           else
-            gh issue create --title "$TITLE" --body "$BODY" --label watchdog >/dev/null
-            echo "Neuer Vorfall angelegt: ${TITLE}"
+            gh issue create --title "$TITLE" --body "$BODY" --label "$LABEL" >/dev/null
+            echo "Neuer Vorfall angelegt: $TITLE"
           fi
       - name: Sichtbar rot werden
+        if: steps.vorfall.outputs.report == 'true'
+        env:
+          OUT: ${{ runner.temp }}/vorfall
         run: |
-          echo "::error::Push-Lauf auf main ist rot — der Commit liegt bereits auf main. Details im Workflow-Lauf und im angelegten Issue."
+          echo "::error::$(cat "$OUT/headline") Details im Workflow-Lauf und im angelegten Issue."
           exit 1
+      - name: Kein Vorfall
+        if: steps.vorfall.outputs.report != 'true'
+        env:
+          OUT: ${{ runner.temp }}/vorfall
+        run: |
+          # Bewusst grün: Ein roter Watchdog-Lauf bei normalen Fehlversuchen
+          # wäre das Rauschen, das den echten Vorfall unhörbar macht.
+          echo "Kein Vorfall — $(cat "$OUT/reason")"

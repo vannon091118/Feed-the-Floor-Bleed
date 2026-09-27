@@ -32,7 +32,7 @@ Assets (Wurzel + /assets/*) → Cloudflare-Asset-Kante, umgeht den Worker vollst
 wrangler.jsonc → main: server/src/worker.ts + assets: client/dist + run_worker_first /api/* → workers.dev
 scripts/shinon:engine → plugins/* → git hooks (pre-commit/commit-msg/pre-push)
 .github/workflows/shinon.yml → pnpm install --frozen-lockfile + pnpm run check → Shinon Gate bei main-Push und Pull Request; bei grünem PR-Gate promotet der Job promote den Kopf per Fast-Forward mit PROMOTE_TOKEN nach main, worauf der push-Zweig client-dist erzeugt (GITHUB_TOKEN würde ihn nicht auslösen)
-.github/workflows/main-watchdog.yml → workflow_run(Shinon, completed, main) + conclusion != success → offener Issue (Label watchdog) + roter Lauf; beobachtet den fail-open Push-Pfad
+.github/workflows/main-watchdog.yml → workflow_run(Shinon, completed) + conclusion != success → checkout(main) + gh api (Lauf und Jobs) → scripts/watchdog-classify.mjs → Vorfall oder kein Vorfall → offener Issue (Label watchdog für roten main-Push, promote-blocked für gescheiterten promote auf einem PR) + roter Lauf; schweigt bei rotem Gate und Feature-Branch-Pushes
 workflow Shinon Gate → pnpm --filter @floor/client build → wrangler deploy --dry-run (unbedingt, auch im PR; kein Deploy, kein Secret)
 push auf main → App cloudflare-workers-and-pages → Build command (pnpm install + Client-Build) → npx wrangler deploy → Check Workers Builds: feed-the-floor-bleed
 .github/agents/critical-adversarial-reviewer → Git-Status/Diffs + Agents.md/Regelwerke + betroffene Dokus/Tests → verifizierte Befunde (schreibgeschützt)
