@@ -22,6 +22,7 @@
 *.sql       text eol=lf
 *.css       text eol=lf
 *.html      text eol=lf
+*.svg       text eol=lf
 *.md        text eol=lf
 *.sh        text eol=lf
 *.cmd       text eol=lf
