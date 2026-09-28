@@ -42,11 +42,18 @@ Simulation bleibt der einzige Owner der Spielentscheidungen.
   beide Eingabepfade beginnen nicht — sonst wichen Store und Bild voneinander ab.
 - `showcase/` — sichtbare Referenzszene, die alle Systeme zusammenschaltet.
 - `dungeon-editor/` — DOM-Raster und der einzige State-Owner des Grids.
-- `village/` — einziger Owner der Tag/Nacht/Raid-Phase (`phase.ts` reine
-  Übergangslogik, `state.ts` Signal-Store, `phase-actions.ts` Kommandos).
+- `village/` — einziger Owner der Tag/Nacht/Raid-Phase und der Dorfwirtschaft.
+  `phase.ts` reine Übergangslogik, `state.ts` Signal-Store, `phase-actions.ts`
+  Kommandos. `balance.ts` besitzt jede Zahl des Dorfes als eingefrorene Config
+  mit benannten Gruppen; `economy.ts` rechnet damit und bekommt die Config
+  ausdrücklich übergeben, ohne Zustand und ohne Wurf-Fehler. `state.ts` führt
+  neben Phase und Tag den Bestand (`village`) und die Tagesabrechnung
+  (`daySettlement`), gebucht im selben Übergang `result → tag`, der auch den Tag
+  hochzählt; die Phasenguarde ist zugleich die Idempotenz der Buchung.
   `settlement.ts` leitet daraus den Dorfblick als reine Funktion ab: Dorfname,
-  Tag, Phasentext und das Gildenroster. Es gibt dort keinen Dorfzustand und
-  keine Wirtschaftsregel — Dorfwirtschaft bleibt T2.
+  Tag, Phasentext und das Gildenroster. Die Lage eines platzierten Gebäudes
+  gehört der Platzierungsgeometrie (`plot.ts`) und kommt mit deren Verdrahtung
+  dazu.
 - `ui/` — Shell und Bühne. Die Shell ist Layout und liest den Phase-Store
   allein, um je Phase eine Ebene der Tagesstimmung auf den Überzug zu setzen;
   `daylight-fade.ts` fährt deren Blende ein und hält den Renderlauf aus der
@@ -122,8 +129,13 @@ verworfen, der Zustand bleibt unverändert.
 Blick und Phase sind getrennt: die Topbar schaltet zwischen Dorf und Dungeon,
 und `ui/view.ts` hält diese Wahl ohne Spielregel. Im Dorf zeigt
 `village/settlement` nur, was die Schleife tatsächlich kennt — Tag, Gilde,
-Verteidigerplätze und das Ergebnis des letzten Auftrags. Arbeiterverteilung,
-Gold-Ausgaben, Landkauf und Beute-Verkauf sind Dorfwirtschaft und damit T2.
+Verteidigerplätze und das Ergebnis des letzten Auftrags. Die Wirtschaft hängt
+dagegen am Bestand in `village/state.ts`: die Topbar zeigt den gehaltenen
+Bestand, und die Rückkehr schreibt den Werkstattertrag gut, genau einmal je
+Expedition. Gold aus besiegten Gegnern gibt es noch nicht — die Zahl der
+Gegner steht in keinem Contract-Feld, die Naht ist an `DaySettlement`
+dokumentiert. Bau-, Upgrade- und Landbefehle, die den Bestand füllen, sind ein
+späterer Slice.
 
 ## Grenzen
 
@@ -138,8 +150,15 @@ als Preact-DOM über der Szene.
 ## Regeln
 
 - `dungeon-editor/state.ts` bleibt der einzige Grid-Owner.
-- `village/state.ts` bleibt der einzige Phase-Owner; keine Komponente hält
-  eine zweite Phase-Wahrheit.
+- `village/state.ts` bleibt der einzige Phase- und Dorfwirtschafts-Owner; keine
+  Komponente hält eine zweite Phase- oder Bestandswahrheit. `village/balance.ts`
+  ist die einzige Zahlenquelle, `village/economy.ts` rechnet ohne Zustand, und
+  der Renderer leiht sich aus `village` höchstens eine Typenunion. Die
+  Fixture-Daten tragen keine Dorfwirtschaftsgröße: Startbestand, Startarbeiter-
+  basis und Attraktivität stehen ausschließlich in der Balance, und die Anzeige
+  liest sie von dort. Jede Stufe, Etage, Platznummer und Spaltenzahl ist in den
+  Regeln eine Ganzzahl ab 1 — eine kaputte Werkstattrechnung ergibt 0, ein
+  Befehl mit kaputter Zahl eine Ablehnung mit genanntem Grund.
 - `ui/view.ts` ist der einzige Owner des Bühnenblicks und verändert weder
   Phase noch Grid. Editorwerkzeug erscheint nur in der Dungeon-Ansicht; die
   Bau-Erlaubnis kommt weiter aus der Phase.

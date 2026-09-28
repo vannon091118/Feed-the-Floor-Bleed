@@ -1,8 +1,8 @@
 import { route } from '../dungeon-editor/state'
-import { fixture } from '../fixture-data'
 import { CAMERA_KEY_HINT } from '../render/camera-keys'
 import { VILLAGE_BUILDINGS } from '../render/village-layout'
 import { villageOutlook } from '../village'
+import { BALANCE } from '../village/balance'
 import { WINDOW_KEY_HINT } from '../window/keys'
 import { buildingLabel } from './building-label'
 import { RosterList } from './roster-list'
@@ -54,8 +54,8 @@ export function BuildingPanel({ buildingId }: { buildingId: string }) {
       </p>
       {building.kind === 'house' && (
         <p>
-          Startbasis: {fixture.workers} Arbeiter · Attraktivität{' '}
-          {fixture.attractiveness}
+          Startbasis: {BALANCE.start.workerBase} Arbeiter · Attraktivität{' '}
+          {BALANCE.attraction.base}
         </p>
       )}
     </div>

@@ -6,6 +6,7 @@ import {
   buildFixtureUpload,
   runLocalFixtureRaid,
 } from '../src/raid/fixture-raid'
+import { BALANCE } from '../src/village/balance'
 
 /** Zwei versetzte Barrieren zwingen die Route deutlich über die Minimalzahl. */
 function snakeGrid() {
@@ -22,6 +23,11 @@ describe('Fixture-Raid aus dem Client', () => {
     expect(upload.dungeon.cells).toHaveLength(4096)
     expect(upload.tactics).toHaveLength(upload.activeTeam.length)
     expect(upload.monsterSlots).toHaveLength(5)
+  })
+
+  it('sendet den Startbestand aus der Balance statt einer Fixture-Kopie', () => {
+    const upload = buildFixtureUpload(createDungeonGrid())
+    expect(upload.resources).toEqual(BALANCE.start.resources)
   })
 
   it('liefert lokal einen abgeschlossenen Auftrag mit reproduzierbarem Hash', () => {

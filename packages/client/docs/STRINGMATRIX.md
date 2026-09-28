@@ -34,10 +34,18 @@
 | `visual/actor-variant` | `actorVariant(id)` liefert identische deterministische Varianten in Leerlauf und Combat |
 | `raid/trail` | Seit T1.1: `CombatLog.trail` (x/y/cell je Schritt) fließt in den Kampf-Hash; die Anzeige kann den Trail statt `route.path` nutzen |
 | `phase/state` | `'tag' \| 'night' \| 'raid' \| 'result'` — Schleifenreihenfolge, einziger Owner `village/state.ts` |
+| `village/building-kind` | `'hall' \| 'guild' \| 'house' \| 'workshop'` — Union in `village/balance.ts`, von der Renderer-Seite nur entlehnt |
+| `village/building-level` | Ganzzahl ab 1, erzwungen in `village/economy.ts`; letzte Stufe je Art steht in `BALANCE.buildings.<art>.maxLevel`, der Ausbaupreis ist `upgradeCoefficient · n²` |
+| `village/resource` | `gold`, `materials` — Form wie `Resources` in `fixture-data.ts`; Anzeige über `resources/catalog.ts`, Bestand in `dayNight.village.resources` |
+| `village/land` | `dayNight.village.landColumns`, Startwert `BALANCE.start.landColumns`; eine Erweiterung muss ein ganzes Vielfaches von `columnsPerStep` sein |
+| `village/day-settlement` | `daySettlement: DaySettlement \| null` — `day` des abgerechneten Tages und `materials` als Gutschrift; gesetzt nur im Übergang `result → tag` |
+| `village/store-key` | `dayNight` — ein Signal für Phase, Tag, Auftrag, Dorfbestand und Abrechnung; `setPhase` ist der einzige Schreibpfad |
+| `economy/rejection` | `below-first-level`, `above-max-level`, `worker-capacity`, `below-start-columns`, `not-wider`, `not-a-whole-step`, `below-first-paid-floor`, `slot-out-of-range` — unterscheidbare Gründe, kein Wurf-Fehler; eine kaputte Werkstattrechnung ergibt 0 und lehnt nicht ab |
 | `phase/transitions` | erlaubt: `tag→night`, `night→raid`, `raid→result`, `result→tag`, `result→raid`; jeder andere Übergang wird verworfen |
 | `phase/day` | Start `fixture.day` (18), Zähler hoch bei `result→tag`, Auftrag wird dabei gelöscht |
 | `phase/actions` | `startNight`, `triggerRaid`, `completeRaid` (nur aus `raid`), `finishResult` (Nachfolge nach Auftragsstatus) |
 | `phase/tag-note` | `Der Ort ist die Welt selbst, die Gilde steht im Gildenfenster.` — Verweis des Tag-Panels auf Ort und Gilde |
+| `balance/keys` | `start`, `buildings`, `workshop`, `workers`, `attraction`, `land`, `dungeon` — benannte Gruppen der eingefrorenen Dorfconfig, jede mit deutschem Doc-Kommentar darüber, was ein Verstellen bewirkt |
 | `view/id` | `'village' \| 'dungeon'` — Bühnenblick, phasenunabhängig, einziger Owner `ui/view.ts` |
 | `view/default` | `'village'` — der erste Eindruck ist der Ort, nicht das Raster |
 | `timeline/phase-label` | `Routen-Phase`, `Kampf-Phase`, `Ergebnis-Phase` — Beschriftung der drei Knöpfe |

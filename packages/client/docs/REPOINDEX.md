@@ -6,7 +6,7 @@
 | `vite.config.ts` | Vite + Preact-Plugin + `@floor/*`-Aliase |
 | `src/main.tsx` | Einstiegspunkt: rendert die Shell in `#app` |
 | `src/vite-env.d.ts` | Vite-Client-Typen für CSS-Importe |
-| `src/fixture-data.ts` | Read-only Fixture-Daten (Dorf, Ressourcen, Team, Monster, Auftrag) |
+| `src/fixture-data.ts` | Read-only Fixture-Daten (Dorf, Starttag, Team, Monster, Auftrag); keine Wirtschaftsgröße, die steht in `village/balance.ts` |
 | `src/world/geometry.ts` | Weltmaße, Zell-zu-Welt-Umrechnung, Zell-Seed |
 | `src/world/materials.ts` | Materialdefinitionen und deterministische Variantenwahl |
 | `src/world/tiles.ts` | `CellType` → `TileDescriptor` (Höhe, Occlusion, Marker) |
@@ -49,7 +49,7 @@
 | `src/render/editor-grid.ts` | Editorraster als Overlay-Sprite in der Editor-Ebene |
 | `src/render/editor-grid-atlas.ts` | Gepufferte Rastertextur des Editors |
 | `src/render/editor-overlay.ts` | Pinselmarkierung und Lesemarken im Overlay |
-| `src/render/village-layout.ts` | Weltmaße, Dorforte und Baumstellen des Präsentationsdorfs |
+| `src/render/village-layout.ts` | Weltmaße, Dorforte und Baumstellen des Präsentationsdorfs; die Baugegenstand-Arten leiht es aus `village/balance` |
 | `src/render/village-atlas.ts` | Pixeltexturen für Boden, Bäume, Gebäude und Bewohner |
 | `src/render/village-scene.ts` | Dorfszene mit Wiesenhintergrund, anklickbaren Gebäuden, laufenden Bewohnern |
 | `src/render/village-view.ts` | Einbau der Dorfszene in die geteilte Runtime, Kamera-Rahmung |
@@ -68,7 +68,7 @@
 | `src/showcase/scene.ts` | Treiber, der Observer, Views und Kamera schaltet |
 | `src/ui/shell.tsx` | Layout: Topbar und Bühne, setzt die Tagesstimmungsebenen auf den Überzug |
 | `src/ui/daylight-fade.ts` | Fährt die Blende auf den Überzugsebenen ein, ohne dass der Browser sie umkehrt |
-| `src/ui/topbar.tsx` | Wortmarke, Ressourcenstreifen, Phasenanzeige, Ansichtsumschalter, Fenstertabs |
+| `src/ui/topbar.tsx` | Wortmarke, Ressourcenstreifen aus dem Dorf-Owner, Phasenanzeige, Ansichtsumschalter, Fenstertabs |
 | `src/ui/view.ts` | Blick-Signal `village \| dungeon`, bewusst kein Phasenzustand |
 | `src/ui/view-switch.tsx` | Segmentierter Umschalter zwischen Dorf- und Dungeon-Blick |
 | `src/ui/stage.tsx` | Bühne: Pixi-Host, Weltbeschriftung, Launcher und Fensterlayer |
@@ -88,7 +88,7 @@
 | `src/ui/world-host.tsx` | Stabiler DOM-Host und Lebenszyklus der Pixi-Runtime, zugleich fokussierbares Tastaturziel der Kamera |
 | `src/ui/editor-panel.tsx` | DOM-Editorraster mit 16×16 sichtbaren Feldern |
 | `src/ui/editor-controls.tsx` | Pinselauswahl und Zurücksetzen |
-| `src/ui/panels.tsx` | Inhalte der Kontextfenster samt Steuerungslegende mit den Tastenhinweisen |
+| `src/ui/panels.tsx` | Inhalte der Kontextfenster samt Steuerungslegende mit den Tastenhinweisen; Startbasis und Attraktivität liest es aus `village/balance` |
 | `src/icons/resource-icon.tsx` | SVG-Icons der Ressourcenwerte in der Topbar |
 | `src/resources/catalog.ts` | Feste Ressourcen-IDs, Labels und Icons |
 | `src/ui/styles/index.css` | Einstiegspunkt der Oberflächen-Styles mit fester Importreihenfolge |
@@ -102,7 +102,9 @@
 | `src/dungeon-editor/model.ts` | Pure Editor-Regeln (Pinsel, 4x4-Tiles, Marker) |
 | `src/dungeon-editor/state.ts` | Einziger Owner von Grid, Pinsel und Route |
 | `src/village/phase.ts` | Phase-Union in Schleifenreihenfolge, erlaubte Übergänge, reine Entscheidungsfunktion |
-| `src/village/state.ts` | DayNightState-Signal (`phase`, `day`, `job`), einziger Schreibpfad `setPhase` |
+| `src/village/state.ts` | DayNightState-Signal (`phase`, `day`, `job`, `village`, `daySettlement`), einziger Schreibpfad `setPhase` mit der Tagesabrechnung im Übergang `result → tag` |
+| `src/village/balance.ts` | Einzige Quelle aller Dorf-Stellschrauben: tief eingefrorene und tief unveränderliche Config mit benannten Gruppen, vom Startbestand über Startarbeiterbasis und Attraktivität bis zu Etagen- und Platzpreis |
+| `src/village/economy.ts` | Reine Dorfregeln: Bau-, Ausbau-, Ertrags-, Kapazitäts-, Land- und Slotkosten — jede Funktion nimmt ihre Balance ausdrücklich entgegen, prüft Stufe, Etage, Platz und Landausgang auf Ganzzahl und wirft nie |
 | `src/village/phase-actions.ts` | Schleifen-Kommandos: Nacht starten, Raid auslösen (lädt den Log), Ergebnis abschließen (räumt ihn auf) |
 | `src/village/settlement.ts` | Dorfblick als reine Ableitung aus Phase-Owner und Fixture, ohne Wirtschaft |
 | `src/village/plot.ts` | Platzierungsgeometrie des Dorfes: Grundriss, Rastergrenze, Überlappung, Kantennachbarn, horizontale Landerweiterung — reine Funktionen, keine Wirtschaftszahlen |
@@ -126,6 +128,9 @@
 | `test/input-drag.test.ts` | Slop-Verhalten: ein Down ohne Weg erzeugt keinen Drop |
 | `test/village-settlement.test.ts` | Dorfblick: Name, Tag, Phase und Roster ohne Kopie |
 | `test/village-plot.test.ts` | Platzierungsinvarianten: Überlappung, Rastergrenze mit Begründung, Kantennachbarschaft ohne Diagonalen, Landerweiterung, Determinismus |
+| `test/village-economy.test.ts` | Regelinvarianten: Wachstum und Ganzzahligkeit jeder Kostenfunktion, die Grenzfälle (Maximalstufe, Etage, Platznummer, Land-Schritt), Werkstattkapazität, Ertragssumme, bezahlbarer Startbestand |
+| `test/village-balance-guards.test.ts` | Eingabewächter: NaN, Unendlichkeit, gebrochene und negative Werte als Stufe, Etage, Platz und Landausgang mit dem erwarteten Ablehnungsgrund, die Baupreis-Kopie und drei absolute Werte aus der Freigabetabelle |
+| `test/village-day-close.test.ts` | Tagesabrechnung am Store: genau einmal je Rückkehr, auch nach Niederlage, kein Doppelbuch auf dem Retry-Weg |
 | `test/stage-view.test.ts` | Blickwechsel verändert die Spielphase nicht |
 | `test/world-presentation.test.ts` | Anklickbare Dorforte, deterministische Bewohnerbewegung, Kamera-Clamp beider Welten |
 | `test/window-routing.test.ts` | Fenster-ID → Inhalt, Phasenaktion über eine stabile Fenster-ID |
@@ -136,12 +141,21 @@
 
 Der Client hat wieder einen Einstiegspunkt. `world`, `visual`, `render`, `input`,
 `window` und `showcase` bilden die sichtbare visuelle Basis; `dungeon-editor`
-bleibt der einzige Grid-Owner. `village` besitzt die Tag/Nacht/Raid-Phase und
-leitet daraus den Dorfblick ab, `raid` rechnet den Fixture-Auftrag lokal. Die
-Shell ist nur noch Layout; Topbar, Bühne, Launcher und Fenster lesen ihre
-Stores selbst. `ui/view.ts` hält den Blick auf die Bühne, der bewusst keine
-Phase ist. `ui/world-host.tsx` erzeugt genau einen Pixi-Host, `ui/scene-switch.ts`
-tauscht darin Dorf- und Dungeon-Szene. Bedient wird mit Zeiger und Tastatur:
-Fensterrahmen und Weltansicht sind fokussierbar, ihre Schrittlogik liegt in
-`window/keys.ts` und `render/camera-keys.ts`; die Richtung liefert beiden
-`input/arrows.ts`.
+bleibt der einzige Grid-Owner. `village` besitzt die Tag/Nacht/Raid-Phase, den
+Dorfbestand und die Dorfregeln und leitet daraus den Dorfblick ab, `raid`
+rechnet den Fixture-Auftrag lokal. Die Shell ist nur noch Layout; Topbar,
+Bühne, Launcher und Fenster lesen ihre Stores selbst — die Ressourcenanzeige
+liest den Bestand aus `village/state.ts` und nicht aus der Fixture. `ui/view.ts`
+hält den Blick auf die Bühne, der bewusst keine Phase ist. `ui/world-host.tsx`
+erzeugt genau einen Pixi-Host, `ui/scene-switch.ts` tauscht darin Dorf- und
+Dungeon-Szene. Bedient wird mit Zeiger und Tastatur: Fensterrahmen und
+Weltansicht sind fokussierbar, ihre Schrittlogik liegt in `window/keys.ts` und
+`render/camera-keys.ts`; die Richtung liefert beiden `input/arrows.ts`.
+
+Die Wirtschaftskette läuft in eine Richtung: `village/balance.ts` (Zahlen) →
+`village/economy.ts` (Regeln, Config als Parameter) → `village/state.ts`
+(Bestand und Buchung) → Topbar und der spätere Rückkehr-Toast. Von der
+freigegebenen Balance ist bisher nur der Tagesertrag verdrahtet; Bau-, Ausbau-,
+Land-, Etagen- und Platzpreis haben noch keinen Aufrufer. Ein Baukommando,
+das den Bestand füllt, existiert noch nicht; `plot.ts` hat weiterhin keinen
+Abnehmer, und `raid/fixture-raid.ts` sendet den Startbestand der Balance.

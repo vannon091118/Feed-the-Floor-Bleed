@@ -75,9 +75,21 @@ dungeon-editor/state (einziger Grid-Owner)
   ├─ grid / brush Signals, route = computed(findPath)
   └─ paintVisibleTile → model.paintTile
 
-village (einziger Phase-Owner der Schleife)
+village (einziger Phase- und Dorfwirtschafts-Owner)
   ├─ phase: Phase-Union, ALLOWED_TRANSITIONS, resolvePhaseTransition
-  ├─ state: dayNight Signal, setPhase (guarded), recordRaidJob
+  ├─ balance: BALANCE — tief eingefrorene und tief unveränderliche Config,
+  │           einzige Zahlenquelle des Dorfes
+  │           (Startbestand, Startarbeiterbasis, Attraktivität, Grundrisse,
+  │            Bau-/Ausbau-/Landkosten, Ertrag, Kapazität, Etagen-/Platzpreis)
+  ├─ economy: reine Regeln, Config kommt ausdrücklich herein —
+  │           buildCost / upgradeCost (a · n²) / workshopYield / dailyYield /
+  │           workerBase / canBuildWorkshop / landStepCost / floorCost / slotCost.
+  │           Stufe, Etage, Platz und Landausgang müssen Ganzzahlen sein;
+  │           Ablehnungen sind unterscheidbare Ergebnisse, keine Wurf-Fehler.
+  ├─ state: dayNight Signal (phase, day, job, village, daySettlement),
+  │         setPhase (einziger Schreibpfad) — rechnet im Übergang result → tag
+  │         den Werkstattertrag gut, closeDay ist die reine Rechnung dahinter;
+  │         recordRaidJob
   ├─ phase-actions: startNight / triggerRaid / completeRaid / finishResult
   ├─ plot: Footprint/GridBounds → rectsIntersect / footprintOverlaps /
   │        footprintWithinBounds / canPlace (Begründung bei Ablehnung) /
@@ -90,6 +102,15 @@ village (einziger Phase-Owner der Schleife)
   │        die Store ist ein eigener Slice. Kein Import aus `render/` oder
   │        `world/`, damit die Geometrie frei von Darstellung bleibt.
   └─ settlement: villageOutlook() → Dorfname, Tag, Phasentext + Gildenroster
+
+Wirtschaftskette (nur in dieser Richtung):
+  balance (Zahlen) → economy (Regeln, Config als Parameter)
+    → state.village (Bestand) → state.daySettlement (Buchung im Übergang
+    result → tag) → ui/topbar (Bestandsanzeige) und später der Rückkehr-Toast
+  Von der freigegebenen Balance ist nur der Tagesertrag verdrahtet; Bau-,
+  Ausbau-, Land-, Etagen- und Platzpreis haben noch keinen Aufrufer.
+  Kein Baukommando: `village.buildings` ist heute nur über den Store zu
+  füllen, und `raid/fixture-raid.ts` sendet den Startbestand der Balance.
 
 raid/fixture-raid
   ├─ buildFixtureUpload(grid) → @floor/contracts UploadRequest
@@ -110,6 +131,8 @@ ui (Phasenfenster schaltet nach Phase, Bühne nach Blick)
   ├─ shell → topbar + stage, kennt keine Phase
   ├─ daylight-fade: fadeDaylight(overlay, activeIndex) (Blende der Ebenen)
   ├─ phase-badge: liest dayNight.phase / dayNight.day
+  ├─ topbar → Ressourcenstreifen liest dayNight.village.resources (kein
+  │           Modulkonstante aus der Fixture)
   ├─ village-host → village/settlement (Weltbeschriftung, kein Panel)
   ├─ TagPhasePanel → startNight → phase night
   ├─ NightPhasePanel → triggerRaid → phase raid (Editor bleibt aktiv)
@@ -137,5 +160,6 @@ besitzt die Szene. `input` emittiert Commands. Der Observer liest Grid und Route
 kopiert sie aber nicht. `village/settlement` liest den Phase-Owner und die
 Fixture und besitzt selbst keinen Dorfzustand; `village/plot` rechnet
 Platzierungsgeometrie und trägt weder Zustand noch Wirtschaftszahlen;
-`ui/view` hält nur den Blick und
+`village/balance` besitzt die Zahlen, `village/economy` rechnet damit ohne
+Zustand, und `village/state` bucht; `ui/view` hält nur den Blick und
 ändert keine Phase.
