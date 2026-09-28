@@ -20,9 +20,6 @@ export interface MonsterSlot {
 export interface FixtureData {
   village: string
   day: number
-  workers: number
-  attractiveness: number
-  resources: Resources
   team: Hero[]
   monsterSlots: MonsterSlot[]
 }
@@ -33,6 +30,13 @@ export interface FixtureData {
  * `createdAt` und `observedAt` sind bewusst Konstanten und keine Uhrzeit: der
  * lokale Probelauf muss reproduzierbar bleiben. Die Fristprüfung sitzt im
  * Core, der Client liefert nur die Vergleichswerte.
+ *
+ * Hier steht keine Dorfwirtschaftsgröße mehr. Startbestand, Startarbeiterbasis
+ * und Attraktivität gehören `village/balance.ts`; sie standen früher als
+ * `workers`, `attractiveness` und `resources` auch hier, damit die Anzeige sie
+ * zeigen konnte — das war dieselbe Zahl an zwei Stellen, und die Anzeige
+ * zeigte die Kopie. Die Fixture trägt nur noch, was den Probelauf beschreibt:
+ * Name, Starttag, Roster und das Verteidigerfeld.
  */
 export const fixtureRaid = {
   jobId: 'fixture-raid-1',
@@ -45,9 +49,6 @@ export const fixtureRaid = {
 export const fixture: FixtureData = {
   village: 'Frosthalde',
   day: 18,
-  workers: 12,
-  attractiveness: 74,
-  resources: { gold: 120, materials: 7 },
   team: [
     {
       id: 'hero-mara',

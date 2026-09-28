@@ -1,6 +1,6 @@
 # VISUAL_GRUNDSATZ.md — Visual- und Expeditions-Epic
 
-**Status:** vom Auftraggeber bestätigt am 2026-09-27. Kanonische Spielregeln sind `[N]`; noch nicht freigegebene Zahlen bleiben `[K]` und dürfen nicht als Balancing-Default implementiert werden. Die einzige aktive Reihenfolge steht in `ROADMAP.md`.
+**Status:** vom Auftraggeber bestätigt am 2026-09-27, Dorf- und Slot-Balance freigegeben am 2026-09-28. Kanonische Spielregeln sind `[N]`; noch nicht freigegebene Zahlen bleiben `[K]` und dürfen nicht als Balancing-Default implementiert werden. Die einzige aktive Reihenfolge steht in `ROADMAP.md`.
 
 ## Sofortentscheidungen E1–E6
 
@@ -17,7 +17,7 @@
 
 - Der Ort startet auf 10×10 sichtbaren Grundfeldern; er kann horizontal erweitert werden. Rathaus und Gilde sind feste Startorte; Häuser und Werkstätten sind platzier- und ausbaubar. Häuser beeinflussen Attraktivität/Arbeiterbasis; Werkstätten liefern Materialien anhand ihrer Ausbaustufe. Keine Arbeiterzuweisung und keine zusätzlichen Ressourcentypen in diesem MVP.
 - Ein Turn ist eine Expedition: ein Gegner, beliebig viele erreichbare Etagen desselben unveränderlichen Verteidiger-Snapshots. Nach jedem besiegten Boss darf der Spieler aussteigen (Run-Beute sichern) oder weitergehen (noch ungesicherte Run-Beute riskieren). Bei Rückkehr wird die Dorfwirtschaft genau einmal abgerechnet, auch nach einer Niederlage; Niederlage verliert nur ungesicherte Run-Beute. HP, aktive Buffs und verbrauchte Fähigkeiten bleiben über Etagen erhalten.
-- Etage 1 hat fünf Monsterplätze. Etage 2+ beginnt mit null und kann bis zu fünf Plätze über Materialien freischalten. Es gibt kein künstliches Etagenlimit; Kosten sind quadratisch: `floorCost(n) = floorBase × n²`, `slotCost(n,s) = slotBase × n² × s`. Basispreise sind `[K]` bis zur Balancefreigabe.
+- Etage 1 hat fünf Monsterplätze. Etage 2+ beginnt mit null und kann bis zu fünf Plätze über Materialien freischalten. Es gibt kein künstliches Etagenlimit; Kosten sind quadratisch: `floorCost(n) = floorBase × n²`, `slotCost(n,s) = slotBase × n² × s`. Die Basispreise sind seit dem 2026-09-28 freigegeben: `floorBase` 250 Gold ab Etage 2, `slotBase` 40 Material.
 - Helden bewegen/targeten automatisch; der Spieler steuert keine Position. Pro Held gibt es eine feste Klassenaktion plus optional später eine Unique-Extraaktion. Heal (Heilerin), direkter Schaden (Brecher) und Team-Buff (Späherin) werden jeweils manuell am nächsten ganzzahligen Sim-Tick ausgelöst, je einmal pro Held und Expedition. Bestätigte Wirkungen: Heilung = 25 % Max-HP; direkter Schaden = 25 % Ziel-Max-HP; Buff = +20 % Angriff bis zur Rückkehr. Unique-Extraaktionen sind in diesem Epic ausdrücklich noch nicht implementiert.
 - Inventar: neun globale Plätze plus ein separater Unique-Slot pro Held. Ein Boss erzeugt genau einen server-seeded Drop-Roll gegen den noch nicht besessenen Unique-Pool. Bei vollem Rucksack bleibt ein Drop in sicherem, ausstehendem Belohnungsbestand, bis vor dem nächsten Run Platz gemacht und der Drop beansprucht wird. Drop-Gewichte/-chance und der konkrete Pool bleiben `[K]`.
 - Login: Firebase Auth mit Google und E-Mail/Passwort; stabile Firebase-UID, niemals E-Mail, ist Konto-Schlüssel. Dev-Projekt/-Datenbank und Dev-Wipe müssen von Live getrennt sein. Ein Dev-Wipe wird nur mit freigegebener Dev-UID in der isolierten Dev-Umgebung angeboten; keine externe Ressource wird durch Codearbeit provisioniert.
@@ -42,7 +42,27 @@ Alle Pakete sind **seriell**, nicht parallel. LOC sind Netto-Schätzungen für S
 
 ## Balancefreigabe vor S2/S3/S5/S8
 
-Vor dem ersten Wirtschafts-, Slot-, Loot- oder Matching-Verhaltenscode werden konkrete Beispieltabelle und Grenzfälle vorgelegt und vom Auftraggeber freigegeben. Offen `[K]`: Startbestand, Bau-/Upgrade-/Landkosten, Attraktivitäts-/Arbeiterwirkung, Werkstatt-Ertrag, Stärke-/Generations-Goldformel, Unique-Pool und Roll-Gewichte, `floorBase`, `slotBase`, Match-Stärkewert/-band. Bis dahin dürfen nur schemafreie Visuals, reine Funktionen mit explizit übergebenen Parametern und Tests ihrer Invarianten vorbereitet werden; es gibt keine impliziten Standardwerte.
+Vor dem ersten Wirtschafts-, Slot-, Loot- oder Matching-Verhaltenscode werden konkrete Beispieltabelle und Grenzfälle vorgelegt und vom Auftraggeber freigegeben. **Seit dem 2026-09-28 freigegeben, also keine `[K]`-Position mehr:** Startbestand, Startarbeiterbasis, Grundrisse, Bau-, Upgrade- und Landkosten, Werkstatt-Ertrag, Kapazitätsdivisor, Wohnhaus-Beitrag, `floorBase` und `slotBase`; die Attraktivität ist als angezeigte Startbasis freigegeben, ihre Ableitung nicht. **Weiterhin offen `[K]`:** Stärke-/Generations-Goldformel, Unique-Pool und Roll-Gewichte, Match-Stärkewert/-band und die Kampfbalance. Bis zu deren Freigabe dürfen nur schemafreie Visuals, reine Funktionen mit explizit übergebenen Parametern und Tests ihrer Invarianten vorbereitet werden; es gibt keine impliziten Standardwerte.
+
+## Freigegebene Dorfbalance — 2026-09-28
+
+**Der Auftraggeber hat am 2026-09-28 die Dorf- und Slot-Balance freigegeben.** Damit ist die oben genannte Freigabepflicht für S2 und S3 erfüllt, und genau eine Zahlenquelle existiert im Repository: `packages/client/src/village/balance.ts`. Jede Regelrechnung in `packages/client/src/village/economy.ts` bekommt diese Werte ausdrücklich übergeben; außerhalb dieser Datei steht keine Kosten-, Ertrags-, Kapazitäts- oder Preisgröße mehr — auch die Startarbeiterbasis und die Attraktivität nicht, die die Anzeige im Wohnhausfenster aus dieser Config liest statt aus den Fixture-Daten. **Verdrahtet ist bisher nur der Tagesertrag:** `dailyYield` schreibt bei der Rückkehr in den Dorfbestand, alle übrigen freigegebenen Preisfunktionen haben noch keinen Aufrufer im Spiel. Die Balance ist damit freigegeben, aber noch nicht im Spiel erlebbar.
+
+| Wert | Freigegeben | Grenzfall |
+|------|-------------|-----------|
+| Startbestand | 120 Gold, 7 Material | Die erste Werkstatt kostet 80/6 und ist damit bezahlbar; danach bleiben 40 Gold und 1 Material, eine Landerweiterung (60/5) ist dann nicht mehr bezahlbar. |
+| Startarbeiterbasis | 12 Arbeiter | Die Kapazität ist `floor(12 / 2) = 6` Werkstätten; ohne Goldzuwachs ist die Basis nur durch Wohnhäuser veränderbar. |
+| Grundrisse | Halle 3×3, Gilde 3×3, Wohnhaus 2×2, Werkstatt 2×3 Rasterzellen | 10×10 sind 100 Zellen, nach den zwei festen Orten bleiben 82 frei. |
+| Wohnhaus | Bau 30 Gold / 4 Material, Ausbaukoeffizient 8, höchste Stufe 5 | Stufe 2 kostet `8 · 2² = 32` Gold; mit dem Bau sind das 62 Gold und damit aus dem Startbestand von 120 Gold bezahlbar, danach bleiben 58 Gold. |
+| Werkstatt | Bau 80 Gold / 6 Material, Ausbaukoeffizient 20, höchste Stufe 5 | Stufe 2 kostet `20 · 2² = 80` Gold: direkt nach dem Bau sind das 40 Gold, der Ausbau also erst am Folgetag. |
+| Werkstattertrag | 3 Material je Tag, je weiterer Stufe 2 mehr | Stufe 5 liefert 11 je Tag; ein Dorf ohne Werkstätte liefert 0, das ist kein Fehler. |
+| Kapazitätsdivisor | 2 | Ohne Wohnhäuser bindet die Grenze ab der siebten Werkstätte. Sechs Werkstätten kosten zusammen 480 Gold und 36 Material, die siebte noch einmal 80/6; der Startbestand deckt eine, und eine Beute gibt es noch nicht — die Grenze ist in diesem Slice also nicht erreichbar. |
+| Wohnhaus-Beitrag | 2 Arbeiter je Stufe zur Basis | Ein Wohnhaus auf Stufe 1 hebt die Kapazität von 6 auf 7 Werkstätten. |
+| Landerweiterung | 2 Spalten je Schritt zu 60 Gold und 5 Material | Der Preis ist **je Schritt**, nicht je Ausgangszustand: 10→12, 12→14 und 14→16 kosten jeweils 60/5. Eine Erweiterung, die keine ganze Schrittweite ist, wird abgewiesen. |
+| Etagenpreis | 250 Gold je Etage, gekauft wird ab Etage 2 | Etage 2 kostet `250 · 2² = 1000` Gold, Etage 3 kostet 2250. Etage 0 und Etage 1 sind keine kaufbaren Angebote und werden abgewiesen. |
+| Platzpreis | 40 Material mal Etage² mal Platznummer, 5 Plätze je Etage | Die fünf Plätze der Etage 2 kosten 160, 320, 480, 640 und 800 Material, zusammen 2400. Platz 0 und Platz 6 sind abgewiesen, sonst gäbe es unbegrenzte Plätze für kein Material. |
+
+**Weiterhin `[K]` und ausdrücklich nicht implementiert:** der Unique-Pool, die Roll-Gewichte der Boss-Drops, der Match-Stärkewert samt Band, die Kampfbalance sowie die Stärke-/Generations-Goldformel. Die Goldformel kann nicht freigegeben werden, solange die Zahl der besiegten Gegner in keinem Contract-Feld steht: `CombatSummarySchema` (`packages/contracts/src/combat-log.ts:113`) ist `.strict()` und führt keine Rostergröße, `ResultPayloadSchema` (`packages/protocol.ts:41`) trägt keinen Combat-Log. Sie braucht `CONTRACT_VERSION 4`, einen `sim_version`-Bump und eine D1-Migration. Attraktivität ist als angezeigte Startbasis freigegeben und steht als `BALANCE.attraction.base` in der Dorfbalance; eine Ableitung und ein Regelabnehmer fehlen weiterhin, die Anzeige ist kein Abnehmer im Sinne einer Regel. Die Arbeiterwirkung ist über den Wohnhaus-Beitrag freigegeben.
 
 ## Asset-Briefing
 

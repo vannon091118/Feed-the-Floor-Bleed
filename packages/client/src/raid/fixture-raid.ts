@@ -10,19 +10,24 @@ import {
   runFixtureRaid,
 } from '@floor/sim-core'
 import { fixture, fixtureRaid } from '../fixture-data'
+import { BALANCE } from '../village/balance'
 
 /**
  * Contract-v2-Upload aus dem Editor-Grid und der Fixture-Aufstellung.
  *
- * Der Client *erfindet* hier nichts: Aufstellung, Ressourcen und Taktiken
- * kommen aus den Fixture-Daten, das Grid aus dem Editor-State. Der Core
- * entscheidet anschließend allein, was daraus wird.
+ * Der Client *erfindet* hier nichts: Aufstellung und Taktiken kommen aus den
+ * Fixture-Daten, der Bestand aus der Dorfbalance, das Grid aus dem Editor-State.
+ * Der Core entscheidet anschließend allein, was daraus wird.
+ *
+ * Die Ressourcen sind der Startbestand, weil die Fixture keinen eigenen mehr
+ * führt — der Auftrag, der den tatsächlichen Bestand mitsenden soll, ist in
+ * `docs/ROADMAP.md` als offener Punkt geführt.
  */
 export function buildFixtureUpload(grid: DungeonGrid): UploadRequest {
   return {
     contractVersion: CONTRACT_VERSION,
     simVersion: sim_version,
-    resources: { ...fixture.resources },
+    resources: { ...BALANCE.start.resources },
     monsterSlots: fixture.monsterSlots.map((slot) => ({ ...slot })),
     activeTeam: fixture.team.map((hero) => ({
       heroId: hero.id,

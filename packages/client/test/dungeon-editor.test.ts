@@ -12,7 +12,6 @@ import { fixture } from '../src/fixture-data'
 describe('Dungeon-Editor', () => {
   it('startet mit gültigem Spielstand und einer erreichbaren Route', () => {
     resetGrid()
-    expect(fixture.resources.gold).toBe(120)
     expect(fixture.team).toHaveLength(3)
     expect(route.value.mode).toBe('within-budget')
     expect(route.value.movementCost).toBe(125)

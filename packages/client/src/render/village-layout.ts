@@ -1,4 +1,11 @@
-export type BuildingKind = 'hall' | 'guild' | 'house' | 'workshop'
+import type { BuildingKind } from '../village/balance'
+
+/**
+ * Die Baugegenstand-Arten kommen aus der Dorf-Domäne: `village` besitzt die
+ * Gebäude, und die Config in `balance.ts` ist nach Art verschlüsselt. Der
+ * Renderer leiht sich nur das Vokabular und hält Ort, Größe und Texturen.
+ */
+export type { BuildingKind }
 
 export const VILLAGE_WORLD_WIDTH = 1000
 export const VILLAGE_WORLD_HEIGHT = 640
