@@ -107,11 +107,19 @@ describe('Kantennachbarschaft', () => {
   it('liefert oben, rechts, unten, links in fester Reihenfolge', () => {
     const mitte: Footprint = { x: 4, y: 4, width: 2, height: 2 }
     expect(edgeNeighbours(mitte, FELD)).toEqual([
-      { x: 4, y: 3, width: 2, height: 2 },
+      { x: 4, y: 3, width: 2, height: 1 },
       { x: 6, y: 4, width: 1, height: 2 },
       { x: 4, y: 6, width: 2, height: 1 },
       { x: 3, y: 4, width: 1, height: 2 },
     ])
+  })
+
+  it('überlappt keinen Nachbarn mit dem eigenen Grundriss', () => {
+    const gebaeude: Footprint = { x: 4, y: 4, width: 3, height: 2 }
+    for (const nachbar of edgeNeighbours(gebaeude, FELD)) {
+      expect(rectsIntersect(gebaeude, nachbar)).toBe(false)
+      expect(canPlace(nachbar, [gebaeude], FELD)).toEqual({ ok: true })
+    }
   })
 
   it('lässt Nachbarn am Rand weg, statt sie außerhalb zu melden', () => {
@@ -158,11 +166,10 @@ describe('Keine impliziten Standardwerte', () => {
   it('liefert bei gleichen Eingaben immer dasselbe Ergebnis', () => {
     const kandidat: Footprint = { x: 3, y: 3, width: 2, height: 2 }
     const erster = canPlace(kandidat, STARTOKTE, FELD)
+    const nachbarn = edgeNeighbours(kandidat, FELD)
     for (let wiederholung = 0; wiederholung < 5; wiederholung++) {
       expect(canPlace(kandidat, STARTOKTE, FELD)).toEqual(erster)
-      expect(edgeNeighbours(kandidat, FELD)).toEqual(
-        edgeNeighbours(kandidat, FELD),
-      )
+      expect(edgeNeighbours(kandidat, FELD)).toEqual(nachbarn)
     }
     expect(erster).toEqual({ ok: true })
   })

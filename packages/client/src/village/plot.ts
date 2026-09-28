@@ -96,6 +96,10 @@ export function canPlace(
  * Diagonalen zählen nicht: sie wären weder überlappend noch an einer Kante
  * verbunden. Nachbarn außerhalb des Rasters fallen weg, damit das Ergebnis
  * nur platzierbare Nachbarlagen nennt.
+ *
+ * Jeder Streifen ist an der geteilten Kante eine Zelle dick und läuft sonst
+ * über die Ausdehnung des Grundrisses. Sonst überlappte der oberre Streifen den
+ * eigenen Grundriss und die Nachbarlage wäre nicht platzierbar.
  */
 export function edgeNeighbours(
   footprint: Footprint,
@@ -103,7 +107,7 @@ export function edgeNeighbours(
 ): Footprint[] {
   const { x, y, width, height } = footprint
   const candidates: Footprint[] = [
-    { x, y: y - 1, width, height },
+    { x, y: y - 1, width, height: 1 },
     { x: x + width, y, width: 1, height },
     { x, y: y + height, width, height: 1 },
     { x: x - 1, y, width: 1, height },
