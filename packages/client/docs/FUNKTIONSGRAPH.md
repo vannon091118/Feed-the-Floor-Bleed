@@ -79,6 +79,16 @@ village (einziger Phase-Owner der Schleife)
   ├─ phase: Phase-Union, ALLOWED_TRANSITIONS, resolvePhaseTransition
   ├─ state: dayNight Signal, setPhase (guarded), recordRaidJob
   ├─ phase-actions: startNight / triggerRaid / completeRaid / finishResult
+  ├─ plot: Footprint/GridBounds → rectsIntersect / footprintOverlaps /
+  │        footprintWithinBounds / canPlace (Begründung bei Ablehnung) /
+  │        edgeNeighbours (4-Nachbarschaft, Diagonalen zählen nicht) /
+  │        expandHorizontally (Höhe bleibt, Spaltenzahl kommt herein)
+  │        Datenfluss: `village/plot` besitzt die Platzierungsgeometrie;
+  │        aufrufen darf später nur die Dorf-Bauoberfläche, die das Raster
+  │        und die belegten Grundrisse selbst durchreicht. Aktuell hat das
+  │        Modul noch keinen Abnehmer — die Verdrahtung an Pixi, `ui/` und
+  │        die Store ist ein eigener Slice. Kein Import aus `render/` oder
+  │        `world/`, damit die Geometrie frei von Darstellung bleibt.
   └─ settlement: villageOutlook() → Dorfname, Tag, Phasentext + Gildenroster
 
 raid/fixture-raid
@@ -125,5 +135,7 @@ aus.
 Kurzregeln: `world` definiert nur. `visual` übersetzt ohne Pixi. `render`
 besitzt die Szene. `input` emittiert Commands. Der Observer liest Grid und Route,
 kopiert sie aber nicht. `village/settlement` liest den Phase-Owner und die
-Fixture und besitzt selbst keinen Dorfzustand; `ui/view` hält nur den Blick und
+Fixture und besitzt selbst keinen Dorfzustand; `village/plot` rechnet
+Platzierungsgeometrie und trägt weder Zustand noch Wirtschaftszahlen;
+`ui/view` hält nur den Blick und
 ändert keine Phase.

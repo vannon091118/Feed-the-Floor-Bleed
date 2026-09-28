@@ -105,6 +105,7 @@
 | `src/village/state.ts` | DayNightState-Signal (`phase`, `day`, `job`), einziger Schreibpfad `setPhase` |
 | `src/village/phase-actions.ts` | Schleifen-Kommandos: Nacht starten, Raid auslösen (lädt den Log), Ergebnis abschließen (räumt ihn auf) |
 | `src/village/settlement.ts` | Dorfblick als reine Ableitung aus Phase-Owner und Fixture, ohne Wirtschaft |
+| `src/village/plot.ts` | Platzierungsgeometrie des Dorfes: Grundriss, Rastergrenze, Überlappung, Kantennachbarn, horizontale Landerweiterung — reine Funktionen, keine Wirtschaftszahlen |
 | `src/village/index.ts` | Barrel der village-Domäne |
 | `src/raid/fixture-raid.ts` | Contract-v3-Upload und lokaler Fixture-Auftrag |
 | `src/raid/combat-source.ts` | Einziger Besitzer des Raid-Logs: Core-Aufruf, Lade-/Entlade-Pfad, Plan-Synchronisierung |
@@ -124,6 +125,7 @@
 | `test/render-animation.test.ts` | Periodik, Determinismus, Grenzen und Amplituden der Render-Animation |
 | `test/input-drag.test.ts` | Slop-Verhalten: ein Down ohne Weg erzeugt keinen Drop |
 | `test/village-settlement.test.ts` | Dorfblick: Name, Tag, Phase und Roster ohne Kopie |
+| `test/village-plot.test.ts` | Platzierungsinvarianten: Überlappung, Rastergrenze mit Begründung, Kantennachbarschaft ohne Diagonalen, Landerweiterung, Determinismus |
 | `test/stage-view.test.ts` | Blickwechsel verändert die Spielphase nicht |
 | `test/world-presentation.test.ts` | Anklickbare Dorforte, deterministische Bewohnerbewegung, Kamera-Clamp beider Welten |
 | `test/window-routing.test.ts` | Fenster-ID → Inhalt, Phasenaktion über eine stabile Fenster-ID |
