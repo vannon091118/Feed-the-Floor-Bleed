@@ -35,6 +35,13 @@
   overflow: hidden;
 }
 
+/* Etage-Kauf im Tag-Panel: Vorschau, Knopf und Ablehnung in einer Spalte. */
+.floor-purchase {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
 .stats__row {
   display: flex;
   gap: var(--space-3);

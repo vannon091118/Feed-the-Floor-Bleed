@@ -49,6 +49,8 @@ describe('Der Bestand bleibt ganzzahlig und nicht negativ', () => {
       { ...vorher, resources: { gold: 1.5, materials: 0 } },
       { ...vorher, landColumns: BALANCE.start.landColumns - 2 },
       { ...vorher, landColumns: 11.5 },
+      { ...vorher, floors: 0 },
+      { ...vorher, floors: 1.5 },
     ]
     for (const eingabe of kaputt) {
       expect(commitVillage(eingabe)).toBe(false)

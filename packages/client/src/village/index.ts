@@ -7,6 +7,7 @@ export {
   type UpgradeResult,
   upgradeBuilding,
 } from './commands'
+export { buyFloor, type FloorResult } from './floors'
 export {
   ALLOWED_TRANSITIONS,
   canAdvancePhase,

@@ -35,7 +35,7 @@
 | `village/building-kind` | `'hall' \| 'guild' \| 'house' \| 'workshop'` — Union in `village/balance.ts`, von der Renderer-Seite entlehnt | client |
 | `village/day-settlement` | `daySettlement: DaySettlement \| null` — Tag und Materialgutschrift, gesetzt nur im Übergang `result → tag` | client |
 | `village/rejection` | `below-first-level`, `above-max-level`, `worker-capacity`, `not-wider`, `not-a-whole-step`, `below-start-columns`, `below-first-paid-floor`, `slot-out-of-range` — Regeln in `village/economy.ts` | client |
-| `village/command` | `not-day-phase`, `not-buildable`, `not-affordable`, `unknown-building`, `not-a-cell`, `out-of-bounds`, `overlaps` — Kommandos in `village/commands.ts`, Platzierung in `village/plot.ts` | client |
+| `village/command` | `not-day-phase`, `not-buildable`, `not-affordable`, `unknown-building`, `not-a-cell`, `out-of-bounds`, `overlaps` — Kommandos in `village/commands.ts`, Platzierung in `village/plot.ts`; der Etage-Kauf steht in `village/floors.ts` | client |
 | `balance/groups` | `start`, `buildings`, `workshop`, `workers`, `attraction`, `land`, `dungeon` — benannte Gruppen der eingefrorenen Dorfconfig | client |
 
 Die Fehlercodes und Auftragsstatus werden seit T1.3 von `packages/contracts` definiert. Server, D1, Client und lokale Fixture-Ausführung lesen dieselbe Quelle; freie Strings sind nicht mehr zulässig. `combat/trail` (x/y/cell je Schritt) fließt seit T1.1 in den Kampf-Hash.

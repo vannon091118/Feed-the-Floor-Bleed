@@ -113,6 +113,9 @@ describe('Startzustand des Dorf-Owners', () => {
     // Die beiden festen Startorte gehören zum selben Startbestand und stehen
     // mit ihren freigegebenen Zellen in `village-command-guards.test.ts`.
     expect(dayNight.value.village.landColumns).toBe(BALANCE.start.landColumns)
+    // Etage 1 gehört zum Ausgang und ist keine Balancegröße, sondern der
+    // Zählungsbeginn der Etagen.
+    expect(dayNight.value.village.floors).toBe(1)
     expect(dayNight.value.daySettlement).toBeNull()
   })
 })

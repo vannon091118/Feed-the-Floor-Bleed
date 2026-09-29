@@ -107,6 +107,9 @@ village (einziger Phase- und Dorfwirtschafts-Owner)
   ├─ commands: buildBuilding / upgradeBuilding / extendLand — nur am Tag,
   │        mit Deckung, Arbeiterkapazität und Platzierung, jede Ablehnung ein
   │        Ergebnis mit Grund; schreibt über commitVillage
+  ├─ floors: buyFloor — die nächste Etage zum freigegebenen quadratischen
+  │        Preis, nur am Tag über denselben Schreibpfad commitVillage; die
+  │        Grenzarbeit liegt hinter floorCost in economy
   └─ settlement: villageOutlook() → Dorfname, Tag, Phasentext + Gildenroster
 
 Wirtschaftskette (nur in dieser Richtung):
@@ -115,9 +118,11 @@ Wirtschaftskette (nur in dieser Richtung):
     (Buchung im Übergang result → tag) → ui/topbar (Bestandsanzeige) und
     ui/settlement-toast (Rückkehrbilanz, nur am Tag; eine Ableitung ohne
     eigenen Sichtbarkeitszustand)
-  Verdrahtet sind Tagesertrag, Bauen, Ausbauen und Landkauf; Etagen- und
-  Platzpreis haben noch keinen Aufrufer. `raid/fixture-raid.ts` sendet den
-  Bestand des Dorfes, nicht mehr den Startbestand der Balance.
+  Verdrahtet sind Tagesertrag, Bauen, Ausbauen, Landkauf und seit dem
+  2026-09-29 der Etage-Kauf (village/floors, angezeigt über
+  ui/floor-purchase); der Slotpreis hat noch keinen Aufrufer.
+  `raid/fixture-raid.ts` sendet den Bestand des Dorfes, nicht mehr den
+  Startbestand der Balance.
 
 raid/fixture-raid
   ├─ buildFixtureUpload(grid) → @floor/contracts UploadRequest

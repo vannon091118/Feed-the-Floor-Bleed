@@ -84,11 +84,12 @@
 | `src/ui/actor-label.ts` | Kennung → sprechender Name für Fenster und Werkzeugstatus |
 | `src/ui/building-label.ts` | `BuildingKind` → sprechender Ortsname, einzige Label-Quelle |
 | `src/ui/drop-status.tsx` | Rückmeldung über den letzten Zug im Editor |
+| `src/ui/floor-purchase.tsx` | Etage-Kauf im Tag-Panel als reine Ableitung: Preisvorschau aus der Config, Knopf und Fehlbetrag aus dem Bestand gerechnet, das Kommando aus `village/floors`; kein eigener Zustand |
+| `src/ui/editor-panel.tsx` | DOM-Editorraster mit 16×16 sichtbaren Feldern |
 | `src/ui/settlement-toast.tsx` | Rückkehrbilanz als reine Ableitung aus dem Phase-Owner; sichtbar nur am Tag, kein Bedienelement und kein eigener Sichtbarkeitszustand; die Ansageregion steht dauerhaft und ist ohne Meldung leer |
 | `src/ui/phase-windows.tsx` | Fensterinhalt der Phase und des Editors hinter festen IDs |
 | `src/ui/window-content.tsx` | Fenster-ID → Inhalt, eine Quelle für die Fensterschicht |
 | `src/ui/world-host.tsx` | Stabiler DOM-Host und Lebenszyklus der Pixi-Runtime, zugleich fokussierbares Tastaturziel der Kamera |
-| `src/ui/editor-panel.tsx` | DOM-Editorraster mit 16×16 sichtbaren Feldern |
 | `src/ui/editor-controls.tsx` | Pinselauswahl und Zurücksetzen |
 | `src/ui/panels.tsx` | Inhalte der Kontextfenster samt Steuerungslegende mit den Tastenhinweisen; das Gebäudefenster liest den Dorfbestand über den Listenplatz, Startbasis und Attraktivität kommen aus `village/balance`; die Routenanzeige nennt Modus, Schritte und Bewegungspunkte |
 | `src/icons/resource-icon.tsx` | SVG-Icons der Ressourcenwerte in der Topbar |
@@ -106,6 +107,7 @@
 | `src/village/phase.ts` | Phase-Union in Schleifenreihenfolge, erlaubte Übergänge, reine Entscheidungsfunktion |
 | `src/village/state.ts` | DayNightState-Signal (`phase`, `day`, `job`, `village`, `daySettlement`), Tagesabrechnung im Übergang `result → tag` in `setPhase`, dazu `commitVillage` als Schreibpfad der Baukommandos; ein Gebäude trägt seinen Grundriss, und der Startbestand legt Rathaus und Gilde aus der Config an |
 | `src/village/commands.ts` | Kommandoschicht des Dorfes: `buildBuilding`, `upgradeBuilding`, `extendLand` — nur am Tag, mit Deckung, Arbeiterkapazität und Platzierungsprüfung, jede Ablehnung ein Ergebnis mit Grund |
+| `src/village/floors.ts` | Das Etage-Kommando `buyFloor`: die nächste Etage zum freigegebenen quadratischen Preis, nur am Tag über denselben Schreibpfad `commitVillage`, jede Ablehnung ein Ergebnis mit Grund |
 | `src/village/balance.ts` | Einzige Quelle aller Dorf-Stellschrauben: tief eingefrorene und tief unveränderliche Config mit benannten Gruppen, vom Startbestand über Startarbeiterbasis, die Zellen der beiden festen Startorte und Attraktivität bis zu Etagen- und Platzpreis |
 | `src/village/economy.ts` | Reine Dorfregeln: Bau-, Ausbau-, Ertrags-, Kapazitäts-, Land- und Slotkosten — jede Funktion nimmt ihre Balance ausdrücklich entgegen, prüft Stufe, Etage, Platz und Landausgang auf Ganzzahl und wirft nie |
 | `src/village/phase-actions.ts` | Schleifen-Kommandos: Nacht starten, Raid auslösen (lädt den Log), Ergebnis abschließen (räumt ihn auf) |
@@ -132,9 +134,11 @@
 | `test/village-settlement.test.ts` | Dorfblick: Name, Tag, Phase und Roster ohne Kopie |
 | `test/village-plot.test.ts` | Platzierungsinvarianten: Überlappung, Rastergrenze mit Begründung, Kantennachbarschaft ohne Diagonalen, Landerweiterung, Determinismus |
 | `test/village-economy.test.ts` | Regelinvarianten: Wachstum und Ganzzahligkeit jeder Kostenfunktion, die Grenzfälle (Maximalstufe, Etage, Platznummer, Land-Schritt), Werkstattkapazität, Ertragssumme, bezahlbarer Startbestand |
+| `test/floor-purchase.test.ts` | Die Kaufanzeige als Ableitung: Preis und Fehlbetrag aus dem Bestand, kein gemerkter Ablehnungstext, und der Knopf zahlt über denselben Store |
 | `test/village-balance-guards.test.ts` | Eingabewächter: NaN, Unendlichkeit, gebrochene und negative Werte als Stufe, Etage, Platz und Landausgang mit dem erwarteten Ablehnungsgrund, die Baupreis-Kopie und drei absolute Werte aus der Freigabetabelle |
 | `test/village-day-close.test.ts` | Tagesabrechnung am Store: genau einmal je Rückkehr, auch nach Niederlage, kein Doppelbuch auf dem Retry-Weg |
-| `test/village-commands.test.ts` | Die drei Kommandos: Preisabbuchung, Phasengrenze, Gangbarkeit, Kapazität, Ausbaustufen, Landschritt — jeweils mit dem Bestand vor und nach dem Befehl |
+| `test/village-commands.test.ts` | Die drei Dorf-Kommandos: Preisabbuchung, Phasengrenze, Gangbarkeit, Kapazität, Ausbaustufen, Landschritt — jeweils mit dem Bestand vor und nach dem Befehl |
+| `test/village-floors.test.ts` | Das Etage-Kommando: quadratischer Preis, Etage für Etage, Ablehnung ohne Deckung mit unberührtem Bestand, Ablehnung außerhalb des Tags |
 | `test/village-command-guards.test.ts` | Bestandsinvarianten am Store: negative, gebrochene und verkleinerte Bestände werden abgewiesen, abgelehnte Befehle hinterlassen nichts, der gebaute Ertrag wird gutgeschrieben, und die beiden festen Startorte liegen mit ihren freigegebenen Zellen im Bestand und sind gegen Überbauung geschützt |
 | `test/stage-view.test.ts` | Blickwechsel verändert die Spielphase nicht |
 | `test/world-presentation.test.ts` | Dorfszene an der Naht der App: leerer Bestand zeichnet keinen Ort, ein gebautes Haus steht nach einem Takt an seiner Plot-Zelle, Klicks melden Listenplätze; dazu deterministische Bewohnerbewegung und Kamera-Clamp beider Welten |

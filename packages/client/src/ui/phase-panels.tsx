@@ -4,6 +4,7 @@ import { RaidPanel } from '../raid/raid-panel'
 import { completeRaid, finishResult, retryAfterResult } from '../village'
 import { startNight, triggerRaid } from '../village/phase-actions'
 import { dayNight } from '../village/state'
+import { FloorPurchase } from './floor-purchase'
 import { RoutePanel } from './panels'
 
 /**
@@ -20,6 +21,7 @@ export function TagPhasePanel() {
         Der Ort ist die Welt selbst, die Gilde steht im Gildenfenster. Den Plan
         für den heutigen Zug legst du im Dungeon.
       </p>
+      <FloorPurchase />
       <button
         type="button"
         class="button button--primary"

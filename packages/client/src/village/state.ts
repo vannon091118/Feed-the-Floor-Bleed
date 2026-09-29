@@ -46,11 +46,20 @@ export interface VillageBuilding extends PlacedBuilding {
   footprint: Footprint
 }
 
-/** Der Dorfbestand: Ressourcen, platzierte Gebäude, Breite des Landes. */
+/**
+ * Der Dorfbestand: Ressourcen, platzierte Gebäude, Breite des Landes und die
+ * ausgebauten Etagen der Expedition.
+ */
 export interface VillageHoldings {
   resources: Resources
   buildings: VillageBuilding[]
   landColumns: number
+  /**
+   * Ausgebaute Etagen; Etage 1 gehört zum Ausgang, die erste kaufbare steht in
+   * der Config als `firstPaidFloor`. Die 1 ist wie die Baustufe eines Gebäudes
+   * ein Zählungsbeginn und keine Balancegröße.
+   */
+  floors: number
 }
 
 /**
@@ -110,6 +119,7 @@ function startVillage(): VillageHoldings {
       },
     })),
     landColumns: BALANCE.start.landColumns,
+    floors: 1,
   }
 }
 
@@ -198,7 +208,8 @@ function istBestandswert(wert: number): boolean {
  * Die Preise und Grenzen liegen in `economy.ts`, die Entscheidung in
  * `commands.ts`; hier stehen allein die Zusagen, die für **jeden** Schreibzugriff
  * auf den Dorfbestand gelten müssen: nur am Tag, kein negativer und kein
- * gebrochener Betrag und kein Raster unter der Startbreite. Eine Ablehnung
+ * gebrochener Betrag, kein Raster unter der Startbreite und keine Etage unter
+ * der Ausgangsetage. Eine Ablehnung
  * verändert nichts und meldet `false` — dieselbe Form wie `setPhase`.
  *
  * Warum überhaupt eine zweite Schreibstelle neben `setPhase`: Die
@@ -216,6 +227,7 @@ export function commitVillage(next: VillageHoldings): boolean {
     next.landColumns < BALANCE.start.landColumns
   )
     return false
+  if (!Number.isInteger(next.floors) || next.floors < 1) return false
   dayNight.value = { ...dayNight.value, village: next }
   return true
 }

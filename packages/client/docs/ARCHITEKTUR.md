@@ -57,6 +57,9 @@ Simulation bleibt der einzige Owner der Spielentscheidungen.
   Platzierung und schreiben erst danach über `commitVillage` — den zweiten
   Schreibpfad neben der Abrechnung. Beide schließen sich über die Phase aus:
   `commitVillage` nimmt nur am Tag an, die Abrechnung nur aus dem Ergebnis.
+  Das Etage-Kommando `village/floors.ts` teilt denselben Schreibpfad und
+  dieselben Zusagen, ist aber vom Dorfbau getrennt, weil die Expedition wächst
+  und nicht das Dorf; die Etage selbst liegt im Bestand (`village.floors`).
   Jedes Gebäude trägt seinen Grundriss, weil die Platzierungsgeometrie
   (`plot.ts`) die belegten Zellen braucht; sie rechnet in Rasterzellen, nicht in
   Weltpixeln. `settlement.ts` leitet daraus den Dorfblick als reine Funktion ab:
