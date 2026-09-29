@@ -4,8 +4,30 @@ import { versionEnvelope } from './version'
 
 const opaqueIdSchema = z.string().min(1)
 const wholeNumberSchema = z.number().int().safe()
+/**
+ * Ein Verteidiger-Platz im eingefrorenen Stand.
+ *
+ * `generation` steht seit v6 hier und nicht im Ergebnis. Die Goldformel
+ * (`docs/GOLDFORMEL.md`) braucht je gefallenem Gegner eine Stärke und eine
+ * Generation; die **Stärke** lässt sich über `monsterId` aus der Registry
+ * auflösen, die **Generation** nicht, weil sie nirgends sonst steht. Sie gehört
+ * zum eingefrorenen Verteidiger und nicht zur Kampfrechnung — ein Ergebnis, das
+ * sie nachzählt, müsste sie erst dorthin kopieren.
+ *
+ * Sie ist bewusst **kein** Teil von `monsterId`. Die Basisart geht als Salz in
+ * den Zucht-Seed ein (`genome/mutation.ts`); läge die Generation im String,
+ * verschöbe jede Zucht den Seed und damit den Replay-Hash eines eingefrorenen
+ * Runs. Hier steht sie daneben und lässt den Seed unberührt.
+ *
+ * Fehlt das Feld, gilt Generation 1 — ein Basis-Monster ohne Zucht. Das macht
+ * alte Stände lesbar, statt sie zu verwerfen, und ist dieselbe Bedeutung wie
+ * `baseGenome`: Generation 1 ist der Ausgangspunkt.
+ */
 const monsterSlotSchema = z
-  .object({ monsterId: opaqueIdSchema.nullable() })
+  .object({
+    monsterId: opaqueIdSchema.nullable(),
+    generation: wholeNumberSchema.min(1).optional(),
+  })
   .strict()
 const activeTeamMemberSchema = z
   .object({

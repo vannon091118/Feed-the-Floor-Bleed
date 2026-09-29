@@ -1,5 +1,36 @@
 # packages/contracts/docs/CHANGELOG.md
 
+## 2026-09-29 — Contract v6: der Verteidiger-Slot trägt seine Generation
+
+**Scope:** geändert `src/raid-snapshot.ts` (`monsterSlot` bekommt `generation`) und `src/version.ts` (`CONTRACT_VERSION` 5→6, `sim_version` 0.0.4→0.0.5). Kein neues Schema, keine bestehende Regel geändert.
+
+`monsterSlots[i].generation` ist die Zuchtstufe des Verteidigers. Sie steht
+hier und nicht im Ergebnis, weil die Goldformel (`docs/GOLDFORMEL.md`) die Beute
+aus dem **eingefrorenen** Stand rechnet: die Stärke lässt sich über `monsterId`
+aus der Registry auflösen, die Generation stand nirgends, und ein Ergebnis, das
+sie nachzählte, müsste sie erst aus dem Snapshot dorthin kopieren.
+
+**Warum sie nicht in die `monsterId` wanderte.** `genome/mutation.ts` salzt den
+Zucht-Seed mit `hashText(hashStart(), genome.baseId)`, und `baseGenome()` legt
+die geparzte ID als `baseId` ins Genom. Ein String, der auch die Generation
+enthält, ginge als Salz in den Seed ein — jeder Zuchtwurf hinge dann an der
+Beute-Kennzeichnung und der Replay-Hash eines eingefrorenen Runs verschöbe
+sich mit. Als eigenes Feld bleibt der Seed unberührt; dieselbe Zucht auf einem
+v5-Stand ergibt heute wie morgen dasselbe Wesen.
+
+Das Feld ist **optional**, und das ist beabsichtigt: ein fehlendes `generation`
+bedeutet Generation 1, also ein Basis-Monster. Damit bleiben alte Stände lesbar
+und semantisch richtig, statt verworfen zu werden — anders als beim Sprung auf
+v5, wo eine v4-Zeile unter einem nicht mehr existierenden Routenmodell gerechnet
+worden war. `004_contract_v6.sql` hebt entsprechend nur die Versionsfelder an.
+
+Der Mindestwert ist 1, weil Generation 0 in der Zuchtkette nicht vorkommt
+(`baseGenome` startet bei 1, `breed` und `mutate` erhöhen). Ein Slot mit `0` oder
+negativer Zahl ist kein gültiger Verteidiger und wird vom strikten Schema
+abgewiesen, statt still auf Generation 1 zu fallen.
+
+**Gates:** typecheck 0, 431 Tests in 63 Dateien, Contract-Gate ok, Shinon PASS.
+
 ## 2026-09-29 — Contract v5: öffentliche Angreifer-Sicht, und die Falle verliert ihr Budget
 
 **Der Sprung hat zwei Gründe, beide entschieden.** Erstens sieht der Angreifer nur den Maze-Weg und die Bonus-Schätze; Monsterzahl, Platzierungen und Gruppen bleiben verborgen. Dafür gibt es neu `src/raid-public.ts` mit `RaidPublicViewSchema` (`.strict()`, nur Envelope und `dungeon`) und `toPublicView` als einzigem erlaubten Weg vom privaten `RaidSnapshot` zur Sicht. Die Maske tauscht ausschließlich Zellnummer 2 gegen Boden, also Platzierungsmarkierung gegen `Empty`; Spawn, Boss und Wände bleiben — und weil eine Platzierungszelle seit demselben Tag so viel kostet wie Boden, bleibt auch die Route dieselbe. `MatchResponseSchema.snapshot` trägt jetzt diese Sicht. Damit ist im Schema festgehalten, was am Bildschirm verborgen wäre: Eine Match-Antwort mit `monsterSlots` scheitert.

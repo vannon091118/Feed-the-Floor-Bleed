@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { baseGenome, breed } from './mutation'
+import { baseGenome, breed, mutate } from './mutation'
 import { baseMonsters } from './registry'
-import { elementBudget, lootProfile, strengthOfElements } from './strength'
+import {
+  elementBudget,
+  lootProfile,
+  slotLootProfile,
+  strengthOfElements,
+} from './strength'
 
 /**
  * Die Stärkeskala ist eine `[K]`-Zahl, und eine Verschiebung fällt nicht auf,
@@ -94,5 +99,48 @@ describe('Beute-Profil eines Genoms', () => {
     const parent = baseGenome('stone-golem')
     const child = breed([parent, parent], 99)
     expect(lootProfile(child).generation).toBe(2)
+  })
+})
+
+describe('Beute-Profil eines eingefrorenen Slots', () => {
+  it('liest Stärke aus der Art und Generation aus dem Slot', () => {
+    expect(
+      slotLootProfile({ monsterId: 'stone-golem', generation: 3 }),
+    ).toEqual({
+      strength: 5,
+      generation: 3,
+    })
+  })
+
+  it('gilt ein fehlendes Feld als Generation 1', () => {
+    // Alte Stände ohne das Feld bleiben lesbar und meinen ein Basis-Monster.
+    expect(slotLootProfile({ monsterId: 'frost-wolf' })).toEqual({
+      strength: 2,
+      generation: 1,
+    })
+  })
+
+  it('ergibt null für einen leeren Platz', () => {
+    expect(slotLootProfile({ monsterId: null, generation: 2 })).toBeNull()
+  })
+
+  it('ergibt null für eine Art, die es nicht gibt', () => {
+    // Keine erfundene Beute: eine unbekannte Art rechnet nichts.
+    expect(slotLootProfile({ monsterId: 'nicht-im-pool' })).toBeNull()
+  })
+
+  it('berührt keinen Zucht-Seed — derselbe Slot zählt immer gleich', () => {
+    // Die Generation steht am Slot und **nicht** in `monsterId`. Wäre sie im
+    // String, ginge sie als Salz in `deriveSeed` ein und jeder Zuchtwurf
+    // hinge an der Beute-Kennzeichnung. Der Beleg: das Profil ist eine reine
+    // Lesefunktion, und die Mutation desselben Genoms ändert daran nichts.
+    const slot = { monsterId: 'stone-golem', generation: 4 }
+    const before = slotLootProfile(slot)
+    const genome = mutate(baseGenome('stone-golem'), 4242)
+    const after = slotLootProfile(slot)
+    expect(after).toEqual(before)
+    // Und die Generation des Genoms ist unabhängig von der des Slots: ein
+    // Slot Generation 4 ist nicht dasselbe wie vier Mutationen.
+    expect(lootProfile(genome).generation).toBe(2)
   })
 })

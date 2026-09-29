@@ -1,5 +1,33 @@
 # packages/server/docs/CHANGELOG.md
 
+## 2026-09-29 — Migration 004 zieht Contract v6 nach, ohne Daten zu verlieren
+
+**Scope:** neu `migrations/004_contract_v6.sql`, `src/db/raid-migration-v6.test.mjs` und `src/db/migration-fixtures.mjs`. Geändert `src/db/raid-migration-v5.test.mjs` (Helfer jetzt geteilt). Keine Route, kein Schema, keine Spalte geändert.
+
+Diese Migration ist der erste Sprung, der **schreibt statt löscht**. `003` hat
+die v4-Ära entfernt, weil eine v4-Zeile unter einem Routenmodell gerechnet war,
+das es nicht mehr gibt. Für v6 gilt das nicht: das neue Feld `generation` am
+`monsterSlot` ist optional, und ein fehlendes Feld bedeutet Generation 1. Ein
+v5-Snapshot enthält zwangsläufig nur Basis-Monster, denn Gezüchtete waren vor
+v6 gar nicht darstellbar — jede v5-Zeile ist damit semantisch bereits eine
+v6-Zeile und wird nicht unlesbar, sondern vollständig. Die Migration hebt
+deshalb nur `sim_version` und `contractVersion` an und fasst sonst nichts an.
+
+Das Prädikat nennt die Altversion ausdrücklich (`sim_version IN ('0.0.4')`) und
+lautet nicht „alles außer der aktuellen": ein `sim_version <> '0.0.5'` löschte
+auch jede Zeile, die eine spätere Codebasis geschrieben hat. Die Unveränder-
+lichkeitstrigger werden für den UPDATE abgelegt und danach wortgleich wieder
+angelegt.
+
+**Der Test zog eine Dublette in den gemeinsamen Code.** Der erste Wurf kopierte
+sechs Zeilen aus dem v5-Test; das Redundancy-Gate meldete sie zu Recht, und
+statt sie zu umgehen liegen sie jetzt in `src/db/migration-fixtures.mjs`, das
+beide Tests importieren. Dabei fiel auf, dass `databaseWith` den
+Migrations**inhalt** nehmen muss und nicht den Dateinamen — sonst baute der
+Pfad den Inhalt als Dateinamen und scheiterte mit `ENAMETOOLONG`.
+
+**Gates:** typecheck 0, 431 Tests in 63 Dateien, Shinon PASS.
+
 ## 2026-09-29 — Migration 003 zieht Contract v5 nach, und der Bestand wird einheitlich
 
 **Der Sprung auf v5 macht v4-Zeilen unlesbar**, weil `RaidSnapshotSchema` und `ResultPayloadSchema` nur noch `contractVersion 5` mit `simVersion 0.0.4` akzeptieren. `migrations/003_contract_v5.sql` entfernt deshalb die `0.0.3`-Ära samt der Jobs, die sie als `snapshot_id` oder `target_snapshot_id` führen, und legt die Unveränderlichkeitstrigger wortgleich wieder an — ohne dieses kurzzeitige Ablegen ließe sich keine Zeile löschen. Warum löschen statt umschreiben: Die Ergebniszeilen einer v4-Nacht wurden unter einem Routenmodell gerechnet, das es nicht mehr gibt.

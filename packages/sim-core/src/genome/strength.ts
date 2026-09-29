@@ -1,3 +1,4 @@
+import { baseMonsters } from './registry'
 import type { BaseMonster, Genome } from './types'
 
 /**
@@ -86,5 +87,38 @@ export function lootProfile(genome: Genome): {
   return {
     strength: strengthOfElements(genome.elements),
     generation: genome.generation,
+  }
+}
+
+/** Ein Verteidiger-Platz, wie ihn der eingefrorene Stand trägt. */
+export interface SlotProfileSource {
+  readonly monsterId: string | null
+  /** Fehlt das Feld, gilt Generation 1 — ein Basis-Monster ohne Zucht. */
+  readonly generation?: number | undefined
+}
+
+/**
+ * Das Beute-Profil eines eingefrorenen Verteidiger-Platzes.
+ *
+ * Das ist der geschlossene Transportweg: `monsterId` wird über die Registry zur
+ * Basisart, daraus die Stärke, und die Generation steht seit Contract v6 am
+ * Slot. Ein leerer Platz und eine unbekannte Art ergeben beide `null` — es gibt
+ * kein Wesen, dessen Beute man rechnen könnte, und `goldForRun` soll dafür
+ * keine Zahl erfinden, die einem leeren Platz nicht gehört.
+ *
+ * Bewusst wird **kein** Genom gebaut und **kein** Seed berührt. Das Profil ist
+ * eine Lesefunktion über eingefrorene Daten: derselbe Slot ergibt immer
+ * dasselbe Ergebnis, ohne dass ein Zuchtwurf die Beute verändert.
+ */
+export function slotLootProfile(slot: SlotProfileSource): {
+  strength: number
+  generation: number
+} | null {
+  if (!slot.monsterId) return null
+  const base = baseMonsters().find((m) => m.id === slot.monsterId)
+  if (!base) return null
+  return {
+    strength: strengthOfBase(base),
+    generation: slot.generation ?? 1,
   }
 }

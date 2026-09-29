@@ -5,7 +5,9 @@ export { monsterStats } from './stats'
 export {
   elementBudget,
   lootProfile,
+  type SlotProfileSource,
   STRENGTH_STEPS,
+  slotLootProfile,
   strengthOfBase,
   strengthOfElements,
 } from './strength'

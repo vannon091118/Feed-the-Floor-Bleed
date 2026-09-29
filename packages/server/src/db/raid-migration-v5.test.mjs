@@ -1,48 +1,17 @@
-import { readFileSync } from 'node:fs'
-import { createRequire } from 'node:module'
 import { sim_version } from '@floor/contracts'
 import { describe, expect, it } from 'vitest'
-
-const { DatabaseSync } = createRequire(import.meta.url)('node:sqlite')
-
-/** @param {string} name @returns {string} */
-function migration(name) {
-  return readFileSync(
-    new URL(`../../migrations/${name}`, import.meta.url),
-    'utf8',
-  )
-}
+import {
+  DatabaseSync,
+  jobById,
+  migration,
+  openJob,
+  snapshot,
+  snapshotById,
+} from './migration-fixtures.mjs'
 
 const schema = migration('001_raid_jobs.sql')
 const toV4 = migration('002_contract_v4.sql')
 const toV5 = migration('003_contract_v5.sql')
-
-/**
- * Legt einen Snapshot an. `contractVersion` steht im Payload, `simVersion` als
- * eigene Spalte — genau so, wie der Checkpoint ihn schreibt.
- *
- * @param {import('node:sqlite').DatabaseSync} db
- * @param {string} id
- * @param {string} simVersion
- * @param {number} contractVersion
- */
-function snapshot(db, id, simVersion, contractVersion) {
-  db.prepare(
-    'INSERT INTO raid_snapshots (id, request_key, sim_version, payload_json, created_at) VALUES (?, ?, ?, ?, ?)',
-  ).run(id, id, simVersion, `{"contractVersion":${contractVersion}}`, 0)
-}
-
-/**
- * @param {import('node:sqlite').DatabaseSync} db
- * @param {string} id
- * @param {string} snapshotId
- * @param {string} attackerId
- */
-function openJob(db, id, snapshotId, attackerId) {
-  db.prepare(
-    "INSERT INTO raid_jobs (id, snapshot_id, target_snapshot_id, attacker_id, status, created_at, updated_at, expires_at) VALUES (?, ?, NULL, ?, 'accepted', ?, ?, ?)",
-  ).run(id, snapshotId, attackerId, 0, 0, 900000)
-}
 
 /**
  * Ein gemischter Bestand: die v4-Ära (`0.0.3`), der aktuelle Stand und eine
@@ -57,16 +26,6 @@ function fillMixedDatabase(db) {
   openJob(db, 'job-v4', 'v4-direct', 'player-1')
   openJob(db, 'job-v5', 'v5', 'player-2')
   openJob(db, 'job-later', 'later', 'player-3')
-}
-
-/** @param {import('node:sqlite').DatabaseSync} db @param {string} id */
-function snapshotById(db, id) {
-  return db.prepare('SELECT id FROM raid_snapshots WHERE id = ?').get(id)
-}
-
-/** @param {import('node:sqlite').DatabaseSync} db @param {string} id */
-function jobById(db, id) {
-  return db.prepare('SELECT id FROM raid_jobs WHERE id = ?').get(id)
 }
 
 describe('Contract-v5-Migration', () => {
