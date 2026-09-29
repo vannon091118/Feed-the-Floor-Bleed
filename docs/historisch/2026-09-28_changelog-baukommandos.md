@@ -1,0 +1,11 @@
+# docs/historisch/2026-09-28_changelog-baukommandos.md
+
+Append-only Archiv aus `docs/CHANGELOG.md`. Enthaelt den Eintrag vom 2026-09-28 zu den Bau-, Ausbau- und Landkommandos des Dorfes. Der Text ist unveraendert uebernommen; kein Satz ist verloren gegangen und keiner neu geschrieben.
+
+## 2026-09-28 — Bau-, Ausbau- und Landkommandos füllen den Dorfbestand
+
+**Was gebaut ist.** `packages/client/src/village/commands.ts` ist die Kommandoschicht des Dorfes: `buildBuilding`, `upgradeBuilding` und `extendLand` entscheiden in dieser Reihenfolge — Phase, Art, Arbeiterkapazität, Geometrie, Deckung — und schreiben erst danach. Die Regeln bleiben in `economy.ts`, die Zahlen in `balance.ts`; dort sind nur zwei Strukturangaben dazugekommen: `buildable` (Rathaus und Gilde werden nie gebaut — das stand bis jetzt nur im Kommentar) und `start.landRows` (die feste Rasterhöhe, gegen die gebaut wird). `plot.ts` bekam die Ganzzellprüfung: `x: 1.5` bezeichnet keine Zelle und wird abgewiesen, ebenso ein Grundriss ohne Ausdehnung, der sonst unbegrenzt oft platzierbar wäre.
+
+**Der Bestand hat jetzt zwei Schreibpfade, und die Phase trennt sie.** `state.ts` führt Grundrisse an den Gebäuden und mit `commitVillage` den Schreibpfad der Kommandos: nur am Tag, nie negativ, nie gebrochen, kein Raster unter der Startbreite. Die Tagesabrechnung schreibt weiterhin im Übergang `result → tag` in `setPhase`; weil sie nur aus dem Ergebnis läuft und die Kommandos nur am Tag, kann keiner den anderen überholen. `raid/fixture-raid.ts` sendet den Bestand aus dem Dorf statt des Startbestands der Config — der Upload behauptete bis dahin, der Verteidiger habe nie etwas ausgegeben.
+
+**Was weiterhin offen ist.** Die Dorfszene zeigt ihre Präsentationsorte und nicht den Store, der Rückkehr-Toast fehlt, und die Zellpositionen der beiden festen Startorte (Rathaus und Gilde, beide 3×3) sind nicht freigegeben — solange sie fehlen, prüft das Baukommando Überlappung gegen das, was der Store führt, und nicht gegen die Startorte. Etagen- und Platzpreis haben weiterhin keinen Aufrufer. **Gates:** typecheck 0, 348 Tests in 51 Dateien, Lint 0, LOC-Caps ok (244 Quellen), Hygiene ok, Shinon PASS, Client-Build und Worker-Dry-Run ok.
