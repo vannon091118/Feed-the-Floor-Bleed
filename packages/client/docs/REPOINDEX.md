@@ -117,17 +117,19 @@
 | `src/dungeon-editor/model.ts` | Pure Editor-Regeln (Pinsel mit Leer/Wand/Platzierung, 4x4-Tiles, Marker) und `startDungeon` mit den zwei Platzierungsgruppen des Probelaufs |
 | `src/dungeon-editor/state.ts` | Einziger Owner von Grid, Pinsel und Route |
 | `src/village/phase.ts` | Phase-Union in Schleifenreihenfolge, erlaubte Übergänge, reine Entscheidungsfunktion |
-| `src/village/state.ts` | DayNightState-Signal (`phase`, `day`, `job`, `village`, `daySettlement`), Tagesabrechnung im Übergang `result → tag` in `setPhase`, dazu `commitVillage` als Schreibpfad der Baukommandos; ein Gebäude trägt seinen Grundriss, und der Startbestand legt Rathaus und Gilde aus der Config an |
+| `src/village/state.ts` | DayNightState-Signal (`phase`, `day`, `job`, `village`, `daySettlement`), Tagesabrechnung im Übergang `result → tag` in `setPhase` — Material aus dem Werkstattertrag, Gold aus der Beute des Laufs; der Übergang wird ohne die Beute abgewiesen, damit kein Tag still 0 Gold bucht. Dazu `commitVillage` als Schreibpfad der Baukommandos; ein Gebäude trägt seinen Grundriss, und der Startbestand legt Rathaus und Gilde aus der Config an |
 | `src/village/commands.ts` | Kommandoschicht des Dorfes: `buildBuilding`, `upgradeBuilding`, `extendLand` — nur am Tag, mit Deckung, Arbeiterkapazität und Platzierungsprüfung, jede Ablehnung ein Ergebnis mit Grund |
 | `src/village/floors.ts` | Das Etage-Kommando `buyFloor`: die nächste Etage zum freigegebenen quadratischen Preis, nur am Tag über denselben Schreibpfad `commitVillage`, jede Ablehnung ein Ergebnis mit Grund |
 | `src/village/balance.ts` | Einzige Quelle aller Dorf-Stellschrauben: tief eingefrorene und tief unveränderliche Config mit benannten Gruppen, vom Startbestand über Startarbeiterbasis, die Zellen der beiden festen Startorte und Attraktivität bis zu Etagen- und Platzpreis |
 | `src/village/economy.ts` | Reine Dorfregeln: Bau-, Ausbau-, Ertrags-, Kapazitäts-, Land- und Slotkosten — jede Funktion nimmt ihre Balance ausdrücklich entgegen, prüft Stufe, Etage, Platz und Landausgang auf Ganzzahl und wirft nie |
-| `src/village/phase-actions.ts` | Schleifen-Kommandos: Nacht starten, Raid auslösen (lädt den Log), Ergebnis abschließen (räumt ihn auf) |
+| `src/village/phase-actions.ts` | Schleifen-Kommandos: Nacht starten, Raid auslösen (lädt den Log), Ergebnis abschließen — ein abgeschlossener Auftrag reicht die Beute aus `raid/loot-source.ts` an den Tagesabschluss und räumt den Log danach auf |
 | `src/village/settlement.ts` | Dorfblick als reine Ableitung aus Phase-Owner und Fixture, ohne Wirtschaft |
+| `src/village/loot.ts` | Die freigegebene Goldformel als reine Regel: `goldForOpponent` und `goldForRun` nehmen ihre Balance ausdrücklich entgegen, rechnen ganzzahlig und weisen einen ungültigen Gegner ab, statt eine halbe Beute zu zahlen |
 | `src/village/plot.ts` | Platzierungsgeometrie des Dorfes: Grundriss, Ganzzelligkeit, Rastergrenze, Überlappung, Kantennachbarn, horizontale Landerweiterung — reine Funktionen, keine Wirtschaftszahlen; Abnehmer ist die Kommandoschicht |
 | `src/village/index.ts` | Barrel der Schleifendomäne (Phase, Aktionen, Kommandos, Blick, Zustand); `plot` ist bewusst nicht enthalten, weil die Oberfläche es nicht aufruft |
 | `src/raid/fixture-raid.ts` | Versionierter Upload und lokaler Fixture-Auftrag; `fixtureTeamConditions` ist die eine Ableitung des Heldzustands für Upload und Timeline |
 | `src/raid/combat-source.ts` | Einziger Besitzer des Raid-Logs: Core-Aufruf, Lade-/Entlade-Pfad, Plan-Synchronisierung |
+| `src/raid/loot-source.ts` | Die Beute des geladenen Laufs: `fallenLootProfiles` ordnet die Todesereignisse über die **belegten** Plätze den eingefrorenen Slots zu und löst Stärke und Generation über `slotLootProfile` auf; der Boss trägt nichts bei. Erster Leser von `goldForRun` im Spielerpfad |
 | `src/raid/raid-panel.tsx` | Probelauf-Panel, reicht den terminalen Auftrag an die Schleife weiter |
 | `src/raid/panel.tsx` | Reine Ergebnis-Darstellung eines TerminalRaidJob; die Stufenworte liest sie als `STAGE_LABELS` aus `timeline-model.ts`, es gibt keinen zweiten Formulierer daneben |
 | `src/raid/playback.ts` | Playback-Store: Log, Tick, Pause, abgeleitete Routenposition |

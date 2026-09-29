@@ -20,7 +20,8 @@ import { type DayNightState, dayNight } from '../village/state'
  *
  * Eine Bilanz ohne Ertrag wird gezeigt und nicht unterdrückt. Ein Dorf ohne
  * Werkstatt schreibt 0 Material gut; das zu verschweigen hieße, denselben
- * Zustand je nach Zahl zu verstecken.
+ * Zustand je nach Zahl zu verstecken. Dasselbe gilt für die Beute: ein Lauf,
+ * in dem nichts gefallen ist, nennt eine Null und keinen fehlenden Eintrag.
  */
 export interface SettlementToastView {
   /** Der abgerechnete Tag, also der vor dem Hochzählen. */
@@ -40,7 +41,7 @@ export function settlementToastView(
   if (phase !== 'tag' || daySettlement === null) return null
   return {
     title: `Tag ${daySettlement.day} abgerechnet`,
-    detail: `Werkstattertrag +${daySettlement.materials} ${RESOURCE_CATALOG.materials.label}`,
+    detail: `Beute +${daySettlement.gold} ${RESOURCE_CATALOG.gold.label} · Werkstattertrag +${daySettlement.materials} ${RESOURCE_CATALOG.materials.label}`,
   }
 }
 

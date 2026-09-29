@@ -4,6 +4,7 @@ import type { Resources } from '../fixture-data'
 import { fixture } from '../fixture-data'
 import { BALANCE } from './balance'
 import { dailyYield, type PlacedBuilding } from './economy'
+import { type FallenOpponent, goldForRun } from './loot'
 import { type Phase, resolvePhaseTransition } from './phase'
 import type { Footprint } from './plot'
 
@@ -65,29 +66,28 @@ export interface VillageHoldings {
 /**
  * Die Rückkehrabrechnung: was der abgerechnete Tag gutgeschrieben hat.
  *
- * Sie nennt nur Materialien, weil nur Materialien gutschreibbar sind. Die
- * Goldseite aus besiegten Raid-Gegnern (E1) fehlt hier bewusst und ist keine
- * Lücke, die ein Platzhalter füllen könnte:
+ * Sie hat zwei Quellen, weil der Tag zwei Dinge einnimmt: den Werkstattertrag
+ * aus den Gebäuden (Material) und die Beute des beendeten Laufs (Gold). Die
+ * Goldformel ist freigegeben und steht in `village/loot.ts`; die Gegner, über
+ * die sie summiert, kommen aus dem geladenen Log, nicht aus diesem Store —
+ * `raid/loot-source.ts` ist ihre Ableitung und liest den eingefrorenen Slot.
  *
- * - Die Stärke-/Generations-Goldformel selbst ist nicht freigegeben (`[K]` in
- *   `docs/VISUAL_GRUNDSATZ.md`). Sie hier zu erfinden wäre keine Ableitung,
- *   sondern eine Annahme.
- * - Das einzige lokal verfügbare Roster ist das des eigenen Fixtures
- *   (`monsterSlots`). Daraus eine Beute zu rechnen wäre gegenüber jedem fremden
- *   Ziel eine Lüge.
+ * Diese beiden Zahlen sind der ganze Bericht. Eine Bilanz, die nur nennt, was
+ * gerade günstig war, wäre eine zweite Erzählung neben dem Bestand.
  *
  * Die Überlebendenzahlen haben seit dem Boss-Slice eine einzige Quelle:
  * `sim-core/src/combat/summary.ts` legt fest, dass `monstersAlive` ohne den
  * Boss zählt und `bossAlive` ein eigenes Feld ist; der frühere Widerspruch
- * zwischen Core und Timeline ist damit behoben. Seit Contract v4 trägt die
- * Summary außerdem `defendersTotal`, den eingefrorenen Verteidiger-Roster —
- * die Zahl der gefallenen Gegner ist damit ohne den Log berechenbar. Blockiert
- * ist die Formelfreigabe; ob die Formel nach E1 über diese Zahl hinaus Stärke
- * und Generation je Gegner braucht, führt kein Schema und ist offen.
+ * zwischen Core und Timeline ist damit behoben. Für die Beute werden sie nicht
+ * gebraucht: wer gefallen ist, steht als Todesereignis im Log, und die
+ * Identität des Gefallenen braucht die Formel — eine Anzahl allein könnte zwei
+ * Gegner verschiedener Stärke nicht auseinanderhalten.
  */
 export interface DaySettlement {
   /** Der Tag, der abgerechnet wurde — vor dem Hochzählen. */
   day: number
+  /** Gutgeschriebenes Gold aus den gefallenen Gegnern des Laufs. */
+  gold: number
   /** Gutgeschriebene Materialien aus dem Werkstattertrag. */
   materials: number
 }
@@ -142,20 +142,30 @@ export const dayNight = signal<DayNightState>({
  * Genau deshalb kann hier kein `NaN` in den Bestand gelangen und keine negative
  * Stufe Materialien abbuchen — die Gutschrift muss nicht selbst prüfen.
  */
-function closeDay(state: DayNightState): {
+function closeDay(
+  state: DayNightState,
+  fallen: readonly FallenOpponent[],
+): {
   village: VillageHoldings
   daySettlement: DaySettlement
 } {
   const materials = dailyYield(state.village.buildings, BALANCE)
+  const loot = goldForRun(fallen, BALANCE)
+  // Ein abgewiesener Gegner macht den **ganzen** Run ungültig (`loot.ts`) und
+  // nicht nur seinen Anteil: eine halbe Beute, die wie eine ganze aussieht,
+  // wäre im Bestand nicht mehr von einer echten zu unterscheiden. Ein
+  // ungültiger Lauf bucht deshalb nichts und nicht weniger.
+  const gold = loot.ok ? loot.gold : 0
   return {
     village: {
       ...state.village,
       resources: {
         ...state.village.resources,
+        gold: state.village.resources.gold + gold,
         materials: state.village.resources.materials + materials,
       },
     },
-    daySettlement: { day: state.day, materials },
+    daySettlement: { day: state.day, gold, materials },
   }
 }
 
@@ -170,13 +180,23 @@ function closeDay(state: DayNightState): {
  * erneut; der Retry-Weg `result → raid` verlässt die Ergebnisphase gar nicht
  * und rechnet deshalb nichts. Die Abrechnung hängt am Ausgang des Auftrags, nicht
  * an seinem Status — eine Niederlage, die den Tag beendet, zahlt genauso.
+ *
+ * `fallen` ist die Beute des beendeten Laufs und nur für diesen einen Übergang
+ * von Bedeutung. Fehlt sie dort, wird der Übergang **abgewiesen**: ein Tag, der
+ * ohne seine Beute schließt, buchte still 0 Gold, und der Unterschied zu „es
+ * ist nichts gefallen" wäre an keiner Stelle sichtbar. Eine leere Liste ist
+ * dagegen eine gültige Aussage über den Lauf.
  */
-export function setPhase(to: Phase): boolean {
+export function setPhase(
+  to: Phase,
+  fallen?: readonly FallenOpponent[],
+): boolean {
   const current = dayNight.value
   const next = resolvePhaseTransition(current.phase, to)
   if (next === null) return false
   const returned = current.phase === 'result' && next === 'tag'
-  const abgerechnet = returned ? closeDay(current) : null
+  if (returned && fallen === undefined) return false
+  const abgerechnet = returned ? closeDay(current, fallen ?? []) : null
   dayNight.value = {
     phase: next,
     day: abgerechnet ? current.day + 1 : current.day,

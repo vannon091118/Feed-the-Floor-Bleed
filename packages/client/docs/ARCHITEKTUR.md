@@ -98,7 +98,7 @@ Simulation bleibt der einzige Owner der Spielentscheidungen.
   aus `@floor/sim-core`, damit sie dieselbe Quelle haben wie die Auftrags-Summary
   und die Dorf-Bilanz. Den Takt treibt der Runtime-Ticker in `ui/world-host.tsx`
   über `stepPlayback`, damit der Replay im Dorf wie im Dungeon läuft.
-  `showcase/scene.ts` liest Log und Tick im Raid-Modus nur noch aus dem Store.
+  `showcase/scene.ts` liest Log und Tick im Raid-Modus nur noch aus dem Store, und `loot-source.ts` leitet aus demselben Lauf die Beute ab — die einzige Stelle, an der sie entsteht.
   Das Phasenfenster montiert sie in der Raid-Phase; die Steuerung
   (`TimelineTransport`) steht über dem Inhalt und klebt am Oberkant, weil die
   Trail-Liste länger ist als jedes Fenster. `panel.tsx` reicht das terminale
@@ -144,7 +144,7 @@ und `ui/view.ts` hält diese Wahl ohne Spielregel. Im Dorf zeigt
 `village/settlement` nur, was die Schleife tatsächlich kennt — Tag, Gilde,
 Verteidigerplätze und das Ergebnis des letzten Auftrags. Die Wirtschaft hängt
 dagegen am Bestand in `village/state.ts`: die Topbar zeigt den gehaltenen
-Bestand, und die Rückkehr schreibt den Werkstattertrag gut, genau einmal je
+Bestand, und die Rückkehr schreibt Werkstattertrag und Beute gut, genau einmal je
 Expedition. Bauen, Ausbauen und Landkauf schreiben am Tag über dieselbe
 Oberfläche des Stores und kosten Gold und Material; die Dorfszene zeichnet
 diesen Bestand — `ui/scene-switch.ts` reicht ihn als `villagePlots()` hinein,

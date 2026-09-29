@@ -166,10 +166,33 @@ v5-Bestand an, fährt die Migration und prüft, dass der Snapshot auf 0.0.5 und
 `strength.test.ts` pinnt zusätzlich, dass dieselbe Slot-Angabe immer dasselbe
 Profil ergibt und eine Mutation des Genoms daran nichts ändert.
 
+### Der Rückweg ins Dorf
+
+**Geschlossen am 2026-09-29; die Lücke war eine fehlende Naht, kein
+Balanceproblem.** `goldForRun` war freigegeben, gebaut und geprüft und hatte im
+Spielerpfad keinen Verbraucher — `closeDay` buchte ausschließlich Material, und
+bei 120 Startgold gegen 1000 Gold für Etage 2 konnte der Kaufknopf strukturell
+nie feuern. `packages/client/src/raid/loot-source.ts` ist jetzt die Stelle, an der
+ein Lauf seine Beute wird: `fallenLootProfiles()` liest die Todesereignisse des
+geladenen Logs, ordnet `monster-N` über die **belegten** Plätze der eingefrorenen
+Slot-Liste zu — der Core zählt belegte Plätze, ein Index in der Slot-Liste wäre
+ein Index aus einer anderen Menge — und löst je Gegner Stärke und Generation über
+`slotLootProfile` auf. Der Boss fällt heraus, weil er kein Goldträger ist.
+
+`village/phase-actions.ts` reicht die Liste beim Abschluss an
+`setPhase('tag', fallen)`; dieser Übergang wird **abgewiesen**, wenn er ohne Beute
+kommt. Ein Tag, der ohne sie schließt, buchte still 0 Gold, und der Unterschied
+zu „es ist nichts gefallen" wäre nirgends sichtbar. Im lokalen Probelauf ist der
+Spieler Angreifer und Verteidiger in einer Person, die Beute kommt also aus dem
+eigenen Fixture-Roster: beide Verteidiger sterben (Frostwolf Stärke 2, Steingolem
+Stärke 5, zusammen 280 Gold je Rückkehr), und weil das Fixture keine Zuchtstufen
+führt, ist dort jede Art Generation 1.
+
 ## Rendite-Kontext
 
 Der Startbestand sind 120 Gold; der Etage-Kauf kostet 1000 Gold für Etage 2 und
 2250 für Etage 3. Eine vollständig geräumte Etage bringt bei fünf Gegnern der
 Stärke 1, Generation 1 bis zu 200 Gold. Das ist die Größenordnung, kein
 Versprechen: die tatsächliche Beute hängt an der Besetzung, die der Verteidiger
-gestellt hat.
+gestellt hat. Der Probelauf zahlt 280 Gold je Rückkehr — Frostwolf und Steingolem
+sterben beide —, womit Etage 2 nach vier Rückkehren bezahlbar ist.

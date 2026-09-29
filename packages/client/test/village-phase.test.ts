@@ -62,7 +62,9 @@ describe('DayNightState-Übergänge', () => {
     expect(completeRaid(JOB)).toBe(true)
     expect(dayNight.value.phase).toBe('result')
     expect(dayNight.value.job?.status).toBe('completed')
-    expect(setPhase('tag')).toBe(true)
+    // Die Beute des Laufs gehört zum Tagesabschluss; hier gibt es keinen Lauf,
+    // also eine leere Liste und nicht gar keinen Eingang.
+    expect(setPhase('tag', [])).toBe(true)
     expect(dayNight.value.phase).toBe('tag')
     expect(dayNight.value.day).toBe(fixture.day + 1)
     expect(dayNight.value.job).toBeNull()

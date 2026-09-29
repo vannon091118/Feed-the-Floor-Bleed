@@ -176,9 +176,9 @@ describe('Gebautes Dorf und Tagesabrechnung', () => {
     expect(setPhase('night')).toBe(true)
     expect(setPhase('raid')).toBe(true)
     expect(setPhase('result')).toBe(true)
-    expect(setPhase('tag')).toBe(true)
+    expect(setPhase('tag', [])).toBe(true)
     // Ein zweiter Abschluss derselben Rückkehr ist kein Übergang mehr.
-    expect(setPhase('tag')).toBe(false)
+    expect(setPhase('tag', [])).toBe(false)
     expect(bestand().resources.gold).toBe(nachBau.gold)
     expect(bestand().resources.materials).toBe(nachBau.materials)
   })

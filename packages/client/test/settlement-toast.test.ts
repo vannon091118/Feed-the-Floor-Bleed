@@ -14,7 +14,7 @@ import {
   startNight,
   triggerRaid,
 } from '../src/village/phase-actions'
-import { dayNight, resetDayNight } from '../src/village/state'
+import { dayNight, resetDayNight, setPhase } from '../src/village/state'
 import { JOB } from './raid-fixtures'
 
 /**
@@ -89,13 +89,15 @@ describe('Rückkehrbilanz', () => {
     expect(settlementToastView(dayNight.value)).not.toBeNull()
   })
 
-  it('nennt den abgerechneten Tag und den Werkstattertrag', () => {
+  it('nennt den abgerechneten Tag, die Beute und den Werkstattertrag', () => {
     resetDayNight()
     mitWerkstatt(2)
     bisZurRueckkehr()
+    // Die Beute kommt aus `daySettlement` und wird nicht hier gerechnet: der
+    // Toast ist eine Ableitung und keine zweite Buchhaltung.
     expect(settlementToastView(dayNight.value)).toEqual({
       title: `Tag ${fixture.day} abgerechnet`,
-      detail: `Werkstattertrag +${workshopYield(2, BALANCE)} Material`,
+      detail: `Beute +${dayNight.value.daySettlement?.gold} Gold · Werkstattertrag +${workshopYield(2, BALANCE)} Material`,
     })
     // Der Zähler steht auf dem Tag danach; genannt wird der abgerechnete.
     expect(dayNight.value.day).toBe(fixture.day + 1)
@@ -121,19 +123,24 @@ describe('Rückkehrbilanz', () => {
     expect(finishResult(JOB)).toBe(true)
     expect(settlementToastView(dayNight.value)).toEqual({
       title: `Tag ${fixture.day + 1} abgerechnet`,
-      detail: `Werkstattertrag +${workshopYield(1, BALANCE)} Material`,
+      detail: `Beute +${dayNight.value.daySettlement?.gold} Gold · Werkstattertrag +${workshopYield(1, BALANCE)} Material`,
     })
   })
 
   it('zeigt auch eine Bilanz ohne Ertrag, statt sie zu verschweigen', () => {
     resetDayNight()
-    bisZurRueckkehr()
+    expect(startNight()).toBe(true)
+    expect(triggerRaid()).toBe(true)
+    expect(completeRaid(JOB)).toBe(true)
+    // Ein Dorf ohne Werkstatt und ein Lauf, in dem nichts gefallen ist: zwei
+    // Nullen in der Bilanz statt eines fehlenden Eintrags.
+    expect(setPhase('tag', [])).toBe(true)
     expect(
       dayNight.value.village.buildings.some((b) => b.kind === 'workshop'),
     ).toBe(false)
     expect(settlementToastView(dayNight.value)).toEqual({
       title: `Tag ${fixture.day} abgerechnet`,
-      detail: 'Werkstattertrag +0 Material',
+      detail: 'Beute +0 Gold · Werkstattertrag +0 Material',
     })
   })
 
