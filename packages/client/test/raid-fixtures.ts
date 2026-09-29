@@ -91,8 +91,7 @@ export function fixtureRaidLog() {
     grid,
     seed: 4242,
     teamSize: 3,
-    // Aus derselben Ableitung wie der echte Upload: sonst vergliche dieser
-    // Test den Log der Timeline mit einem Lauf, den niemand spielt.
+    // Aus derselben Ableitung wie der echte Upload.
     team: fixtureTeamConditions(),
     defenders: [{ baseId: 'frost-wolf' }, { baseId: 'stone-golem' }],
     floor: 1,

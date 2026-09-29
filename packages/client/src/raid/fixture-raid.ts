@@ -17,10 +17,8 @@ import { dayNight } from '../village/state'
  * Der Zustand des Teams, wie er in den Kampf reist.
  *
  * `activeTeam` im Upload und die Nachwirkung am Kampf-Spec sind dieselben zwei
- * Zahlen aus derselben Fixture. Sie hier einmal abzuleiten und nicht an jedem
- * Aufrufer erneut ist der Unterschied zwischen einer Quelle und dreien: die
- * Timeline und der Auftrag müssen denselben Lauf zeigen, sonst rechnet das Dorf
- * etwas anderes ab als der Spieler gesehen hat.
+ * Zahlen aus derselben Fixture; sie hier einmal abzuleiten hält sie an einer
+ * Quelle statt an einer je Aufrufer.
  */
 export function fixtureTeamConditions(): TeamCondition[] {
   return fixture.team.map((hero) => ({

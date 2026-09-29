@@ -14,7 +14,7 @@
 
 ## 2026-09-29 — Timeline und Auftrag rechnen dieselbe Nachwirkung
 
-**Eine Ableitung statt dreier Aufzählungen.** `fixture.team` trägt je Held `fatigue` und `injury`. Der Upload schrieb sie in `activeTeam`, die Timeline ließ denselben Zustand fallen, weil `resolveCombat` ihn gar nicht kannte: das Dorf hätte einen Lauf abgerechnet, den der Spieler so nicht gesehen hat. Neu ist `fixtureTeamConditions()` in `src/raid/fixture-raid.ts` als einzige Ableitung dieser zwei Zahlen; `buildFixtureUpload` leitet daraus `activeTeam` ab, `src/raid/combat-source.ts` gibt dieselbe Liste an den Timeline-Lauf, und `test/raid-fixtures.ts` liest sie ebenfalls statt eigener Literale.
+**Eine Ableitung statt dreier Aufzählungen.** `fixture.team` trägt je Held `fatigue` und `injury`. Der Upload schrieb sie in `activeTeam`, die Timeline ließ denselben Zustand fallen, weil `resolveCombat` ihn gar nicht kannte — beide Seiten rechneten denselben **unversehrten** Lauf, aber den Zustand der Fixture trug nur der Auftrag. Neu ist `fixtureTeamConditions()` in `src/raid/fixture-raid.ts` als einzige Ableitung dieser zwei Zahlen; `buildFixtureUpload` leitet daraus `activeTeam` ab, `src/raid/combat-source.ts` gibt dieselbe Liste an den Timeline-Lauf, und `test/raid-fixtures.ts` liest sie ebenfalls statt eigener Literale.
 
 **Nebenbefund, sechs Stellen: „Contract-v4" stand als Zahl in Fließtexten.** Die Version wird jetzt nirgends wiederholt — `src/raid/raid-panel.tsx` nennt `@floor/contracts` als Quelle, ebenso `packages/client/docs/ARCHITEKTUR.md` und `REPOINDEX.md` sowie `packages/server/docs/ARCHITEKTUR.md` und `STRINGMATRIX.md`. Eine Zahl im Text veraltet, ohne dass ein Gate es merkt. Die CHANGELOG-Einträge zu v4 bleiben unangetastet, weil sie Historie sind.
 

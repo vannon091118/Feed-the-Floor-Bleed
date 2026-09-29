@@ -106,8 +106,8 @@ export function runFixtureRaid(input: FixtureRaidInput): TerminalRaidJob {
     grid,
     teamSize: parsed.data.activeTeam.length,
     // Der Zustand reist im eingefrorenen Stand mit; hier bekommt er seinen
-    // Leser. `temporaryFatigue`/`temporaryInjury` sind seit Contract v8
-    // Pflichtfelder von `activeTeam` — bis hierhin ohne Abnehmer.
+    // Leser: die ersten Zeilen im Repo, die `temporaryFatigue`/
+    // `temporaryInjury` aus `activeTeam` überhaupt anfassen.
     team: parsed.data.activeTeam,
     defenders: defenderSlots(parsed.data.monsterSlots),
     seed: input.seed,

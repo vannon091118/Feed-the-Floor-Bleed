@@ -1,11 +1,11 @@
 /**
  * Die Nachwirkung eines Helden auf den nächsten Kampf.
  *
- * Erschöpfung und Verletzung stehen seit Contract v8 im eingefrorenen Stand
- * (`activeTeam[].temporaryFatigue`/`temporaryInjury`), hatten aber keinen
- * Leser: der Transport war geschlossen, der Konsument fehlte. Hier bekommen
- * sie ihn, und zwar als **Multiplikatoren auf die Initiative** — keine neue
- * Kampfzahl, dieselbe Grenze, die das Verhaltensprofil hält.
+ * Erschöpfung und Verletzung stehen seit dem ersten Raid-Freeze
+ * (`packages/contracts/src/raid-snapshot.ts`, `activeTeam[]`) im eingefrorenen
+ * Stand und hatten bis hierhin keinen Leser: der Transport war geschlossen,
+ * der Konsument fehlte. Hier bekommen sie ihn, als **Multiplikatoren auf die
+ * Initiative** — die einzige Kampfangabe, die die Nachwirkung ändert.
  *
  * Die Wirkung steht am Spec und damit im Log: `specHash` hasht die Einheit
  * vollständig, und ein Replay liest nur den Log. Eine geminderte Initiative,
@@ -28,9 +28,9 @@ export const CONDITION_INITIATIVE_PERMILLE = {
  *
  * `temporaryInjury` und `temporaryFatigue` sind Contract-Felder ohne
  * Obergrenze: eine ungebremste Verkettung wäre ein Upload, der den Lauf in eine
- * Million Rechenschritte schickt. Die Grenze stand in der freigegebenen Option
- * („z. B. 5"); jenseits der fünften Stufe ändert sie ohnehin keine
- * Entscheidung mehr.
+ * Million Rechenschritte schickt. Freigegeben als „höchstens fünf Stufen" in
+ * `docs/CONCEPT_REVIEW.md` Abschnitt 0c; jenseits der fünften Stufe ändert sie
+ * ohnehin keine Entscheidung mehr.
  */
 const MAX_CONDITION_STEPS = 5
 

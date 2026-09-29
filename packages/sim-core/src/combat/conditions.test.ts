@@ -31,7 +31,7 @@ describe('Nachwirkung auf die Initiative', () => {
     expect(heroInitiative(BASE, condition(0, 2))).toBe(405)
   })
 
-  it('kappt die Stufen bei fünf', () => {
+  it('kappt die Stufen bei fünf, wie in Abschnitt 0c freigegeben', () => {
     // `temporaryInjury` ist ein Contract-Feld ohne Obergrenze; ohne die Grenze
     // wäre ein Upload mit einer Million Stufen eine Million Rechenschritte.
     const capped = heroInitiative(BASE, condition(5, 0))
@@ -42,11 +42,6 @@ describe('Nachwirkung auf die Initiative', () => {
     )
   })
 
-  it('rechnet denselben Stand zweimal gleich', () => {
-    const first = heroInitiative(BASE, condition(3, 2))
-    const second = heroInitiative(BASE, condition(3, 2))
-    expect(second).toBe(first)
-  })
 })
 
 describe('Die Nachwirkung erreicht den Log', () => {

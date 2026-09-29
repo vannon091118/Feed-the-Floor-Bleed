@@ -45,9 +45,7 @@ export function buildCombatLog(
   return resolveSnapshotRaid({
     grid: current,
     teamSize: fixture.team.length,
-    // Dieselbe Nachwirkung wie im Upload, aus derselben Ableitung. Ohne sie
-    // zeigte die Timeline einen anderen Kampf als den Auftrag, den das Dorf
-    // abrechnet — zwei Rechnungen für denselben Lauf.
+    // Dieselbe Nachwirkung wie im Upload, aus derselben Ableitung.
     team: fixtureTeamConditions(),
     defenders: fixture.monsterSlots.map((slot) => ({
       baseId: slot.monsterId,
