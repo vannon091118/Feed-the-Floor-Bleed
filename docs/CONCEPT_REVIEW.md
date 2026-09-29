@@ -29,6 +29,18 @@ Die vollständige Detail- und Sprintquelle ist `docs/VISUAL_GRUNDSATZ.md`; die f
 ## 0b. Begegnungsmodell, verborgenes Layout und Placement Tile — Entscheidungen vom 2026-09-29
 
 - **Basisreferenz.** Kämpfe rechnen mit allen Einheiten auf Level 1, ohne Ausrüstung, mit Grundwerten. Der Held ist in Basisform pro Einheit ein Ticken schwächer als ein Monster; das genaue Delta ist `[K]` und noch nicht genannt. Referenzkampf sind mindestens drei Helden gegen Boss plus drei Platzmonster, verstanden als Summe der Zonen auf ihrer Route. `[N]`
+- **Gemessene Balance vom 2026-09-29, 500 Seeds je Zeile, Teamgröße 3, offenes Fixture-Grid, Standardregeln.** Die Zahlen sind gemessen, nicht gesetzt; Quelle ist `packages/sim-core/src/combat/balance-report.test.ts`, reproduzierbar mit `BALANCE_SEEDS=500`.
+
+  | Plätze | Helden | Boss | Zeitlimit | Ø Ticks |
+  |--------|--------|------|-----------|---------|
+  | 0 | 90 % | 10 % | 0 % | 217 |
+  | 1 | 65 % | 35 % | 0 % | 222 |
+  | 2 | 81 % | 19 % | 0 % | 224 |
+  | 3 | 0 % | 100 % | 0 % | 223 |
+  | 4 | 0 % | 100 % | 0 % | 228 |
+  | 5 | 0 % | 100 % | 0 % | 227 |
+
+  **Der Befund ist eine Wand, kein Band.** Zwischen zwei und drei Plätzen kippt die Quote von 81 % auf 0 %; dort liegt kein justierbarer Zielbereich, sondern ein Bruch. Ein Zielband über die Plätze hinweg ist mit diesen Werten nicht benennbar, und der Bruch ist vor jeder Feinabstimmung zu klären. Ob die Ursache in der Besetzung, der Gruppenstärke oder der Wegführung liegt, ist offen und durch eine Messung zu beantworten, die den Faktor einzeln variiert. Die Prozentzahlen sind gerundet und deshalb nicht summierbar. `[K]`
 - **Der Angreifer sieht nur den Maze-Weg und die Bonus-Schätze.** Sichtbar sind der Maze-Weg (Labyrinth, Spawn, Boss) und die Bonus-Schätze, sonst nichts — auch nicht die Anzahl der Monster. Seine einzige Eingabe ist die Heldenauswahl. Monsterplatzierungen, Gruppen, Patrouillen und die Platzierungsmarkierungen selbst bleiben für ihn unsichtbar; sichtbar wird eine Begegnung erst, wenn der Run läuft. Die Route bestimmt immer das Pathfinding, nie eine Spielentscheidung; den Umweg wählt der Angreifer nur mittelbar über markierte Schätze. Umgesetzt am 2026-09-29 als `RaidPublicViewSchema` mit `toPublicView` in `packages/contracts/src/raid-public.ts`: Die Match-Antwort trägt diese Sicht, der volle Stand bleibt beim Server. `[N]`
 - **Platzierungsmarkierung statt Falle.** Eine Placement Tile markiert den Bereich, in dem eine Monster-Gruppe steht. Sie macht keinen Schaden; die bisherige Optik darf vorerst bleiben. `[N]`
 - **Patrouille ist ein Weg.** Ein Bereich trägt eine Zellenliste als Weg; der angezeigte Pfeil nennt Startpunkt und erste Richtung. Gruppen laufen diesen Weg während des Raids. `[N]`
@@ -77,11 +89,11 @@ Die vollständige Detail- und Sprintquelle ist `docs/VISUAL_GRUNDSATZ.md`; die f
 - Zucht kombiniert 2 Monster, verbraucht deren XP; das neue Monster startet auf Level 1.
 - Initial 5 Monster-Slots pro Etage; der Boss zählt nicht. Visuelle Schwärme belegen nur einen Slot.
 - Ab Etage 2 werden zusätzliche Slots mit Monster-Seelen gekauft; Seelen entstehen durch Zerlegen ungewollter Zuchten.
-- Startpool: mit Gold kaufbare Basis-Monster. **Die Zahl ist offen** — diese Sektion nannte zuvor „25", die Spieldesign-Aussage vom 2026-09-29 nennt 20, und der Code folgt der Aussage. Siehe Abschnitt 9.
+- Startpool: **20** mit Gold kaufbare Basis-Monster. Die Zahl ist am 2026-09-29 entschieden; der Pool liegt als `packages/sim-core/src/genome/roster-a.ts` und `roster-b.ts` im Code. Diese Sektion führte zuvor „25" — die Zahl ist ersetzt, nicht die Liste umgedeutet.
 
 ### Offen / Fremdsession `[O]`
 
-- Die konkrete Liste, Cluster, Traits und Elemente stammen laut Nutzer aus einer kontextfreien Fremdsession und müssen erst gegen dieses Projekt geprüft werden. Am 2026-09-29 ist die **Zahl** entschieden (20) und als Startbasis implementiert; die **Werte** der Basis-Monster sowie Kopplungsstärke, Mutationsdrift und Effektprozente sind weiterhin `[K]` und nicht abgenommen.
+- Die konkrete Liste, Cluster, Traits und Elemente stammen laut Nutzer aus einer kontextfreien Fremdsession. Am 2026-09-29 ist die **Zahl** entschieden (20) und als Startbasis implementiert; die **Werte** der Basis-Monster sowie Kopplungsstärke, Mutationsdrift und Effektprozente sind weiterhin `[K]` und nicht abgenommen. Die Goldformel der Run-Beute ist an demselben Tag freigegeben (Variante B, G₁ = 40, Generationsfaktor 0,25) und steht damit nicht mehr in dieser Liste.
 - Mutationsformel, Dominanzregeln und Umrechnung von Zucht-XP in Ressourcen/Seelen.
 
 ## 4. Dungeon-Bau und Pathfinding `[N]`
@@ -138,5 +150,5 @@ Die vollständige Detail- und Sprintquelle ist `docs/VISUAL_GRUNDSATZ.md`; die f
 ## 9. Abnahmegrenze
 
 - Implementiert: 64×64-Grid, Pathfinding ohne Zusatzkosten, Placement Tile, Contract v5 mit öffentlicher Angreifer-Sicht (`toPublicView`) und privatem Stand, D1-Jobstatus, Trail-Hash, deterministischer Combat- und Replay-Core, lokale Tag/Nacht/Raid-Schleife (T1 abgeschlossen) sowie seit dem 2026-09-29 die Core-Seite der Zucht: 20 Basis-Monster mit je drei Elementen, Trait und Bonus, gekoppelte Mutation und Kreuzung über den internen PRNG (`packages/sim-core/src/genome/`). Nicht implementiert: echtes HTTP-Netzwerk/Auth, Queue, Remote-Matching, Ghost-Fallback, Moral-Verlustfolgen, Zucht-UI, Items und Dorf-Ökonomie (T2/T3).
-- Die Monsterzahl ist offen: die Spieldesign-Aussage vom 2026-09-29 nennt 20, dieser Abschnitt führte zuvor „Startpool: 25". Der Code folgt der Aussage; die Abweichung ist nicht aufgelöst.
+- Die Monsterzahl ist entschieden: **20 Basis-Monster**, bestätigt am 2026-09-29. Der Code führt sie in `packages/sim-core/src/genome/`, geteilt auf `roster-a.ts` und `roster-b.ts`; dieser Abschnitt führte zuvor „Startpool: 25" und die Zahl ist ersetzt. Offen bleiben die **Werte**: Elementzahlen, Kopplungsstärke, Mutationsdrift und Effektprozente sind `[K]` und nicht abgenommen.
 - Alle `[K]`-Punkte sind keine Implementierungsfreigabe.

@@ -145,6 +145,15 @@ export interface BalanceConfig {
     /** Erste kaufbare Etage. Etage 1 gehört zum Ausgang dazu. */
     firstPaidFloor: number
   }
+  /**
+   * Beute eines gefallenen Gegners. Eine eigene Gruppe und kein weiterer
+   * Eintrag im Dungeon: die Beute gehört keinem Bau und keinem Slot, sie
+   * entsteht aus dem Kampf und wird nachgetragen.
+   */
+  loot: {
+    goldPerOpponent: number
+    generationStepPermille: number
+  }
 }
 
 /**
@@ -220,6 +229,22 @@ const CONFIG = {
     slotBase: 40,
     slotsPerFloor: 5,
     firstPaidFloor: 2,
+  },
+  loot: {
+    /**
+     * `goldJeGegner = goldPerOpponent · Stärke · (1 + generationStep · (Generation − 1))`.
+     *
+     * Freigegeben am 2026-09-29, also `[N]` und kein `[K]`: die Regel steht in
+     * `docs/GOLDFORMEL.md` samt Grenzfällen und Beispieltabelle.
+     * `goldPerOpponent` ist das Gold eines Gegners mit Stärke 1 in Generation 1.
+     *
+     * `generationStepPermille` liegt als 250 in Promille, nicht als 0,25, damit
+     * die Rechnung ganzzahlig bleibt und dieselbe Form bekommt wie `floorBase`
+     * und `slotBase` — eine gebrochene Zahl im Balance wäre die erste Ausnahme
+     * von der Regel, die diese Datei sonst trägt.
+     */
+    goldPerOpponent: 40,
+    generationStepPermille: 250,
   },
 } as const satisfies BalanceConfig
 
