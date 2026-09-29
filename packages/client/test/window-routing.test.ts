@@ -6,6 +6,8 @@ import { BuildingPanel } from '../src/ui/panels'
 import { phaseWindowContent } from '../src/ui/phase-windows'
 import windowsCss from '../src/ui/styles/windows.css?raw'
 import { windowContent } from '../src/ui/window-content'
+import { BALANCE } from '../src/village/balance'
+import { buildBuilding } from '../src/village/commands'
 import { startNight, triggerRaid } from '../src/village/phase-actions'
 import { dayNight, resetDayNight } from '../src/village/state'
 import {
@@ -51,11 +53,14 @@ function textContent(node: ComponentChildren): string {
 
 describe('Welt-Kontextfenster', () => {
   it('öffnet einen Ortskontext ohne ein zweites Dorf-Dashboard', () => {
-    openWindow({ id: 'building:werkstatt', title: 'Werkstatt' })
-    const content = windowContent('building:werkstatt')
+    // Die Fensterkennung ist der Listenplatz im Dorfbestand: Die festen
+    // Startorte belegen 0 und 1, die erste gebaute Werkstatt steht auf 2.
+    expect(buildBuilding('workshop', { x: 0, y: 0 }, BALANCE).ok).toBe(true)
+    openWindow({ id: 'building:2', title: 'Werkstatt' })
+    const content = windowContent('building:2')
     expect(content.type).toBe(BuildingPanel)
-    expect(content.props.buildingId).toBe('werkstatt')
-    const markup = BuildingPanel({ buildingId: 'werkstatt' })
+    expect(content.props.buildingId).toBe('2')
+    const markup = BuildingPanel({ buildingId: '2' })
     expect(textContent(markup)).toContain('Materialproduktion')
     expect(textContent(markup)).not.toContain('Dorf · Startbasis')
   })

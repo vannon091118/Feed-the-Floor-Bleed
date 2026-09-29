@@ -23,10 +23,11 @@ Simulation bleibt der einzige Owner der Spielentscheidungen.
 - `render/` — Pixi-Runtime. Besitzt `Application`, Ebenen, Ticker und Kamera.
   `camera.ts` enthält die einzige `worldToScreen`/`screenToWorld`-Implementierung
   und die Rahmung (`fitCamera`) für beide Welten. `village-layout.ts` hält die
-  Präsentationsorte, `village-atlas.ts` die Pixeltexturen, `village-ground.ts`
-  der unbewegliche Untergrund samt der Sprite-Anlage und `village-scene.ts` die
-  beweglichen Teile mit anklickbaren Gebäuden; `village-view.ts` baut beides in
-  die Runtime ein. `layer-sprite.ts` besitzt die Lebensdauer eines Sprites in einer
+  Weltmaße, die Bäume und die Projektion des Dorfrasters in Weltpixel,
+  `village-atlas.ts` die Pixeltexturen, `village-ground.ts` den unbeweglichen
+  Untergrund samt der Sprite-Anlage und `village-scene.ts` die Gebäude des
+  Dorfbestands an ihren Plot-Zellen mit ihrer Klickverdrahtung sowie die
+  Bewohner; `village-view.ts` baut beides in die Runtime ein. `layer-sprite.ts` besitzt die Lebensdauer eines Sprites in einer
   Ebene, `camera-controls.ts` den Pan/Zoom auf der Host-Fläche und
   `camera-keys.ts` den Tastenschritt samt der Props, die diese Fläche
   fokussierbar und für Vorlesehilfen benannt machen.
@@ -68,7 +69,8 @@ Simulation bleibt der einzige Owner der Spielentscheidungen.
   Launcher und Fenster lesen ihre Stores selbst. `world-host.tsx` liefert den
   einzigen Pixi-Host und zugleich das Tastaturziel der Kamera (`role="application"`,
   beschriftet mit dem Tastenhinweis), `scene-switch.ts` tauscht darin Dorf- und
-  Dungeon-Szene, ohne die Runtime neu aufzubauen. `window-launcher.tsx` ist die einzige
+  Dungeon-Szene, ohne die Runtime neu aufzubauen, und leitet den Dorfbestand als
+  Plotraster an die Szene weiter. `window-launcher.tsx` ist die einzige
   Startrampe für Kontextfenster, `window-tabs.tsx` ihre Rückkehr in der Topbar.
   Die Topbar ist eine einzeilige Schiene über der Welt, keine Umbruchzone:
   Kontextfenster werden mit festem Abstand unter ihr geöffnet, eine zweizeilige
@@ -141,8 +143,10 @@ Verteidigerplätze und das Ergebnis des letzten Auftrags. Die Wirtschaft hängt
 dagegen am Bestand in `village/state.ts`: die Topbar zeigt den gehaltenen
 Bestand, und die Rückkehr schreibt den Werkstattertrag gut, genau einmal je
 Expedition. Bauen, Ausbauen und Landkauf schreiben am Tag über dieselbe
-Oberfläche des Stores und kosten Gold und Material; die Dorfszene zeigt
-weiterhin ihre Präsentationsorte und nicht den Store, der Rückkehr-Toast fehlt.
+Oberfläche des Stores und kosten Gold und Material; die Dorfszene zeichnet
+diesen Bestand — `ui/scene-switch.ts` reicht ihn als `villagePlots()` hinein,
+`render/village-layout.ts` projiziert die Zellen, und der Klick kommt als
+Listenplatz zurück —, der Rückkehr-Toast fehlt.
 Gold aus besiegten Gegnern gibt es noch nicht — die Zahl der Gegner steht in
 keinem Contract-Feld, die Naht ist an `DaySettlement` dokumentiert.
 
@@ -180,6 +184,7 @@ als Preact-DOM über der Szene.
 - Kein Clientpfad entscheidet den Raid-Ausgang.
 - Editiert wird in DOM, die laufende Welt rendert Pixi.
 - Der Dorfblick ist Präsentation: `village-layout.ts` verändert keinen
-  Dorfzustand und erfindet keine Wirtschaftsregel.
+  Dorfzustand und erfindet keine Wirtschaftsregel; die Szene bekommt den
+  Bestand als Funktion herein und führt keine zweite Ortsliste.
 - Die Showcase-Szene bezieht den Combat-Log aus `sim-core`; ihre Route-Marker
   folgen `route.value.path`, Combat-Positionen werden darauf abgebildet.

@@ -11,7 +11,7 @@ import { createSceneSwitch, type SceneSwitch } from './scene-switch'
 export interface WorldHostProps {
   onActorClick: (actorId: string, kind: ActorKind) => void
   onDrop: (command: DragDropCommand) => void
-  onBuildingClick: (buildingId: string) => void
+  onBuildingClick: (buildingIndex: number) => void
   mode: RenderMode
   children?: ComponentChildren
 }
@@ -52,7 +52,7 @@ export function WorldHost({
       })
       const scenes = createSceneSwitch(runtime, host, modeRef.current, {
         onActorClick: (id, kind) => propsRef.current.onActorClick(id, kind),
-        onBuildingClick: (id) => propsRef.current.onBuildingClick(id),
+        onBuildingClick: (index) => propsRef.current.onBuildingClick(index),
         onDrop: (command) => propsRef.current.onDrop(command),
       })
       sceneRef.current = scenes

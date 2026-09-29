@@ -12,13 +12,21 @@ T1 (Spielbarer Kern und reproduzierbarer Raid-Loop) ist abgeschlossen. Die Prior
 
 **Das Begegnungsmodell ist die eigentliche Design-Bremse.** Zonen, Gruppen, sequenzielle Begegnungen und dynamische Patrouillen sind entschieden und in `docs/CONCEPT_REVIEW.md` Abschnitt 0b festgehalten, aber noch nicht gebaut; sie ändern, was ein Raid ist — und damit auch, wie viele Verteidiger überhaupt gleichzeitig kämpfen. Das Zielband der Kampfbalance hängt daran und wird deshalb erst danach verhandelt.
 
+## Statusupdate — 2026-09-29 (Die Dorfszene liest den Dorfbestand)
+
+**Der dritte Punkt des Dreiteilers ist gebaut, und die Kette endet jetzt am Bildschirm.** `render/village-layout.ts` führt keine Ortsliste mehr; `VILLAGE_BUILDINGS` und `VillageBuilding` sind entfallen. Die Szene liest den Bestand als Funktion, und die Ableitung steht als `villagePlots()` in `ui/scene-switch.ts` (Spalten aus dem Bestand, Zeilen aus der Config, Gebäude direkt aus dem Store). Die Projektion liegt in `render/village-layout.ts`: Plotseite gleich Welthöhe durch Zeilenzahl — 64 Pixel bei zehn Zeilen —, Feld waagerecht mittig, und damit fällt der Weg des Untergrunds genau in die freie Zeile 5 zwischen Rathaus (3,1) und Gilde (3,6). Der Klick meldet den Listenplatz, dieselbe Kennung wie `upgradeBuilding(index)`. Ein über `buildBuilding` gebautes Haus steht nach einem Takt an seiner Plot-Zelle; die drei festen Präsentationsorte sind ohne Ersatzdarstellung verschwunden.
+
+**Beleg.** `test/world-presentation.test.ts` prüft die Naht der App statt einer statischen Liste, `test/window-routing.test.ts` liest das Werkstattfenster unter `building:2`. **Gates:** typecheck 0, 365 Tests in 54 Dateien, Lint 0, LOC-Caps ok (247 Quellen), Hygiene ok, Shinon PASS, Client-Build und Worker-Dry-Run ok.
+
+**Offen bleibt aus T2.2 nur noch der Rückkehr-Toast über `daySettlement`.**
+
 ## Statusupdate — 2026-09-29 (Die Dorfszene ist geteilt, die beiden Startorte stehen fest)
 
 **Zwei Vorarbeiten für die Verdrahtung sind durch, und beide sind Client-Arbeit ohne Contract-Bezug.** `render/village-scene.ts` stand bei 149 von 150 erlaubten Codelinien; der unbewegliche Untergrund liegt jetzt in `render/village-ground.ts`, die Szene steht bei 75 Codelinien und hat damit den Platz, den der Store braucht. Und die beiden festen Startorte sind freigegeben: `BALANCE.start.fixedSites` führt Rathaus (3,1) und Gilde (3,6) mit je 3×3 Zellen, der Startbestand legt sie daraus an, und weil sie damit im selben Bestand liegen wie alles Gebaute, weist `buildBuilding` jede Baustelle auf ihnen als `overlaps` mit genanntem Grundriss ab; vorher prüfte das Kommando nur gegen das, was der Store selbst führte.
 
 **Bewegt hat sich genau das und keine Regel darüber hinaus.** Die Saat ändert weder Arbeiterbasis noch Werkstattertrag, weil Rathaus und Gilde weder Wohnhaus noch Werkstatt sind, und ihr `maxLevel: 1` weist einen Ausbau mit `above-max-level` ab. Der Golden-Pin ist unverändert; neu freigegeben sind allein die beiden Zellen.
 
-**Offen bleibt der Rest von T2.2:** die Szene zeigt weiterhin die Präsentationsorte aus `render/village-layout.ts` statt des Stores, und der Rückkehr-Toast über `daySettlement` fehlt.
+**Offen blieb der Rest von T2.2:** die Verdrahtung ist mit dem Statusupdate oben erledigt, der Rückkehr-Toast über `daySettlement` fehlt weiterhin.
 
 ## Statusupdate — 2026-09-29 (Placement Tile und die Angreifer-Fassade, Plan für das Begegnungsmodell)
 
@@ -36,7 +44,7 @@ Die Roadmap selbst ist übergeben: Die Altfassung mit den Statusupdates vom 2026
 
 - **Kampfbalance (`sim-core`).** Reproduziert am 2026-09-28 mit 500 Seeds je Belegung bei Teamgröße 3: 90 % / 65 % / 81 % Siegquote bei 0 / 1 / 2 belegten Plätzen und 0 % ab drei, ohne Zeitlimit. Werkzeug ist `sim-core/src/combat/balance-report.test.ts`, der Golden-Pin `combat-pin.test.ts`. **Das Zielband hat noch niemand genannt**; jede Anpassung verschiebt den Hash und gehört darum mit der Pin-Aktualisierung in denselben Slice.
 - **Loot-Naht (`contracts` + `sim-core`).** Der Zahlengrundlage-Teil ist durch: `CONTRACT_VERSION 3→4`, `sim_version 0.0.2→0.0.3`, `CombatSummary.defendersTotal` und `packages/server/migrations/002_contract_v4.sql`. Offen sind die **freigegebene Goldformel** und, falls E1 sie verlangt, die **Stärke- und Generationsangabe je Gegner** — `monsterSlot` trägt nur `monsterId`.
-- **Dorf (`client`).** Die Dorfszene zeigt ihre Präsentationsorte statt den Store (`render/village-scene.ts` steht nach dem Split neben `render/village-ground.ts` bei 75 von 150 Codelinien) und der Rückkehr-Toast fehlt. Die Zellpositionen von Rathaus und Gilde (beide 3×3) sind seit dem 2026-09-29 freigegeben und liegen als `BALANCE.start.fixedSites` in der Config; das Baukommando prüft Überlappung seither auch gegen sie.
+- **Dorf (`client`).** Die Dorfszene liest seit dem 2026-09-29 den Store: `ui/scene-switch.ts` reicht ihn als `villagePlots()` durch, `render/village-layout.ts` projiziert die Zellen, und der Klick ist der Listenplatz. Offen ist nur der Rückkehr-Toast über `daySettlement`. Die Zellpositionen von Rathaus und Gilde (beide 3×3) sind freigegeben und liegen als `BALANCE.start.fixedSites` in der Config; das Baukommando prüft Überlappung seither auch gegen sie.
 - **Attraktivität (`client`).** Steht als angezeigte Startbasis in `BALANCE.attraction.base`, hat einen Abnehmer in der Anzeige, aber keine Ableitung und keinen Regelabnehmer.
 - **Worker-Kapazität (`client`).** Bindet nicht: Sieben Werkstätten kosten zusammen 560 Gold und 42 Material, und es gibt keine Beute, aus der das Gold käme.
 - **Etagen und Plätze (`client`).** `floorBase` und `slotBase` sind freigegeben und geprüft, haben aber wie die übrigen Preisfunktionen erst mit T2.3 einen Aufrufer im Spiel.

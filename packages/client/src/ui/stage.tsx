@@ -1,6 +1,5 @@
 import { paintVisibleTile } from '../dungeon-editor/state'
 import type { DragDropCommand } from '../input'
-import { VILLAGE_BUILDINGS } from '../render/village-layout'
 import { villageOutlook } from '../village/settlement'
 import { dayNight } from '../village/state'
 import { openWindow, WindowLayer } from '../window'
@@ -35,10 +34,12 @@ export function Stage({ onActorClick, onDrop }: StageProps) {
     }
     onDrop(command)
   }
-  const onBuildingClick = (id: string): void => {
-    const building = VILLAGE_BUILDINGS.find((entry) => entry.id === id)
+  // Der Listenplatz ist die Kennung: Er kommt vom Klick aus der Szene und ist
+  // dieselbe Stelle, die `upgradeBuilding` adressiert.
+  const onBuildingClick = (index: number): void => {
+    const building = dayNight.value.village.buildings[index]
     openWindow({
-      id: `building:${id}`,
+      id: `building:${index}`,
       title: building ? buildingLabel(building.kind) : 'Dorf',
       x: 24,
       y: 240,

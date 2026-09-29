@@ -1,21 +1,24 @@
-import { Container, type Texture } from 'pixi.js'
+import { Container, type Sprite, type Texture } from 'pixi.js'
 import { villageTexture } from './village-atlas'
 import {
   drawVillageGround,
   placeSprite,
   type VillageGroundTextures,
 } from './village-ground'
-import { type BuildingKind, VILLAGE_BUILDINGS } from './village-layout'
+import {
+  type BuildingKind,
+  projectVillagePlot,
+  type VillagePlots,
+} from './village-layout'
 
 /**
  * Was sich im Dorf bewegt oder angeklickt werden kann.
  *
  * Der Untergrund liegt in `village-ground.ts`; hier bleiben die Gebäude mit
- * ihrer Klickverdrahtung, die laufenden Bewohner und ihre Bewegung. Der
- * Schnitt ist die Naht der künftigen Verdrahtung: Sobald die Szene den
- * Dorfbestand des Stores statt der Präsentationsorte aus `village-layout.ts`
- * liest, tauscht sie ihre Gebäudeschleife und lässt das Bild darunter
- * unberührt.
+ * ihrer Klickverdrahtung, die laufenden Bewohner und ihre Bewegung. Die
+ * Gebäude stammen aus dem Dorfbestand, den die UI als `plots` hereinreicht:
+ * Diese Schicht führt keinen zweiten Bestand, sie liest bei jedem Takt und
+ * legt nur neu an, wenn sich die Zellen tatsächlich ändern.
  */
 export interface VillageTextures extends VillageGroundTextures {
   resident?: Texture
@@ -27,6 +30,13 @@ export interface VillageScene {
   update(elapsedMs: number): void
 }
 
+export interface VillageSceneOptions {
+  /** Der Dorfbestand als Plotraster; wird bei jedem Takt neu gelesen. */
+  plots(): VillagePlots
+  /** Der Listenplatz des angeklickten Gebäudes — dieselbe Kennung wie im Store. */
+  onBuildingClick?(index: number): void
+}
+
 export type { BuildingKind } from './village-layout'
 
 const WALKERS = [
@@ -35,6 +45,17 @@ const WALKERS = [
   { from: 130, to: 745, y: 325, offset: 0.7 },
   { from: 260, to: 910, y: 575, offset: 0.2 },
 ] as const
+
+/** Der Anblick eines Plots als Signatur; nur bei Änderung wird neu gebaut. */
+function signatur(plots: VillagePlots): string {
+  const zellen = plots.buildings
+    .map(
+      ({ kind, footprint }) =>
+        `${kind}:${footprint.x},${footprint.y},${footprint.width},${footprint.height}`,
+    )
+    .join('|')
+  return `${plots.grid.columns}x${plots.grid.rows}@${zellen}`
+}
 
 /**
  * Pixel-Dorf mit anklickbaren Gebäuden und deterministischer Bewohnerbewegung.
@@ -47,35 +68,18 @@ const WALKERS = [
  * Ein fehlendes Bild ist kein Fehler: Für jede Textur gilt der Rückfall auf die
  * prozedurale Fassung, und die Texturmenge darf leer bleiben. Ohne
  * Klickempfänger sind die Gebäude sichtbar, aber nicht anklickbar — die
- * Entscheidung liegt beim Aufrufer, hier gibt es keinen stillen Standard.
+ * Entscheidung liegt beim Aufrufer, hier gibt es keinen stillen Standard. Der
+ * Standort eines Gebäudes ist dagegen nie still: Er ist die Projektion seiner
+ * Zellen und wird aus dem Store geliefert.
  */
 export function createVillageScene(
   textures: VillageTextures = {},
-  onBuildingClick?: (id: string) => void,
+  options: VillageSceneOptions,
 ): VillageScene {
   const container = new Container()
   container.sortableChildren = true
 
   drawVillageGround(container, textures)
-
-  for (const building of VILLAGE_BUILDINGS) {
-    const sprite = placeSprite(
-      container,
-      textures.buildings?.[building.kind] ??
-        villageTexture.building(building.kind),
-      building.x + building.width / 2,
-      building.y + building.height,
-      building.width,
-      building.height,
-      building.y + building.height,
-    )
-    if (onBuildingClick) {
-      sprite.eventMode = 'static'
-      sprite.label = `Gebäude: ${building.id}`
-      sprite.cursor = 'pointer'
-      sprite.on('pointertap', () => onBuildingClick(building.id))
-    }
-  }
 
   const residents = WALKERS.map((walker) =>
     placeSprite(
@@ -89,9 +93,48 @@ export function createVillageScene(
     ),
   )
 
+  const onClick = options.onBuildingClick
+  let gebaute: Sprite[] = []
+  let letzteSignatur: string | null = null
+
+  const syncBuildings = (): void => {
+    const plots = options.plots()
+    const next = signatur(plots)
+    if (next === letzteSignatur) return
+    letzteSignatur = next
+    for (const sprite of gebaute) sprite.destroy()
+    gebaute = plots.buildings.map(({ kind, footprint }, index) => {
+      const rect = projectVillagePlot(footprint, plots.grid)
+      const sprite = placeSprite(
+        container,
+        textures.buildings?.[kind] ?? villageTexture.building(kind),
+        rect.x,
+        rect.y,
+        rect.width,
+        rect.height,
+        rect.y,
+      )
+      // Die Beschriftung ist die Kennung des Sprites, nicht die Verdrahtung:
+      // Sie steht auch ohne Klickempfänger am Kind.
+      sprite.label = `Gebäude: ${kind}`
+      if (onClick) {
+        sprite.eventMode = 'static'
+        sprite.cursor = 'pointer'
+        sprite.on('pointertap', () => onClick(index))
+      }
+      return sprite
+    })
+    // Die Bewohner bleiben die letzten Kinder: Ohne Renderlauf sortiert der
+    // Container nicht, und die Zeichenfolge ist hier die Tiefenordnung.
+    for (const resident of residents) container.addChild(resident)
+  }
+
+  syncBuildings()
+
   return {
     container,
     update(elapsedMs) {
+      syncBuildings()
       WALKERS.forEach((walker, index) => {
         const period = 18_000 + index * 2_400
         const progress = (((elapsedMs / period + walker.offset) % 1) + 1) % 1

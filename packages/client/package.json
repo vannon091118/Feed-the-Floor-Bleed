@@ -1,6 +1,6 @@
 {
   "name": "@floor/client",
-  "version": "0.0.69",
+  "version": "0.0.70",
   "private": true,
   "type": "module",
   "dependencies": {

@@ -1,6 +1,7 @@
 import { optionalTexture } from './assets'
 import { fitCamera } from './camera'
 import type { VisualRuntime } from './runtime'
+import type { VillagePlots } from './village-layout'
 import { createVillageScene } from './village-scene'
 
 export interface VillageView {
@@ -9,9 +10,11 @@ export interface VillageView {
   dispose(): void
 }
 
+/** Reicht Dorfbestand und Klickweg an die Szene durch; führt selbst nichts. */
 export function createVillageView(
   runtime: VisualRuntime,
-  onBuildingClick?: (id: string) => void,
+  plots: () => VillagePlots,
+  onBuildingClick?: (index: number) => void,
 ): VillageView {
   const container = runtime.layers.village
   container.removeChildren()
@@ -35,7 +38,7 @@ export function createVillageView(
           undefined,
       },
     },
-    onBuildingClick,
+    { plots, onBuildingClick },
   )
   container.addChild(scene.container)
   container.sortableChildren = true

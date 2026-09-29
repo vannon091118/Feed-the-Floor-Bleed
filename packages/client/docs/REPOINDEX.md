@@ -49,11 +49,11 @@
 | `src/render/editor-grid.ts` | Editorraster als Overlay-Sprite in der Editor-Ebene |
 | `src/render/editor-grid-atlas.ts` | Gepufferte Rastertextur des Editors |
 | `src/render/editor-overlay.ts` | Pinselmarkierung und Lesemarken im Overlay |
-| `src/render/village-layout.ts` | Weltmaße, Dorforte und Baumstellen des Präsentationsdorfs; die Baugegenstand-Arten leiht es aus `village/balance` |
+| `src/render/village-layout.ts` | Weltmaße, Baumstellen und die Projektion des Dorfrasters in Weltpixel (`projectVillagePlot`); die Baugegenstand-Arten leiht es aus `village/balance`, einen Dorfbestand führt es nicht |
 | `src/render/village-atlas.ts` | Pixeltexturen für Boden, Bäume, Gebäude und Bewohner |
 | `src/render/village-ground.ts` | Unbeweglicher Dorfuntergrund aus Wiese, Bodenkacheln, Weg und Bäumen samt der gemeinsamen Sprite-Anlage `placeSprite` |
-| `src/render/village-scene.ts` | Bewegliche Teile der Dorfszene: anklickbare Gebäude, laufende Bewohner, `createVillageScene` und `update(ms)` |
-| `src/render/village-view.ts` | Einbau der Dorfszene in die geteilte Runtime, Kamera-Rahmung |
+| `src/render/village-scene.ts` | Bewegliche Teile der Dorfszene: die Gebäude des Dorfbestands an ihren Plot-Zellen (der Klick meldet den Listenplatz), laufende Bewohner, `createVillageScene(textures, { plots, onBuildingClick })` und `update(ms)` |
+| `src/render/village-view.ts` | Einbau der Dorfszene in die geteilte Runtime, Kamera-Rahmung; reicht die Plotquelle und den Klickweg durch |
 | `src/input/pointer.ts` | Einheitlicher Pointer-Pfad für Maus und Touch |
 | `src/input/hit-test.ts` | Screen → Zelle und Actor-Treffer über die Kamera |
 | `src/input/drag.ts` | Drag-Lebenszyklus: Kandidat, Slop, Abschluss-Command |
@@ -74,7 +74,7 @@
 | `src/ui/view-switch.tsx` | Segmentierter Umschalter zwischen Dorf- und Dungeon-Blick |
 | `src/ui/stage.tsx` | Bühne: Pixi-Host, Weltbeschriftung, Launcher und Fensterlayer |
 | `src/ui/village-host.tsx` | Weltbeschriftung über der Dorfszene, keine eigene Pixi-Runtime |
-| `src/ui/scene-switch.ts` | Hält genau eine lebende Szene in der stabilen Runtime |
+| `src/ui/scene-switch.ts` | Hält genau eine lebende Szene in der stabilen Runtime; `villagePlots()` ist die Naht zum Dorfbestand (Spalten aus dem Store, Zeilen aus der Config) |
 | `src/ui/window-launcher.tsx` | Einzige Startrampe für Kontextfenster über der Welt |
 | `src/ui/window-tabs.tsx` | Offene Kontextfenster als Tabs in der Topbar |
 | `src/ui/roster-list.tsx` | Gildenliste des Team-Fensters, eine Darstellung für den Gildenzustand |
@@ -89,7 +89,7 @@
 | `src/ui/world-host.tsx` | Stabiler DOM-Host und Lebenszyklus der Pixi-Runtime, zugleich fokussierbares Tastaturziel der Kamera |
 | `src/ui/editor-panel.tsx` | DOM-Editorraster mit 16×16 sichtbaren Feldern |
 | `src/ui/editor-controls.tsx` | Pinselauswahl und Zurücksetzen |
-| `src/ui/panels.tsx` | Inhalte der Kontextfenster samt Steuerungslegende mit den Tastenhinweisen; Startbasis und Attraktivität liest es aus `village/balance`; die Routenanzeige nennt Modus, Schritte und Bewegungspunkte |
+| `src/ui/panels.tsx` | Inhalte der Kontextfenster samt Steuerungslegende mit den Tastenhinweisen; das Gebäudefenster liest den Dorfbestand über den Listenplatz, Startbasis und Attraktivität kommen aus `village/balance`; die Routenanzeige nennt Modus, Schritte und Bewegungspunkte |
 | `src/icons/resource-icon.tsx` | SVG-Icons der Ressourcenwerte in der Topbar |
 | `src/resources/catalog.ts` | Feste Ressourcen-IDs, Labels und Icons |
 | `src/ui/styles/index.css` | Einstiegspunkt der Oberflächen-Styles mit fester Importreihenfolge |
@@ -136,7 +136,7 @@
 | `test/village-commands.test.ts` | Die drei Kommandos: Preisabbuchung, Phasengrenze, Gangbarkeit, Kapazität, Ausbaustufen, Landschritt — jeweils mit dem Bestand vor und nach dem Befehl |
 | `test/village-command-guards.test.ts` | Bestandsinvarianten am Store: negative, gebrochene und verkleinerte Bestände werden abgewiesen, abgelehnte Befehle hinterlassen nichts, der gebaute Ertrag wird gutgeschrieben, und die beiden festen Startorte liegen mit ihren freigegebenen Zellen im Bestand und sind gegen Überbauung geschützt |
 | `test/stage-view.test.ts` | Blickwechsel verändert die Spielphase nicht |
-| `test/world-presentation.test.ts` | Anklickbare Dorforte, deterministische Bewohnerbewegung, Kamera-Clamp beider Welten |
+| `test/world-presentation.test.ts` | Dorfszene an der Naht der App: leerer Bestand zeichnet keinen Ort, ein gebautes Haus steht nach einem Takt an seiner Plot-Zelle, Klicks melden Listenplätze; dazu deterministische Bewohnerbewegung und Kamera-Clamp beider Welten |
 | `test/window-routing.test.ts` | Fenster-ID → Inhalt, Phasenaktion über eine stabile Fenster-ID |
 | `test/daylight.test.ts` | Blendenrechnung und Stylesheet bleiben beieinander |
 | `test/keyboard-access.test.ts` | Fenster- und Kameraschritt samt der geteilten Pfeiltasten-Abbildung |
@@ -161,6 +161,8 @@ Die Wirtschaftskette läuft in eine Richtung: `village/balance.ts` (Zahlen) →
 (Entscheidung und Schreiben) → `village/state.ts` (Bestand und Buchung) →
 Topbar und der spätere Rückkehr-Toast. Verdrahtet sind jetzt der Tagesertrag,
 das Bauen, das Ausbauen und der Landkauf; Etagen- und Platzpreis haben noch
-keinen Aufrufer. Die Dorfszene auf der Bühne zeigt weiterhin die Orte aus
-`render/village-layout.ts` und nicht den Store, und `raid/fixture-raid.ts`
-sendet inzwischen den Bestand des Dorfes statt des Startbestands.
+keinen Aufrufer. Die Dorfszene auf der Bühne zeichnet dagegen den Store:
+`ui/scene-switch.ts` reicht den Bestand als `villagePlots()` hinein, und
+`render/village-layout.ts` projiziert die Zellen in Weltpixel.
+`raid/fixture-raid.ts` sendet inzwischen den Bestand des Dorfes statt des
+Startbestands.

@@ -1,8 +1,8 @@
 import { route } from '../dungeon-editor/state'
 import { CAMERA_KEY_HINT } from '../render/camera-keys'
-import { VILLAGE_BUILDINGS } from '../render/village-layout'
 import { villageOutlook } from '../village'
 import { BALANCE } from '../village/balance'
+import { dayNight } from '../village/state'
 import { WINDOW_KEY_HINT } from '../window/keys'
 import { buildingLabel } from './building-label'
 import { RosterList } from './roster-list'
@@ -41,7 +41,9 @@ export function RoutePanel() {
 }
 
 export function BuildingPanel({ buildingId }: { buildingId: string }) {
-  const building = VILLAGE_BUILDINGS.find((entry) => entry.id === buildingId)
+  // Die Kennung im Fenster ist der Listenplatz im Dorfbestand; ein Platz, der
+  // dort nicht steht, ist ein Ort, den es nicht (mehr) gibt.
+  const building = dayNight.value.village.buildings[Number(buildingId)]
   if (!building) return <p class="raid-note">Ort nicht gefunden.</p>
   return (
     <div class="context-details">

@@ -1,5 +1,5 @@
 import { type FederatedPointerEvent, Texture } from 'pixi.js'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import {
   clampCamera,
   createCamera,
@@ -7,10 +7,21 @@ import {
   worldToScreen,
 } from '../src/render/camera'
 import {
-  VILLAGE_BUILDINGS,
+  projectVillagePlot,
   VILLAGE_WORLD_WIDTH,
 } from '../src/render/village-layout'
-import { createVillageScene } from '../src/render/village-scene'
+import {
+  createVillageScene,
+  type VillageScene,
+} from '../src/render/village-scene'
+import { villagePlots } from '../src/ui/scene-switch'
+import { BALANCE } from '../src/village/balance'
+import { buildBuilding } from '../src/village/commands'
+import { dayNight, resetDayNight } from '../src/village/state'
+
+beforeEach(() => {
+  resetDayNight()
+})
 
 const textures = {
   ground: Texture.EMPTY,
@@ -24,26 +35,92 @@ const textures = {
   },
 }
 
-describe('Lebendige Dorfpräsentation', () => {
-  it('bietet dieselben Building-IDs als klickbare Szenenorte an', () => {
-    const clicked: string[] = []
-    const scene = createVillageScene(textures, (id) => clicked.push(id))
-    const buildings = scene.container.children.filter(
-      (child) => child.eventMode === 'static',
-    )
+/** Die gezeichneten Gebäude der Szene — ohne Klickempfänger sind es Kinder. */
+function drawn(scene: VillageScene) {
+  return scene.container.children.filter((child) =>
+    child.label.startsWith('Gebäude:'),
+  )
+}
 
-    expect(buildings).toHaveLength(VILLAGE_BUILDINGS.length)
-    for (const building of buildings) {
+/** Der gezeichnete Standort eines Sprites als vergleichbares Rechteck. */
+function spotOf(sprite: {
+  x: number
+  y: number
+  width: number
+  height: number
+}) {
+  return {
+    x: sprite.x,
+    y: sprite.y,
+    width: sprite.width,
+    height: sprite.height,
+  }
+}
+
+describe('Lebendige Dorfpräsentation', () => {
+  it('zeichnet ohne Dorfbestand keinen einzigen Ort', () => {
+    const scene = createVillageScene(textures, {
+      plots: () => ({ grid: { columns: 10, rows: 10 }, buildings: [] }),
+    })
+    expect(drawn(scene)).toHaveLength(0)
+    scene.container.destroy({ children: true })
+  })
+
+  it('stellt die festen Startorte an ihre freigegebenen Zellen', () => {
+    const scene = createVillageScene(textures, { plots: villagePlots })
+    const sites = dayNight.value.village.buildings
+    expect(sites.map(({ kind }) => kind)).toEqual(['hall', 'guild'])
+
+    const shown = drawn(scene)
+    expect(shown).toHaveLength(sites.length)
+    shown.forEach((sprite, index) => {
+      expect(spotOf(sprite)).toEqual(
+        projectVillagePlot(sites[index].footprint, villagePlots().grid),
+      )
+    })
+    scene.container.destroy({ children: true })
+  })
+
+  it('nimmt ein gebautes Haus im nächsten Takt an seine Plot-Zelle auf', () => {
+    const scene = createVillageScene(textures, { plots: villagePlots })
+    const built = buildBuilding('house', { x: 0, y: 0 }, BALANCE)
+    expect(built.ok).toBe(true)
+    // Bis zum nächsten Takt steht das Bild noch auf dem alten Stand.
+    expect(drawn(scene)).toHaveLength(2)
+
+    scene.update(0)
+    const shown = drawn(scene)
+    expect(shown).toHaveLength(3)
+    expect(spotOf(shown[2])).toEqual(
+      projectVillagePlot(
+        { x: 0, y: 0, width: 2, height: 2 },
+        villagePlots().grid,
+      ),
+    )
+    scene.container.destroy({ children: true })
+  })
+
+  it('meldet beim Klick den Listenplatz des Gebäudes', () => {
+    buildBuilding('workshop', { x: 0, y: 0 }, BALANCE)
+    const clicked: number[] = []
+    const scene = createVillageScene(textures, {
+      plots: villagePlots,
+      onBuildingClick: (index) => clicked.push(index),
+    })
+
+    const shown = drawn(scene)
+    expect(shown.every((sprite) => sprite.eventMode === 'static')).toBe(true)
+    for (const sprite of shown) {
       // Pixi verlangt für `pointertap` ein Ereignisobjekt; die Szene liest es nicht.
-      building.emit('pointertap', {} as FederatedPointerEvent)
+      sprite.emit('pointertap', {} as FederatedPointerEvent)
     }
-    expect(clicked).toEqual(VILLAGE_BUILDINGS.map(({ id }) => id))
+    expect(clicked).toEqual([0, 1, 2])
     scene.container.destroy({ children: true })
   })
 
   it('bewegt Bewohner reproduzierbar und hängt nur von der Renderzeit ab', () => {
-    const first = createVillageScene(textures)
-    const second = createVillageScene(textures)
+    const first = createVillageScene(textures, { plots: villagePlots })
+    const second = createVillageScene(textures, { plots: villagePlots })
     first.update(4_000)
     second.update(4_000)
     const firstX = first.container.children.slice(-4).map((sprite) => sprite.x)

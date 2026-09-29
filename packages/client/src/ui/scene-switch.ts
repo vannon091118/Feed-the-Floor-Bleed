@@ -3,16 +3,35 @@ import type { DragDropCommand } from '../input'
 import {
   bindCameraControls,
   type RenderMode,
+  type VillagePlots,
   type VisualRuntime,
 } from '../render'
 import { createVillageView, type VillageView } from '../render/village-view'
 import { createShowcase, type Showcase } from '../showcase'
+import { BALANCE } from '../village/balance'
+import { dayNight } from '../village/state'
 import type { ActorKind } from '../world'
 
 export interface SceneCallbacks {
   onActorClick: (actorId: string, kind: ActorKind) => void
-  onBuildingClick: (buildingId: string) => void
+  onBuildingClick: (buildingIndex: number) => void
   onDrop: (command: DragDropCommand) => void
+}
+
+/**
+ * Der Dorfbestand als Plotraster, das die Szene zeichnet.
+ *
+ * Die Szene selbst liest keinen Store: Sie bekommt die Daten als Funktion
+ * herein und liest sie bei jedem Takt neu. Damit bleibt der Bestand allein beim
+ * Dorf, und die Szene braucht nur Art und Zellen. Die Zeilenzahl des Rasters
+ * steht in der Config, die Spaltenzahl im Bestand.
+ */
+export function villagePlots(): VillagePlots {
+  const { village } = dayNight.value
+  return {
+    grid: { columns: village.landColumns, rows: BALANCE.start.landRows },
+    buildings: village.buildings,
+  }
 }
 
 export interface SceneSwitch {
@@ -68,7 +87,9 @@ export function createSceneSwitch(
     mode = next
     runtime.setMode(next)
     if (next === 'village') {
-      village = createVillageView(runtime, (id) => handlers.onBuildingClick(id))
+      village = createVillageView(runtime, villagePlots, (index) =>
+        handlers.onBuildingClick(index),
+      )
       const stopTick = runtime.onTick(({ elapsedMs }) =>
         village?.update(elapsedMs),
       )

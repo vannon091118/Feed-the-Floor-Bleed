@@ -31,10 +31,11 @@ render (Pixi)
   ├─ route-atlas: gepufferte Markertexturen
   ├─ actor-atlas: Actor-Silhouetten
   ├─ atmosphere-atlas: Glow-/Vignette-Texturen
-  ├─ village-layout / village-atlas: Dorforte und Pixeltexturen
+  ├─ village-layout: Weltmaße, Bäume, projectVillagePlot(plot, grid) / village-atlas: Pixeltexturen
   ├─ village-ground: drawVillageGround(container, textures) + placeSprite(…)
-  ├─ village-scene: createVillageScene(textures, onBuildingClick) + update(ms)
-  ├─ village-view: createVillageView(runtime, onBuildingClick)
+  ├─ village-scene: createVillageScene(textures, { plots, onBuildingClick(index) })
+  │                 + update(ms); liest den Bestand bei jedem Takt und legt nur bei Änderung neu an
+  ├─ village-view: createVillageView(runtime, plots, onBuildingClick)
   ├─ terrain: createTerrainView(runtime).apply(patch)
   ├─ route: createRouteView(runtime).apply(route.path, activeIndex)
   ├─ actors: createActorsView(runtime).apply(actors) + update(clock)
@@ -100,8 +101,9 @@ village (einziger Phase- und Dorfwirtschafts-Owner)
   │        Datenfluss: `village/plot` besitzt die Platzierungsgeometrie;
   │        Abnehmer ist `village/commands`, das Raster und belegte Grundrisse
   │        aus dem Store durchreicht. Kein Import aus `render/` oder `world/`,
-  │        damit die Geometrie frei von Darstellung bleibt; die Dorfszene auf
-  │        der Bühne liest den Store noch nicht.
+  │        damit die Geometrie frei von Darstellung bleibt. Die Dorfszene auf
+  │        der Bühne liest den Bestand über `villagePlots()` (ui/scene-switch)
+  │        und projiziert die Zellen in `render/village-layout`.
   ├─ commands: buildBuilding / upgradeBuilding / extendLand — nur am Tag,
   │        mit Deckung, Arbeiterkapazität und Platzierung, jede Ablehnung ein
   │        Ergebnis mit Grund; schreibt über commitVillage
@@ -141,6 +143,8 @@ ui (Phasenfenster schaltet nach Phase, Bühne nach Blick)
   ├─ topbar → Ressourcenstreifen liest dayNight.village.resources (kein
   │           Modulkonstante aus der Fixture)
   ├─ village-host → village/settlement (Weltbeschriftung, kein Panel)
+  ├─ scene-switch: villagePlots() → { grid, buildings } aus dayNight.village
+  │                (Naht zum Dorf-Store; der Renderer liest ihn nicht selbst)
   ├─ TagPhasePanel → startNight → phase night
   ├─ NightPhasePanel → triggerRaid → phase raid (Editor bleibt aktiv)
   ├─ RaidPhasePanel → RaidPanel.onJob → completeRaid(job) → phase result
@@ -169,4 +173,5 @@ Fixture und besitzt selbst keinen Dorfzustand; `village/plot` rechnet
 Platzierungsgeometrie und trägt weder Zustand noch Wirtschaftszahlen;
 `village/balance` besitzt die Zahlen, `village/economy` rechnet damit ohne
 Zustand, und `village/state` bucht; `ui/view` hält nur den Blick und
-ändert keine Phase.
+ändert keine Phase. Den Dorfbestand liest allein `ui/scene-switch` für die
+Szene; `render/` bekommt Zellen und Art als Daten herein.
