@@ -4,6 +4,8 @@
 |------|-----|
 | `.github/agents/critical-adversarial-reviewer.agent.md` | Freigegebenes schreibgeschütztes Aufgabenprofil für belegbasierte Tree- und Diff-Reviews |
 | `.github/agents/berater.agent.md` | Freigegebenes schreibgeschütztes Second-Opinion-Profil: kurze, zynische Einschätzung zu Idee, Diff oder Gate-Ausgabe |
+| `.github/agents/mia.agent.md` | Freigegebenes schreibgeschütztes Profil für Spielerperspektive, Produktkohärenz, visuelle Identität und Vision-Schutz |
+| `.github/skills/vier-perspektiven-audit/SKILL.md` | Verbindet LEX, Kritischen Adversarial Reviewer, Contexti und Mia zum festen, sequenziellen 4-Perspektiven-Audit über Tree, Diff oder PR; löst Perspektivkollisionen nicht selbst auf |
 | `.github/copilot-instructions.md` | Kurzer Arbeitswegweiser mit Verweisen auf kanonische Regelwerke |
 | `Agents.md` | Verbindlicher Einstieg für Sprache, Grundsätze und Regelwerkszuständigkeit |
 | `docs/REGELWERK_ARCHITEKTUR.md` | Verbindliche Domain-, Ownership-, Datenwahrheits- und LOC-Regeln |

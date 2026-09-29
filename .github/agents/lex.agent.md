@@ -54,4 +54,6 @@ Jeder Befund, der Code betrifft, muss eine Deletion-First-Bewertung enthalten:
 - [RESSOURCENSPARBAR] Ressourcen optimierbar ohne Funktionsverlust
 - [KEINE OPTION] Keine Deletion-Möglichkeit erkennbar (Ausnahme erfordern)
 
+Jede Einstufung trägt zusätzlich eine kurze Spielerwirkung-Zeile: Merkt ein Mensch, der das Spiel spielt, den Unterschied — und wenn ja, in welcher erkennbaren Form (nur beschreiben, nicht bewerten; eine vertiefte Spieler- und Vision-Prüfung ist nicht LEX' Aufgabe). Bei [ENTFERNBAR] ohne erkennbare Spielerwirkung ist die Option stärker, als bei [ENTFERNBAR] mit erkennbarer Spielerwirkung.
+
 Wenn keine Befunde belegt sind, sage knapp, dass im angegebenen Scope keine verifizierten Befunde gefunden wurden, und nenne den tatsächlich geprüften Scope sowie nicht ausgeführte oder blockierte Prüfungen. Behaupte niemals, ungeplante Änderungen ausgeschlossen zu haben, wenn kein Soll-Scope vorlag.

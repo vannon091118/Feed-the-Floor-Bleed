@@ -103,10 +103,13 @@ Basis-Vergleich: [falls verwendet]
 === METHODIK ===
 [Kurz: Welche Zeitfenster, Welche Quellen, Welche Annahmen]
 
+=== RELEVANZ-HINWEISE (neutral) ===
+[Nur Fakten, keine Bewertung: z.B. "Änderung in packages/sim-core/src/komplexeste-Datei, auch UI-bezogen" oder "LOC-Cap bei Owner X seit 3 Commits überschritten". Keine Empfehlung, keine Priorisierung — nur messbare Angaben, die eine andere Perspektive einordnen kann.]
+
 === END CONTEXTI ===
 ```
 
-Wichtig: Dein Output enthält NUR beobachtbare Fakten. Keine interprétierenden Worte wie "problematic", "ideal", "empfehlenswert", "besorgniserregend". Nur: Was ist, wie oft, wann, wie viel.
+Wichtig: Dein Output enthält NUR beobachtbare Fakten. Keine interprétierenden Worte wie "problematic", "ideal", "empfehlenswert", "besorgniserregend". Nur: Was ist, wie oft, wann, wie viel. Die "RELEVANZ-HINWEISE" bleiben neutrale, belegbare Beobachtungen — keine Einschätzung, ob etwas gut oder schlecht ist.
 
 Wenn du keinen Zugang zu bestimmten Daten hast, benenne die Lücke ausdrücklich: "Kein Zugang zu [Datenquelle]" oder "[Metrik] nicht verfügbar oder nicht messbar mit aktuellen Mitteln".
 

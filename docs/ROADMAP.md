@@ -101,7 +101,7 @@ Die Roadmap selbst ist übergeben: Die Altfassung mit den Statusupdates vom 2026
 **T2.1 ist abgeschlossen** (Ressourcenicons, Asset-Loader mit Fallback, drei Render-Modi, Tastaturzugang); der Abnahme-Beleg liegt in `docs/historisch/2026-09-27_roadmap-t2-1.md`, die Freigabetabelle in `docs/VISUAL_GRUNDSATZ.md`.
 
 | ID | Ergebnis | Abhängigkeit | LOC ca. | Fertig, wenn |
-|----|----------|--------------|---------|---------------|
+| ---- | ---------- | -------------- | --------- | --------------- |
 | T2.2 | 10×10-Dorf, Platzierung/Upgrade von Häusern und Werkstätten, horizontales Land, Rückkehrabrechnung/Toast | T2.1, ausdrückliche Balancefreigabe ✅, Zellpositionen Rathaus/Gilde ✅ | 320–500 | Einziger Dorf-Owner, keine Überlappung/Überziehung, Werkstattertrag und Tagesabrechnung deterministisch und höchstens einmal pro Expedition |
 | T2.3 | Expedition über mehrere Etagen, Boss-Aussteigen/Weitergehen, Escrow für ungesicherte Beute | T2.2, Kostenfreigabe ✅ | 300–470 | Derselbe eingefrorene Verteidiger, Etagen separat geprüft; Etage 2+ null bis fünf gekaufte Slots; quadratische Kosten ohne künstliches Etagenlimit |
 | T2.4 | Deterministische Klassenfähigkeiten als Simulationsinputs und Replay-Events | T2.3, Contract-/Hash-Entwurf | 440–680 | Heal/Buff/Direktschaden am nächsten ganzzahligen Tick, je Held einmal pro Expedition; gleicher Snapshot/Seed/Input ergibt identischen Hash; ein Contract-Sprung abgestimmt (v5, nicht v4) |
@@ -115,7 +115,7 @@ Die Roadmap selbst ist übergeben: Die Altfassung mit den Statusupdates vom 2026
 **Ziel:** Online-Autorität und persistierter Fortschritt. Startet erst, wenn der serielle T1-Track durch ist; Online-Belohnungen bleiben gesperrt, bis Authentifizierung und Replay-Prüfung vollständig durchgesetzt sind.
 
 | ID | Ergebnis | Abhängigkeit | LOC ca. | Fertig, wenn |
-|----|----------|--------------|---------|---------------|
+| ---- | ---------- | -------------- | --------- | --------------- |
 | T3.1 | Firebase Google-/E-Mail-Auth und isolierte Dev-Umgebung samt Dev-Wipe-Sperre | T2.5, Firebase-Projektwerte durch Nutzer | 300–460 | Firebase-UID ist Identität; falsche Claims und clientgewählte UID werden verworfen; Wipe ausschließlich in isolierter Dev-Datenbank |
 | T3.2 | Profil-/Stadt-/Run-Persistenz und serverseitiges Replay-/Belohnungs-Gate | T3.1, lokale D1-Migrationstests | 420–670 | Server replayt Freeze, Seed und Input vor jedem atomaren Reward-Commit; Retry ist idempotent; fremde Identität/Manipulation bringt keinen Fortschritt |
 | T3.3 | Pool, fremde Zielauswahl, Self-Match-Sperre und deterministischer Ghost-Fallback | T3.2, Match-Balancefreigabe | 300–510 | Ziel bleibt während der Expedition unverändert; Selbstmatch unmöglich; leerer Pool ergibt reproduzierbaren Ghost; MMR-Band nicht erraten |
