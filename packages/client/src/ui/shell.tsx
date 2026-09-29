@@ -12,6 +12,7 @@ import type { ActorKind } from '../world'
 import { actorLabel } from './actor-label'
 import { fadeDaylight } from './daylight-fade'
 import { recordDrop } from './drop-status'
+import { SettlementToast } from './settlement-toast'
 import { Stage } from './stage'
 import { Topbar } from './topbar'
 
@@ -63,6 +64,10 @@ export function Shell() {
       <section class="stage">
         <Stage onActorClick={handleActorClick} onDrop={handleDrop} />
       </section>
+      {/* Die Rückkehrbilanz liegt über der Bühne und unter keinem Fenster, das
+          sie verdeckte; sie liest ihren Zustand selbst und ist kein
+          Bedienelement. Vor dem Überzug, damit dieser das letzte Kind bleibt. */}
+      <SettlementToast />
       {/* Letztes Kind: der Überzug belegt dieselbe Ebene (z-index 4) wie die
           Fensterschicht und soll deren Kontextfenster verdecken, also malt ihn
           die DOM-Reihenfolge nach ihr. Je Phase eine Ebene — der Wechsel ist

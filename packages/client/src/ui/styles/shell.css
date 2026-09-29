@@ -32,6 +32,47 @@
   transition: opacity 900ms ease;
 }
 
+/* --- Rückkehrbilanz ---------------------------------------------------- */
+
+/* Die Bilanz des gerade abgerechneten Tages: oben mittig, damit sie weder dem
+   Dorfstand links noch den Kontextfenster-Knöpfen rechts ins Gehege kommt.
+   `pointer-events: none` wie der Tagesüberzug — sie ist Meldung und kein
+   Bedienelement, und ein Klick auf die Bühne geht durch sie hindurch.
+   Kein Übergang: Die Sichtbarkeit ist keine Animation, sondern die An- und
+   Abwesenheit des Elements, das die Shell je Phase neu malt. */
+.settlement-toast {
+  position: absolute;
+  z-index: 6;
+  top: 72px;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 16px;
+  border: 1px solid rgba(238, 192, 106, 0.34);
+  border-radius: 12px;
+  background: rgba(15, 18, 22, 0.72);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.28);
+  text-align: center;
+  pointer-events: none;
+  transform: translateX(-50%);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+}
+
+.settlement-toast__title {
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.settlement-toast__detail {
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 600;
+}
+
 /* --- Topbar ------------------------------------------------------------ */
 
 /* Die Kopfleiste ist eine einzeilige Schiene, keine Umbruchzone.

@@ -113,7 +113,8 @@ Wirtschaftskette (nur in dieser Richtung):
   balance (Zahlen) → economy (Regeln, Config als Parameter)
     → commands (Entscheidung) → state.village (Bestand) → state.daySettlement
     (Buchung im Übergang result → tag) → ui/topbar (Bestandsanzeige) und
-    später der Rückkehr-Toast
+    ui/settlement-toast (Rückkehrbilanz, nur am Tag; eine Ableitung ohne
+    eigenen Sichtbarkeitszustand)
   Verdrahtet sind Tagesertrag, Bauen, Ausbauen und Landkauf; Etagen- und
   Platzpreis haben noch keinen Aufrufer. `raid/fixture-raid.ts` sendet den
   Bestand des Dorfes, nicht mehr den Startbestand der Balance.

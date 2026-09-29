@@ -84,6 +84,7 @@
 | `src/ui/actor-label.ts` | Kennung → sprechender Name für Fenster und Werkzeugstatus |
 | `src/ui/building-label.ts` | `BuildingKind` → sprechender Ortsname, einzige Label-Quelle |
 | `src/ui/drop-status.tsx` | Rückmeldung über den letzten Zug im Editor |
+| `src/ui/settlement-toast.tsx` | Rückkehrbilanz als reine Ableitung aus dem Phase-Owner; sichtbar nur am Tag, kein Bedienelement und kein eigener Sichtbarkeitszustand |
 | `src/ui/phase-windows.tsx` | Fensterinhalt der Phase und des Editors hinter festen IDs |
 | `src/ui/window-content.tsx` | Fenster-ID → Inhalt, eine Quelle für die Fensterschicht |
 | `src/ui/world-host.tsx` | Stabiler DOM-Host und Lebenszyklus der Pixi-Runtime, zugleich fokussierbares Tastaturziel der Kamera |
@@ -159,7 +160,7 @@ Weltansicht sind fokussierbar, ihre Schrittlogik liegt in `window/keys.ts` und
 Die Wirtschaftskette läuft in eine Richtung: `village/balance.ts` (Zahlen) →
 `village/economy.ts` (Regeln, Config als Parameter) → `village/commands.ts`
 (Entscheidung und Schreiben) → `village/state.ts` (Bestand und Buchung) →
-Topbar und der spätere Rückkehr-Toast. Verdrahtet sind jetzt der Tagesertrag,
+Topbar und die Rückkehrbilanz (`ui/settlement-toast.tsx`). Verdrahtet sind jetzt der Tagesertrag,
 das Bauen, das Ausbauen und der Landkauf; Etagen- und Platzpreis haben noch
 keinen Aufrufer. Die Dorfszene auf der Bühne zeichnet dagegen den Store:
 `ui/scene-switch.ts` reicht den Bestand als `villagePlots()` hinein, und

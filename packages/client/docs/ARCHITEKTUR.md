@@ -179,6 +179,9 @@ als Preact-DOM über der Szene.
 - `ui/view.ts` ist der einzige Owner des Bühnenblicks und verändert weder
   Phase noch Grid. Editorwerkzeug erscheint nur in der Dungeon-Ansicht; die
   Bau-Erlaubnis kommt weiter aus der Phase.
+- Die Rückkehrbilanz ist eine Ableitung: `ui/settlement-toast.tsx` liest den
+  Phase-Owner, führt keinen Sichtbarkeitszustand und ist kein Bedienelement —
+  sie zeigt die Buchung nur am Tag und verschwindet mit der nächsten Nacht.
 - Der Observer hält keine Grid-Kopie; Terrain wird nur bei geänderter
   Grid-Referenz neu gelesen, sonst meldet er `terrain: null`.
 - Kein Clientpfad entscheidet den Raid-Ausgang.

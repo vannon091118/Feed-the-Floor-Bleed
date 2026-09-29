@@ -1,5 +1,9 @@
 # docs/CHANGELOG.md — Global
 
+## 2026-09-29 — Die Rückkehrbilanz steht als Toast über der Bühne
+
+**T2.2 ist damit vollständig.** Die Dorfszene liest seit dem 2026-09-29 den Dorfbestand aus dem Store; offen war nur der Rückkehr-Toast über `daySettlement`. `packages/client/src/ui/settlement-toast.tsx` macht die Tagesabrechnung sichtbar, und zwar als reine Ableitung: Der Toast liefert seine Zeilen genau dann, wenn die Phase `tag` ist und der Store eine Buchung trägt. Ein „schon gezeigt"-Merker entfällt damit, ebenso Zeitgeber und Schließen-Knopf — die Meldung verschwindet mit der nächsten Nacht von selbst, und ihre Einmaligkeit hängt an derselben Phasenguarde, die den Tag bucht. `ui/shell.tsx` hängt sie zwischen Bühne und Tagesüberzug, `shell.css` hält sie mit `z-index 6`, `top: 72px` und `pointer-events: none` als Meldung ohne Klickfang. Eine Bilanz ohne Ertrag wird gezeigt statt verschwiegen. **Belegt** mit `packages/client/test/settlement-toast.test.ts` und im Browser: kein Toast vor der Rückkehr und keiner im Ergebnis, nach `result → tag` „Tag 18 abgerechnet / Werkstattertrag +0 Material" als `role="status"`, in der Nacht wieder fort bei unveränderter Buchung im Store. **Gates:** typecheck 0, 376 Tests in 55 Dateien, Lint 0, LOC-Caps ok, Hygiene ok, Shinon PASS, Client-Build und Worker-Dry-Run ok.
+
 ## 2026-09-29 — Die Dorfszene liest den Dorfbestand, und die festen Bildorte sind weg
 
 **Der Befund.** Die Kette Dorf-Store → Platzierungsgeometrie → Renderer endete vor dem Bildschirm: `packages/client/src/render/village-scene.ts` zeichnete die fünf statischen Orte aus `packages/client/src/render/village-layout.ts` — drei davon gab es im Store überhaupt nicht —, und `packages/client/src/render/village-layout.ts` führte damit eine zweite Wahrheit über den Dorfbestand neben `packages/client/src/village/state.ts`.
