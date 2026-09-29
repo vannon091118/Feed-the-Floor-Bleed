@@ -4,7 +4,8 @@
 version/constants → RaidSnapshotSchema
 RaidSnapshotSchema → UploadRequestSchema
 RaidSnapshotSchema → MatchResponseSchema
-trail.ts → CombatLogSchema → CombatSummarySchema
+trail.ts → CombatLogSchema
+combat-log.ts (Zahlformen, Stage, Hash) → CombatSummarySchema
 CombatLogSchema → ResultPayloadSchema
 CombatLogSchema → RaidLogPayloadSchema
 ResultPayloadSchema + ErrorPayloadSchema → RaidJobSchema

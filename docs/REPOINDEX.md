@@ -1,7 +1,7 @@
 # docs/REPOINDEX.md — Global
 
 | Pfad | Job |
-|------|-----|
+| ------ | ----- |
 | `.github/agents/critical-adversarial-reviewer.agent.md` | Freigegebenes schreibgeschütztes Aufgabenprofil für belegbasierte Tree- und Diff-Reviews |
 | `.github/agents/berater.agent.md` | Freigegebenes schreibgeschütztes Second-Opinion-Profil: kurze, zynische Einschätzung zu Idee, Diff oder Gate-Ausgabe |
 | `.github/agents/mia.agent.md` | Freigegebenes schreibgeschütztes Profil für Spielerperspektive, Produktkohärenz, visuelle Identität und Vision-Schutz |
@@ -36,6 +36,8 @@
 | `packages/contracts/src` | Zod-Schemas, sim_version, Trail, Ergebnislog, Auftragsunion |
 | `packages/sim-core/src/*` | Deterministischer Core (PRNG, Math, Grid, Combat, Genome, Items, Hash, Ghost) |
 | `packages/client/src/*` | PWA Client: `world`/`visual`/`render`/`input`/`window`/`showcase` als sichtbare visuelle Basis, `dungeon-editor` als Grid-Owner, `village` als einziger Owner der Tag/Nacht/Raid-Phase, des Dorfbestands und der Dorfwirtschaft samt der einen Zahlenquelle `balance.ts`, der reinen Regeln in `economy.ts` und der ausführenden Kommandos in `commands.ts`, `ui` als Shell und Pixi-Host, `raid` als lokaler Fixture-Auftrag; Route-Index-Mapping und Actor-Varianten sind visuell konsistent |
+| `packages/client/tools/*` | Selbst erzeugte Spriteblätter: PNG-Encoder über `node:zlib`, Farb- und Kachelwerkzeuge, Generator und eine unversionierte Vorschau. Läuft als `.mjs` außerhalb der Simulationsdomäne; Variante, Wandhöhe und Zellmaß werden aus `src/world/` **gelesen**, nicht wiederholt |
+| `packages/client/public/assets/*` | Die sechs ausgelieferten Dungeon-Blätter (Boden je Material, Steinwand). Herkunft und Freigabe im Asset-Register von `docs/VISUAL_GRUNDSATZ.md` |
 | `packages/server/src/*` | Server: `db` als Persistenz- und Zustands-Owner, `worker.ts` als schmaler HTTP-Rand (`/api/health`, `/api/sync/checkpoint`, `/api/sync/job/:id`), `matchmaking` und `sync` noch leer |
 | `scripts/bump-version.mjs` | Next-Bump-Zähler mit Basis aus `origin/main` (PATCH→MINOR→MAJOR, verweigert doppelte Nummern) |
 | `.agents/skills/` | Installierte Review-Skills (`code-slop`, `typescript-review`, `code-quality`), Registry in `skills-lock.json` |

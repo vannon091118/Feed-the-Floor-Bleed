@@ -1,5 +1,21 @@
 # packages/sim-core/docs/CHANGELOG.md
 
+## 2026-09-29 — Die Bewegung läuft wieder auf der Route, und die Zonen tragen den Hinterhalt
+
+**Scope:** neu `src/grid/zones.ts`, `src/combat/ambush.test.ts` und `src/combat/trail-fixture.ts`. Geändert `src/combat/types.ts`, `actions.ts`, `state.ts`, `rules.ts`, `resolve.ts`, `simulate.ts`, `fingerprint.ts`, `boss.ts`, `combat.test.ts`, `species-wiring.test.ts`, `combat-pin.test.ts` und `src/grid/index.ts`.
+
+**Warum der zweite Ortskontext nicht bleiben durfte.** Ein Zwischenstand ließ Einheiten frei in der Fläche laufen und wollte `simulateCombat` neben dem Trail einen `CombatSpatialContext` mit `walkable` und `zoneByCell` geben. Das war mit der Replay-Prüfung unvereinbar: `replayCombat(log)` und `verifyCombatLog(log)` lesen ausschließlich den Log, und eine Begehbarkeit, die nur im Grid steht, hätte jeden gespeicherten Lauf unverifizierbar gemacht. `CombatSpatialContext` und `nextSpatialStep` sind deshalb entfernt; `distanceBetween` und `applyMove` rechnen wieder über den Route-Index, und `createUnitStates` liest die Zone einer Einheit aus `trail[routeIndex]`. Dass eine Gruppe ihren Weg als Patrouille läuft, steht so in `docs/CONCEPT_REVIEW.md` — die freie Fläche war nie entschieden.
+
+**Die Zonen sind verdrahtet, statt danebenzuliegen.** `resolveCombat` klassifiziert den Dungeon einmal (`classifyDungeonZones`), stempelt die Zonen-ID in jeden Trail-Schritt und übergibt die Platzierungsgruppen samt ihrer Zonen-IDs an `buildCombatUnits`. Eine Gruppe bindet einen Slot an ihren Ort (Schwerpunkt, dann der nächste Routenpunkt); ohne Gruppe verteilt der Rückfall die Verteidiger gleichmäßig über die Route. `CombatUnitSpec` trägt die Zonen-ID als `ambushZoneId`, `CombatUnitState` daraus `ambushAvailable`. Der erste Angriff eines so aufgestellten Verteidigers durchdringt `PROVISIONAL_RULES.ambushDefensePenetrationPermille` der gegnerischen Rüstung und schreibt ein `ambush`-Ereignis vor den Angriff.
+
+**Die Bedingung ist entschieden: der Ort des Ziels zählt, nicht sein Tick.** Die Aufstellung entscheidet, **wer** überrascht (`ambushAvailable`, abgeleitet aus `ambushZoneId >= 0`); ob der Schlag sitzt, entscheidet die Zone des Ziels zur Angriffszeit. Steht es in genau der Zone, in der der Verteidiger aufgestellt war, ist die Lauer entdeckt: der Angriff läuft normal, und der Hinterhalt bleibt für ein Ziel außerhalb verfügbar — verbraucht wird er erst, wenn er trifft. Damit liest die Regel beide Zonen aus dem Log statt aus dem Raster, und `replayCombat` kann sie ohne Grid stellen. Der Test in `ambush.test.ts` prüft die Rechnung an der Einheit, das Ausbleiben gegen ein Ziel in der Lauerzone samt späterem Treffer und das Ausbleiben ohne Platzierungsgruppe. `grid/index.ts` exportiert `zones.ts` jetzt, vorher war die Datei ohne Aufrufer.
+
+**Was ersatzlos weg ist.** `geometry: number[]` am Log (kein Erzeuger, der Contract ist `.strict()` und kannte es nicht), das `zone`-Ereignis und `zoneType` (nie gepusht), `CombatSpatialContext` und `nextSpatialStep` (siehe oben), die `x/y`-Felder am Spec (aus `trail[routeIndex]` herleitbar) sowie `PROVISIONAL_RULES.route.monsterRatioStart/End`, seit die Slot-Ratio durch die Platzierungsgruppen ersetzt ist.
+
+**Der Hash verschiebt sich, und der Pin sagt warum.** `fingerprintCombatLog` hasht jetzt auch `trail[].zoneId` und `spec.ambushZoneId`; die Bewegung ist kürzer und die Verteidiger stehen an anderen Orten. Der Golden-Pin steht auf `1e2b3767` (offenes Fixture-Grid, 413 Ereignisse) und `27826361` (Umweg-Route, 165 Ticks, 674 Ereignisse); die drei Gründe und der Versionszug stehen im Kopf der Pin-Datei. `sim_version 0.0.5→0.0.6`, `CONTRACT_VERSION 6→7`.
+
+**Gates:** typecheck 0, 474 Tests in 69 Dateien, Lint 0, LOC-Caps ok (304 Quellen), Hygiene ok, Shinon PASS, Client-Build 425,01 kB.
+
 ## 2026-09-29 — Der Kampf kennt die Art des Verteidigers
 
 **Scope:** neu `src/units.ts` und `src/combat/species-wiring.test.ts`. Geändert `src/combat/rules.ts`, `resolve.ts`, `resolve-snapshot.ts`, `fixture-job.ts`, `balance-report.test.ts`, `combat.test.ts`, `combat-pin.test.ts` und `src/genome/stats.ts`.

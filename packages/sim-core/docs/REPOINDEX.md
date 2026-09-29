@@ -6,7 +6,10 @@
 | `src/math/` | Fixed-Point, isqrt |
 | `src/hash/` | FNV-1a-Hash-Kette |
 | `src/grid/` | Grid, Breitensuche ohne Zusatzkosten, Hard-Block, Contract-Serialisierung |
+| `src/grid/zones.ts` | Zonen-Klassifikation der Fläche (Korridor, Arena, Hinterhalt, Boss-Kammer) und die Platzierungsgruppen, die die Verteidiger-Slots binden |
 | `src/combat/` | Tick-Simulation, Events, Log-Hash, Replay, Summary, Fixture-Auftrag |
+| `src/combat/ambush.test.ts` | Naht-Test des Hinterhalts: Durchdringungsrechnung an der Einheit, das Ausbleiben in der Lauerzone samt späterem Treffer und die Aufstellung aus der Platzierungsgruppe |
+| `src/combat/trail-fixture.ts` | Gemeinsamer Trail ohne Grid für die Aufstellungs- und Schadenstests |
 | `src/combat/boss.ts` | Boss-Identität, Boss-Ausgangswerte und boss-exklusive Verstärkungen |
 | `src/combat/combat-pin.test.ts` | Golden-Pin des Kampf-Hashes: fester Seed, erwarteter Hash als Konstante |
 | `src/combat/balance-report.test.ts` | Messwerkzeug: Stufenverteilung über Seeds und Verteidigerplätze |

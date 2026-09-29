@@ -1,3 +1,4 @@
+import type { CombatEvent } from '@floor/contracts'
 import {
   CellType,
   createDungeonGrid,
@@ -12,7 +13,7 @@ import {
   worldToScreen,
 } from '../src/render/camera'
 import { depthValue } from '../src/render/depth'
-import { createVisualObserver } from '../src/visual'
+import { createVisualObserver, eventFx } from '../src/visual'
 import { routeActors } from '../src/visual/combat-frame'
 import { fxSeed } from '../src/visual/fx-seed'
 import { routePointAt } from '../src/visual/route-index'
@@ -180,5 +181,38 @@ describe('Visual Observer', () => {
       throw new Error('Fixture muss mindestens einen Angriff enthalten')
     expect(fxSeed(event)).toBe(fxSeed({ ...event }))
     expect(fxSeed(event)).not.toBe(fxSeed({ ...event, tick: event.tick + 1 }))
+  })
+})
+
+describe('Effekt je Ereignis', () => {
+  const path = findPath(createDungeonGrid()).path
+
+  function event(type: CombatEvent['type']): CombatEvent {
+    return {
+      tick: 3,
+      type,
+      actorId: 'monster-0',
+      targetId: 'hero-0',
+      amount: 750,
+      fromIndex: 1,
+      toIndex: 2,
+      stage: 'running',
+    }
+  }
+
+  it('gibt dem Hinterhalt einen eigenen Effekt an der getroffenen Zelle', () => {
+    const descriptor = eventFx(event('ambush'), path)
+    expect(descriptor?.kind).toBe('ambush')
+    // Die Menge ist die durchdrungene Rüstung aus dem Ereignis, kein zweiter
+    // Wert: das Bild darf die Zahl nicht selbst kennen.
+    expect(descriptor?.amount).toBe(750)
+    expect(descriptor?.world).toEqual(cellFoot(path[2]))
+  })
+
+  it('kennt je einen Effekt für Bewegung, Angriff und Tod und sonst keinen', () => {
+    expect(eventFx(event('move'), path)?.kind).toBe('dust')
+    expect(eventFx(event('attack'), path)?.kind).toBe('hit')
+    expect(eventFx(event('death'), path)?.kind).toBe('blood')
+    expect(eventFx(event('end'), path)).toBeNull()
   })
 })

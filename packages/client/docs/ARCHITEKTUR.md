@@ -43,7 +43,7 @@ Simulation bleibt der einzige Owner der Spielentscheidungen.
   Fenster eine Schublade: `windows.css` führt dort die Geometrie allein, und
   beide Eingabepfade beginnen nicht — sonst wichen Store und Bild voneinander ab.
 - `showcase/` — sichtbare Referenzszene, die alle Systeme zusammenschaltet.
-- `dungeon-editor/` — DOM-Raster und der einzige State-Owner des Grids.
+- `dungeon-editor/` — DOM-Raster und der einzige State-Owner des Grids; `model.startDungeon` legt den Startplan des Probelaufs samt zwei Platzierungsgruppen auf dem Korridor an, sodass der Fixture-Raid seine Verteidiger in echten Zonen aufstellt.
 - `village/` — einziger Owner der Tag/Nacht/Raid-Phase und der Dorfwirtschaft.
   `phase.ts` reine Übergangslogik, `state.ts` Signal-Store, `phase-actions.ts`
   Kommandos. `balance.ts` besitzt jede Zahl des Dorfes als eingefrorene Config
@@ -92,7 +92,7 @@ Simulation bleibt der einzige Owner der Spielentscheidungen.
 - `raid/` — bestehender Contract-v4-Upload und lokaler Fixture-Auftrag; dazu
   die Raid-Timeline: `combat-source.ts` besitzt den Lauf und legt ihn über
   `setPlaybackLog` in den Store, `playback.ts` hält Log, Tick und Pause,
-  `timeline-model.ts` die reinen Modelle, `raid-timeline.tsx`, `phase-nav.tsx`
+  `timeline-model.ts` die reinen Modelle (samt `ambushEvents`, das jedes Hinterhalt-Ereignis einzeln mit Tick und Ziel in Worten liefert), `raid-timeline.tsx`, `phase-nav.tsx`
   und `phases.tsx` die Darstellung. Die Timeline liest den Store und rechnet
   nichts selbst; die Überlebendenzahlen holt `phases.tsx` über `summarizeCombat`
   aus `@floor/sim-core`, damit sie dieselbe Quelle haben wie die Auftrags-Summary

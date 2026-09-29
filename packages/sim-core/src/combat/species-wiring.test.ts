@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { baseMonsters } from '../genome/registry'
 import { UNIT_BASE } from '../units'
 import { buildCombatUnits } from './rules'
+import { noPlacements, trailOf } from './trail-fixture'
+
+/** Zwei Zellen Route ohne Platzierungsgruppen: die Art wird hier geprüft, nicht der Ort. */
+const placement = { trail: trailOf(2), ...noPlacements } as const
 
 /**
  * Der Kampf kennt die Art des Verteidigers.
@@ -16,9 +20,9 @@ import { buildCombatUnits } from './rules'
 describe('Die Art des Verteidigers im Kampf', () => {
   it('gibt jedem Verteidiger die Werte seiner Art', () => {
     const units = buildCombatUnits({
+      ...placement,
       teamSize: 1,
       defenders: [{ baseId: 'ember-titan' }, { baseId: 'shard-imp' }],
-      routeLength: 2,
     })
     const monsters = units.filter((unit) => unit.role === 'monster')
     expect(monsters).toHaveLength(2)
@@ -29,9 +33,9 @@ describe('Die Art des Verteidigers im Kampf', () => {
   it('unterscheidet zwei Arten an ihren Werten', () => {
     const hp = (baseId: string) =>
       buildCombatUnits({
+        ...placement,
         teamSize: 1,
         defenders: [{ baseId }],
-        routeLength: 2,
       }).find((unit) => unit.role === 'monster')?.maxHp
     expect(hp('frost-wolf')).not.toBe(hp('stone-golem'))
   })
@@ -41,18 +45,18 @@ describe('Die Art des Verteidigers im Kampf', () => {
     // Platzhalter trägt die Basiswerte, damit ein unbekanntes Wesen sichtbar
     // bleibt, statt den Lauf zu töten.
     const monster = buildCombatUnits({
+      ...placement,
       teamSize: 1,
       defenders: [{ baseId: 'gibt-es-nicht' }],
-      routeLength: 2,
     }).find((unit) => unit.role === 'monster')
     expect(monster?.maxHp).toBe(UNIT_BASE.monster.maxHp)
   })
 
   it('zählt leere Plätze nicht als Verteidiger', () => {
     const units = buildCombatUnits({
+      ...placement,
       teamSize: 1,
       defenders: [{ baseId: null }, { baseId: 'frost-wolf' }, { baseId: null }],
-      routeLength: 2,
     })
     expect(units.filter((unit) => unit.role === 'monster')).toHaveLength(1)
   })
@@ -62,9 +66,9 @@ describe('Die Art des Verteidigers im Kampf', () => {
     // wieder zusammengefasst, wo es trennen sollte.
     const values = baseMonsters().map((base) => {
       const monster = buildCombatUnits({
+        ...placement,
         teamSize: 1,
         defenders: [{ baseId: base.id }],
-        routeLength: 2,
       }).find((unit) => unit.role === 'monster')
       return `${monster?.maxHp}/${monster?.attack}/${monster?.defense}`
     })

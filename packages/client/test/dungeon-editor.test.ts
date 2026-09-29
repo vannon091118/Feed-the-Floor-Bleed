@@ -1,6 +1,10 @@
-import { CellType, createDungeonGrid, getCell } from '@floor/sim-core'
+import { CellType, createDungeonGrid, findPath, getCell } from '@floor/sim-core'
 import { describe, expect, it } from 'vitest'
-import { paintTile, tileMarker } from '../src/dungeon-editor/model'
+import {
+  paintTile,
+  startDungeon,
+  tileMarker,
+} from '../src/dungeon-editor/model'
 import {
   grid,
   paintVisibleTile,
@@ -24,11 +28,34 @@ describe('Dungeon-Editor', () => {
     expect(getCell(grid.value, { x: 15, y: 3 })).toBe(CellType.Wall)
   })
 
-  it('setzt den Editor beim Reset auf den neutralen Startzustand', () => {
+  it('stellt beim Reset den Startdungeon wieder her', () => {
     resetGrid()
     paintVisibleTile(3, 0)
     resetGrid()
     expect(getCell(grid.value, { x: 12, y: 0 })).toBe(CellType.Empty)
+    // Der Startdungeon trägt zwei Platzierungsgruppen; der Reset muss sie
+    // zurückbringen, sonst fiele die Zonen-Regel nach dem ersten Übermalen aus.
+    expect(getCell(grid.value, { x: 30, y: 0 })).toBe(CellType.Placement)
+  })
+
+  it('legt die Platzierungsgruppen auf den Korridor, damit der Lauf Zonen hat', () => {
+    const start = startDungeon()
+    const placements = [
+      { x: 30, y: 0 },
+      { x: 31, y: 0 },
+      { x: 50, y: 0 },
+      { x: 51, y: 0 },
+    ]
+    for (const point of placements) {
+      expect(getCell(start, point)).toBe(CellType.Placement)
+    }
+    // Der Startdungeon ist der neutrale Dungeon plus Markierungen: Spawn und
+    // Boss bleiben, wo sie waren, und die Markierung blockiert nichts.
+    expect(getCell(start, { x: 0, y: 0 })).toBe(CellType.Spawn)
+    expect(getCell(start, { x: 63, y: 63 })).toBe(CellType.Boss)
+    expect(findPath(start).movementCost).toBe(
+      findPath(createDungeonGrid()).movementCost,
+    )
   })
 
   it('lässt Spawn und Boss beim Malen unangetastet', () => {

@@ -7,7 +7,7 @@ import {
   type TerrainTile,
   WORLD_CELL_PX,
 } from '../world'
-import { optionalTexture } from './assets'
+import { tileFrame } from './assets'
 import { depthValue } from './depth'
 import { materialFilter } from './filters'
 import type { DungeonRenderMode } from './modes'
@@ -62,9 +62,20 @@ export function createTerrainView(
     }
   }
 
+  /**
+   * Der Frame der Bodenvariante, sonst die prozedurale Fallback-Textur.
+   *
+   * Der Variantenindex kommt aus `tile.variant`, nicht aus einer gefilterten
+   * Menge: `buildTerrain` legt alle Zellen in Rasterreihenfolge an, ein Index
+   * aus dem Sprite-Array wäre die Zelle, nicht die Variante.
+   */
   const floorTexture = (materialId: string, variant: number) => {
-    const local = optionalTexture(runtime.assets, `dungeon.floor.${materialId}`)
-    const texture = local ?? tileTexture(materialId, variant)
+    const frame = tileFrame(
+      runtime.assets,
+      `dungeon.floor.${materialId}`,
+      variant,
+    )
+    const texture = frame ?? tileTexture(materialId, variant)
     texture.source.scaleMode = 'nearest'
     return texture
   }
@@ -73,12 +84,13 @@ export function createTerrainView(
     discard(tile.index)
     const foot = cellFoot(tile.cell)
     if (tile.occludes && activeMode === 'raid') {
-      const local = optionalTexture(
+      const frame = tileFrame(
         runtime.assets,
         `dungeon.wall.${tile.materialId}`,
+        tile.variant,
       )
       const texture =
-        local ?? wallTexture(tile.materialId, tile.variant, tile.height)
+        frame ?? wallTexture(tile.materialId, tile.variant, tile.height)
       texture.source.scaleMode = 'nearest'
       const sprite = new Sprite(texture)
       sprite.anchor.set(0.5, 1)

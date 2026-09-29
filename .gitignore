@@ -22,3 +22,9 @@ skills-lock.json
 
 # Ausgabe der Bündel-Probe aus `pnpm run check:worker` bleibt lokal.
 .wrangler-dry/
+
+# Vergrößerte Vorschau der Spriteblätter aus `pnpm --filter @floor/client
+# preview`. Sie ist ein Werkzeug zum Ansehen, keine Quelle: Die Blätter selbst
+# liegen versioniert unter `public/assets/`, die Vorschau wird jederzeit neu
+# erzeugt und würde sonst als zweiter, abweichender Stand im Repo liegen.
+packages/client/tools/_preview/

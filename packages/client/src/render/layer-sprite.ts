@@ -1,20 +1,27 @@
 import { type Container, Sprite, type Texture } from 'pixi.js'
 
-export interface LayerSprite {
-  sprite: Sprite
+/** Sichtbarkeit und Abbau eines Blattes in einer Ebene. */
+interface Owned {
   setVisible(visible: boolean): void
   dispose(): void
 }
 
-/** Legt einen Sprite in eine Ebene und besitzt Sichtbarkeit und Abbau. */
-export function addLayerSprite(
-  layer: Container,
-  texture: Texture,
-): LayerSprite {
-  const sprite = new Sprite(texture)
-  layer.addChild(sprite)
+export interface LayerSprite extends Owned {
+  sprite: Sprite
+}
+
+/**
+ * Dasselbe für ein Blatt, das kein einfacher `Sprite` ist: Das Editorraster
+ * trägt einen `TilingSprite`. Beide Wege nutzen `disposeOwned`, damit die
+ * Lebensdauerlogik an einer Stelle steht und nicht je Aufrufer abgeschrieben
+ * wird — der Redundancy-Gate meldet zu Recht, wenn sie es zweimal gibt.
+ */
+export interface OwnedContainerSprite extends Owned {
+  sprite: Container
+}
+
+function disposeOwned(sprite: Container): Owned {
   return {
-    sprite,
     setVisible: (visible) => {
       sprite.visible = visible
     },
@@ -23,4 +30,23 @@ export function addLayerSprite(
       sprite.destroy()
     },
   }
+}
+
+/** Legt ein Blatt in eine Ebene und besitzt Sichtbarkeit und Abbau. */
+export function addLayerSprite(
+  layer: Container,
+  texture: Texture,
+): LayerSprite {
+  const sprite = new Sprite(texture)
+  layer.addChild(sprite)
+  return { sprite, ...disposeOwned(sprite) }
+}
+
+/** Nimmt ein fertiges Blatt in die Ebene und besitzt Sichtbarkeit und Abbau. */
+export function ownLayerSprite(
+  layer: Container,
+  sprite: Container,
+): OwnedContainerSprite {
+  layer.addChild(sprite)
+  return { sprite, ...disposeOwned(sprite) }
 }

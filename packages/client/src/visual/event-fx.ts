@@ -15,7 +15,10 @@ export function eventFx(
     kind = 'hit'
     amount = event.amount
   } else if (event.type === 'death') kind = 'blood'
-  else return null
+  else if (event.type === 'ambush') {
+    kind = 'ambush'
+    amount = event.amount
+  } else return null
   return {
     kind,
     world: cellFoot(routePointAt(path, event.toIndex)),

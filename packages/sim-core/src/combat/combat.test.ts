@@ -10,6 +10,7 @@ import {
   verifyCombatLog,
 } from './index'
 import { createUnitStates, damageFor } from './state'
+import { noPlacements, trailOf } from './trail-fixture'
 
 const grid = createDungeonGrid()
 /** n echte Basisarten, damit die Tests dasselbe rechnen wie das Spiel. */
@@ -96,7 +97,8 @@ describe('Deterministischer Combat-Core', () => {
     const units = buildCombatUnits({
       teamSize: 3,
       defenders: defenders(2),
-      routeLength: 100,
+      trail: trailOf(100),
+      ...noPlacements,
     })
     expect(units[0].side).toBe('heroes')
     expect(units[units.length - 1].role).toBe('boss')
@@ -127,9 +129,11 @@ describe('Deterministischer Combat-Core', () => {
 
 describe('Schadensformel', () => {
   const config = defaultCombatConfig()
+  const trail = trailOf(2)
   const units = createUnitStates(
-    buildCombatUnits({ teamSize: 1, defenders: [], routeLength: 2 }),
+    buildCombatUnits({ teamSize: 1, defenders: [], trail, ...noPlacements }),
     config,
+    trail,
   )
   const hero = units[0]
   const boss = units[1]

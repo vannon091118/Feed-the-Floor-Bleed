@@ -27,18 +27,22 @@ export function migration(name) {
 export { DatabaseSync }
 
 /**
- * Eine frische Datenbank mit dem Grundschema.
+ * Eine frische Datenbank mit dem Grundschema und den übergebenen Migrationen.
  *
- * Nimmt den **Inhalt** einer Migration, nicht ihren Namen — die Tests lesen
+ * Nimmt den **Inhalt** von Migrationen, nicht ihre Namen — die Tests lesen
  * ihre Datei selbst und geben den Text hier hinein. Der Unterschied ist nicht
  * kosmetisch: ein Inhalt als Dateiname gäbe `ENAMETOOLONG`.
  *
- * @param {string} sql eine bereits gelesene Migrationsdatei
+ * Die Migrationen laufen in Übergabereihenfolge. Ein Test, der den Stand vor
+ * dem *letzten* Sprung braucht, gibt die Kette dorthin mit; eine einzelne
+ * Angabe bleibt derselbe Aufruf wie vorher.
+ *
+ * @param {...string} sql bereits gelesene Migrationsdateien
  */
-export function databaseWith(sql) {
+export function databaseWith(...sql) {
   const db = new DatabaseSync(':memory:')
   db.exec(migration('001_raid_jobs.sql'))
-  db.exec(sql)
+  for (const step of sql) db.exec(step)
   return db
 }
 
@@ -77,4 +81,55 @@ export function snapshotById(db, id) {
 /** @param {import('node:sqlite').DatabaseSync} db @param {string} id */
 export function jobById(db, id) {
   return db.prepare('SELECT id FROM raid_jobs WHERE id = ?').get(id)
+}
+
+/**
+ * Die zwei Versionsleser der Ära-Tests.
+ *
+ * Sie standen wortgleich in `raid-migration-v6.test.mjs` und
+ * `raid-migration-v7.test.mjs`, und das Redundancy-Gate hat es gemeldet: die
+ * Dublette wird nicht umgangen, sondern zu den übrigen Handgriffen gelegt.
+ *
+ * @param {import('node:sqlite').DatabaseSync} db
+ * @param {string} id
+ * @returns {string} die `sim_version`-Spalte der Zeile
+ */
+export function simVersionOf(db, id) {
+  const row = db
+    .prepare('SELECT sim_version FROM raid_snapshots WHERE id = ?')
+    .get(id)
+  if (!row) throw new Error(`Snapshot ${id} fehlt`)
+  return String(row.sim_version)
+}
+
+/**
+ * @param {import('node:sqlite').DatabaseSync} db
+ * @param {string} id
+ * @returns {number} die `contractVersion` im Payload
+ */
+export function contractVersionOf(db, id) {
+  const row = db
+    .prepare('SELECT payload_json FROM raid_snapshots WHERE id = ?')
+    .get(id)
+  if (!row) throw new Error(`Snapshot ${id} fehlt`)
+  return JSON.parse(String(row.payload_json)).contractVersion
+}
+
+/**
+ * Beide Versionsangaben einer Zeile in einem Zug.
+ *
+ * Ein Test, der gegen den *aktuellen* Stand prüft, vergleicht das Paar; ein
+ * Test, der die abgelöste Ära festhält, nennt die zwei Werte einzeln. Dieselbe
+ * Zusage, zwei Blickwinkel — und die Importlisten der zwei Dateien bleiben
+ * dadurch verschieden.
+ *
+ * @param {import('node:sqlite').DatabaseSync} db
+ * @param {string} id
+ * @returns {{ simVersion: string, contractVersion: number }}
+ */
+export function versionsOf(db, id) {
+  return {
+    simVersion: simVersionOf(db, id),
+    contractVersion: contractVersionOf(db, id),
+  }
 }

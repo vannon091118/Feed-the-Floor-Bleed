@@ -1,6 +1,7 @@
 import { summarizeCombat } from '@floor/sim-core'
 import { playbackLog } from './playback'
 import {
+  ambushEvents,
   clusterEvents,
   type EventCluster,
   eventsByPhase,
@@ -14,6 +15,7 @@ const CLUSTER_LABELS: Record<EventCluster['type'], string> = {
   move: 'Bewegung',
   attack: 'Angriff',
   death: 'Tod',
+  ambush: 'Hinterhalt',
   end: 'Ende',
 }
 
@@ -66,12 +68,20 @@ export function RoutePhase(props: {
   )
 }
 
-/** Kampf-Phase: Ereignisse geclustert nach Ticker-Klasse. */
-export function CombatPhase() {
+/**
+ * Kampf-Phase: Ereignisse geclustert nach Ticker-Klasse, der Hinterhalt einzeln.
+ *
+ * Die Klasse zählt, der Hinterhalt steht als eigener Eintrag mit seinem Tick
+ * darunter: er ist ein einmaliges Ereignis pro Verteidiger und keine Menge, die
+ * man nur als Zahl liest. Ein Klick auf den Eintrag springt zum Tick — dieselbe
+ * Geste wie bei den Trail-Zellen der Routen-Phase.
+ */
+export function CombatPhase(props: { scrub: (tick: number) => void }) {
   const current = playbackLog.value
   if (!current) return null
   const buckets = eventsByPhase(current.log, current.sections)
   const clusters = clusterEvents(buckets.combat)
+  const ambushes = ambushEvents(current.log)
   return (
     <section class="timeline-phase" data-phase="combat">
       <h3>{PHASE_LABELS.combat}</h3>
@@ -88,6 +98,22 @@ export function CombatPhase() {
           </li>
         ))}
       </ul>
+      {ambushes.length > 0 && (
+        <ol class="timeline-events">
+          {ambushes.map((ambush) => (
+            <li key={`${ambush.actorId}-${ambush.tick}`}>
+              <button
+                type="button"
+                class="timeline-event"
+                onClick={() => props.scrub(ambush.tick)}
+              >
+                Hinterhalt bei Tick {ambush.tick}: ein Verteidiger überrascht{' '}
+                {ambush.target}
+              </button>
+            </li>
+          ))}
+        </ol>
+      )}
     </section>
   )
 }

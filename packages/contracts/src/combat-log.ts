@@ -10,7 +10,13 @@ import { CombatTrailEntrySchema } from './trail'
  * ahead-of-time-Vertrag stillschweigend erweitern.
  */
 export const COMBAT_STAGES = ['heroes-win', 'monsters-win', 'timeout'] as const
-export const COMBAT_EVENT_TYPES = ['move', 'attack', 'death', 'end'] as const
+export const COMBAT_EVENT_TYPES = [
+  'move',
+  'attack',
+  'death',
+  'ambush',
+  'end',
+] as const
 export const COMBAT_SIDES = ['heroes', 'monsters'] as const
 export const COMBAT_ROLES = ['hero', 'monster', 'boss'] as const
 
@@ -21,8 +27,10 @@ export const CombatRoleSchema = z.enum(COMBAT_ROLES)
 
 /** Achtstelliger Hex-Hash wie `fingerprintCombatLog` ihn liefert. */
 export const CombatHashSchema = z.string().regex(/^[0-9a-f]{8}$/)
-const fixed = z.number().int()
-const count = z.number().int().nonnegative()
+// Die Zahlformen des Wire-Formats. `combat-summary.ts` nutzt dieselben: eine
+// zweite Definition wäre eine zweite Wahrheit über dasselbe Feld.
+export const fixed = z.number().int()
+export const count = z.number().int().nonnegative()
 const unitId = z.string().min(1)
 export const CombatConfigSchema = z
   .object({
@@ -47,6 +55,8 @@ export const CombatUnitSpecSchema = z
     moveCooldown: z.number().int().positive(),
     attackCooldown: z.number().int().positive(),
     routeIndex: count,
+    /** Zone der Platzierungsgruppe, in der der Verteidiger aufgestellt ist; `-1` sonst. */
+    ambushZoneId: z.number().int().min(-1),
   })
   .strict()
 
@@ -88,6 +98,13 @@ export const CombatLogSchema = z
         code: 'custom',
         message: 'Log schließt mit einem end-Ereignis in der Ergebnisstufe',
       })
+    // Ohne diese Invariante fände ein Replay eine Einheit neben dem Trail: der
+    // Zustandsaufbau liest ihre Zone über `trail[routeIndex]`.
+    if (log.units.some((unit) => unit.routeIndex >= log.trail.length))
+      context.addIssue({
+        code: 'custom',
+        message: 'Jede Einheit steht auf einer Trail-Zelle',
+      })
     const stray = log.events.some(
       (event) =>
         (event.actorId !== '' && !known.has(event.actorId)) ||
@@ -105,40 +122,9 @@ export const CombatLogSchema = z
       })
   })
 
-/**
- * Ergebnis-Kurzfassung für Listen, Logs und Client-Anzeige.
- * Bewusst typisiert statt `record(json)`: ein freies JSON-Objekt wäre das
- * Gegenteil von „strikt serialisierbar“.
- *
- * `defendersTotal` ist der eingefrorene Verteidiger-Roster — alle Einheiten
- * der Monster-Seite, den Boss eingeschlossen. Ohne ihn ist die Zahl der im
- * Kampf gefallenen Gegner aus einem Ergebnis nicht ableitbar: `ResultPayload`
- * trägt den Kampflog nicht, und `monstersAlive` plus `bossAlive` nennen nur die
- * Überlebenden. Die Differenz `defendersTotal - monstersAlive - (bossAlive ? 1
- * : 0)` ist damit berechenbar, ohne den Log zu laden.
- *
- * Die Heldenseite hat bewusst kein Gegenstück: die Kampfwertung braucht nur die
- * Verteidiger, und ein Feld ohne Leser wäre vorbereitete Flexibilität.
- */
-export const CombatSummarySchema = z
-  .object({
-    stage: CombatStageSchema,
-    ticks: count,
-    hash: CombatHashSchema,
-    events: z.number().int().positive(),
-    attacks: count,
-    damage: fixed.nonnegative(),
-    defendersTotal: count,
-    heroesAlive: count,
-    monstersAlive: count,
-    bossAlive: z.boolean(),
-  })
-  .strict()
-
 export type CombatStage = z.infer<typeof CombatStageSchema>
 export type CombatEventType = z.infer<typeof CombatEventTypeSchema>
 export type CombatConfig = z.infer<typeof CombatConfigSchema>
 export type CombatUnitSpec = z.infer<typeof CombatUnitSpecSchema>
 export type CombatEvent = z.infer<typeof CombatEventSchema>
 export type CombatLog = z.infer<typeof CombatLogSchema>
-export type CombatSummary = z.infer<typeof CombatSummarySchema>

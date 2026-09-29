@@ -146,3 +146,26 @@
   font-size: 10px;
   line-height: 1.4;
 }
+.timeline-events {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.timeline-event {
+  width: 100%;
+  padding: 3px 6px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  background: var(--accent-wash);
+  color: var(--text);
+  font: inherit;
+  font-size: 10px;
+  text-align: left;
+  cursor: pointer;
+}
+.timeline-event:hover {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}

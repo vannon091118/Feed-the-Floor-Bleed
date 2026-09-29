@@ -129,7 +129,14 @@ export function zoomCamera(
   return clampCamera({ ...camera, zoom }, world)
 }
 
-/** Zentriert das Weltrechteck im Viewport; Owner der Rahmung ist die Szene. */
+/**
+ * Zentriert das Weltrechteck im Viewport; Owner der Rahmung ist die Szene.
+ *
+ * `maxZoom` bleibt bewusst 1.5: Die Dungeon-Welt misst 2048 Pixel, ein
+ * Viewport von 1200 Pixeln braucht für die Rahmung also rund 0.59. Ohne diese
+ * Obergrenze wäre die Welt nur für sich genommen auf Zoomschritten lesbar, die
+ * die Kacheldetailzeichnung wieder unlesbar machen.
+ */
 export function fitCamera(
   camera: CameraState,
   world: CameraWorld,

@@ -66,6 +66,16 @@ export const FX_STYLES: Record<FxKind, FxStyle> = {
     count: 5,
     rise: -8,
   },
+  /** Kalt und schnell: der Hinterhalt ist ein Überraschungsschlag, kein Treffer. */
+  ambush: {
+    lifeMs: 380,
+    speed: 64,
+    gravity: 40,
+    tint: 0x8ab4ff,
+    size: 5,
+    count: 5,
+    rise: -14,
+  },
   ambient: {
     lifeMs: 1400,
     speed: 6,

@@ -28,7 +28,7 @@ docs/historisch/ append-only Historie
 ## Modell-Ownership
 
 | Owner | Besitzt | Darf nicht |
-|-------|---------|------------|
+| ------- | --------- | ------------ |
 | `village` | Gebäude, Attraktivität, Arbeiter | Dungeon-Zellen ändern |
 | `dungeon` | Layout, Slots, Bau-Kapazität | Ressourcen buchen |
 | `genome` | Zucht, Stats, Gen-Seed | Kämpfe rechnen |
@@ -48,7 +48,7 @@ docs/historisch/ append-only Historie
 Kommentare und Leerzeilen zählen nicht; geprüft wird mit `scripts/check-loc.mjs` und `scripts/shinon/policy.json`.
 
 | Pfad / Ownership | Cap |
-|------------------|-----|
+| ------------------ | ----- |
 | `packages/contracts/src` | 120 |
 | `packages/sim-core/src/prng`, `hash` | 80 |
 | `packages/sim-core/src/math` | 120 |
@@ -60,6 +60,7 @@ Kommentare und Leerzeilen zählen nicht; geprüft wird mit `scripts/check-loc.mj
 | `packages/client/src/input` | 100 |
 | `packages/client/src/raid` | 150 |
 | `packages/client/src/ui` | 120 |
+| `packages/client/tools` | 150 |
 | `packages/server/src/db` | 120 |
 | `packages/server/src/matchmaking`, `sync` | 150 |
 | `scripts/shinon` je Plugin | 150 |

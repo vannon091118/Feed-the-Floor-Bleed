@@ -1,11 +1,11 @@
-import { createDungeonGrid, type DungeonGrid, findPath } from '@floor/sim-core'
+import { type DungeonGrid, findPath } from '@floor/sim-core'
 import { computed, signal } from '@preact/signals'
-import { type Brush, paintTile } from './model'
+import { type Brush, paintTile, startDungeon } from './model'
 
 export type { Brush } from './model'
 
 export const brush = signal<Brush>('wall')
-export const grid = signal<DungeonGrid>(createDungeonGrid())
+export const grid = signal<DungeonGrid>(startDungeon())
 export const route = computed(() => findPath(grid.value))
 
 export function selectBrush(next: Brush): void {
@@ -13,7 +13,7 @@ export function selectBrush(next: Brush): void {
 }
 
 export function resetGrid(): void {
-  grid.value = createDungeonGrid()
+  grid.value = startDungeon()
 }
 
 export function paintVisibleTile(tileX: number, tileY: number): void {

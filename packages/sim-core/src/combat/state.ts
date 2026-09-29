@@ -3,6 +3,7 @@ import { isBoss } from './boss'
 import type {
   CombatConfig,
   CombatStage,
+  CombatTrailEntry,
   CombatUnitSpec,
   CombatUnitState,
 } from './types'
@@ -11,14 +12,23 @@ function startTick(initiative: number, tickRate: number): number {
   return Math.trunc(((1000 - clampInt(initiative, 0, 1000)) * tickRate) / 1000)
 }
 
+/**
+ * Aus Specs werden Zustände.
+ *
+ * Die Zone einer Einheit kommt aus dem Trail und nicht aus dem Grid: der Trail
+ * ist der einzige Ortszeuge, den `replayCombat` aus dem Log hat.
+ */
 export function createUnitStates(
   specs: readonly CombatUnitSpec[],
   config: CombatConfig,
+  trail: readonly CombatTrailEntry[],
 ): CombatUnitState[] {
   return specs.map((spec) => ({
     ...spec,
     hp: spec.maxHp,
     alive: true,
+    ambushAvailable: spec.ambushZoneId >= 0,
+    zoneId: trail[spec.routeIndex].zoneId,
     nextActionTick: startTick(spec.initiative, config.tickRate),
   }))
 }
@@ -31,7 +41,7 @@ export function nearestOpponent(
   let bestDistance = Number.MAX_SAFE_INTEGER
   for (const candidate of states) {
     if (!candidate.alive || candidate.side === actor.side) continue
-    const distance = absInt(candidate.routeIndex - actor.routeIndex)
+    const distance = distanceBetween(actor, candidate)
     if (distance < bestDistance) {
       best = candidate
       bestDistance = distance
@@ -40,9 +50,10 @@ export function nearestOpponent(
   return best
 }
 
+/** Abstand auf der Route, in Schritten. */
 export function distanceBetween(
-  left: CombatUnitState,
-  right: CombatUnitState,
+  left: CombatUnitSpec,
+  right: CombatUnitSpec,
 ): number {
   return absInt(left.routeIndex - right.routeIndex)
 }

@@ -49,6 +49,14 @@ aussagt.
 
 Seit T1.1 fließt der vollständige Trail aus dem Grid in den Kampf: `resolveCombat` zieht die Route, baut `trail[]` mit `x/y/cell` je Schritt und reicht ihn an `simulateCombat`; `fingerprintCombatLog` hasht jede `CombatTrailEntry` vor Units und Events. Ein manipulierter Trail ändert damit den Hash, den `replayCombat`/`verifyCombatLog` abschließend vergleichen — der Trail ist über den Hash abgesichert, nicht über einen separaten Zellvergleich. Gleich lange Routen mit anderer Geometrie liefern jetzt unterschiedliche Hashes — der gepinnte Test `raid-job.test.ts` ist grün. `genome` ist seit dem 2026-09-29 gebaut; `items` und `ghost` sind weiterhin offen.
 
+## Trail trägt die Zone, und der Kampf bleibt aus dem Log lesbar
+
+Seit dem Contract-Sprung auf v7 ist der Trail die **einzige Ortsquelle** des Laufs: `resolveCombat` klassifiziert den Dungeon einmal über `grid/zones.ts` und stempelt die Zonen-ID in jeden `CombatTrailEntry`. Damit kennt `simulateCombat` die Zone einer Einheit als `trail[routeIndex].zoneId`, und `replayCombat` braucht nichts außer dem Log.
+
+**Ein `CombatSpatialContext` neben dem Trail hat es deshalb nicht gegeben.** Ein Zwischenstand ließ Einheiten frei in der Fläche laufen und wollte `walkable` und `zoneByCell` als zweiten Kontext an `simulateCombat` durchreichen. `replayCombat(log)` und `verifyCombatLog(log)` hätten damit die Begehbarkeit aus dem Grid gebraucht — der gespeicherte Lauf wäre nicht mehr allein verifizierbar gewesen, und genau das ist die Zusage des Hash-Vertrags. Die Bewegung läuft wieder in Schritten auf der Route, so wie `docs/CONCEPT_REVIEW.md` die Gruppe als Patrouille führt.
+
+**Der Hinterhalt ist die erste Zonen-Regel, und die Bedingung ist entschieden.** Eine Platzierungsgruppe bindet einen Verteidiger-Slot an ihren Ort; seine Zone steht als `ambushZoneId` im Spec. Sein erster Angriff durchdringt `PROVISIONAL_RULES.ambushDefensePenetrationPermille` der gegnerischen Rüstung und schreibt ein `ambush`-Ereignis — außer das Ziel steht in genau dieser Zone: dort ist die Lauer entdeckt, der Angriff läuft normal, und der Hinterhalt bleibt für ein Ziel außerhalb verfügbar. Verbraucht wird er erst, wenn er trifft. Ohne Platzierungsgruppe bleibt `ambushZoneId` bei `-1` und die Regel aus. Beide Zonen kommen aus dem Log (`trail[toIndex].zoneId` und `spec.ambushZoneId`), deshalb kann `replayCombat` die Bedingung stellen, ohne das Raster zu kennen. Die Zonenform selbst ist vor K1 noch offen (`docs/ROADMAP.md`); verdrahtet ist die Aufstellung, nicht die Begegnungskette.
+
 ## Genome
 
 `src/genome/` besitzt Zucht, Stats und Gen-Seed und rechnet keine Kämpfe.

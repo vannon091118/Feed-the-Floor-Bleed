@@ -6,6 +6,7 @@ import {
   type CameraState,
   centerCameraOn,
   createCamera,
+  fitCamera,
 } from '../render/camera'
 import { createDungeonScene } from '../render/dungeon-scene'
 import { createLightingView } from '../render/lighting'
@@ -63,10 +64,20 @@ export function createShowcase(deps: ShowcaseDeps): Showcase {
   const lighting = createLightingView(runtime)
   lighting.setVisible(mode === 'raid')
 
-  let camera = centerOnRoute(
+  /**
+   * Die Dungeon-Welt ist 2048 Pixel breit; Zoom 1 zeigte vorher eine ganze
+   * 512-Pixel-Welt und heute nur ein Viertel davon. Die Kamera rahmt die Welt
+   * deshalb wie das Dorf, bevor sie auf die Route zentriert.
+   *
+   * Nur beim Aufbau: Danach gehört der Blick dem Spieler, und ein Resize darf
+   * sein Pannen und Zoomen nicht zurücksetzen.
+   */
+  const framed = fitCamera(
     createCamera(runtime.camera.viewportWidth, runtime.camera.viewportHeight),
-    deps.getRoute(),
+    'dungeon',
   )
+
+  let camera = centerOnRoute(framed, deps.getRoute())
   runtime.setCamera(camera)
 
   let visibleActors: ActorDescriptor[] = []

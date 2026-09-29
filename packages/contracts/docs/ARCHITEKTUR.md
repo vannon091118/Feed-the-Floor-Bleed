@@ -6,20 +6,20 @@ Single Source of Truth für versionierte Schemas, Payloads und `sim_version`. Da
 
 ## Versionierung
 
-- `CONTRACT_VERSION = 4` kennzeichnet das Wire-Format major.
-- `sim_version = "0.0.3"` ist die einzige von v4 akzeptierte Simulationsversion.
+- `CONTRACT_VERSION = 7` kennzeichnet das Wire-Format major.
+- `sim_version = "0.0.6"` ist die einzige von v7 akzeptierte Simulationsversion.
 - Upload, Match, Result, Ergebnislog, Auftrag, Fehler und jeder eigenständige Raid-Snapshot tragen beide Pflichtfelder `contractVersion` und `simVersion`.
-- Ein v4-Empfänger akzeptiert nur exakt diese Kombination. v1/v2/v3 und inkompatible Folgestände scheitern vor jeder Domänenverarbeitung.
+- Ein Empfänger akzeptiert nur exakt diese Kombination. Ältere und inkompatible Folgestände scheitern vor jeder Domänenverarbeitung.
 - Inkompatible Form- oder Bedeutungsänderungen erhöhen `CONTRACT_VERSION`; Korrekturen ohne Änderung des akzeptierten JSON dürfen die laufende Version erhalten. Unbekannte Felder werden nicht ignoriert.
-- Grid- und Pathfinding-Schemas sind versionierte Runtime-Werte des v4-Vertrags, aber noch kein eigenständiges Transportformat.
-- Ein Versionssprung zieht eine Datenmigration mit: eine Zeile, die unter der alten Version geschrieben wurde, ist unter der neuen nicht lesbar. Die Contract-v4-Migration liegt in `packages/server/migrations/002_contract_v4.sql`.
+- Grid- und Pathfinding-Schemas sind versionierte Runtime-Werte des Vertrags, aber noch kein eigenständiges Transportformat.
+- Ein Versionssprung zieht eine Datenmigration mit. Die Kette liegt in `packages/server/migrations/`: `002_contract_v4.sql`, `003_contract_v5.sql`, `004_contract_v6.sql` und `005_contract_v7.sql`. Seit v6 hebt sie den Bestand an, statt ihn zu löschen, wo die eingefrorene Eingabe in ihrer Form unverändert bleibt.
 
 ## Kanonischer Raid-Freeze
 
 `RaidSnapshotSchema` enthält ausschließlich die bestätigten Freeze-Daten:
 
 - `resources`: sichere Ganzzahlen `gold` und `materials`.
-- `monsterSlots`: exakt fünf Slots mit `monsterId: string | null`.
+- `monsterSlots`: exakt fünf Slots mit `monsterId: string | null` und optional `generation` (fehlend heißt Generation 1, siehe v6).
 - `activeTeam`: ein bis fünf aktive Helden mit `heroId`, `temporaryFatigue` und `temporaryInjury` als sichere Ganzzahlen.
 - `dungeon`: bestehender 64×64-Grid-Contract.
 
@@ -34,7 +34,8 @@ Der Contract legt keine Formeln, Grenzen, Umrechnungen oder Gameplay-Effekte fü
 - `MatchResponseSchema`: `seed`, `floor` und `RaidPublicViewSchema` — die **öffentliche** Sicht, die der Angreifer bekommen darf. Der volle `RaidSnapshot` bleibt privat und liegt beim Server; `toPublicView` ist der einzige erlaubte Weg von dort nach hier (siehe `raid-public.ts`).
 - `ResultPayloadSchema`: `token`, `floor`, `hash` und typisiertes `CombatSummary` mit `defendersTotal` (eingefrorener Verteidiger-Roster inklusive Boss). Die Zahl der gefallenen Gegner ist damit ohne den Log ableitbar.
 - `RaidLogPayloadSchema`: derselbe Hash plus der vollständige `CombatLog`. Eigenes Artefakt, damit `result_json` klein bleibt.
-- `CombatLogSchema`: Config, Einheiten, Ereignisse, Stufe, Ticks, Hash und `trail` (jeder Schritt mit `x/y/cell`). Seit T1.1 fließt der Trail in `fingerprintCombatLog`; `verifyCombatLog` deckt ihn über den Hash-Vergleich ab. Invarianten erzwingen eindeutige IDs, ein schließendes `end`-Ereignis und Tick ≤ `log.ticks`.
+- `CombatLogSchema`: Config, Einheiten, Ereignisse, Stufe, Ticks, Hash und `trail` (jeder Schritt mit `x/y/cell/zoneId`). Seit T1.1 fließt der Trail in `fingerprintCombatLog`; `verifyCombatLog` deckt ihn über den Hash-Vergleich ab. Seit v7 trägt jede Einheit `ambushZoneId` und der Trail die Zone — deshalb ist der Log die einzige Ortsquelle, die ein Replay braucht. Invarianten erzwingen eindeutige IDs, ein schließendes `end`-Ereignis, Tick ≤ `log.ticks` und dass jede Einheit auf einer Trail-Zelle steht.
+- `CombatSummarySchema` liegt in `src/combat-summary.ts` und beschreibt dasselbe Ergebnis für Listen und Anzeige; `src/index.ts` re-exportiert sie, `src/protocol.ts` liest sie von dort.
 - `ErrorPayloadSchema`: `blocked`, `invalid-hash`, `invalid-request`, `protected`, `timeout` plus optionales `detail`.
 - `RaidJobSchema`: Diskriminated Union über `status` mit Übergangsautomat.
 

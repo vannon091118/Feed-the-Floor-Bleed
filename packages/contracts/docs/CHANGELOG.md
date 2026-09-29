@@ -1,5 +1,17 @@
 # packages/contracts/docs/CHANGELOG.md
 
+## 2026-09-29 — Contract v7: die Zone am Trail, der Hinterhalt am Verteidiger, die Summary in eigener Datei
+
+**Scope:** neu `src/combat-summary.ts`. Geändert `src/combat-log.ts`, `src/trail.ts`, `src/protocol.ts`, `src/version.ts`, `src/index.ts`, `test/raid-fixtures.ts` und `test/combat-log.test.ts`. `CONTRACT_VERSION 6→7`, `sim_version 0.0.5→0.0.6`.
+
+**Drei Felder, und jedes hat einen Leser.** `log.trail[]` trägt `zoneId` (die Zone der Zelle, `-1` für „keine"), `log.units[]` trägt `ambushZoneId` (die Zone der Platzierungsgruppe, in der der Verteidiger aufgestellt ist, `-1` sonst), und `COMBAT_EVENT_TYPES` kennt `ambush`. Alle drei sind Pflicht und werden `sim-core` geschrieben: der Hinterhalt ist eine Regel, die im Log stehen muss, weil ein Replay ausschließlich den Log liest. Ein `ambush`-Ereignis trägt in `amount` die durchdrungene Rüstung.
+
+**Eine neue Invariante schützt den Replay-Pfad.** `CombatLogSchema` verlangt jetzt, dass jede Einheit auf einer Trail-Zelle steht (`unit.routeIndex < trail.length`). Ohne sie stürzte der Zustandsaufbau beim Replay in einen Indexfehler statt in einen Contract-Fehler, und dieselbe Naht hat `combat-log.test.ts` als Gegenprobe. Das ist dieselbe Art Zusage wie das schließende `end`-Ereignis: eine Form, die der Leser voraussetzt.
+
+**Warum die Summary umgezogen ist.** `CombatSummarySchema` liegt in `src/combat-summary.ts` und wird von `src/index.ts` re-exportiert; `src/protocol.ts` importiert sie von dort. Der Log beschreibt den Lauf, die Kurzfassung sein Ergebnis — zwei Wire-Formen, zwei Dateien. Mit dem neuen Feld wäre `combat-log.ts` über den 120-Zeilen-Cap der Domäne gelaufen, und eine Auslagerung hat genau diesen Cap vorher schon für `trail.ts` gehalten.
+
+**Was der Sprung nicht anfasst.** Die eingefrorene Eingabe (`RaidSnapshotSchema`) bleibt in ihrer Form unverändert; der Kampf wird beim Lesen und beim Replay gerechnet. Die Migration `packages/server/migrations/005_contract_v7.sql` hebt v6-Zeilen deshalb an, statt sie zu löschen.
+
 ## 2026-09-29 — Contract v6: der Verteidiger-Slot trägt seine Generation
 
 **Scope:** geändert `src/raid-snapshot.ts` (`monsterSlot` bekommt `generation`) und `src/version.ts` (`CONTRACT_VERSION` 5→6, `sim_version` 0.0.4→0.0.5). Kein neues Schema, keine bestehende Regel geändert.

@@ -10,6 +10,7 @@ import {
   resolveSnapshotRaid,
   setCell,
 } from '@floor/sim-core'
+import { startDungeon } from '../src/dungeon-editor/model'
 
 /**
  * Auftrags-Literale für die Schleifentests.
@@ -77,10 +78,13 @@ export function blockedGrid() {
  * Deterministischer Core-Lauf als Timeline-Quelle.
  *
  * Grid, Route und Log kommen aus einem Aufruf: die Timeline- und die
- * Verdrahtungstests prüfen denselben Lauf, nicht zwei nachgebaute.
+ * Verdrahtungstests prüfen denselben Lauf, nicht zwei nachgebaute. Das Grid ist
+ * der Startdungeon des Editors und damit derselbe Plan, den der Probelauf
+ * rechnet — samt der beiden Platzierungsgruppen, ohne die kein Verteidiger eine
+ * Aufstellungszone und kein `ambush`-Ereignis entstünde.
  */
 export function fixtureRaidLog() {
-  const grid = createDungeonGrid()
+  const grid = startDungeon()
   const route = findPath(grid)
   const raid = resolveSnapshotRaid({
     grid,

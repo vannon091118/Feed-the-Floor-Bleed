@@ -68,6 +68,21 @@ describe('Strikter Combat-Log', () => {
     expect(CombatLogSchema.safeParse(lateEvent).success).toBe(false)
   })
 
+  it('verlangt jede Einheit auf einer Trail-Zelle', () => {
+    // Ohne diese Invariante liefe ein Replay in einen Indexfehler, weil der
+    // Zustandsaufbau die Zone der Einheit über `trail[routeIndex]` liest.
+    const log = combatLog()
+    const offTrail = {
+      ...log,
+      units: log.units.map((unit) => ({
+        ...unit,
+        routeIndex: log.trail.length,
+      })),
+    }
+    expect(CombatLogSchema.safeParse(offTrail).success).toBe(false)
+    expect(CombatLogSchema.safeParse(log).success).toBe(true)
+  })
+
   it('hält die Summary geschlossen und typisiert', () => {
     const summary = combatSummary()
     expect(

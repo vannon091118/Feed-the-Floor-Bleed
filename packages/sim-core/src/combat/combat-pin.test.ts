@@ -35,6 +35,25 @@ import { resolveCombat } from './index'
  * sind seither nie gegen echte Monsterwerte gemessen worden. Die Zahl, die das
  * richtet, ist eine `[K]`-Größe und wird nicht hier erfunden — siehe
  * `docs/CONCEPT_REVIEW.md` Abschnitt 0b.
+ *
+ * **Zweite Verschiebung vom 2026-09-29 — die Route ist wieder die
+ * Bewegungswahrheit.** Ein Zwischenstand ließ Einheiten frei in der Fläche
+ * laufen und übergab `simulateCombat` einen zweiten Ortskontext neben dem
+ * Trail. Das war mit der Replay-Prüfung unvereinbar: `replayCombat` und
+ * `verifyCombatLog` lesen ausschließlich den Log, und eine Begehbarkeit, die
+ * nur im Grid steht, hätte jeden gespeicherten Lauf unverifizierbar gemacht.
+ * Die Bewegung läuft seither wieder in Schritten auf der Route, die Zonen
+ * hängen als `zoneId` am Trail, und die Verteidiger kommen aus ihren
+ * Platzierungsgruppen statt aus einer Slot-Ratio über die Routenlänge.
+ *
+ * Drei Gründe verschieben den Hash, und alle drei sind gewollt: die kürzere
+ * Bewegung (weniger Ereignisse), der neue Aufstellungsort der Verteidiger und
+ * der Hinterhalt, der beim ersten Angriff eines aufgestellten Verteidigers
+ * Rüstung durchdringt und dafür ein eigenes Ereignis schreibt. Das neue Feld
+ * `zoneId` am Trail und `ambushZoneId` am Spec stehen im Hash.
+ *
+ * `sim_version 0.0.5→0.0.6`, `CONTRACT_VERSION 6→7`, Migration
+ * `005_contract_v7.sql`.
  */
 function observed(
   grid: ReturnType<typeof createDungeonGrid>,
@@ -64,20 +83,20 @@ function snakeGrid() {
 describe('Golden-Pin des Kampf-Hashes', () => {
   it('pinnt den Lauf auf dem offenen Fixture-Grid', () => {
     expect(observed(createDungeonGrid(), 2)).toEqual({
-      hash: '97907d56',
+      hash: '1e2b3767',
       stage: 'monsters-win',
       ticks: 216,
-      events: 441,
+      events: 413,
       trail: 127,
     })
   })
 
   it('pinnt den Lauf auf der Umweg-Route mit voller Belegung', () => {
     expect(observed(snakeGrid(), 5)).toEqual({
-      hash: '2759f7d8',
+      hash: '27826361',
       stage: 'monsters-win',
-      ticks: 180,
-      events: 881,
+      ticks: 165,
+      events: 674,
       trail: 253,
     })
   })

@@ -35,7 +35,12 @@ export function isBoss(unit: { role: string }): boolean {
   return unit.role === BOSS_ROLE
 }
 
-/** Der Boss steht am Ende der Route und ist die Bedingung des Heldensiegs. */
+/**
+ * Der Boss steht am Ende der Route und ist die Bedingung des Heldensiegs.
+ *
+ * `ambushZoneId` ist bei ihm `-1`: er steht in seiner eigenen Kammer, nicht in
+ * einer Platzierungsgruppe. Ein Hinterhalt ist die Waffe der Aufgestellten.
+ */
 export function bossSpec(routeIndex: number): CombatUnitSpec {
   return {
     id: 'boss-0',
@@ -48,6 +53,7 @@ export function bossSpec(routeIndex: number): CombatUnitSpec {
     moveCooldown: BOSS_RULES.moveCooldown,
     attackCooldown: BOSS_RULES.attackCooldown,
     routeIndex,
+    ambushZoneId: -1,
   }
 }
 

@@ -1,9 +1,17 @@
 # packages/client/docs/REPOINDEX.md
 
 | Pfad | Job |
-|------|-----|
+| ------ | ----- |
 | `index.html` | Vite-HTML-Entry mit `#app` |
 | `vite.config.ts` | Vite + Preact-Plugin + `@floor/*`-Aliase |
+| `tools/generate-assets.mjs` | Erzeugt die Dungeon-Spritesheets; liest Varianten, Wandhöhe und Zellmaß aus den Quellen, statt sie zu wiederholen |
+| `tools/draw.mjs` | Die fünf Materialzeichner des Bodens |
+| `tools/draw-wall.mjs` | Der Wandzeichner: Deckplatte, Fassade, Quaderlagen, Fuß |
+| `tools/tile-shapes.mjs` | Gemeinsamer Kachelbausatz: Grundfläche, laufende Fuge, Körnung, Glanzpunkte |
+| `tools/palette.mjs` | Stilregeln, Farbkörper, Mulberry32-Kopie und die Farbrechnungen `mix`, `saturate`, `shift` |
+| `tools/pixel-buffer.mjs` | Beschreibbarer RGBA-Puffer als Ersatz für den Canvas-2D-Kontext im Build |
+| `tools/png.mjs` | PNG-Encoder über `node:zlib`; keine neue Abhängigkeit (E5) |
+| `tools/preview.mjs` | Vergrößerte Vorschau der Blätter zum Ansehen; Ausgabe nach `tools/_preview/`, bewusst unversioniert |
 | `src/main.tsx` | Einstiegspunkt: rendert die Shell in `#app` |
 | `src/vite-env.d.ts` | Vite-Client-Typen für CSS-Importe |
 | `src/fixture-data.ts` | Read-only Fixture-Daten (Dorf, Starttag, Team, Monster, Auftrag); keine Wirtschaftsgröße, die steht in `village/balance.ts` |
@@ -15,7 +23,7 @@
 | `src/visual/terrain.ts` | Grid → Terrain-Deskriptoren und Diff |
 | `src/visual/actor-frame.ts` | Combat-Units/Events → Actor-Deskriptoren |
 | `src/visual/combat-frame.ts` | Combat-Log/Route auf vollständigen Präsentationsrahmen |
-| `src/visual/event-fx.ts` | Core-Event/Route → event-seeded FX-Deskriptor |
+| `src/visual/event-fx.ts` | Core-Event/Route → event-seeded FX-Deskriptor (`ambush` eingeschlossen, Menge aus `event.amount`) |
 | `src/visual/fx-seed.ts` | Eventfelder → stabiler Seed für Präsentations-FX |
 | `src/visual/route-actors.ts` | Leerlauf-Akteure aus der echten Route |
 | `src/visual/route-index.ts` | Gemeinsames boundsafe Route-Index-Mapping |
@@ -48,10 +56,10 @@
 | `src/render/fx.ts` | Gepooltes FX-System ohne Objektallokation pro Treffer |
 | `src/render/fx-styles.ts` | Stiltabelle je FX-Art |
 | `src/render/lighting.ts` | Billiger Lichtrand im Screen-Raum |
-| `src/render/assets.ts` | Optionale Asset-Texturen der Runtime, fehlende bleiben `undefined` |
+| `src/render/assets.ts` | Manifest der Spriteblätter mit Frame-Deskriptor, Lade-Fallback und `tileFrame`; der Frame-Index kommt aus `tile.variant` |
 | `src/render/dungeon-scene.ts` | Aufbau der Dungeon-Szene aus Observer-Deskriptoren |
-| `src/render/editor-grid.ts` | Editorraster als Overlay-Sprite in der Editor-Ebene |
-| `src/render/editor-grid-atlas.ts` | Gepufferte Rastertextur des Editors |
+| `src/render/editor-grid.ts` | Editorraster als `TilingSprite` in der Editor-Ebene |
+| `src/render/editor-grid-atlas.ts` | Gepufferte Linientextur eines einzelnen Rasterfeldes |
 | `src/render/editor-overlay.ts` | Pinselmarkierung und Lesemarken im Overlay |
 | `src/render/village-layout.ts` | Weltmaße, Baumstellen und die Projektion des Dorfrasters in Weltpixel (`projectVillagePlot`); die Baugegenstand-Arten leiht es aus `village/balance`, einen Dorfbestand führt es nicht |
 | `src/render/village-atlas.ts` | Pixeltexturen für Boden, Bäume, Gebäude und Bewohner |
@@ -106,7 +114,7 @@
 | `src/ui/styles/windows.css` | Kontextfenster über der Bühne; unter 721 px Schubladenanordnung an der unteren Kante |
 | `src/ui/styles/editor.css` | Pinselwahl und Editorraster |
 | `src/ui/styles/raid.css` | Auftrag, Urteil und Hash |
-| `src/dungeon-editor/model.ts` | Pure Editor-Regeln (Pinsel mit Leer/Wand/Platzierung, 4x4-Tiles, Marker) |
+| `src/dungeon-editor/model.ts` | Pure Editor-Regeln (Pinsel mit Leer/Wand/Platzierung, 4x4-Tiles, Marker) und `startDungeon` mit den zwei Platzierungsgruppen des Probelaufs |
 | `src/dungeon-editor/state.ts` | Einziger Owner von Grid, Pinsel und Route |
 | `src/village/phase.ts` | Phase-Union in Schleifenreihenfolge, erlaubte Übergänge, reine Entscheidungsfunktion |
 | `src/village/state.ts` | DayNightState-Signal (`phase`, `day`, `job`, `village`, `daySettlement`), Tagesabrechnung im Übergang `result → tag` in `setPhase`, dazu `commitVillage` als Schreibpfad der Baukommandos; ein Gebäude trägt seinen Grundriss, und der Startbestand legt Rathaus und Gilde aus der Config an |
@@ -123,11 +131,11 @@
 | `src/raid/raid-panel.tsx` | Probelauf-Panel, reicht den terminalen Auftrag an die Schleife weiter |
 | `src/raid/panel.tsx` | Reine Ergebnis-Darstellung eines TerminalRaidJob |
 | `src/raid/playback.ts` | Playback-Store: Log, Tick, Pause, abgeleitete Routenposition |
-| `src/raid/timeline-model.ts` | Reine Abschnitts- und Phasenmodelle des Logs; die Überlebendenzahlen kommen aus `@floor/sim-core`; Trail-Marken sind Platzierung, Spawn und Boss |
+| `src/raid/timeline-model.ts` | Reine Abschnitts- und Phasenmodelle des Logs; die Überlebendenzahlen kommen aus `@floor/sim-core`; Trail-Marken sind Platzierung, Spawn und Boss; `ambushEvents` liefert jedes Hinterhalt-Ereignis einzeln mit Tick und Ziel |
 | `src/raid/timeline.tsx` | Re-Export von Timeline und Steuerung für die Shell |
 | `src/raid/raid-timeline.tsx` | `TimelineTransport` (Scrubber, Play/Pause) und die drei Phasenreihen |
 | `src/raid/phase-nav.tsx` | Drei Phasen-Knöpfe, setzen den Scrubber auf den Phasenbeginn |
-| `src/raid/phases.tsx` | Routen-, Kampf- und Ergebnisdarstellung der Timeline; die Ergebniszahlen liest sie über `summarizeCombat` |
+| `src/raid/phases.tsx` | Routen-, Kampf- und Ergebnisdarstellung der Timeline; die Ergebniszahlen liest sie über `summarizeCombat`, den Hinterhalt zeigt sie einzeln statt nur als Klassen-Zählung |
 | `test/dungeon-editor.test.ts` | State-/Model-Tests der Editor-Logik |
 | `test/village-phase.test.ts` | Phase-Übergänge, Skip-Verbot und Store-Verhalten |
 | `test/day-night-loop.test.ts` | End-to-End-Loop mit Fake-Timern unter 5 s |

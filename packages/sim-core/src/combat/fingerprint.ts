@@ -20,6 +20,7 @@ function specHash(spec: CombatUnitSpec): number {
     spec.moveCooldown,
     spec.attackCooldown,
     spec.routeIndex,
+    spec.ambushZoneId,
   ])
   return hash
 }
@@ -50,7 +51,7 @@ export function fingerprintCombatLog(log: CombatLog): string {
   for (const entry of log.trail)
     hash = hashWord(
       hash,
-      hashWords(hashStart(), [entry.x, entry.y, entry.cell]),
+      hashWords(hashStart(), [entry.x, entry.y, entry.cell, entry.zoneId]),
     )
   for (const unit of log.units) hash = hashWord(hash, specHash(unit))
   for (const event of log.events) hash = hashWord(hash, eventHash(event))

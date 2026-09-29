@@ -9,6 +9,7 @@ export type FxKind =
   | 'magic'
   | 'smoke'
   | 'blood'
+  | 'ambush'
   | 'ambient'
 
 /**

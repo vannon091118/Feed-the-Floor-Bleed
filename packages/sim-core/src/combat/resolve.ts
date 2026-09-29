@@ -1,4 +1,10 @@
-import { type DungeonGrid, findPath, getCell } from '../grid'
+import {
+  classifyDungeonZones,
+  type DungeonGrid,
+  findPath,
+  GRID_SIZE,
+  getCell,
+} from '../grid'
 import {
   buildCombatUnits,
   type DefenderSlot,
@@ -20,6 +26,15 @@ export interface ResolveCombatInput {
   config?: CombatConfig
 }
 
+/**
+ * Rechnet einen Dungeon zu einem vollständigen Log.
+ *
+ * Die Zonen entstehen hier einmal und werden in den Trail gestempelt. Damit ist
+ * der Trail die einzige Ortsquelle des Laufs: `simulateCombat` liest ihn, und
+ * `replayCombat` hat überhaupt nur den Log. Ein zweiter Kontext neben dem Trail
+ * wäre eine zweite Wahrheit über dieselbe Fläche — und der Replay-Pfad hätte
+ * sie nicht.
+ */
 export function resolveCombat(input: ResolveCombatInput): CombatLog {
   if (input.teamSize < 1 || input.teamSize > 5)
     throw new Error('teamSize must be between 1 and 5')
@@ -28,15 +43,23 @@ export function resolveCombat(input: ResolveCombatInput): CombatLog {
   const route = findPath(input.grid)
   if (route.mode === 'unreachable')
     throw new Error('combat requires a reachable route')
+  const zones = classifyDungeonZones(input.grid)
   const trail: CombatTrailEntry[] = route.path.map((point) => ({
     x: point.x,
     y: point.y,
     cell: getCell(input.grid, point),
+    // `null` gibt es nur für Wände, und Wände liegen nie auf der Route.
+    zoneId: zones.byCell[point.y * GRID_SIZE + point.x]?.id ?? -1,
   }))
+  const placements = zones.placements
   const units = buildCombatUnits({
     teamSize: input.teamSize,
     defenders: input.defenders,
-    routeLength: route.path.length,
+    trail,
+    placements,
+    placementZoneIds: placements.map(
+      (group) => zones.byCell[group[0]]?.id ?? -1,
+    ),
   })
   return simulateCombat({ seed: input.seed, units, config, trail })
 }

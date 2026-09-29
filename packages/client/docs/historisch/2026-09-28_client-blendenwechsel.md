@@ -1,0 +1,13 @@
+## 2026-09-28 — Die Blende übersteht auch den nächsten Phasenwechsel
+
+**Der Befund.** Läuft eine Blende noch und kommt der nächste Phasenwechsel, kehrte der Browser die laufende Blende um und kürzte sie: Die Summe der Deckkräfte fiel gemessen auf **0,487** (19 Stichproben unter 0,97 über rund 0,3 s), der Tagesüberzug verlor sichtbar die halbe Tönung. Der Eintrag darunter beschrieb die Summe 1 deshalb nur für den isolierten Wechsel.
+
+**Die Entscheidung.** Die Startwerte rechnet jetzt der Visual-Owner: `daylightFadeStarts` lässt die ausgehenden Ebenen auf ihrem Ist-Wert starten und die neue auf dem Komplement — im Ruhezustand sind das 0, aus einer halb gelaufenen Blende etwa 0,5. `ui/daylight-fade.ts` fährt die Blende ein: erst `transition: none` samt Ist-Wert, dann ein erzwungener Stilwechsel, dann die Ziele über den Übergang aus `shell.css`. Ohne den Zwischenschritt kehrt der Browser die laufende Blende um; mit ihm setzt jede Ebene von ihrem Ist-Wert neu an. Die Blende gehört damit dem Applier, nicht dem Renderlauf: Preact hält nur Tönung und Reihenfolge der Ebenen und überschreibt nichts, was gerade läuft.
+
+**Der Test.** `test/daylight.test.ts` pinnt die Rechnung statt der Verdrahtung: Ruhezustand (genau eine Ebene auf 1, Summe 1), Startwerte aus dem Ruhezustand (`[1,0,0,0]`) und aus einer halb gelaufenen Blende (`[0,2,0,3,0,5,0]`), die Summe an fünf Stützstellen über den ganzen Verlauf einer unterbrochenen Blende und die Deckelung von Ausreißern. Dazu weiter Ebenen, Namen und `transition: opacity` mit der Zahl aus `DAYLIGHT_FADE_MS`.
+
+**Im Browser.** Einzeldatei-Produktionsbuild, echte Klicks, Stichproben alle 25–30 ms auf allen vier Ebenen. Isolierter Wechsel Tag → Nacht: 45 Stichproben, Summe **1,000** in jeder, zwei laufende Übergänge (`opacity`, 900 ms). Unterbrochener Wechsel („Nacht vorbereiten“, 300 ms später „Raid auslösen“): 62 Stichproben, kein Wert unter **0,999**, größte Abweichung 0,001 (die Stichprobe rundet auf drei Stellen) — an derselben Stelle standen vorher 0,487. Dauerfeuer, so schnell die Oberfläche es zulässt: 114 Klicks, 29 Schleifendurchläufe von Tag 18 auf Tag 47, 236 Stichproben, kleinster Wert **1,000**, größte Abweichung **0,000**. Die Schleife läuft dabei vollständig durch (Tag 47 → Nacht → Raid mit Timeline → Ergebnis → Tag 48), ein `<canvas>`, keine Konsolenmeldung.
+
+**Gates:** typecheck 0, 258 Tests in 41 Dateien, Lint 0, LOC-Caps ok (228 Quelldateien), Hygiene ok, Shinon PASS, Client-Build und Worker-Dry-Run ok.
+
+Der Eintrag vom 2026-09-28 zum Tageswechsel als Blende steht wortgleich in `historisch/2026-09-28_client-tageswechsel.md`. Er ist unverändert erhalten.

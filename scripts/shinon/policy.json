@@ -87,6 +87,11 @@
     },
     { "prefix": "packages/client/src/ui", "cap": 120, "owner": "ui" },
     { "prefix": "packages/client/src", "cap": 150, "owner": "client/fallback" },
+    {
+      "prefix": "packages/client/tools",
+      "cap": 150,
+      "owner": "client/tools"
+    },
     { "prefix": "packages/server/src/db", "cap": 120, "owner": "db" },
     {
       "prefix": "packages/server/src/matchmaking",

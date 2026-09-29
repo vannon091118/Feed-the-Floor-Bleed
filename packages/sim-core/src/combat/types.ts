@@ -1,7 +1,7 @@
 export type CombatSide = 'heroes' | 'monsters'
 export type CombatRole = 'hero' | 'monster' | 'boss'
 export type CombatStage = 'heroes-win' | 'monsters-win' | 'timeout'
-export type CombatEventType = 'move' | 'attack' | 'death' | 'end'
+export type CombatEventType = 'move' | 'attack' | 'death' | 'ambush' | 'end'
 
 export interface CombatConfig {
   tickRate: number
@@ -22,13 +22,31 @@ export interface CombatUnitSpec {
   initiative: number
   moveCooldown: number
   attackCooldown: number
+  /**
+   * Platz auf der Route. Vorwärts und rückwärts geht es in Schritten von eins:
+   * die Route ist die Bewegungswahrheit, nicht die freie Fläche. Die Zelle
+   * einer Einheit steht deshalb nicht hier, sondern in `trail[routeIndex]` —
+   * ein zweites Feld wäre eine zweite Wahrheit über denselben Ort.
+   */
   routeIndex: number
+  /**
+   * Zone, in der die Einheit als Hinterhalt aufgestellt ist, oder `-1`.
+   *
+   * Der Wert kommt aus der Platzierungsgruppe, in der der Verteidiger steht
+   * (`grid/zones.ts`). Er steht im Log, weil das Replay ihn sonst nicht kennt:
+   * der erste Angriff einer so aufgestellten Einheit durchdringt Rüstung.
+   */
+  ambushZoneId: number
 }
 
 export interface CombatUnitState extends CombatUnitSpec {
   hp: number
   nextActionTick: number
   alive: boolean
+  /** Einmalig: nach dem ersten Angriff ist der Hinterhalt verbraucht. */
+  ambushAvailable: boolean
+  /** Zone der aktuellen Route-Zelle, aus `trail[routeIndex]`. */
+  zoneId: number
 }
 
 export interface CombatEvent {
@@ -37,6 +55,7 @@ export interface CombatEvent {
   actorId: string
   targetId: string
   amount: number
+  /** Route-Indizes; bei `move` und bei Angriffen sind es die Orte der Beteiligten. */
   fromIndex: number
   toIndex: number
   stage: CombatStage | 'running'
@@ -46,6 +65,14 @@ export interface CombatTrailEntry {
   x: number
   y: number
   cell: number
+  /**
+   * Zone der Zelle, aus `classifyDungeonZones` beim Aufbau des Laufs.
+   *
+   * Sie steht im Trail und nicht in einem eigenen Log-Feld, weil
+   * `replayCombat` ausschließlich den Log verliest: die Zone einer Einheit ist
+   * die Zone ihrer aktuellen Route-Zelle, und die muss im Log stehen.
+   */
+  zoneId: number
 }
 
 export interface CombatLog {

@@ -17,7 +17,7 @@
 | `net/token` | Server-Token für Seed-Vergabe |
 | `storage/dexie` | IndexedDB Name/Version |
 | `visual/layer` | `'void' \| 'terrain' \| 'world' \| 'overlay'` |
-| `visual/fx-kind` | `'dust' \| 'hit' \| 'spark' \| 'magic' \| 'smoke' \| 'blood' \| 'ambient'` |
+| `visual/fx-kind` | `'dust' \| 'hit' \| 'spark' \| 'magic' \| 'smoke' \| 'blood' \| 'ambush' \| 'ambient'` |
 | `visual/actor-kind` | `'hero' \| 'monster' \| 'boss'` |
 | `visual/material-id` | `soil`, `stone`, `moss`, `wood`, `arcane` |
 | `visual/descriptor` | `TerrainTile`, `ActorDescriptor`, `FxDescriptor` inkl. stabilem Event-Seed, `VisualDelta` |
@@ -32,7 +32,8 @@
 | `render/route` | Marker folgen `route.path`; aktiver Hero-Index markiert Combat-Fortschritt ohne zweite Positionsquelle |
 | `visual/route-index` | `routePointAt(path, index)` klemmt Actor-/FX-Indizes auf denselben Route-Punkt |
 | `visual/actor-variant` | `actorVariant(id)` liefert identische deterministische Varianten in Leerlauf und Combat |
-| `raid/trail` | Seit T1.1: `CombatLog.trail` (x/y/cell je Schritt) fließt in den Kampf-Hash; die Anzeige kann den Trail statt `route.path` nutzen |
+| `raid/trail` | Seit T1.1: `CombatLog.trail` (x/y/cell je Schritt) fließt in den Kampf-Hash; seit Contract v7 trägt jeder Schritt zusätzlich seine `zoneId`, und die Anzeige kann den Trail statt `route.path` nutzen |
+| `raid/ambush-entry` | `Hinterhalt bei Tick 143: ein Verteidiger überrascht einen Helden` — ein Eintrag je `ambush`-Ereignis; Tick und Ziel in Worten, keine Kennung aus dem Log |
 | `phase/state` | `'tag' \| 'night' \| 'raid' \| 'result'` — Schleifenreihenfolge, einziger Owner `village/state.ts` |
 | `village/building-kind` | `'hall' \| 'guild' \| 'house' \| 'workshop'` — Union in `village/balance.ts`, von der Renderer-Seite nur entlehnt |
 | `village/building-level` | Ganzzahl ab 1, erzwungen in `village/economy.ts`; letzte Stufe je Art steht in `BALANCE.buildings.<art>.maxLevel`, der Ausbaupreis ist `upgradeCoefficient · n²` |
@@ -76,7 +77,8 @@ Wohnhaus und Werkstatt.
 Die Timeline-Klassen `raid-timeline`, `timeline-phase-nav`, `timeline-phase-step`,
 `timeline-scrubber`, `timeline-scrub-step`, `timeline-scrub-readout`,
 `timeline-phase`, `timeline-trail`, `timeline-clusters`, `timeline-cluster-type`,
-`timeline-facts` und `timeline-hint` gehören zu `src/raid/raid-timeline.tsx`,
+`timeline-events`, `timeline-event`, `timeline-facts` und `timeline-hint`
+gehören zu `src/raid/raid-timeline.tsx`,
 `phase-nav.tsx` und `phases.tsx`. Sie erscheinen ausschließlich in der
 Raid-Phase und sind mit dem UI-Rebase nach `ui/styles/raid.css` überführt.
 `timeline-scrubber` klebt dabei am Oberkant des Fensterinhalts: die

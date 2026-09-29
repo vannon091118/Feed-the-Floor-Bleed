@@ -12,6 +12,7 @@ import {
   stepPlayback,
 } from '../src/raid/playback'
 import {
+  ambushEvents,
   buildTimelineSections,
   clusterEvents,
   eventsByPhase,
@@ -55,6 +56,29 @@ describe('RaidTimeline-Phasen', () => {
     expect(phaseForTick(sections, sections.combatStart)).toBe('combat')
     expect(phaseForTick(sections, sections.lastTick)).toBe('result')
     expect(phaseForTick(sections, sections.lastTick + 5)).toBe('result')
+  })
+
+  it('nennt jeden Hinterhalt einzeln mit Tick und Ziel, in Log-Reihenfolge', () => {
+    const { log } = fixtureRaidLog()
+    const counted = log.events.filter((event) => event.type === 'ambush')
+    const ambushes = ambushEvents(log)
+    // Der Startdungeon trägt zwei Platzierungsgruppen und der Fixture-Raid zwei
+    // Verteidiger: der Hinterhalt ist im laufenden Lauf keine leere Menge.
+    expect(counted.length).toBeGreaterThan(0)
+    expect(ambushes).toHaveLength(counted.length)
+    for (const [index, ambush] of ambushes.entries()) {
+      expect(ambush.tick).toBe(counted[index].tick)
+      expect(ambush.actorId).toBe(counted[index].actorId)
+      // Nur Monster werden aufgestellt, und ihre Ziele sind Helden. Die
+      // Ausgabe ist ein Wort aus dem Spiel, keine Kennung aus dem Log.
+      expect(ambush.target).toBe('einen Helden')
+    }
+    const badges = new Set(
+      log.trail
+        .filter((entry) => trailBadge(entry.cell) === 'placement')
+        .map((entry) => `${entry.x},${entry.y}`),
+    )
+    expect(badges.has('30,0')).toBe(true)
   })
 
   it('markiert Platzierungs-, Spawn- und Boss-Zellen im Trail', () => {

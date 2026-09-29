@@ -5,16 +5,22 @@ import {
 } from '@floor/sim-core'
 
 /**
- * Kantenlänge eines sichtbaren Tiles in Weltpixeln.
+ * Kantenlänge einer Logikzelle in Weltpixeln.
+ *
+ * Die Zelle ist die einzige Asset-Einheit: Boden- und Wandkacheln werden
+ * genau so groß gerastert und 1:1 gezeichnet. Ein 8:1-Downscale per Nearest
+ * wäre keine Detailvermehrung, sondern zufälliges Aliasing.
+ */
+export const WORLD_CELL_PX = 32
+
+/**
+ * Kantenlänge eines sichtbaren Tiles in Weltpixeln — die 4×4-Gruppe darüber.
  *
  * Reine Präsentation: Die Simulation kennt keine Pixel. Alle Renderer- und
  * Pointer-Systeme lesen ihre Skalierung ausschließlich hier, damit Kamera,
  * Hit-Test und Layout dieselbe Zahl benutzen.
  */
-export const WORLD_TILE_PX = 32
-
-/** Kantenlänge einer Logikzelle in Weltpixeln. */
-export const WORLD_CELL_PX = WORLD_TILE_PX / LOGIC_CELLS_PER_VISIBLE_TILE
+export const WORLD_TILE_PX = WORLD_CELL_PX * LOGIC_CELLS_PER_VISIBLE_TILE
 
 /** Kantenlänge der kompletten 64×64-Welt in Weltpixeln. */
 export const WORLD_SIZE_PX = GRID_SIZE * WORLD_CELL_PX

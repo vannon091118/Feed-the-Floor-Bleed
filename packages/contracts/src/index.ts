@@ -25,11 +25,13 @@ export {
   CombatSideSchema,
   type CombatStage,
   CombatStageSchema,
-  type CombatSummary,
-  CombatSummarySchema,
   type CombatUnitSpec,
   CombatUnitSpecSchema,
 } from './combat-log'
+export {
+  type CombatSummary,
+  CombatSummarySchema,
+} from './combat-summary'
 export {
   type DungeonGridPayload,
   DungeonGridSchema,

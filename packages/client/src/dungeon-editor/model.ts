@@ -2,6 +2,7 @@ import {
   CellType,
   type CellTypeValue,
   cloneDungeonGrid,
+  createDungeonGrid,
   type DungeonGrid,
   getCell,
   type PathResult,
@@ -41,6 +42,25 @@ export function paintTile(
     }
   }
   return next
+}
+
+/**
+ * Der Startdungeon des Probelaufs.
+ *
+ * Zwei Platzierungsgruppen liegen auf dem Korridor der Route: der Fixture-Raid
+ * stellt seine beiden Verteidiger damit in echten Zonen auf, und die
+ * Zonen-Regel greift im Lauf statt nur im Test. Ohne sie hätte kein Verteidiger
+ * eine Aufstellungszone, und der Hinterhalt bliebe aus — genau der Zustand, den
+ * `ambush.test.ts` sonst nur mit gesetztem Raster zeigen kann. Die Gruppen sind
+ * Startdaten des Editors wie Spawn und Boss: der Spieler kann sie übermalen,
+ * weil sie im Raster stehen und nicht daneben.
+ */
+export function startDungeon(): DungeonGrid {
+  const grid = createDungeonGrid()
+  for (const x of [30, 31, 50, 51]) {
+    setCell(grid, { x, y: 0 }, CellType.Placement)
+  }
+  return grid
 }
 
 export function visibleRouteTiles(route: PathResult): Set<number> {

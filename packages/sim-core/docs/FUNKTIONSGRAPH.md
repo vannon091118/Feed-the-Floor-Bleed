@@ -7,8 +7,9 @@ math:fixed ──────▶ combat:state (Schaden), combat:rules (Provision
 math:isqrt ──────▶ public sqrtFixed
 hash:fnv1a ──────▶ combat:fingerprint ──▶ CombatLog.hash
 grid:serialize ───▶ combat:fixture-job (Upload → DungeonGrid)
-grid:findPath ───▶ combat:resolve (Routenlänge) ──▶ combat:simulate
-combat:simulate ─▶ combat:state (Zielwahl, Stage) + combat:actions (move/attack)
+grid:findPath ───▶ combat:resolve (Trail mit x/y/cell) ──▶ combat:simulate
+grid:classifyDungeonZones ─▶ combat:resolve (Trail-Zone + Platzierungsgruppen) ─▶ combat:rules (ambushZoneId)
+combat:simulate ─▶ combat:state (Zielwahl, Zone je Route-Index, Stage) + combat:actions (move/attack/ambush)
 combat:boss ──────▶ combat:rules (Boss-Spec) + combat:state (Stage) + combat:summary (bossAlive)
 combat:summary ───▶ combat:resolve-snapshot (ResultPayload)
 combat:resolve-snapshot ──▶ combat:fixture-job (RaidJob)
@@ -25,6 +26,11 @@ prng + hash ───────────▶ genome:mutation (einzige Zufall
 
 `sim-core` hat keine Kante zu `client`, `server`, `fs` oder Zeit. `fixture-job`
 ist die einzige Stelle, die einen Auftrag als Ganzes betrachtet.
+
+`combat` rechnet ohne zweiten Ortskontext: die Zone einer Einheit ist
+`trail[routeIndex].zoneId`, der Trail kommt aus `resolveCombat`. Deshalb bleibt
+`replayCombat` auf dem Log allein lauffähig — die Kante `combat:replay`
+`──▶ combat:simulate` trägt keinen Grid-Zugriff.
 
 `combat` liest die Art des Verteidigers aus `genome/stats` und die Basiswerte
 aus `src/units.ts`; die Kante läuft in eine Richtung. `genome` liest selbst nur

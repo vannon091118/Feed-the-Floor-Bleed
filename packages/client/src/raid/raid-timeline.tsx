@@ -106,7 +106,7 @@ export function RaidTimeline() {
         onSelect={(tick) => scrubTo(tick)}
       />
       <RoutePhase scrub={scrubTo} active={active.value} />
-      <CombatPhase />
+      <CombatPhase scrub={scrubTo} />
       <ResultPhase />
     </div>
   )

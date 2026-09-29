@@ -1,41 +1,16 @@
-import { sim_version } from '@floor/contracts'
 import { describe, expect, it } from 'vitest'
 import {
+  contractVersionOf,
   databaseWith,
   jobById,
   migration,
   openJob,
+  simVersionOf,
   snapshot,
 } from './migration-fixtures.mjs'
 
 const toV5 = migration('003_contract_v5.sql')
 const toV6 = migration('004_contract_v6.sql')
-
-/**
- * @param {import('node:sqlite').DatabaseSync} db
- * @param {string} id
- * @returns {string} die `sim_version`-Spalte der Zeile
- */
-function simVersionOf(db, id) {
-  const row = db
-    .prepare('SELECT sim_version FROM raid_snapshots WHERE id = ?')
-    .get(id)
-  if (!row) throw new Error(`Snapshot ${id} fehlt`)
-  return String(row.sim_version)
-}
-
-/**
- * @param {import('node:sqlite').DatabaseSync} db
- * @param {string} id
- * @returns {number} die `contractVersion` im Payload
- */
-function contractVersionOf(db, id) {
-  const row = db
-    .prepare('SELECT payload_json FROM raid_snapshots WHERE id = ?')
-    .get(id)
-  if (!row) throw new Error(`Snapshot ${id} fehlt`)
-  return JSON.parse(String(row.payload_json)).contractVersion
-}
 
 describe('Migration auf Contract v6', () => {
   it('hebt einen v5-Stand an, statt ihn zu löschen', () => {
@@ -44,7 +19,10 @@ describe('Migration auf Contract v6', () => {
     openJob(db, 'job-v5', 'v5', 'player-1')
     db.exec(toV6)
 
-    expect(simVersionOf(db, 'v5')).toBe(sim_version)
+    // Der Wert der abgelösten Ära, nicht der aktuelle: `004` ist eine
+    // Momentaufnahme des Sprungs 5→6 und wird bei späteren Sprüngen nicht
+    // angepasst. Die aktuelle Version prüft der Test der neuesten Migration.
+    expect(simVersionOf(db, 'v5')).toBe('0.0.5')
     expect(contractVersionOf(db, 'v5')).toBe(6)
     // Der Job bleibt: sein Ergebnis ist unter demselben Kampfmodell gerechnet.
     expect(jobById(db, 'job-v5')).toBeTruthy()

@@ -4,6 +4,7 @@ import type {
   CombatLog,
   CombatStage,
   CombatTrailEntry,
+  CombatUnitSpec,
 } from '@floor/contracts'
 
 export type PhaseId = 'route' | 'combat' | 'result'
@@ -36,6 +37,13 @@ export interface EventBuckets {
   route: CombatEvent[]
   combat: CombatEvent[]
   result: CombatEvent[]
+}
+
+/** Ein Hinterhalt in den Worten des Spiels: wann, und wen es getroffen hat. */
+export interface AmbushEvent {
+  tick: number
+  actorId: string
+  target: string
 }
 
 export const PHASE_LABELS: Record<PhaseId, string> = {
@@ -120,6 +128,36 @@ export function eventsByPhase(
     else buckets.combat.push(event)
   }
   return buckets
+}
+
+/**
+ * Die Hinterhalt-Ereignisse einzeln, in Log-Reihenfolge.
+ *
+ * Die Klasse zählt `clusterEvents`; hier steht jedes Vorkommen mit seinem Tick,
+ * damit der Spieler den Hinterhalt als Ereignis liest und nicht nur als Zahl in
+ * einer Klasse. Das Ziel wird zur Seite des Getroffenen aufgelöst — die Kennung
+ * `monster-0` gehört nicht auf den Bildschirm.
+ */
+const TARGET_LABELS: Record<CombatUnitSpec['side'], string> = {
+  heroes: 'einen Helden',
+  monsters: 'ein Monster',
+}
+const TARGET_FALLBACK = 'ein Ziel'
+
+export function ambushEvents(log: CombatLog): AmbushEvent[] {
+  const sideById = new Map<string, CombatUnitSpec['side']>(
+    log.units.map((unit) => [unit.id, unit.side]),
+  )
+  return log.events
+    .filter((event) => event.type === 'ambush')
+    .map((event) => {
+      const side = sideById.get(event.targetId)
+      return {
+        tick: event.tick,
+        actorId: event.actorId,
+        target: side ? TARGET_LABELS[side] : TARGET_FALLBACK,
+      }
+    })
 }
 
 /** Cluster der Kampf-Phase nach Ereignis-Klasse, in Logs-Reihenfolge. */

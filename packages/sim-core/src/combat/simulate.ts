@@ -23,7 +23,7 @@ export interface SimulateCombatInput {
 }
 
 export function simulateCombat(input: SimulateCombatInput): CombatLog {
-  const states = createUnitStates(input.units, input.config)
+  const states = createUnitStates(input.units, input.config, input.trail)
   const events: CombatEvent[] = []
   let stage: CombatStage = 'timeout'
   let ticks = 0
@@ -39,7 +39,7 @@ export function simulateCombat(input: SimulateCombatInput): CombatLog {
       if (distanceBetween(actor, target) <= input.config.attackRange) {
         applyAttack(actor, target, tick, events, input.seed, input.config)
       } else {
-        applyMove(actor, target, tick, events)
+        applyMove(actor, target, tick, events, input.trail)
       }
     }
     const evaluated = evaluateStage(states, ticks, input.config)

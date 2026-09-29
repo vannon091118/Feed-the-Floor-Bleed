@@ -12,7 +12,7 @@ visual (ohne Pixi)
   ├─ variant: actorVariant(id), identische Leerlauf-/Combat-Varianten
   ├─ actor-frame: combatActors(units, events, route.path, tick)
   ├─ route-actors: routeActors(route.path)
-  ├─ event-fx: eventFx(event, route.path)
+  ├─ event-fx: eventFx(event, route.path) — dust/hit/blood/ambush, Menge aus event.amount
   ├─ fx-seed: fxSeed(event) → stabile, präsentationslokale ID
   ├─ daylight: daylightLayers / daylightTargets / daylightFadeStarts → Ebenen,
   │            Ruhezustand und Blendenstart mit Deckkraftsumme 1
@@ -75,6 +75,8 @@ ui
 
 dungeon-editor/state (einziger Grid-Owner)
   ├─ grid / brush Signals, route = computed(findPath)
+  ├─ model.startDungeon → Startdungeon mit zwei Platzierungsgruppen auf dem
+  │            Korridor; Editor-Start, resetGrid und die Raid-Testquelle lesen sie
   └─ paintVisibleTile → model.paintTile
 
 village (einziger Phase- und Dorfwirtschafts-Owner)
@@ -134,10 +136,12 @@ raid (besitzt den Lauf; die Timeline liest ihn, rechnet nichts)
   ├─ playback: playbackLog / playbackTick / playbackPaused, stepPlayback,
   │            setScrubTick, playbackRouteIndex
   ├─ timeline-model: buildTimelineSections, phaseForTick, clusterEvents,
-  │                 trailBadge
+  │                 trailBadge, ambushEvents (jedes Hinterhalt-Ereignis mit
+  │                 Tick und Ziel in Worten)
   ├─ phases: RoutePhase / CombatPhase / ResultPhase — die Überlebendenzahlen
   │          kommen aus @floor/sim-core summarizeCombat, nicht aus einer
-  │          zweiten Zählung
+  │          zweiten Zählung; CombatPhase zählt je Klasse und listet den
+  │          Hinterhalt zusätzlich einzeln als Knopf auf seinen Tick
   ├─ phase-nav: drei Phasen-Knöpfe → setScrubTick(Phasenbeginn)
   ├─ raid-timeline: TimelineTransport (Scrubber, Play/Pause) + PhaseNav +
   │                RoutePhase + CombatPhase + ResultPhase

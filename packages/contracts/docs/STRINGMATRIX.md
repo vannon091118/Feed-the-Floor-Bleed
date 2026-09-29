@@ -4,21 +4,21 @@
 
 | Schlüssel | Wert | Bedeutung |
 |-----------|------|-----------|
-| `CONTRACT_VERSION` | `4` |major des Wire-Formats |
-| `sim_version` | `0.0.3` | exakt akzeptierte Simulationsversion |
+| `CONTRACT_VERSION` | `7` |major des Wire-Formats |
+| `sim_version` | `0.0.6` | exakt akzeptierte Simulationsversion |
 
-Jeder Raid-Snapshot, jedes Ergebnis, jeder Log und jeder Auftrag führt verpflichtend `contractVersion: 4` und `simVersion: "0.0.3"`.
+Jeder Raid-Snapshot, jedes Ergebnis, jeder Log und jeder Auftrag führt verpflichtend `contractVersion: 7` und `simVersion: "0.0.6"`.
 
 ## Raid-Freeze
 
 | Schlüssel | Exakter Typ |
 |-----------|-------------|
 | `snapshot.resources` | `{ gold: safe integer, materials: safe integer }` |
-| `snapshot.monsterSlots` | exakt 5 × `{ monsterId: non-empty string \| null }` |
+| `snapshot.monsterSlots` | exakt 5 × `{ monsterId: non-empty string \| null, generation?: Integer ≥ 1 }` |
 | `snapshot.activeTeam` | 1..5 × `{ heroId: non-empty string, temporaryFatigue: safe integer, temporaryInjury: safe integer }` |
 | `snapshot.dungeon` | `DungeonGrid` mit 4096 Zellen und Koordinaten 0..63 |
 
-Keine weiteren Werte, Formeln oder Balancing-Regeln sind Teil des v5-Snapshotvertrags. Dieser Stand ist **privat**: Er geht an den Server, nicht an den Angreifer.
+Keine weiteren Werte, Formeln oder Balancing-Regeln sind Teil des v7-Snapshotvertrags. Dieser Stand ist **privat**: Er geht an den Server, nicht an den Angreifer.
 
 ## Ergebnislog und Auftrag
 
@@ -26,9 +26,10 @@ Keine weiteren Werte, Formeln oder Balancing-Regeln sind Teil des v5-Snapshotver
 |-----------|-------------|
 | `log.stage` | `'heroes-win' \| 'monsters-win' \| 'timeout'` |
 | `log.hash` | `^[0-9a-f]{8}$` |
-| `log.events[].type` | `'move' \| 'attack' \| 'death' \| 'end'` |
+| `log.events[].type` | `'move' \| 'attack' \| 'death' \| 'ambush' \| 'end'`; ein `ambush` trägt in `amount` die durchdrungene Rüstung |
 | `log.events[].stage` | obige drei oder `'running'` |
-| `log.trail[]` | `{ x: 0..63, y: 0..63, cell: 0..4 }`, jeder Schritt der Route in Reihenfolge |
+| `log.trail[]` | `{ x: 0..63, y: 0..63, cell: 0..4, zoneId: ≥ -1 }`, jeder Schritt der Route in Reihenfolge; `-1` steht für „keine Zone“ |
+| `log.units[]` | `{ id, side, role, maxHp, attack, defense, initiative, moveCooldown, attackCooldown, routeIndex, ambushZoneId }`; `routeIndex` zeigt auf eine Trail-Zelle, `ambushZoneId` ist die Zone der Platzierungsgruppe (`-1` sonst) |
 
 ## Angreifer-Sicht
 
@@ -66,4 +67,4 @@ mit `result` sind nicht darstellbar.
 | Defender geschützt | `protected` |
 | Frist abgelaufen | `timeout` |
 
-Unbekannte Codes, fehlende Pflichtfelder und zusätzliche Felder werden durch `.strict()` abgewiesen. Contract v1/v2/v3 wird von v4 nicht akzeptiert.
+Unbekannte Codes, fehlende Pflichtfelder und zusätzliche Felder werden durch `.strict()` abgewiesen. Die Contract-Stände v1 bis v6 werden von v7 nicht akzeptiert.

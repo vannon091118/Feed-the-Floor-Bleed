@@ -1,5 +1,19 @@
 # packages/server/docs/CHANGELOG.md
 
+## 2026-09-29 — Migration 005 zieht Contract v7 nach, ohne Daten zu verlieren
+
+**Scope:** neu `migrations/005_contract_v7.sql` und `src/db/raid-migration-v7.test.mjs`. Geändert `src/db/migration-fixtures.mjs` (Migrationen als Kette, Versionsleser geteilt) und `src/db/raid-migration-v6.test.mjs`. Keine Route, kein Schema, keine Spalte geändert.
+
+**Schreiben statt löschen, aus demselben Grund wie bei 004.** Ein v6-Snapshot ist die eingefrorene *Eingabe* — Ressourcen, Monster-Slots mit Generation, Heldenteam, Dungeon. Ihre Form ändert sich in v7 nicht: der Kampf wird beim Lesen und beim Replay gerechnet. Jede v6-Zeile ist damit semantisch eine v7-Zeile, und ein Löschvorgang vernichtete lesbare Daten.
+
+**Was hier anders ist als bei v6, und warum es dasteht.** Das Kampfmodell ändert sich in v7 sehr wohl — die Bewegung, die Zonen und damit jeder Hash. Ein `result_json` aus der v6-Ära trägt deshalb einen Hash, den die neue Engine nicht mehr reproduziert. Er wird nirgends nachgerechnet: Das serverseitige Replay-Gate ist T3.2 und nicht gebaut, der Hash ist bis dahin Replay-Selbstkonsistenz in `sim-core`. Der Datensatz bleibt lesbar und in sich stimmig; die Epoche markiert das Versionsfeld, nicht die Löschung. Der Kopf der Migration spricht das aus, statt es zu verschweigen.
+
+**Das Prädikat nennt die abgelöste Version ausdrücklich.** `005` fasst nur `sim_version IN ('0.0.5')` an, nie „alles außer der aktuellen". Der dritte Test des v6-Laufs bleibt damit gültig und ist unverändert: eine spätere Version überlebt. Seine Versionszusage vergleicht jetzt den Wert der *abgelösten* Ära (`0.0.5`) statt `sim_version` aus dem Contract — sonst hätte jeder folgende Sprung diesen Test rot gemacht; den aktuellen Wert prüft der Test der neuesten Migration.
+
+**Zwei Dubletten sind aufgelöst, keine umgangen.** Die Versionsleser standen nach dem neuen Test doppelt in zwei Ära-Testdateien, und das Redundancy-Gate hat es gemeldet; `simVersionOf`/`contractVersionOf` liegen jetzt mit einem zusammenfassenden `versionsOf` in `migration-fixtures.mjs`. `databaseWith` nimmt dafür eine Kette von Migrationen entgegen (`databaseWith(toV5, toV6)`), weil der v7-Test den Stand *vor* seinem Sprung braucht; der Aufruf mit einer Datei bleibt derselbe.
+
+**Gates:** typecheck 0, 474 Tests in 69 Dateien, Lint 0, LOC-Caps ok, Hygiene ok, Shinon PASS.
+
 ## 2026-09-29 — Migration 004 zieht Contract v6 nach, ohne Daten zu verlieren
 
 **Scope:** neu `migrations/004_contract_v6.sql`, `src/db/raid-migration-v6.test.mjs` und `src/db/migration-fixtures.mjs`. Geändert `src/db/raid-migration-v5.test.mjs` (Helfer jetzt geteilt). Keine Route, kein Schema, keine Spalte geändert.

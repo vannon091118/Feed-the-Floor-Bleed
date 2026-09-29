@@ -1,9 +1,6 @@
 import { z } from 'zod'
-import {
-  CombatHashSchema,
-  CombatLogSchema,
-  CombatSummarySchema,
-} from './combat-log'
+import { CombatHashSchema, CombatLogSchema } from './combat-log'
+import { CombatSummarySchema } from './combat-summary'
 import { RaidPublicViewSchema } from './raid-public'
 import { RaidSnapshotSchema } from './raid-snapshot'
 import { versionEnvelope } from './version'

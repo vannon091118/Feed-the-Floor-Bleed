@@ -5,7 +5,7 @@
 ## Sofortentscheidungen E1–E6
 
 | ID | Entscheidung | Begründung |
-|---|---|---|
+| --- | --- | --- |
 | E1 | Es gibt in diesem Epic nur Gold und Materialien: Gold kommt aus besiegten Raid-Gegnern, abhängig von Stärke/Generation; Materialien kommen aus Werkstätten und Upgrades. Ein statischer typisierter Katalog macht Anzeige und spätere Ergänzung einfach, ohne ein dynamisches Plugin-System an den strikten Wire-Contracten vorbei einzuführen. | Die Contract-v4-Ressourcen sind bereits `gold` und `materials`; neue Gameplay-Ressourcen brauchen weiterhin einen bewussten Contract-/Simulationsversionsschritt. |
 | E2 | Der Client simuliert den lokalen Raid und rendert das Replay. Vor jeder Online-Belohnung prüft der Server denselben deterministischen Core gegen Snapshot, Seed und geordnete Eingaben; der Server besitzt persistierte Konten, Pools und Fortschritt. | Clientseitige Berechnung hält die Darstellung direkt; allein clientseitige Ergebnisse wären manipulierbar und dürfen keinen persistierten Fortschritt begründen. |
 | E3 | Zulässig sind selbst erstellte Pixel-Art-Rasterdateien für die Welt und handgeschriebene SVG-Icons. Die beigefügten Bilder sind Stilreferenzen, keine Assets. Bis eigene Rastergrafik vorliegt, bleibt die prozedurale Canvas-Textur als Fallback. | So wird der gewünschte Pixel-Look erreicht, ohne fremde/unbekannte Bildrechte oder einen zweiten Grafikstil einzuführen. |
@@ -28,7 +28,7 @@
 Alle Pakete sind **seriell**, nicht parallel. LOC sind Netto-Schätzungen für Source und Tests. Nach jedem Slice werden betroffene Domain-Pflichtdokus aktualisiert; bestehende Caps bleiben verbindlich.
 
 | ID | Abhängigkeit | Scope / Owner | LOC ca. | Fertig, wenn |
-|---|---|---|---:|---|
+| --- | --- | --- | ---: | --- |
 | S0 / A0+G | — | Dieses Grundsatzdokument, Roadmap-Slices, Konzeptregeln und Asset-Briefing. | 80–140 Dokuzeilen | E1–E6 und alle `[N]`/`[K]`-Grenzen sind schriftlich konsistent; die Asset-Spezifikation steht, bevor Bilder in den Build kommen. |
 | S1 / Visuals | S0 | Ressourcenleiste mit SVG, typisierter Katalog, Pixi-Asset-Manifest/Loader mit Fallback, Pixi-Modi Dorf/Editor/Raid und zugängliche DOM-Steuerung. | 280–430 | Genau Gold/Material aus ihrer Datenquelle; flache Editor- und atmosphärische Raid-Sicht teilen denselben Grid-Owner; fehlendes Bild crasht nicht; Tastatur-/Screenreaderpfad bleibt. |
 | S2 / Dorf | S1 + Balancefreigabe | 10×10-Siedlung, Bau-/Upgrade-Commands für Häuser/Werkstätten, horizontale Landerweiterung, deterministische Wirtschaftsableitung, Rückkehrbilanz-Toast. | 320–500 | Überlappungen und unbezahlte Aktionen werden abgewiesen; Materialertrag nur einmal je Rückkehr; Gold nur aus verifizierter Raid-Beute; keine nicht freigegebenen Zahlen. |
@@ -49,7 +49,7 @@ Vor dem ersten Wirtschafts-, Slot-, Loot- oder Matching-Verhaltenscode werden ko
 **Der Auftraggeber hat am 2026-09-28 die Dorf- und Slot-Balance freigegeben.** Damit ist die oben genannte Freigabepflicht für S2 und S3 erfüllt, und genau eine Zahlenquelle existiert im Repository: `packages/client/src/village/balance.ts`. Jede Regelrechnung in `packages/client/src/village/economy.ts` bekommt diese Werte ausdrücklich übergeben; außerhalb dieser Datei steht keine Kosten-, Ertrags-, Kapazitäts- oder Preisgröße mehr — auch die Startarbeiterbasis und die Attraktivität nicht, die die Anzeige im Wohnhausfenster aus dieser Config liest statt aus den Fixture-Daten. **Verdrahtet ist bisher nur der Tagesertrag:** `dailyYield` schreibt bei der Rückkehr in den Dorfbestand, alle übrigen freigegebenen Preisfunktionen haben noch keinen Aufrufer im Spiel. Die Balance ist damit freigegeben, aber noch nicht im Spiel erlebbar.
 
 | Wert | Freigegeben | Grenzfall |
-|------|-------------|-----------|
+| ------ | ------------- | ----------- |
 | Startbestand | 120 Gold, 7 Material | Die erste Werkstatt kostet 80/6 und ist damit bezahlbar; danach bleiben 40 Gold und 1 Material, eine Landerweiterung (60/5) ist dann nicht mehr bezahlbar. |
 | Startarbeiterbasis | 12 Arbeiter | Die Kapazität ist `floor(12 / 2) = 6` Werkstätten; ohne Goldzuwachs ist die Basis nur durch Wohnhäuser veränderbar. |
 | Grundrisse | Halle 3×3, Gilde 3×3, Wohnhaus 2×2, Werkstatt 2×3 Rasterzellen | 10×10 sind 100 Zellen, nach den zwei festen Orten bleiben 82 frei. |
@@ -70,6 +70,25 @@ Rathaus und Gilde tragen `buildable: false`: Sie sind feste Startorte und werden
 
 ## Asset-Briefing
 
-- Eigene PNG-Spritesheets, transparent, ohne eingebrannte UI-Texte. Dungeon-Boden: nahtlose 8×8-Pixel-Frames (8 Weltpixel je Logikzelle); Wandframes mit Fußpunkt mittig unten und Varianten für 16 N/E/S/W-Nachbarschaftsmasken. Spawn/Trap/Boss bleiben klare Code-Overlays.
+- Eigene PNG-Spritesheets, transparent, ohne eingebrannte UI-Texte. Dungeon-Boden: nahtlose 32×32-Pixel-Frames — **eine Logikzelle ist genau ein Frame**, seit dem 2026-09-29. Vorher trug die Zelle 8 Weltpixel und die Texturen wurden per Nearest darauf gestaucht; das war zufälliges Aliasing, keine Detailvermehrung. Wandframes 32×54, Fußpunkt mittig unten, aus der künstlichen Höhe in `world/tiles.ts`. Die 16 N/E/S/W-Nachbarschaftsmasken stehen weiterhin aus; bis dahin trägt die Wand eine versetzte Quaderfassade ohne Nachbarschaftsauswahl. Spawn/Trap/Boss bleiben klare Code-Overlays.
 - Dorf-Grundraster: 32×32 Weltpixel. IDs: Rathaus, Gilde, Haus, Werkstatt; Gebäudeframes in 32-Pixel-Vielfachen, Pivot mittig am unteren Fußpunkt. Stil darf innerhalb des Sprites pseudo-isometrisch wirken; Grid/Kamera/Hit-Test bleiben orthogonal.
 - Manifest führt pro Sprite stabile ID, Sheet-Rechteck, Weltmaß, Pivot, Footprint und Herkunft/Freigabe. Pixi lädt lokal; prozedurale Texturen bleiben Fallback; Pixel-Art skaliert ohne Glättung.
+
+## Asset-Register — Dungeon-Boden und Wände
+
+Alle sechs Blätter sind **selbst erstellt** und werden von einem Skript im Repository erzeugt, nicht von Hand geliefert: `pnpm --filter @floor/client assets`. Die Erzeugung ist deterministisch — derselbe Aufruf liefert bytegleiche Dateien, geprüft von `packages/client/test/asset-generator.test.ts`. E6 ist damit erfüllt: Herkunft und Erzeugung sind nachvollziehbar, nicht behauptet.
+
+| Blatt | Maße | Frames | Herkunft und Freigabe |
+| -------- | ------ | -------: | ---------------------- |
+| `dungeon_floor_arcane.png` | 32×32 | 5 | Selbst erzeugt, `tools/draw.mjs`. Freigegeben: Auftraggeber, 2026-09-29 |
+| `dungeon_floor_stone.png` | 32×32 | 8 | Selbst erzeugt, `tools/draw.mjs`. Freigegeben: Auftraggeber, 2026-09-29 |
+| `dungeon_floor_wood.png` | 32×32 | 4 | Selbst erzeugt, `tools/draw.mjs`. Freigegeben: Auftraggeber, 2026-09-29 |
+| `dungeon_floor_soil.png` | 32×32 | 6 | Selbst erzeugt, `tools/draw.mjs`. Freigegeben: Auftraggeber, 2026-09-29 |
+| `dungeon_floor_moss.png` | 32×32 | 5 | Selbst erzeugt, `tools/draw.mjs`. Freigegeben: Auftraggeber, 2026-09-29 |
+| `dungeon_wall_stone.png` | 32×54 | 8 | Selbst erzeugt, `tools/draw-wall.mjs`. Freigegeben: Auftraggeber, 2026-09-29 |
+
+**Die Stilvorlage sind sechs Referenzblätter des Auftraggebers, keine Assets.** Sie sind ausdrücklich nicht ins Repository gewandert; E3 und E6 schließen das für. Ihre Bildsprache ist als Regel in `tools/palette.mjs` und `tools/tile-shapes.mjs` übersetzt: gedämpfte Sättigung, dunkle Fugen zwischen großen Platten, warme Glanzpunkte, eine Gitterstruktur in Arkane, Dielen mit durchlaufender Maserung in Holz.
+
+Soil und Moss sind durch keine Stilvorlage belegt — für sie wurden die Grundregeln der belegten Blätter übernommen. Ihre Palette stammt aus `world/materials.ts`, nicht aus dem Bild.
+
+**Dorf- und Actor-Blätter fehlen weiterhin.** Sie bleiben prozedural, bis ihr Block kommt; `ASSET_MANIFEST` führt für sie noch keine Einträge.

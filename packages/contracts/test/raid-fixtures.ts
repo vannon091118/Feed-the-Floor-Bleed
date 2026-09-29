@@ -71,6 +71,7 @@ export function combatLog(): CombatLog {
         moveCooldown: 2,
         attackCooldown: 3,
         routeIndex: 0,
+        ambushZoneId: -1,
       },
       {
         id: 'boss-0',
@@ -83,6 +84,7 @@ export function combatLog(): CombatLog {
         moveCooldown: 4,
         attackCooldown: 3,
         routeIndex: 3,
+        ambushZoneId: -1,
       },
     ],
     events: [
@@ -111,10 +113,10 @@ export function combatLog(): CombatLog {
     ticks: 5,
     hash: HASH,
     trail: [
-      { x: 0, y: 0, cell: 3 },
-      { x: 1, y: 0, cell: 0 },
-      { x: 2, y: 0, cell: 0 },
-      { x: 3, y: 0, cell: 4 },
+      { x: 0, y: 0, cell: 3, zoneId: 0 },
+      { x: 1, y: 0, cell: 0, zoneId: 0 },
+      { x: 2, y: 0, cell: 0, zoneId: 0 },
+      { x: 3, y: 0, cell: 4, zoneId: 1 },
     ],
   }
 }
