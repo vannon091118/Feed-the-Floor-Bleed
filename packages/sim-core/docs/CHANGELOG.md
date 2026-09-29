@@ -90,9 +90,13 @@ Ein Review der Kernannahmen hat fünf Punkte gemeldet. Drei betrafen Code und si
 
 Zwei der fünf Punkte waren Fehlannahmen und brauchen keinen Code. Die Vermutung, `mulFixed` breche den Determinismus über Plattformgrenzen, trifft nicht zu: `*`, `/` und `Math.trunc` sind IEEE-Operationen und auf jeder konformen Engine bitgleich, und oberhalb der Mantissengrenze ist das Ergebnis falsch, aber nicht verschieden — nachgemessen weicht `mulFixed(9007199254740994, 1001)` um genau 2 vom exakten `9016206453995734` ab. Und die acht leeren Namespaces (`sim-core/genome`, `ghost`, `items`, `client/net`, `storage`, `inventory`, `server/matchmaking`, `sync`) enthalten nur `.gitkeep` und stehen bereits als nicht implementiert in `docs/CONCEPT_REVIEW.md` und `docs/ROADMAP.md`; die Pflichtdoku war dort schon richtig, also kein Delta.
 
+> **Überholt am 2026-09-29:** Dieser Absatz führt `genome` unter den leeren Namespaces mit nur `.gitkeep`. Die Domäne ist an diesem Tag gebaut worden; `ghost`, `items`, `client/net`, `storage`, `inventory`, `server/matchmaking` und `sync` bleiben leere Namespaces.
+
 Der Kommentar an `ROUTE_SLOTS` nennt jetzt zusätzlich den Mechanismus hinter der Annahme: das `closed`-Feld in `search` verhindert, dass eine Zelle erneut expandiert wird. Genau dieses fehlende Bindeglied war der Anlass des Befunds, obwohl die Annahme selbst nie falsch war.
 
 **Nicht geändert:** Der Determinismus steht nicht zur Debatte. `*`, `/` und `Math.trunc` sind IEEE-Operationen und liefern auf jeder konformen Engine dasselbe Ergebnis; ein Genauigkeitsverlust wäre ein falscher, aber kein plattformabhängiger Hash. Die leeren geplanten Domänen (`genome`, `ghost`, `items`, `net`, `storage`, `inventory`, `matchmaking`, `sync`) sind in `docs/CONCEPT_REVIEW.md` als nicht implementiert und in `docs/ROADMAP.md` als T2/T3 geführt.
+
+> **Überholt am 2026-09-29:** Dieser Absatz nennt `genome` unter den leeren Namespaces. `packages/sim-core/src/genome/` ist an diesem Tag gebaut worden (20 Basis-Monster, Traits und Boni, gekoppelte Mutation). `items`, `ghost`, `net`, `storage`, `inventory` und `matchmaking` sind weiterhin leere Namespaces.
 
 ## 2026-09-26 — Review-Nachgang T1.1: toter Trail-Vergleich, Lint und Wrapper
 
