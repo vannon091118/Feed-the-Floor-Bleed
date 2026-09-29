@@ -86,7 +86,7 @@ export function fixtureRaidLog() {
     grid,
     seed: 4242,
     teamSize: 3,
-    monsterSlots: 2,
+    defenders: [{ baseId: 'frost-wolf' }, { baseId: 'stone-golem' }],
     floor: 1,
     token: 'fixture-raid-log',
   })

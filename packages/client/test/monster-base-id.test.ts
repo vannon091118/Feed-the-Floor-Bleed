@@ -24,7 +24,7 @@ describe('Basisart am Actor', () => {
     return resolveSnapshotRaid({
       grid,
       teamSize: 3,
-      monsterSlots: 2,
+      defenders: [{ baseId: 'frost-wolf' }, { baseId: 'stone-golem' }],
       seed: 4242,
       floor: 1,
       token,

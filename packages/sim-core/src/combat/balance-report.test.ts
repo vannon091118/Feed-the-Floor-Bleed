@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { baseMonsters } from '../genome/registry'
 import { createDungeonGrid } from '../grid'
 import { defaultCombatConfig, resolveCombat } from './index'
 
@@ -29,12 +30,19 @@ interface Row {
   'Ø Ticks': number
 }
 
+/** Die ersten n Arten des Pools, in Slot-Reihenfolge. */
+function defenders(count: number): { baseId: string }[] {
+  return baseMonsters()
+    .slice(0, count)
+    .map((base) => ({ baseId: base.id }))
+}
+
 function run(monsterSlots: number, seed: number) {
   return resolveCombat({
     grid: createDungeonGrid(),
     seed,
     teamSize: TEAM_SIZE,
-    monsterSlots,
+    defenders: defenders(monsterSlots),
     config: defaultCombatConfig(),
   })
 }

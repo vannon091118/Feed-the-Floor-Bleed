@@ -11,10 +11,6 @@ import { grid, route } from '../dungeon-editor/state'
 import { fixture, fixtureRaid } from '../fixture-data'
 import { setPlaybackLog } from './playback'
 
-function occupiedSlots(): number {
-  return fixture.monsterSlots.filter((slot) => slot.monsterId).length
-}
-
 /**
  * Die Basisart je Verteidiger-Slot, in der Reihenfolge, in der der Core die
  * Monster aufgebaut hat.
@@ -48,7 +44,9 @@ export function buildCombatLog(
   return resolveSnapshotRaid({
     grid: current,
     teamSize: fixture.team.length,
-    monsterSlots: occupiedSlots(),
+    defenders: fixture.monsterSlots.map((slot) => ({
+      baseId: slot.monsterId,
+    })),
     seed: fixtureRaid.seed,
     floor: fixtureRaid.floor,
     token: fixtureRaid.jobId,

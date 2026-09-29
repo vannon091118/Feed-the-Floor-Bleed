@@ -14,7 +14,7 @@ import type { BaseMonster, Genome } from './types'
  * gemessen, nicht behauptet: die zwanzig Arten liegen in `maxHp + attack +
  * defense` zwischen 51561 und 54816, also in gut sechs Prozent. Eine Skala aus
  * diesen Werten würde Rauschen in Stufen gießen, und die Grenzen müssten bei
- * jeder Änderung an `PROVISIONAL_RULES.monster` mitwandern. Das Elementbudget
+ * jeder Änderung an `UNIT_BASE.monster` mitwandern. Das Elementbudget
  * dagegen liegt zwischen 9500 und 21900 und trennt die Arten wirklich.
  *
  * **Die Schwellen sind `[K]` und stehen hier.** Sie sind keine Rundungszahlen,

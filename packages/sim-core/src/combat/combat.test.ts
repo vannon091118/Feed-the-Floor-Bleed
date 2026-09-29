@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { baseMonsters } from '../genome/registry'
 import { CellType, createDungeonGrid, setCell } from '../grid'
 import {
   buildCombatUnits,
@@ -11,7 +12,12 @@ import {
 import { createUnitStates, damageFor } from './state'
 
 const grid = createDungeonGrid()
-const base = { grid, teamSize: 3, monsterSlots: 5 }
+/** n echte Basisarten, damit die Tests dasselbe rechnen wie das Spiel. */
+const defenders = (count: number) =>
+  baseMonsters()
+    .slice(0, count)
+    .map((base) => ({ baseId: base.id }))
+const base = { grid, teamSize: 3, defenders: defenders(5) }
 
 describe('Deterministischer Combat-Core', () => {
   it('erzeugt bei gleichem Seed denselben Hash und identischen Log', () => {
@@ -52,7 +58,7 @@ describe('Deterministischer Combat-Core', () => {
       grid,
       seed: 5,
       teamSize: 1,
-      monsterSlots: 2,
+      defenders: defenders(2),
       config,
     })
     const summary = summarizeCombat(log)
@@ -83,13 +89,13 @@ describe('Deterministischer Combat-Core', () => {
       summary.monstersAlive -
       (summary.bossAlive ? 1 : 0)
     expect(reckoning).toBe(slain)
-    expect(summary.defendersTotal).toBe(base.monsterSlots + 1)
+    expect(summary.defendersTotal).toBe(base.defenders.length + 1)
   })
 
   it('stellt Helden vorne und den Boss ans Routenende', () => {
     const units = buildCombatUnits({
       teamSize: 3,
-      monsterSlots: 2,
+      defenders: defenders(2),
       routeLength: 100,
     })
     expect(units[0].side).toBe('heroes')
@@ -99,7 +105,9 @@ describe('Deterministischer Combat-Core', () => {
 
   it('begrenzt Team und Monster-Slots auf das bestätigte Maximum', () => {
     expect(() => resolveCombat({ ...base, seed: 1, teamSize: 6 })).toThrow()
-    expect(() => resolveCombat({ ...base, seed: 1, monsterSlots: 6 })).toThrow()
+    expect(() =>
+      resolveCombat({ ...base, seed: 1, defenders: defenders(6) }),
+    ).toThrow()
   })
 
   it('verweigert Combat ohne erreichbare Route', () => {
@@ -107,7 +115,12 @@ describe('Deterministischer Combat-Core', () => {
     setCell(blocked, { x: 62, y: 63 }, CellType.Wall)
     setCell(blocked, { x: 63, y: 62 }, CellType.Wall)
     expect(() =>
-      resolveCombat({ grid: blocked, seed: 1, teamSize: 3, monsterSlots: 5 }),
+      resolveCombat({
+        grid: blocked,
+        seed: 1,
+        teamSize: 3,
+        defenders: defenders(5),
+      }),
     ).toThrow()
   })
 })
@@ -115,7 +128,7 @@ describe('Deterministischer Combat-Core', () => {
 describe('Schadensformel', () => {
   const config = defaultCombatConfig()
   const units = createUnitStates(
-    buildCombatUnits({ teamSize: 1, monsterSlots: 0, routeLength: 2 }),
+    buildCombatUnits({ teamSize: 1, defenders: [], routeLength: 2 }),
     config,
   )
   const hero = units[0]

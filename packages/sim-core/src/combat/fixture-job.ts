@@ -69,10 +69,10 @@ function issueDetail(error: {
   return first.path.join('.')
 }
 
-function occupiedSlots(slots: ReadonlyArray<{ monsterId: string | null }>) {
-  let count = 0
-  for (const slot of slots) if (slot.monsterId) count += 1
-  return count
+function defenderSlots(
+  slots: ReadonlyArray<{ monsterId: string | null }>,
+): { baseId: string | null }[] {
+  return slots.map((slot) => ({ baseId: slot.monsterId }))
 }
 
 /**
@@ -105,7 +105,7 @@ export function runFixtureRaid(input: FixtureRaidInput): TerminalRaidJob {
   const raid = resolveSnapshotRaid({
     grid,
     teamSize: parsed.data.activeTeam.length,
-    monsterSlots: occupiedSlots(parsed.data.monsterSlots),
+    defenders: defenderSlots(parsed.data.monsterSlots),
     seed: input.seed,
     floor: input.floor,
     token: input.jobId,

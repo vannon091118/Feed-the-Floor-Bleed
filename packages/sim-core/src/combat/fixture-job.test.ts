@@ -90,7 +90,7 @@ describe('Lokale Fixture-Job-Ausführung', () => {
     const raid = resolveSnapshotRaid({
       grid: toDungeonGrid(upload().dungeon),
       teamSize: 1,
-      monsterSlots: 2,
+      defenders: [{ baseId: 'stone-golem' }, { baseId: 'frost-wolf' }],
       seed: base.seed,
       floor: base.floor,
       token: base.jobId,

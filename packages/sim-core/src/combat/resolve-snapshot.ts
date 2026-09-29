@@ -15,7 +15,8 @@ import { summarizeCombat } from './summary'
 export interface SnapshotRaidInput {
   grid: DungeonGrid
   teamSize: number
-  monsterSlots: number
+  /** Die Verteidiger in Slot-Reihenfolge; leere Plätze als `null`. */
+  defenders: readonly { baseId: string | null }[]
   seed: number
   floor: number
   token: string
@@ -45,7 +46,7 @@ export function resolveSnapshotRaid(input: SnapshotRaidInput): SnapshotRaid {
     seed: input.seed,
     grid: input.grid,
     teamSize: input.teamSize,
-    monsterSlots: input.monsterSlots,
+    defenders: input.defenders,
     config: input.config,
   })
   const log = CombatLogSchema.parse(simulated)

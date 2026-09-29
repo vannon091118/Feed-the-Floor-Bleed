@@ -1,5 +1,5 @@
-import { PROVISIONAL_RULES } from '../combat/rules'
 import { clampInt } from '../math'
+import { UNIT_BASE } from '../units'
 import { strengthOfElements } from './strength'
 import type { MonsterStats } from './types'
 
@@ -19,12 +19,14 @@ import type { MonsterStats } from './types'
  * stand hier ein Hash der Basis-ID; der ist weg, weil er eine zweite Zahl für
  * dieselbe Frage war und der Beute widersprechen konnte.
  *
- * Der Nullpunkt kommt aus `PROVISIONAL_RULES.monster`, dem einzigen Ort, an
- * dem die Ausgangswerte stehen. `genome` rechnet keine Kämpfe, es liest nur
- * dieselben Zahlen, mit denen der Core rechnet, damit beide dieselbe Basis
- * meinen.
+ * Der Nullpunkt kommt aus `UNIT_BASE.monster` in `src/units.ts`, dem Ort, an
+ * dem die Ausgangswerte stehen. Die Datei liegt bewusst **außerhalb** von
+ * `combat`: als sie noch in `combat/rules.ts` lag, schloss sich der Kreis
+ * `combat/rules` → `genome/stats` → `combat/rules`, und der erste Zugriff auf
+ * die Basiswerte warf. `genome` rechnet keine Kämpfe, es liest nur dieselben
+ * Zahlen, mit denen der Core rechnet, damit beide dieselbe Basis meinen.
  */
-const BASE = PROVISIONAL_RULES.monster
+const BASE = UNIT_BASE.monster
 
 /** Wie stark Element 0 (Masse) auf die Gesundheit wirkt, in Promille. */
 const HP_GAIN = 260

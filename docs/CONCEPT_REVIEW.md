@@ -41,6 +41,19 @@ Die vollständige Detail- und Sprintquelle ist `docs/VISUAL_GRUNDSATZ.md`; die f
   | 5 | 0 % | 100 % | 0 % | 227 |
 
   **Der Befund ist eine Wand, kein Band.** Zwischen zwei und drei Plätzen kippt die Quote von 81 % auf 0 %; dort liegt kein justierbarer Zielbereich, sondern ein Bruch. Ein Zielband über die Plätze hinweg ist mit diesen Werten nicht benennbar, und der Bruch ist vor jeder Feinabstimmung zu klären. Ob die Ursache in der Besetzung, der Gruppenstärke oder der Wegführung liegt, ist offen und durch eine Messung zu beantworten, die den Faktor einzeln variiert. Die Prozentzahlen sind gerundet und deshalb nicht summierbar. `[K]`
+
+- **Neumessung vom 2026-09-29, nachdem der Kampf die Art des Verteidigers kennt.** Dieselbe Werkzeugkette, 500 Seeds je Verteidigerplatz, jetzt mit den echten Basisarten statt einer Anzahl gleich starker Kopien:
+
+  | Plätze | 0 | 1 | 2 | 3 | 4 | 5 |
+  |---|---|---|---|---|---|---|
+  | Helden | 90 % | 0 % | 0 % | 0 % | 0 % | 0 % |
+  | Boss | 10 % | 100 % | 100 % | 100 % | 100 % | 100 % |
+  | Ø Ticks | 217 | 217 | 219 | 214 | 211 | 104 |
+
+  **Die alte Wand war ein Artefakt, der echte Befund ist schärfer.** Vorher bekam jeder Verteidiger-Slot dieselben Basiswerte, weil `resolveCombat` nur die **Anzahl** belegter Plätze entgegennahm und `fixture-job.ts` die `monsterId` vorher zu einer Zahl zusammenzählte. Fünf Slots waren fünf Kopien; gemessen wurde damit eine Kopie-Sackgasse, nicht das Spiel. Seit `resolveCombat` die Art entgegennimmt, rechnet der Kampf die Werte aus `genome/stats` — und **ein einziges Monster schlägt drei Helden zuverlässig**.
+
+  **Die Ursache ist eine Größenordnung, keine Abstimmung.** Gemessen: ein Held hat 60000 Gesundheit und 12000 Angriff, ein echtes Monster rund 41000 und rund 9000. Die `HP_GAIN`/`ATTACK_GAIN` des Genoms sind auf einen 40000er-Nullpunkt gerechnet, während die Heldenbasis mit 60000 nie gegen einen echten Monsterwert gemessen wurde. Der zweite Golden-Pin bestätigt es: fünf Monster beenden den Kampf in 180 statt 401 Ticks. **Die Zahl, die das richtet, ist eine `[K]`-Größe und wird hier nicht erfunden.** Zu entscheiden ist, ob die Heldenbasis steigt, die Monsterbasis sinkt oder die Elementgewichte neu gesetzt werden — jede dieser drei Wege verschiebt die Goldformel nicht, aber den Golden-Pin. `[K]`
+
 - **Der Angreifer sieht nur den Maze-Weg und die Bonus-Schätze.** Sichtbar sind der Maze-Weg (Labyrinth, Spawn, Boss) und die Bonus-Schätze, sonst nichts — auch nicht die Anzahl der Monster. Seine einzige Eingabe ist die Heldenauswahl. Monsterplatzierungen, Gruppen, Patrouillen und die Platzierungsmarkierungen selbst bleiben für ihn unsichtbar; sichtbar wird eine Begegnung erst, wenn der Run läuft. Die Route bestimmt immer das Pathfinding, nie eine Spielentscheidung; den Umweg wählt der Angreifer nur mittelbar über markierte Schätze. Umgesetzt am 2026-09-29 als `RaidPublicViewSchema` mit `toPublicView` in `packages/contracts/src/raid-public.ts`: Die Match-Antwort trägt diese Sicht, der volle Stand bleibt beim Server. `[N]`
 - **Platzierungsmarkierung statt Falle.** Eine Placement Tile markiert den Bereich, in dem eine Monster-Gruppe steht. Sie macht keinen Schaden; die bisherige Optik darf vorerst bleiben. `[N]`
 - **Patrouille ist ein Weg.** Ein Bereich trägt eine Zellenliste als Weg; der angezeigte Pfeil nennt Startpunkt und erste Richtung. Gruppen laufen diesen Weg während des Raids. `[N]`

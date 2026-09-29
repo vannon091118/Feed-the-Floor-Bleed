@@ -80,15 +80,18 @@ und kein Zufallsnebel entsteht: jedes Element zieht sein Gegenstück runter.
 
 ## Combat-Regeln
 
-Die HP-, Angriffs- und Cooldown-Werte von Helden und Monstern stehen zentral als
-`PROVISIONAL_RULES` in `src/combat/rules.ts`, die des Bosses als `BOSS_RULES` in
-`src/combat/boss.ts`. Beide sind nicht abgenommen (`[K]` in
-`docs/CONCEPT_REVIEW.md`) und werden dort ersetzt, ohne die Engine umzubauen. Die
-Engine selbst kennt keine eigenen Balancing-Zahlen.
+Die HP-, Angriffs- und Cooldown-Ausgangswerte von Helden und Monstern stehen
+als `UNIT_BASE` in `src/units.ts`, die Kampfregeln als `PROVISIONAL_RULES` in
+`src/combat/rules.ts`, die des Bosses als `BOSS_RULES` in `src/combat/boss.ts`.
+Alle drei sind nicht abgenommen (`[K]` in `docs/CONCEPT_REVIEW.md`) und werden
+dort ersetzt, ohne die Engine umzubauen. Die Engine selbst kennt keine eigenen
+Balancing-Zahlen.
 
-`genome/stats.ts` liest `PROVISIONAL_RULES.monster` als Nullpunkt, statt eine
-zweite Kopie der Basiswerte zu halten. `genome` rechnet damit keine Kämpfe, es
-verwendet dieselben Ausgangswerte.
+`genome/stats.ts` liest `UNIT_BASE.monster` als Nullpunkt, statt eine zweite
+Kopie der Basiswerte zu halten. `genome` rechnet damit keine Kämpfe, es
+verwendet dieselben Ausgangswerte. `src/units.ts` liegt bewusst außerhalb
+beider Domänen: läge der Nullpunkt in `combat/rules`, schlöss sich der Kreis
+`combat/rules` → `genome/stats` → `combat/rules`.
 
 ## Eine Quelle der Überlebendenzahlen
 

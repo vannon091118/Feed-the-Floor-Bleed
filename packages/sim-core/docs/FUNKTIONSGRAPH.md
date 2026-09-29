@@ -23,11 +23,11 @@ genome:resolve ────────▶ öffentliche Kampfwerte eines Genoms
 prng + hash ───────────▶ genome:mutation (einzige Zufallsquelle der Zucht)
 ```
 
-`sim-core` hat keine Kante zu `client`, `server`, `fs` oder Zeit. Combat liest
-nur Grid, Math, PRNG, Hash und `@floor/contracts`; umgekehrt kennt keines dieser
-Module Combat. `fixture-job` ist die einzige Stelle, die einen Auftrag als Ganzes
-betrachtet.
+`sim-core` hat keine Kante zu `client`, `server`, `fs` oder Zeit. `fixture-job`
+ist die einzige Stelle, die einen Auftrag als Ganzes betrachtet.
 
-`genome` liest `combat/rules` für `PROVISIONAL_RULES` und rechnet sonst keine
-Kämpfe. Die Kante ist eine Lesekante, kein Zyklus: `combat` kennt `genome`
-nirgends.
+`combat` liest die Art des Verteidigers aus `genome/stats` und die Basiswerte
+aus `src/units.ts`; die Kante läuft in eine Richtung. `genome` liest selbst nur
+`math`, `prng`, `hash` und `units` und rechnet keine Kämpfe. `src/units.ts`
+gehört keiner der beiden Domänen an und trägt genau diese eine Wahrheit, damit
+die Kante keine Schleife schließen kann.

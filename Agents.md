@@ -18,7 +18,7 @@ Dieses Repository folgt verbindlichen Regeln. Diese Datei ist der Einstieg und l
 
 - Alle Contributor und Agenten befolgen diese Datei sowie die jeweils einschlägigen Regelwerke unter `docs/REGELWERK_*.md`.
 - Diese Datei setzt repoweite Grundsätze. Die verlinkten Regelwerke sind für ihre jeweiligen Fachdetails verbindlich. Bei Widerspruch gilt diese Datei.
-- Freigegeben sind genau zwei schreibgeschützte Custom-Agent-Profile, beide ohne Kopie der Repo-Regeln und beide ohne `edit`-Werkzeug, damit der Schreibschutz mechanisch gilt: `.github/agents/critical-adversarial-reviewer.agent.md` prüft belegbasiert Trees und Diffs und repariert nichts; `.github/agents/berater.agent.md` liefert kurze, zynische Second Opinions zu Idee, Diff oder Gate-Ausgabe und ändert nichts. Weitere Profile oder Änderungen an diesen Ausnahmen brauchen ausdrückliche Freigabe und Doku-Touch.
+- Freigegeben sind genau vier schreibgeschützte Custom-Agent-Profile, alle ohne Kopie der Repo-Regeln und alle ohne `edit`-Werkzeug, damit der Schreibschutz mechanisch gilt: `.github/agents/critical-adversarial-reviewer.agent.md` prüft belegbasiert Trees und Diffs und repariert nichts; `.github/agents/berater.agent.md` liefert kurze, zynische Second Opinions zu Idee, Diff oder Gate-Ausgabe und ändert nichts; `.github/agents/lex.agent.md` sucht Löschkandidaten nach dem Vorreinigungslos und ändert nichts; `.github/agents/contexti.agent.md` sammelt messbaren Kontext ohne Bewertung und ändert nichts. Weitere Profile oder Änderungen an diesen Ausnahmen brauchen ausdrückliche Freigabe und Doku-Touch.
 
 ## Sprache und Umgang
 

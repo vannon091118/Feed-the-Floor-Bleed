@@ -1,5 +1,19 @@
 # docs/CHANGELOG.md — Global
 
+## 2026-09-29 — Der Kampf erfährt, welches Wesen er rechnet
+
+**Ein Berater hat die Reihenfolge gedreht, und er hatte recht.** `combat` importierte nichts aus `genome`, und nichts außerhalb von `genome/` importierte `monsterStats`, `resolveStats` oder `strengthOf` — die gesamte Zuchtdomäne war vom Spiel getrennt. `resolveCombat` nahm nur die **Anzahl** belegter Plätze entgegen, `fixture-job.ts` zählte die `monsterId` vorher zu dieser Anzahl zusammen, und `monsterSpec` gab jedem Slot dieselben Werte. Fünf Verteidiger waren fünf Kopien. Das war nirgends sichtbar: das Typechecken sah gültige Zahlen, und die Balance-Messung meldete es als „eine Wand zwischen zwei und drei Plätzen", ohne die Ursache zu nennen.
+
+**Jetzt nimmt der Kampf die Art entgegen.** `resolveCombat` und `buildCombatUnits` führen `defenders` — eine Liste mit `baseId` je Slot und `null` für einen leeren Platz. Die Werte kommen aus `monsterStats` der Art, also laufen Kopplung, Stärke und Elemente wirklich in den Kampf ein. Eine unbekannte Art bekommt den generischen Platzhalter und bricht den Lauf nicht ab; ein veralteter Snapshot soll als „Wesen unbekannt" im Bild stehen, nicht die Expedition beenden. `occupiedSlots` in `combat-source.ts` ist mit der Korrektur überflüssig geworden und wurde gelöscht.
+
+**Ein Importkreis musste aufgelöst werden, und zwar strukturell.** Als `combat/rules.ts` anfing, über `genome` die Art zu holen, schloss sich `combat/rules` → `genome/stats` → `combat/rules`; `genome/stats.ts` hatte die Basiswerte bisher aus `combat/rules` geliehen, und beim Modulimport war das Objekt noch nicht fertig. Die Ausgangswerte liegen jetzt in `packages/sim-core/src/units.ts`, das keine der beiden Domänen besitzt, und `PROVISIONAL_RULES` reicht `hero` und `monster` von dort weiter — eine Datei, die beide importieren können, bricht den Kreis, statt ihn über die Importreihenfolge zu verstecken.
+
+**Der Golden-Pin ist gewandert, und die Zahlen sind der eigentliche Befund.** `94ba1954` wurde zu `97907d56` (225 auf 216 Ticks), `f85b31c0` zu `2759f7d8` (401 auf **180** Ticks). Fünf echte Monster beenden den Kampf in 180 statt 401 Ticks — vorher liefen dort fünf Kopien. Die Neumessung mit 500 Seeds und echten Arten ergibt 90 % Helden-Siegquote bei null Plätzen und **0 % ab einem einzigen**; die frühere Wand zwischen zwei und drei Plätzen war ein Artefakt der Kopien. Die Ursache ist eine Größenordnung: ein Held hat 60000 Gesundheit und 12000 Angriff, ein echtes Monster rund 41000 und rund 9000. **Die Zahl, die das richtet, ist eine `[K]`-Größe und wurde nicht erfunden.**
+
+**Der Nahttest fehlte, und genau der hätte es gefunden.** `packages/sim-core/src/combat/species-wiring.test.ts` steht neu an der Verbindung von Snapshot und Kampf und prüft, dass zwei Arten verschiedene Werte bekommen, dass leere Plätze nicht zählen, dass eine unbekannte Art den Lauf nicht beendet und dass alle zwanzig Arten zu **verschiedenen** Wesen rechnen. Der LOC-Gate zwang diese Tests in eine eigene Datei, weil `combat.test.ts` sonst über 150 Zeilen gelandet wäre — die Trennung traf sich zufällig genau mit dem neuen Thema.
+
+**Gates:** typecheck 0, 435 Tests in 63 Dateien, Lint 0, LOC-Caps ok, Hygiene ok, Shinon PASS.
+
 ## 2026-09-29 — Contract v6: die Generation steht am Slot, nicht im String
 
 **Die offene Transportfrage ist entschieden und gebaut.** `monsterSlots[i].generation` trägt seit `CONTRACT_VERSION 6` die Zuchtstufe des Verteidigers, `sim_version` steigt auf 0.0.5. Die Stärke ließ sich über `monsterId` aus der Registry auflösen, die Generation stand nirgends — sie musste an den eingefrorenen Verteidiger und nicht ins Ergebnis, weil ein Ergebnis, das sie nachzählte, sie erst dorthin kopieren müsste.
