@@ -41,7 +41,6 @@ describe('Nachwirkung auf die Initiative', () => {
       heroInitiative(BASE, condition(0, 5)),
     )
   })
-
 })
 
 describe('Die Nachwirkung erreicht den Log', () => {
