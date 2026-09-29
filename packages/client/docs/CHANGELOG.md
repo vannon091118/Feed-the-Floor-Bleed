@@ -1,5 +1,17 @@
 # packages/client/docs/CHANGELOG.md
 
+## 2026-09-29 — Die gekaufte Etage erreicht den Auftrag
+
+**Der Auftrag trug eine feste Eins, während das Dorf sie längst zählte.** `runLocalFixtureRaid` in `raid/fixture-raid.ts` schrieb `floor: fixtureRaid.floor`, eine Konstante aus `fixture-data.ts`. Seit `buyFloor` eine Etage in `village.floors` schreibt, war der Auftrag damit eine Lüge: der Verteidiger rückte auf Etage 1 aus, egal was der Dorfbestand trug. Der Probelauf liest jetzt `dayNight.value.village.floors` — dieselbe Quelle, aus der die Anzeige in `ui/floor-purchase.tsx` ihren Preis und den Fehlbetrag rechnet.
+
+**Der Replay-Pfad bleibt bewusst bei der Fixture.** `raid/combat-source.ts` lädt ein eingefrorenes Log und führt dafür `fixtureRaid.floor` weiter. Die beiden Aufrufe stellen zwei verschiedene Fragen: der Probelauf fragt „welche Etage gilt jetzt", das Replay fragt „unter welcher Etage entstand dieser Lauf". Ein Replay kauft keine Etage nach.
+
+**sim-core blieb unberührt, weil die Frage dort nicht beantwortbar ist.** `resolveSnapshotRaid` nimmt `floor` entgegen und legt es in die Contract-Envelope; die Simulationslogik kennt die Etage nicht, und die Kaufentscheidung liegt im Dorfbestand. Die Verdrahtung gehört damit in den Client-Owner, und zwar neben den Bestand, den der Upload dort bereits liest.
+
+**Zwei Vorreinigungen an der Etagen-Anzeige selbst.** `FloorPurchase` las `dayNight.value.village` und `floorPurchaseView(dayNight.value)` und damit dieselbe Quelle zweimal; die Zeile „Ausgebaut bis Etage {floors}" liest jetzt `view.naechste - 1`, weil der Blick denselben Bestand bereits trägt. Der Modulkopf von `village/floors.ts` stand auf 14 Zeilen und wiederholte die Grenzregel „Etage 1 gehört zum Ausgang und ist nicht kaufbar" ein zweites Mal — sie steht in `economy.ts` an der Implementierung, und eine Änderung an `floorCost` hätte den Kommentar still falsch gemacht.
+
+**Gates:** typecheck 0, 436 Tests in 64 Dateien, Lint 0, Redundancy-Gate ok, Schema-Contract-Gate ok, Shinon PASS, Client-Build grün.
+
 ## 2026-09-29 — Zwanzig Basis-Monster bekommen ein eigenes Sprite
 
 **Der Actor-Atlas kannte drei Rollen, die Registry führt zwanzig.** Neu `render/base-monster-atlas.ts`: jede Basisart zeichnet eine eigene Textur aus ihrer Palette und ihren drei Elementen. Viel Masse macht die Silhouette rund und tief, viel Tempo stellt sie aufrecht und kippt sie leicht, viel Härte kantet sie und gibt ihr Rückenplatten. Das Sprite ist damit eine Ableitung des Genoms und keine zweite Wahrheit über die Art.
@@ -172,17 +184,5 @@
 
 **Gates:** typecheck 0, 258 Tests in 41 Dateien, Lint 0, LOC-Caps ok (228 Quelldateien), Hygiene ok, Shinon PASS, Client-Build und Worker-Dry-Run ok.
 
-## 2026-09-28 — Der Tageswechsel ist eine Blende, kein Gradiententausch
+Der Eintrag vom 2026-09-28 zum Tageswechsel als Blende steht wortgleich in `historisch/2026-09-28_client-tageswechsel.md`. Er ist unverändert erhalten.
 
-**Der Befund.** Der Überzug deklarierte `transition: background 900ms`, und der Wechsel sprang trotzdem. Chromium interpoliert keinen Gradienten, es tauscht ihn aus — im selben Fenster nachgemessen: ein Gradient mit derselben Deklaration hat nach dem Wertwechsel **keine** laufende Animation und steht sofort auf dem neuen Wert, eine Farbfläche mit derselben Deklaration hat eine und liegt auf halbem Weg dazwischen. Die Deklaration war Fassade; die vier Phasen sind gesprungen, seit es den Überzug gibt.
-
-**Die Entscheidung.** Nicht mehr der Gradient wechselt, sondern die Deckkraft. `visual/daylight.ts` liefert statt einer Zeichenkette je Phase jetzt `daylightLayers(phase)`: alle vier Ebenen in fester Reihenfolge, genau eine mit Deckkraft 1. Die Shell rendert sie als Kinder des Überzugs, `shell.css` hängt Deckkraft und Übergang an `DAYLIGHT_LAYER_CLASS`. Weil auch die unsichtbaren Ebenen im DOM bleiben, laufen beim Wechsel zwei Deckkräfte gegenläufig — die alte nach unten, die neue nach oben. Ihre Summe bleibt dabei 1, die Tönung blendet also über, statt kurz zu verschwinden — solange die Blende allein läuft; läuft sie in die nächste, war das nicht mehr wahr, und der Eintrag darüber behebt genau das.
-
-**Der Test.** `test/daylight.test.ts` pinnt die Ebenen statt nur die Verdrahtung: feste Reihenfolge, genau eine sichtbare je Phase, vier unterscheidbare Tönungen, `transition: opacity` am Ebenennamen — und dass `transition: background` nicht zurückkehrt.
-
-**Im Browser.** Im Einzeldatei-Produktionsbuild, Tag 18, „Nacht vorbereiten" als echter Klick: genau zwei Übergänge laufen, `opacity`, 900 ms, `ease`. Die beteiligten Ebenen stehen 0/150/300/450/600/750/900 ms nach dem Start auf `0,978/0,697/0,334/0,163/0,05/0,01/0` und `0,022/0,303/0,666/0,837/0,95/0,99/1` — Summe durchgehend 1 beim isolierten Wechsel, keine Zwischenlücke. Die Schleife läuft dabei vollständig durch: „Auftrag rechnen" → Ergebnis → „Nächsten Tag beginnen" (Tag 19) → „Nacht vorbereiten". Nach dem Ausblenden stehen alle vier Ebenen im DOM mit der Summe 1, und der Überzug bleibt `pointer-events: none` bei `z-index: 4` als letztes Kind des Rahmens — `elementFromPoint` trifft die Topbar, nicht ihn.
-
-**Gates:** typecheck 0, 255 Tests in 41 Dateien, Lint 0, LOC-Caps ok (227 Quelldateien), Hygiene ok, Shinon PASS.
-
-
-Der Block vom 2026-09-27 zur Tagespalette steht in `historisch/2026-09-27_client-tagespalette.md`.

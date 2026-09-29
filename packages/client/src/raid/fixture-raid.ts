@@ -49,7 +49,7 @@ export function runLocalFixtureRaid(grid: DungeonGrid): TerminalRaidJob {
     upload: buildFixtureUpload(grid),
     jobId: fixtureRaid.jobId,
     seed: fixtureRaid.seed,
-    floor: fixtureRaid.floor,
+    floor: dayNight.value.village.floors,
     createdAt: fixtureRaid.createdAt,
     observedAt: fixtureRaid.observedAt,
   })

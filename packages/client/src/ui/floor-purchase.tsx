@@ -39,12 +39,11 @@ export function floorPurchaseView(state: DayNightState): FloorPurchaseView {
  * denn beide gehen über denselben Store.
  */
 export function FloorPurchase() {
-  const { floors } = dayNight.value.village
   const view = floorPurchaseView(dayNight.value)
   return (
     <div class="floor-purchase">
       <p class="panel__note">
-        Ausgebaut bis Etage {floors} · Etage {view.naechste} kostet{' '}
+        Ausgebaut bis Etage {view.naechste - 1} · Etage {view.naechste} kostet{' '}
         {view.preis === null ? 'keinen Preis' : `${view.preis} Gold`}
       </p>
       <button

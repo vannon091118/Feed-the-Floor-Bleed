@@ -29,9 +29,6 @@ import type { BaseMonster, Genome } from './types'
  * und oberen Ränder tragen je zwei bis drei Arten.
  */
 
-/** Die Stärkestufen. Sechs Werte, weil die Beute sechs Stufen kennt. */
-export const STRENGTH_STEPS = 6
-
 /**
  * Die oberen Budgetgrenzen der Stufen 1 bis 5, in aufsteigender Ordnung.
  *

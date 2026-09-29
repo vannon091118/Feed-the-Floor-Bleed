@@ -6,7 +6,6 @@ export {
   elementBudget,
   lootProfile,
   type SlotProfileSource,
-  STRENGTH_STEPS,
   slotLootProfile,
   strengthOfBase,
   strengthOfElements,
