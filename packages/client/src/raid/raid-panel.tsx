@@ -33,8 +33,8 @@ export function RaidPanel({
       </p>
       <p className="raid-note">
         Ergebnis, Fehler und Timeout tragen ihre Vertragsversion im Stand
-        selbst. Der vollständige Log steht als Timeline unter diesem Panel —
-        sie läuft im Dorf wie im Dungeon.
+        selbst. Der vollständige Log steht als Timeline unter diesem Panel — sie
+        läuft im Dorf wie im Dungeon.
       </p>
     </section>
   )
