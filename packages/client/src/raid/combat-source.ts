@@ -1,5 +1,6 @@
 import type { CombatLog } from '@floor/contracts'
 import {
+  baseMonsters,
   type DungeonGrid,
   hasValidRoute,
   type PathResult,
@@ -12,6 +13,24 @@ import { setPlaybackLog } from './playback'
 
 function occupiedSlots(): number {
   return fixture.monsterSlots.filter((slot) => slot.monsterId).length
+}
+
+/**
+ * Die Basisart je Verteidiger-Slot, in der Reihenfolge, in der der Core die
+ * Monster aufgebaut hat.
+ *
+ * Der Core zählt belegte Plätze, nicht ihre Art; die Reihenfolge der
+ * belegten Slots ist deshalb genau die Reihenfolge der Kampf-Einheiten
+ * `monster-0` bis `monster-4`. Eine ID, die nicht in der Registry steht, ergibt
+ * `undefined` — die Einheit fällt dann auf die generische Rollentextur zurück,
+ * statt eine erfundene Art zu zeigen.
+ */
+export function baseIdsBySlot(): (string | undefined)[] {
+  return fixture.monsterSlots.map((slot) =>
+    slot.monsterId && baseMonsters().some((m) => m.id === slot.monsterId)
+      ? slot.monsterId
+      : undefined,
+  )
 }
 
 /**

@@ -14,9 +14,20 @@ combat:summary ───▶ combat:resolve-snapshot (ResultPayload)
 combat:resolve-snapshot ──▶ combat:fixture-job (RaidJob)
 combat:replay ───▶ combat:simulate ──▶ Hash-Prüfung in combat:fixture-job
 contracts:RaidJobSchema ─▶ combat:fixture-job (Rückgabevalidierung)
+roster-a + roster-b ───▶ genome:registry (Pool, Invarianten beim Laden)
+genome:registry ───────▶ genome:baseGenome + genome:stats (Basisart, Elemente)
+genome:mutation ───────▶ genome:baseGenome, genetisches Element + PRNG
+genome:stats ──────────▶ genome:resolve (Kopplung der Elemente zu Basiswerten)
+genome:effects ────────▶ genome:resolve (Traits und Boni, Reihenfolge)
+genome:resolve ────────▶ öffentliche Kampfwerte eines Genoms
+prng + hash ───────────▶ genome:mutation (einzige Zufallsquelle der Zucht)
 ```
 
 `sim-core` hat keine Kante zu `client`, `server`, `fs` oder Zeit. Combat liest
 nur Grid, Math, PRNG, Hash und `@floor/contracts`; umgekehrt kennt keines dieser
 Module Combat. `fixture-job` ist die einzige Stelle, die einen Auftrag als Ganzes
 betrachtet.
+
+`genome` liest `combat/rules` für `PROVISIONAL_RULES` und rechnet sonst keine
+Kämpfe. Die Kante ist eine Lesekante, kein Zyklus: `combat` kennt `genome`
+nirgends.

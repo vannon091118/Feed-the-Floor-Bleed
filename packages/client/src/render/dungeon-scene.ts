@@ -14,6 +14,7 @@ export interface DungeonScene {
     grid: DungeonGrid
     route: PathResult
     combat: CombatLog | null
+    baseIds?: readonly (string | undefined)[]
     playbackTick: number
     routeIndex: number
     deltaMs: number
@@ -46,6 +47,7 @@ export function createDungeonScene(
         grid: input.grid,
         route: input.route,
         combat: input.combat,
+        baseIds: input.baseIds,
         playbackTick: input.playbackTick,
       })
       terrain.apply(delta.terrain)

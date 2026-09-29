@@ -1,6 +1,7 @@
 import type { Texture } from 'pixi.js'
 import type { ActorKind } from '../world'
 import { drawingContext, hex, textureOf } from './canvas'
+import { drawFace } from './face'
 
 const SIZE = 64
 const cache = new Map<ActorKind, Texture>()
@@ -63,44 +64,14 @@ function draw(kind: ActorKind): Texture {
   }
   ctx.closePath()
   ctx.fill()
-  ctx.fillStyle = hex(palette.head)
-  ctx.beginPath()
-  ctx.ellipse(
+  // Kopf mit Augenpaar, geteilt mit den Basis-Monster-Texturen (`face.ts`).
+  drawFace(ctx, {
     x,
-    foot - height * 1.02,
-    width * 0.36,
-    height * 0.23,
-    0,
-    0,
-    Math.PI * 2,
-  )
-  ctx.fill()
-  ctx.fillStyle = '#fff'
-  ctx.beginPath()
-  ctx.ellipse(
-    x - width * 0.13,
-    foot - height,
-    width * 0.1,
-    height * 0.12,
-    0,
-    0,
-    Math.PI * 2,
-  )
-  ctx.ellipse(
-    x + width * 0.13,
-    foot - height,
-    width * 0.1,
-    height * 0.12,
-    0,
-    0,
-    Math.PI * 2,
-  )
-  ctx.fill()
-  ctx.fillStyle = '#241b21'
-  ctx.beginPath()
-  ctx.arc(x - width * 0.11, foot - height, width * 0.045, 0, Math.PI * 2)
-  ctx.arc(x + width * 0.15, foot - height, width * 0.045, 0, Math.PI * 2)
-  ctx.fill()
+    y: foot - height * 1.02,
+    radiusX: width * 0.36,
+    radiusY: height * 0.23,
+    headColor: hex(palette.head),
+  })
   return textureOf(canvas)
 }
 

@@ -1,8 +1,10 @@
-import { Sprite } from 'pixi.js'
+import { baseMonsters } from '@floor/sim-core'
+import { Sprite, type Texture } from 'pixi.js'
 import { type ActorDescriptor, WORLD_CELL_PX } from '../world'
 import { unitTexture } from './actor-atlas'
 import { bob, squash, stepLift } from './animation'
 import { glowTexture } from './atmosphere-atlas'
+import { baseMonsterTexture } from './base-monster-atlas'
 import { depthValue } from './depth'
 import type { VisualRuntime } from './runtime'
 
@@ -34,6 +36,20 @@ function face(actor: ActorDescriptor): number {
 }
 
 /**
+ * Die Textur einer Einheit.
+ *
+ * Ein Monster mit bekannter Basisart bekommt seine eigene Sprite; alles andere
+ * — Helden, der Boss, Monster ohne belegten Slot — die Rollentextur. Fällt die
+ * Basisart aus, ist das kein Fehler, sondern der Normalfall für eine Einheit,
+ * die nicht aus dem Dorfbestand kommt.
+ */
+function textureFor(actor: ActorDescriptor): Texture {
+  if (actor.kind !== 'monster' || !actor.baseId) return unitTexture(actor.kind)
+  const monster = baseMonsters().find((entry) => entry.id === actor.baseId)
+  return monster ? baseMonsterTexture(monster) : unitTexture(actor.kind)
+}
+
+/**
  * Actor-Darstellung mit Fuß-Sortierung.
  *
  * Jeder Actor trägt einen Schatten in der Welt-Ebene. Beide Sprites werden nur
@@ -45,6 +61,11 @@ export function createActorsView(runtime: VisualRuntime): ActorsView {
 
   const place = (entry: ActorEntry): void => {
     const { actor, body, shadow } = entry
+    // Die Textur folgt der Basisart. Wechselt sie, ändert sich die Breite und
+    // damit der Grundmaßstab — sonst bliebe das Wesen in der Größe des
+    // vorherigen Sprites stehen.
+    const texture = textureFor(actor)
+    if (body.texture !== texture) body.texture = texture
     const size = actorSize(actor)
     entry.baseScale = size / body.texture.width
     body.scale.set(entry.baseScale)

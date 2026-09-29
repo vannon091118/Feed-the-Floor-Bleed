@@ -1,4 +1,5 @@
 export * from './combat'
+export * from './genome'
 export * from './grid'
 export * from './hash'
 export * from './math'

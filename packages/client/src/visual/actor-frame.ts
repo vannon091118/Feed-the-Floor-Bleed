@@ -50,13 +50,23 @@ export function combatActors(
   events: readonly CombatEvent[],
   path: readonly Point[],
   playbackTick: number,
+  baseIds: readonly (string | undefined)[] = [],
 ): ActorDescriptor[] {
+  // Die Basisarten stehen in Slot-Reihenfolge, die Einheiten aber nicht:
+  // `buildCombatUnits` legt zuerst die Helden an, dann die Monster, dann den
+  // Boss. Ein eigener Zähler zählt deshalb nur die Monster und ist die
+  // Zuordnung, die der Core-Reihenfolge entspricht — der Array-Index wäre es
+  // nicht, weil die Helden den Platz davor belegen.
+  let monsterIndex = 0
   return units.map((unit) => {
     const frame = frameUnit(unit, events, playbackTick)
     const cell = routePointAt(path, frame.routeIndex)
+    const kind = kindOf(unit.role)
+    const baseId = kind === 'monster' ? baseIds[monsterIndex++] : undefined
     return {
       id: unit.id,
-      kind: kindOf(unit.role),
+      kind,
+      baseId,
       cell,
       world: cellFoot(cell),
       height: unit.role === 'boss' ? 18 : 14,

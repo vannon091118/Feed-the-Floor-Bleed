@@ -47,7 +47,24 @@ aussagt.
 
 ## Trail seit T1.1
 
-Seit T1.1 fließt der vollständige Trail aus dem Grid in den Kampf: `resolveCombat` zieht die Route, baut `trail[]` mit `x/y/cell` je Schritt und reicht ihn an `simulateCombat`; `fingerprintCombatLog` hasht jede `CombatTrailEntry` vor Units und Events. Ein manipulierter Trail ändert damit den Hash, den `replayCombat`/`verifyCombatLog` abschließend vergleichen — der Trail ist über den Hash abgesichert, nicht über einen separaten Zellvergleich. Gleich lange Routen mit anderer Geometrie liefern jetzt unterschiedliche Hashes — der gepinnte Test `raid-job.test.ts` ist grün. `genome`, `items`, `ghost` sind weiterhin offen.
+Seit T1.1 fließt der vollständige Trail aus dem Grid in den Kampf: `resolveCombat` zieht die Route, baut `trail[]` mit `x/y/cell` je Schritt und reicht ihn an `simulateCombat`; `fingerprintCombatLog` hasht jede `CombatTrailEntry` vor Units und Events. Ein manipulierter Trail ändert damit den Hash, den `replayCombat`/`verifyCombatLog` abschließend vergleichen — der Trail ist über den Hash abgesichert, nicht über einen separaten Zellvergleich. Gleich lange Routen mit anderer Geometrie liefern jetzt unterschiedliche Hashes — der gepinnte Test `raid-job.test.ts` ist grün. `genome` ist seit dem 2026-09-29 gebaut; `items` und `ghost` sind weiterhin offen.
+
+## Genome
+
+`src/genome/` besitzt Zucht, Stats und Gen-Seed und rechnet keine Kämpfe.
+
+Der Besitz ist eine reine Datenstruktur: `Genome` trägt `baseId`, `generation`,
+drei `elements`, `traits` und `bonuses`. Die Kampfwerte werden **nicht**
+gespeichert, sondern bei Bedarf aus den Elementen neu abgeleitet (`stats.ts`),
+damit die Ableitungsregel wachsen kann, ohne alte Genome eine eingefrorene
+Kopie zu tragen. `resolve.ts` hält die Reihenfolge fest: erst die Kopplung
+aus den Elementen, dann die Traits, dann die Boni.
+
+`registry.ts` ist der einzige Nachschlageort für ein Basis-Monster und prüft
+seine Invarianten beim Laden, nicht beim Aufruf. `mutation.ts` ist die einzige
+Stelle, die würfelt, und zwar ausschließlich über den internen PRNG. Die
+gekoppelten Elemente sind der Grund, warum aus zwanzig Basisarten ein Spektrum
+und kein Zufallsnebel entsteht: jedes Element zieht sein Gegenstück runter.
 
 ## Combat-Regeln
 
@@ -56,6 +73,10 @@ Die HP-, Angriffs- und Cooldown-Werte von Helden und Monstern stehen zentral als
 `src/combat/boss.ts`. Beide sind nicht abgenommen (`[K]` in
 `docs/CONCEPT_REVIEW.md`) und werden dort ersetzt, ohne die Engine umzubauen. Die
 Engine selbst kennt keine eigenen Balancing-Zahlen.
+
+`genome/stats.ts` liest `PROVISIONAL_RULES.monster` als Nullpunkt, statt eine
+zweite Kopie der Basiswerte zu halten. `genome` rechnet damit keine Kämpfe, es
+verwendet dieselben Ausgangswerte.
 
 ## Eine Quelle der Überlebendenzahlen
 

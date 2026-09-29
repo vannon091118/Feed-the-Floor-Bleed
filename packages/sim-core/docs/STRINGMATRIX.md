@@ -6,6 +6,10 @@
 | `prng/derive` | seed + index + salt → Sub-Stream |
 | `math/fixed` | Fixed-Point-Skala 1000 |
 | `hash/fnv1a` | 32-Bit-Hash-Kette über Wörter und Text |
+| `genome/trait` | `toughHide`, `keenEdge`, `deepLungs`, `heavyTread`, `restless`, `focused` |
+| `genome/bonus` | `bulwark`, `frenzy`, `endurance`, `swiftness`, `precision`, `vitality` |
+| `genome/element` | Drei Elemente je Monster, ganzzahlig in Permille, Grenze `1000` (1,00) bis `10000` (10,00) |
+| `genome/generation` | `1` beim Basis-Monster, jede Zucht oder Mutation erhöht um `1` |
 | `combat/stage` | `heroes-win`, `monsters-win`, `timeout` |
 | `combat/event` | `move`, `attack`, `death`, `end` |
 | `combat/role` | `hero`, `monster`, `boss` |

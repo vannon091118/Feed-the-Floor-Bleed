@@ -1,5 +1,17 @@
 # packages/client/docs/CHANGELOG.md
 
+## 2026-09-29 — Zwanzig Basis-Monster bekommen ein eigenes Sprite
+
+**Der Actor-Atlas kannte drei Rollen, die Registry führt zwanzig.** Neu `render/base-monster-atlas.ts`: jede Basisart zeichnet eine eigene Textur aus ihrer Palette und ihren drei Elementen. Viel Masse macht die Silhouette rund und tief, viel Tempo stellt sie aufrecht und kippt sie leicht, viel Härte kantet sie und gibt ihr Rückenplatten. Das Sprite ist damit eine Ableitung des Genoms und keine zweite Wahrheit über die Art.
+
+**Die Gesichtzeichnung stand zweimal im Bild.** Kopf, Augen und Pupillen sind in `actor-atlas.ts` und im neuen Atlas derselbe Block; der Redundancy-Gate hat die Dublette zu Recht gemeldet. Neu `render/face.ts` mit `drawFace` und `drawShadow`, das beide Atlases benutzen.
+
+**Das Bild der Bestands-Actors verschiebt sich dabei.** `drawFace` rechnet Augen und Pupillen aus den Kopf-Radien (`radiusX * 0.43`, `radiusX * 0.33`, `radiusX * 0.15`), der Bestandscode rechnete sie aus der halben Körperbreite. Der Kopf selbst bleibt an derselben Stelle mit denselben Radien; die Augen sitzen dadurch rund ein Fünftel weiter außen und etwas größer. Das ist eine sichtbare Änderung an Held, Monster und Boss und deshalb hier ausgesprochen statt verschwiegen — sie folgt aus dem Schritt, den die Dublette verlangt hat.
+
+**Die Sprites sind jetzt verdrahtet, nicht nur gebaut.** `ActorDescriptor` trägt ein optionales `baseId`; es kommt aus dem belegten Store-Slot (`raid/combat-source.ts`, `baseIdsBySlot`) und nicht aus der Einheiten-ID — `monster-0` trägt keine Art, der Slot schon. `render/actors.ts` wählt daraus die Textur und tauscht sie, wenn die Basisart wechselt; ohne bekannte Art bleibt die Rollentextur. Die Fixture trägt jetzt echte Registry-IDs (`frost-wolf`, `stone-golem`) statt der alten `monster-frost-1`-Konvention.
+
+**Ein Fehler, den erst der Test gefunden hat.** Die Zuordnung lief zunächst über den Index im Einheiten-Array. Das ist falsch, weil `buildCombatUnits` zuerst die Helden anlegt, dann die Monster, dann den Boss — Index 0 ist ein Held. `monster-base-id.test.ts` wurde an dieser Stelle rot und der Zähler zählt jetzt nur die Monster. Ohne den Test wäre die Basisart still an der falschen Einheit gelandet.
+
 ## 2026-09-29 — T2.3 beginnt: Die Etage ist kaufbar, und das Dorf zahlt in Gold
 
 **Der erste Schnitt von T2.3, und genau so breit wie versprochen.** `village/floors.ts` führt `buyFloor`: die nächste Etage (`village.floors + 1`) zum freigegebenen quadratischen Preis aus `floorCost`, abgerechnet nur in Gold, geschrieben über denselben Schreibpfad `commitVillage` wie der Dorfbau, jede Ablehnung ein Ergebnis mit Grund statt eines Wurfs. Dafür trägt der Bestand `village.floors` (Startwert 1 — Zählungsbeginn wie die Baustufe, keine Balancegröße), und `commitVillage` weist jetzt auch eine Etage unter 1 ab wie einen Bestand unter null. Die Grenzarbeit liegt komplett in `economy.ts`: Etage 1 ist nicht kaufbar, gebrochene oder negative Etagen sind keine Etagen.
@@ -172,19 +184,5 @@
 
 **Gates:** typecheck 0, 255 Tests in 41 Dateien, Lint 0, LOC-Caps ok (227 Quelldateien), Hygiene ok, Shinon PASS.
 
-## 2026-09-27 — Die Tagespalette zieht in den Visual-Owner
 
-**Der Befund.** Die vier Phasen-Tönungen standen als CSS-Regeln in `ui/styles/shell.css` — in der Schicht, die den Überzug malt, nicht in der, die die Darstellung beschreibt. Jede Farbänderung war damit ein Griff in die Darstellung, und die Kopplung an die Phasen-Union hing an vier Selektorstrings: verschwand einer, blieb die Phase stumm getönt.
-
-**Die Entscheidung.** `visual/daylight.ts` beschreibt die Tönung je Phase als `Record<Phase, string>`; der Zugriff ist über die Union erschöpfend, eine neue Phase ist deshalb ein Typfehler statt einer stillen Lücke. Die Shell liest die Phase weiter aus dem Store und setzt die Zeichenkette als Inline-Hintergrund auf den Überzug, `shell.css` hält nur noch dessen Fläche, Lage und Übergang. Der Name des Überzugs (`DAYLIGHT_CLASS`) kommt aus demselben Modul, damit beide Seiten denselben Vertrag lesen. Das Attribut `data-phase` am App-Rahmen ist entfallen: nach dem Umzug hatte es keinen Abnehmer mehr.
-
-**Der Grund für ein echtes Element.** Der Überzug war ein `::after`. Er ist jetzt ein `<div aria-hidden="true">` als letztes Kind des Rahmens — ein Element mit eigenem Inline-Stil, das genau die Zeichenkette des Deskriptors trägt, ohne Zwischenstation. Am Bildschirm gemessen ist der Übergang dabei unverändert: `transition: background 900ms` bleibt deklariert, aber **Chromium interpoliert Gradients nicht** — `getAnimations()` bleibt leer und der Wert springt sofort. Das galt schon für die vier Selektorregeln davor; nachgemessen mit einem gradient- und einem farbfreien Gegenstück, bei dem dieselbe Deklaration sauber animiert. Der Punkt steht jetzt als Kommentar in `shell.css`, damit die Deklaration nicht als Fade missverstanden wird.
-
-**Der Test.** `test/daylight.test.ts` prüft jetzt vier Dinge: jede Phase hat eine Tönung mit Farbe, die vier Tönungen sind unterscheidbar, `shell.css` hängt ihre Regeln an `DAYLIGHT_CLASS`, und im Stylesheet steht kein einziger Gradient — die Palette kann also nicht zurücksickern. Dazu bleiben die Überzugsregeln `pointer-events: none` und `transition: background` gepinnt.
-
-**Im Browser.** Alle vier Phasen durchgeklickt: die Tönung des Überzugs ist `rgba(224, 173, 85, 0.16)` im Tag, `rgba(96, 126, 196, 0.22)` in der Nacht, `rgba(216, 119, 106, 0.2)` im Raid und `rgba(224, 173, 85, 0.1) | rgba(8, 10, 16, 0.34)` im Ergebnis, jeweils exakt der Deskriptorwert. Der Überzug bleibt `pointer-events: none` bei `z-index: 4`, liegt als letztes Kind über den Kontextfenstern und unter der Topbar, und `elementFromPoint` trifft die Topbar statt ihn. Nach „Nächsten Tag beginnen“ steht der Tag auf 19 und die Tag-Tönung ist zurück. Ein Canvas, keine Konsolmeldung.
-
-**Gates:** typecheck 0, 251 Tests in 41 Dateien, Lint 0, LOC-Caps ok, Hygiene ok.
-
-Die Oberfläche-Modularisierung vom 2026-09-26 steht in `historisch/2026-09-26_client-oberflaeche-modularisiert.md`; die Raid-Timeline-Verdrahtung und der Oberflächen-Rebase in `historisch/2026-09-26_client-raid-timeline.md`, die Render-Foundation-Einträge (Animation ohne Sinus, Route-Mapping und Actor-Varianten, Showcase-Optik, Atlas-Schnitt) in `historisch/2026-09-26_client-render-fundament.md`, der Raid-Replay samt Tick in `historisch/2026-09-27_client-raid-replay.md`, der Dashboard-Abbau mit der lebenden Welt in `historisch/2026-09-27_client-dashboard-abbau.md`, die Einträge der ersten Stunden in `historisch/2026-09-25_client-aufbau.md`, die drei Fenstereinträge vom 2026-09-27 — Kopfklemme, einzeilige Topbar und Fensterinhalt-Anfang — in `historisch/2026-09-27_client-fenster-geometrie.md`, der Abbau der zweiten Dorfdarstellung in `historisch/2026-09-27_client-zweite-dorfdarstellung.md`, der Tote-Code-Nachgang vom 2026-09-27 in `historisch/2026-09-27_client-tote-code-reste.md`, der Fit des Raidfensters an seinen Inhalt in `historisch/2026-09-27_client-raidfenster-fit.md`, die drei offenen Punkte der Oberfläche vom 2026-09-27 (doppelte Launcher, Sidebar-Hülle, Gebäudetitel) seit dem 2026-09-29 in `historisch/2026-09-27_client-offene-punkte.md`, der Tote-Symbole-Nachgang vom 2026-09-27 in `historisch/2026-09-27_client-tote-symbole.md`; der Eintrag zur Tagesstimmung an der Shell vom 2026-09-27 seit dem 2026-09-29 in `historisch/2026-09-27_client-tagesstimmung.md`, der Tastaturzugang derselben Reihe seit dem 2026-09-29 in `historisch/2026-09-27_client-tastaturzugang.md`.
-
+Der Block vom 2026-09-27 zur Tagespalette steht in `historisch/2026-09-27_client-tagespalette.md`.

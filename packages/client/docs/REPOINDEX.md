@@ -31,7 +31,11 @@
 | `src/render/depth.ts` | Fußpunkt-basierte Tiefenschlüssel |
 | `src/render/canvas.ts` | Gemeinsame Canvas- und Textur-Helfer |
 | `src/render/atlas.ts` | Barrel für Actor-, Licht-, Tile- und Routentexturmodule |
-| `src/render/actor-atlas.ts` | Prozedurale Actor-Silhouetten |
+| `src/render/actor-atlas.ts` | Prozedurale Actor-Silhouetten für Held, Monster und Boss |
+| `src/render/base-monster-atlas.ts` | Granulare Textur je Basis-Monster, gezeichnet aus Palette und drei Elementen |
+| `src/render/face.ts` | Gemeinsame Kopf-, Augen- und Schattenzeichnung der Actor-Texturen |
+| `src/raid/combat-source.ts` | Rechnet den Core-Log des Fixture-Raids und liefert die Basisart je Verteidiger-Slot |
+| `src/visual/actor-frame.ts` | Actor-Deskriptoren je Tick; setzt die Basisart in Core-Reihenfolge der Monster |
 | `src/render/atmosphere-atlas.ts` | Gepufferte Glow- und Vignette-Texturen |
 | `src/render/tile-atlas.ts` | Deterministische Boden- und Mauertexturen |
 | `src/render/route-atlas.ts` | Gepufferte Leuchttexturen für Route-Marker |

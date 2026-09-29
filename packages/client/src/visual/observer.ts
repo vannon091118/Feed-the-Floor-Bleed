@@ -16,6 +16,12 @@ export interface ObserverInput {
   route: PathResult
   /** Optionaler Core-Kampflog; ohne ihn läuft der Editor-Leerlauf. */
   combat: CombatLog | null
+  /**
+   * Die Basisart je Verteidiger-Slot, in Slot-Reihenfolge. Sie kommt aus dem
+   * Store und nicht aus der Einheiten-ID; ohne sie tragen die Monster die
+   * generische Rollentextur. Im Editor-Leerlauf gibt es keine Slots.
+   */
+  baseIds?: readonly (string | undefined)[]
   /** Bis zu welchem Tick abgespielt wird. */
   playbackTick: number
 }
@@ -59,6 +65,7 @@ export function createVisualObserver(): VisualObserver {
           input.route.path,
           input.playbackTick,
           fromTick,
+          input.baseIds,
         )
         actors = frame.actors
         fx.push(...frame.fx)

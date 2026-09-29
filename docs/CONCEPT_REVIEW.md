@@ -77,11 +77,11 @@ Die vollständige Detail- und Sprintquelle ist `docs/VISUAL_GRUNDSATZ.md`; die f
 - Zucht kombiniert 2 Monster, verbraucht deren XP; das neue Monster startet auf Level 1.
 - Initial 5 Monster-Slots pro Etage; der Boss zählt nicht. Visuelle Schwärme belegen nur einen Slot.
 - Ab Etage 2 werden zusätzliche Slots mit Monster-Seelen gekauft; Seelen entstehen durch Zerlegen ungewollter Zuchten.
-- Startpool: 25 mit Gold kaufbare Basis-Monster.
+- Startpool: mit Gold kaufbare Basis-Monster. **Die Zahl ist offen** — diese Sektion nannte zuvor „25", die Spieldesign-Aussage vom 2026-09-29 nennt 20, und der Code folgt der Aussage. Siehe Abschnitt 9.
 
 ### Offen / Fremdsession `[O]`
 
-- Die konkrete 25er-Liste, Cluster, Traits und Elemente stammen laut Nutzer aus einer kontextfreien Fremdsession und müssen erst gegen dieses Projekt geprüft werden.
+- Die konkrete Liste, Cluster, Traits und Elemente stammen laut Nutzer aus einer kontextfreien Fremdsession und müssen erst gegen dieses Projekt geprüft werden. Am 2026-09-29 ist die **Zahl** entschieden (20) und als Startbasis implementiert; die **Werte** der Basis-Monster sowie Kopplungsstärke, Mutationsdrift und Effektprozente sind weiterhin `[K]` und nicht abgenommen.
 - Mutationsformel, Dominanzregeln und Umrechnung von Zucht-XP in Ressourcen/Seelen.
 
 ## 4. Dungeon-Bau und Pathfinding `[N]`
@@ -137,5 +137,6 @@ Die vollständige Detail- und Sprintquelle ist `docs/VISUAL_GRUNDSATZ.md`; die f
 
 ## 9. Abnahmegrenze
 
-- Implementiert: 64×64-Grid, Pathfinding ohne Zusatzkosten, Placement Tile, Contract v5 mit öffentlicher Angreifer-Sicht (`toPublicView`) und privatem Stand, D1-Jobstatus, Trail-Hash, deterministischer Combat- und Replay-Core sowie lokale Tag/Nacht/Raid-Schleife (T1 abgeschlossen). Nicht implementiert: echtes HTTP-Netzwerk/Auth, Queue, Remote-Matching, Ghost-Fallback, Moral-Verlustfolgen, Zucht-UI, Items und Dorf-Ökonomie (T2/T3).
+- Implementiert: 64×64-Grid, Pathfinding ohne Zusatzkosten, Placement Tile, Contract v5 mit öffentlicher Angreifer-Sicht (`toPublicView`) und privatem Stand, D1-Jobstatus, Trail-Hash, deterministischer Combat- und Replay-Core, lokale Tag/Nacht/Raid-Schleife (T1 abgeschlossen) sowie seit dem 2026-09-29 die Core-Seite der Zucht: 20 Basis-Monster mit je drei Elementen, Trait und Bonus, gekoppelte Mutation und Kreuzung über den internen PRNG (`packages/sim-core/src/genome/`). Nicht implementiert: echtes HTTP-Netzwerk/Auth, Queue, Remote-Matching, Ghost-Fallback, Moral-Verlustfolgen, Zucht-UI, Items und Dorf-Ökonomie (T2/T3).
+- Die Monsterzahl ist offen: die Spieldesign-Aussage vom 2026-09-29 nennt 20, dieser Abschnitt führte zuvor „Startpool: 25". Der Code folgt der Aussage; die Abweichung ist nicht aufgelöst.
 - Alle `[K]`-Punkte sind keine Implementierungsfreigabe.

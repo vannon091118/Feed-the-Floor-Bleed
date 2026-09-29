@@ -19,6 +19,13 @@ export type FxKind =
 export interface ActorDescriptor {
   id: string
   kind: ActorKind
+  /**
+   * Die Basisart aus der Genome-Registry, falls die Einheit ein Monster aus
+   * dem Dorfbestand ist. Sie kommt aus dem belegten Store-Slot, nicht aus der
+   * Einheiten-ID: `monster-0` trägt keine Art, der Slot schon. Ohne diese
+   * Angabe fällt die Einheit auf die generische Rollentextur zurück.
+   */
+  baseId?: string
   cell: Point
   world: WorldPoint
   height: number

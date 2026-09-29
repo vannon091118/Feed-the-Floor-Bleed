@@ -19,8 +19,15 @@ export function combatFrame(
   path: readonly Point[],
   playbackTick: number,
   fromTick: number,
+  baseIds: readonly (string | undefined)[] = [],
 ): CombatFrame {
-  const actors = combatActors(log.units, log.events, path, playbackTick)
+  const actors = combatActors(
+    log.units,
+    log.events,
+    path,
+    playbackTick,
+    baseIds,
+  )
   const start = Math.max(fromTick, -1)
   const fx: FxDescriptor[] = []
   for (const event of log.events) {

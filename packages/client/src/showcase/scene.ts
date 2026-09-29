@@ -1,5 +1,6 @@
 import type { DungeonGrid, PathResult } from '@floor/sim-core'
 import type { DragDropCommand } from '../input/drag'
+import { baseIdsBySlot } from '../raid/combat-source'
 import { playbackLog, playbackRouteIndex, playbackTick } from '../raid/playback'
 import {
   type CameraState,
@@ -91,6 +92,9 @@ export function createShowcase(deps: ShowcaseDeps): Showcase {
       grid: deps.getGrid(),
       route: deps.getRoute(),
       combat,
+      // Die Basisarten kommen aus dem Store-Fach, nicht aus der Einheiten-ID:
+      // `monster-0` trägt keine Art, der belegte Slot schon.
+      baseIds: baseIdsBySlot(),
       playbackTick: playbackTick.value,
       routeIndex: playbackRouteIndex.value,
       deltaMs,

@@ -79,10 +79,12 @@ export const fixture: FixtureData = {
     },
   ],
   // Verteidiger-Roster ist Fixture-Daten, keine Gameplay-Ableitung: T1.3
-  // serialisiert den Auftrag, es erfindet noch keine Zucht.
+  // serialisiert den Auftrag, es erfindet noch keine Zucht. Die IDs sind
+  // echte Registry-Einträge aus `@floor/sim-core`, damit die Basisart der
+  // Textur aus derselben Quelle kommt wie der Rest des Genoms.
   monsterSlots: [
-    { monsterId: 'monster-frost-1' },
-    { monsterId: 'monster-frost-2' },
+    { monsterId: 'frost-wolf' },
+    { monsterId: 'stone-golem' },
     { monsterId: null },
     { monsterId: null },
     { monsterId: null },
