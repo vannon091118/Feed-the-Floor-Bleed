@@ -9,6 +9,43 @@ import {
 } from './types'
 
 const CELL_COUNT = GRID_SIZE * GRID_SIZE
+const NEIGHBORS = [1, GRID_SIZE, -1, -GRID_SIZE] as const
+
+/** Die Zellnummer zu einem Punkt. */
+export function indexOf(point: Point): number {
+  return point.y * GRID_SIZE + point.x
+}
+
+/** Der Punkt zu einer Zellnummer. */
+export function pointOf(index: number): Point {
+  return { x: index % GRID_SIZE, y: Math.floor(index / GRID_SIZE) }
+}
+
+/**
+ * Die vier Kantennachbarn einer Zelle: rechts, unten, links, oben.
+ *
+ * **Die Reihenfolge ist Regel, nicht Zufall.** `path.ts` bricht Gleichstand in
+ * der Breitensuche über genau diese Reihenfolge, und `path.test.ts` pinnt das
+ * Ergebnis. Wer die Ordnung ändert, ändert die Route — und damit jeden Lauf.
+ *
+ * Der Rand fällt weg: eine Zelle am Rand hat weniger Nachbarn, und eine
+ * Nachbarzelle aus der nächsten Zeile wäre ein Umbruch, keine Nachbarschaft.
+ * Dies ist die einzige Stelle im Raster, an der dieses Nachbarschaftsverhältnis
+ * definiert ist; `path.ts` und `zones.ts` lesen hier.
+ */
+export function neighbors(index: number): number[] {
+  const x = index % GRID_SIZE
+  const y = Math.floor(index / GRID_SIZE)
+  return NEIGHBORS.flatMap((step) => {
+    const next = index + step
+    if (next < 0 || next >= CELL_COUNT) return []
+    if (step === 1 && x === GRID_SIZE - 1) return []
+    if (step === -1 && x === 0) return []
+    if (step === GRID_SIZE && y === GRID_SIZE - 1) return []
+    if (step === -GRID_SIZE && y === 0) return []
+    return [next]
+  })
+}
 
 function assertPoint(point: Point): void {
   if (!Number.isInteger(point.x) || !Number.isInteger(point.y)) {

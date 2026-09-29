@@ -18,6 +18,13 @@ und feste Tick-Reihenfolge. Kein Zugriff auf Client, Server, `fs` oder Zeit.
   Platzierungsmarkierung kosten gleich viel, Wände sind unpassierbar — deshalb
   braucht die Suche weder Heap noch Umwegbudget; die gewichtete Suche mit
   Rückfallzweig ist mit der Falle am 2026-09-29 entfallen.
+- `grid/grid.ts` besitzt die **Geometrie**: `indexOf`, `pointOf` und `neighbors`
+  als die einzige Stelle, an der das vierer-Nachbarschaftsverhältnis steht.
+  Die Reihenfolge rechts, unten, links, oben ist Regel, weil `path.ts` über sie
+  Gleichstand bricht; gemessen ändert eine Umordnung den Weg bei gleicher
+  Länge. `zones.ts` liest dieselbe Funktion und führt **eine** Flutfüllung
+  (`component`) für Platzierungsgruppen und Zonen — vorher standen zwei davon
+  nebeneinander, mit derselben Schleife und je eigenem Prädikat.
 - `combat` bounded Tick-Simulation (`simulateCombat`) mit deterministischer,
   profilabhängiger Zielwahl (`chooseOpponent`), Seed-Varianz pro Angriff,
   Event-Log und kanonischem Log-Hash.
@@ -90,6 +97,18 @@ aus dieser Stärke ab (`850 + Stärke · 60`) und nicht mehr aus einem Hash der
 Basis-ID — vorher standen zwei Zahlen für dieselbe Frage, und sie konnten sich
 widersprechen. `lootProfile` liefert `{ strength, generation }` aus einem Genom
 und ist die Brücke zur Dorfwirtschaft; die Formel selbst rechnet im Client.
+
+**Die Archetypen sind eine feste Eigenschaft der Basis-Art, kein Genom-Feld.**
+`BaseMonster` trägt `archetype` — `tank`, `damage`, `support`, `ambusher`,
+`controller` oder `swarm` — daneben einen **veränderlichen** Trait und Bonus.
+Genau diese Trennung ist der Grund, warum es zwei Felder sind: ein gezüchteter
+Steingolem behält `tank`, aber nicht zwingend `toughHide`. Die Rolle wandert
+darum nicht durch `Genome`; wer sie liest, holt
+`baseMonster(genome.baseId).archetype`, und damit bleibt der Contract-Stand
+eingefrorener Läufe unberührt. Die Rollen rechnen nichts — sie sind der
+Schlüssel, an dem Taktik und die Archetypen-Messung in
+`combat/balance-report.test.ts` hängen. Die Zuordnung der zwanzig Arten ist
+`[K]` und gehört zur offenen Kampfbalance.
 
 `registry.ts` ist der einzige Nachschlageort für ein Basis-Monster und prüft
 seine Invarianten beim Laden, nicht beim Aufruf. `mutation.ts` ist die einzige

@@ -29,6 +29,16 @@ export const GLINT = 0xe0c27a
  * Zufall Bildrauschen und ausdrücklich keine Spielregel — die Reproduzierbarkeit
  * ist dieselbe, die Regel ist es nicht.
  *
+ * **Der Zähler ist der Zustand, nicht die Mischung.** `state` wird nur um
+ * `0x6d2b79f5` weitergereicht; der gemischte Wert geht **nicht** zurück in den
+ * Zustand. Diese Kopie trug früher ein `state = value` am Ende und war damit
+ * eine andere Folge als mulberry32 — ab dem zweiten Zug. Der Grund, warum das
+ * auffällt: `combat/actions.ts` legt pro Wurf einen neuen Strom aus einem
+ * abgeleiteten Seed an und zieht genau einmal, und genau diese erste Ziehung
+ * ist in beiden Fassungen bitgleich. Die Abweichung blieb deshalb unbemerkt.
+ * `test/asset-palette.test.ts` prüft sie heute gegen `sim-core`, damit die
+ * Kopie nicht wieder auseinanderläuft.
+ *
  * @param {number} seed
  * @returns {() => number} eine Folge in [0, 1)
  */
@@ -40,7 +50,6 @@ export function createRng(seed) {
     value = Math.imul(value ^ (value >>> 15), value | 1) >>> 0
     value =
       (value ^ (value + Math.imul(value ^ (value >>> 7), value | 61))) >>> 0
-    state = value
     return ((value ^ (value >>> 14)) >>> 0) / 0x100000000
   }
 }

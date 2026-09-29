@@ -40,6 +40,29 @@ describe('Deterministische PRNG', () => {
     expect(ranged).toBeLessThanOrEqual(5)
   })
 
+  it('hält den Zustand als Additionszähler', () => {
+    // Die Eigenschaft, die eine Rückkopplung des gemischten Wertes zerstört:
+    // nach n Zügen steht im Zustand genau `seed + n · K`. Solange das gilt,
+    // lässt sich ein Lauf an einem Tick fortsetzen und prüfen, ohne ihn zu
+    // wiederholen.
+    const rng = createRng(42)
+    for (let n = 1; n <= 8; n += 1) {
+      nextUint32(rng)
+      expect(rng.state).toBe((42 + n * 0x6d2b79f5) >>> 0)
+    }
+  })
+
+  it('liefert den publizierten mulberry32-Vektor', () => {
+    // Referenzwerte der veröffentlichten Fassung für Seed 42. Sie halten die
+    // Implementierung an ihrem Namen; Eigenschaftstests allein haben die
+    // Abweichung nicht gefangen, weil Determinismus und Grenzen beide hielten.
+    const rng = createRng(42)
+    const draws = [0, 1, 2, 3, 4].map(() => nextUint32(rng))
+    expect(draws).toEqual([
+      2581720956, 1925393290, 3661312704, 2876485805, 750819978,
+    ])
+  })
+
   it('leitet Seeds stabil und indexabhängig ab', () => {
     expect(deriveSeed(42, 1)).toBe(deriveSeed(42, 1))
     expect(deriveSeed(42, 1)).not.toBe(deriveSeed(42, 2))

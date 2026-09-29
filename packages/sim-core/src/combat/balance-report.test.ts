@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { baseMonsters } from '../genome/registry'
+import { ARCHETYPE_IDS, type ArchetypeId, baseMonsters } from '../genome'
 import { createDungeonGrid } from '../grid'
 import { defaultCombatConfig, resolveCombat } from './index'
 
@@ -38,11 +38,15 @@ function defenders(count: number): { baseId: string }[] {
 }
 
 function run(monsterSlots: number, seed: number) {
+  return fight(defenders(monsterSlots), seed)
+}
+
+function fight(defenders: { baseId: string }[], seed: number) {
   return resolveCombat({
     grid: createDungeonGrid(),
     seed,
     teamSize: TEAM_SIZE,
-    defenders: defenders(monsterSlots),
+    defenders,
     config: defaultCombatConfig(),
   })
 }
@@ -92,6 +96,65 @@ describe('Kampfbalance-Messung', () => {
       const second = run(slots, 7)
       expect(second.hash).toBe(first.hash)
       expect(second.stage).toBe(first.stage)
+    }
+  })
+})
+
+/** Eine Messzeile je Rolle: die Arten dieser Rolle im einzelnen Verteidigerplatz. */
+interface ArchetypZeile {
+  Rolle: string
+  Arten: number
+  'Helden %': number
+  'Monster %': number
+  'Zeitlimit %': number
+  'Ø Ticks': number
+}
+
+/**
+ * Die Gewichtung der sechs Rollen, gemessen statt gesetzt.
+ *
+ * Jede Art ihrer Rolle steht einzeln im Verteidigerplatz, jede mit derselben
+ * Seed-Zahl; gezählt wird über alle Läufe der Rolle hinweg. Damit antwortet
+ * die Tabelle auf eine Frage, die die Zähler-Frage nicht beantwortet: ob die
+ * Tank-Rollung wirklich schwerer ist als die Schwarm-Rolle, oder ob nur die
+ * Artenzahl den Unterschied macht.
+ */
+function missArchetyp(archetype: ArchetypeId): ArchetypZeile {
+  const roster = baseMonsters().filter((base) => base.archetype === archetype)
+  const stages: Record<Stage, number> = {
+    'heroes-win': 0,
+    'monsters-win': 0,
+    timeout: 0,
+  }
+  let ticks = 0
+  for (const base of roster) {
+    for (let seed = 0; seed < SEEDS; seed += 1) {
+      const log = fight([{ baseId: base.id }], seed)
+      stages[log.stage] += 1
+      ticks += log.ticks
+    }
+  }
+  const laeufe = SEEDS * roster.length
+  const percent = (value: number) => Math.round((value / laeufe) * 100)
+  return {
+    Rolle: archetype,
+    Arten: roster.length,
+    'Helden %': percent(stages['heroes-win']),
+    'Monster %': percent(stages['monsters-win']),
+    'Zeitlimit %': percent(stages.timeout),
+    'Ø Ticks': Math.round(ticks / laeufe),
+  }
+}
+
+describe('Archetypen-Gewichtung', () => {
+  it('misst jede der sechs Rollen im einzelnen Verteidigerplatz', () => {
+    const zeilen = ARCHETYPE_IDS.map(missArchetyp)
+    console.table(zeilen)
+    console.log(
+      `Grundlage: ${SEEDS} Seeds je Art im Einzelplatz, Teamgröße ${TEAM_SIZE}. Die Prozentzahlen sind gerundet und deshalb nicht summierbar.`,
+    )
+    for (const zeile of zeilen) {
+      expect(zeile.Arten).toBeGreaterThan(0)
     }
   })
 })

@@ -16,6 +16,8 @@ export {
   strengthOfElements,
 } from './strength'
 export {
+  ARCHETYPE_IDS,
+  type ArchetypeId,
   type BaseMonster,
   BONUS_IDS,
   type BonusId,

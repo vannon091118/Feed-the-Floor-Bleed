@@ -22,6 +22,16 @@ T1 (Spielbarer Kern und reproduzierbarer Raid-Loop) ist abgeschlossen. Die Prior
 
 **Beleg.** `genome/behavior.test.ts` prüft die Vollständigkeit der Tabelle gegen `TRAIT_IDS` und die sechs Zuordnungen, `combat/behavior.test.ts` dieselbe Aufstellung gegen vier Profile (`none`, `tank`, `hunter`, `control`), dazu Gleichstand, tote und gleichseitige Kandidaten sowie die Ableitung am Spec; `raid-migration-v8.test.mjs` hebt einen v7-Stand an. **Gates:** typecheck 0, 500 Tests in 73 Dateien, Lint 0, LOC-Caps ok, Hygiene ok, Redundancy-Gate ok, Shinon PASS.
 
+## Statusupdate — 2026-09-29 (Eine Nachbarschaft, und die Periode war eine Behauptung)
+
+Der PRNG-Fehler ist behoben, beidesmal: `sim-core/src/prng` und die Werkzeugkopie in `client/tools` trugen beide ein `rng.state = value`, das den gemischten Zustand zurückschrieb. Der Kampf blieb davon unberührt, weil `combat/actions.ts` pro Wurf einen neuen Strom anlegt und genau einmal zieht — beide Golden-Pins stehen. Daneben ist die Dublette in `sim-core/src/grid` aufgelöst: eine Nachbarschaft in `grid/grid.ts`, eine Flutfüllung in `zones.ts`. Das redundancy-gate meldete nichts, weil es wörtliche sechs Zeilen vergleicht. Die im Review genannte „Periode 16.253" ist bei 3000 Seeds nicht aufgetaucht; die Schadensform ist die Nicht-Überspringbarkeit, nicht eine kurze Periode.
+
+## Statusupdate — 2026-09-29 (Die sechs Rollen sind am Wesen, und sie messen noch nichts)
+
+`BaseMonster` trägt jetzt `archetype` (`tank`, `damage`, `support`, `ambusher`, `controller`, `swarm`), die zwanzig Arten sind verteilt und `combat/balance-report.test.ts` misst jede Rolle einzeln im Verteidigerplatz. Das Feld sitzt an der **Basis-Art**, nicht am Genom: `Genome` bleibt unverändert, damit kein Contract-Stand und kein Replay-Hash mitwandert. Die Zuordnung der Arten ist `[K]` und aus dem Zahlenprofil abgelesen.
+
+**Die Messung enttäuscht zu Recht, und genau deshalb ist sie wertvoll.** Bei 64 Seeds gewinnen alle sechs Rollen zu 0 bis 1 Prozent gegen drei Helden — die Rolle trennt derzeit nichts, weil der Kampf die Kampfwerte aus den Elementen rechnet und die Rolle nicht liest. Sie ist der Schlüssel für die Taktik, nicht deren Wirkung. Die Größenordnung aus Abschnitt 0b (ein Monster schlägt drei Helden) ist davon unberührt und bleibt die offene `[K]`. Der nächste Schnitt ist deshalb nicht die Räumebahn, sondern eine Taktik, die die Rolle liest — beides zusammen wäre die teuerste Simulation des Repos auf einer Balance, die danach neu kalibriert wird.
+
 ## Statusupdate — 2026-09-29 (Die Kachel trägt 32 Pixel, und der Dungeon hat echte Spritesheets)
 
 **Das Körnige im Dungeonboden war eine falsch herum definierte Zahl.** `WORLD_CELL_PX` stand als `WORLD_TILE_PX / LOGIC_CELLS_PER_VISIBLE_TILE`, also bei 8 Pixeln je Logikzelle, während `render/tile-atlas.ts` seine Fallback-Texturen mit 64 Pixeln zeichnete und per Nearest auf 8 stauchte. Ein 8:1-Downscale per Nearest ist kein Detailvermehrungs-Verfahren, sondern ein Zufallsgenerator. Die Abhängigkeitsrichtung ist umgekehrt: Die Zelle ist die Einheit und misst 32 Pixel, das sichtbare Tile ist die 4×4-Gruppe darüber. Das Asset-Briefing in `docs/VISUAL_GRUNDSATZ.md` verlangte 8×8-Fra**mes** — die 8 war dort als Rahmenmaß gemeint und wurde als Zellmaß gelesen.

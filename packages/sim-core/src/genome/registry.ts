@@ -1,6 +1,7 @@
 import { ROSTER_A } from './roster-a'
 import { ROSTER_B } from './roster-b'
 import {
+  ARCHETYPE_IDS,
   type BaseMonster,
   BONUS_IDS,
   ELEMENT_MAX,
@@ -22,6 +23,7 @@ const BY_ID = new Map(ROSTER.map((monster) => [monster.id, monster]))
 function assertRoster(): void {
   const traits = new Set<string>(TRAIT_IDS)
   const bonuses = new Set<string>(BONUS_IDS)
+  const archetypes = new Set<string>(ARCHETYPE_IDS)
   if (BY_ID.size !== ROSTER.length) {
     throw new Error('genome: doppelte Monster-ID im Pool')
   }
@@ -43,6 +45,9 @@ function assertRoster(): void {
     }
     if (!bonuses.has(monster.bonus)) {
       throw new Error(`genome: ${monster.id} trägt unbekannten Bonus`)
+    }
+    if (!archetypes.has(monster.archetype)) {
+      throw new Error(`genome: ${monster.id} trägt unbekannten Archetyp`)
     }
   }
 }

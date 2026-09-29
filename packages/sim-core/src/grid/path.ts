@@ -1,3 +1,4 @@
+import { indexOf, neighbors, pointOf } from './grid'
 import {
   CellType,
   type DungeonGrid,
@@ -6,22 +7,7 @@ import {
   type Point,
 } from './types'
 
-const NEIGHBORS = [
-  { x: 1, y: 0 },
-  { x: 0, y: 1 },
-  { x: -1, y: 0 },
-  { x: 0, y: -1 },
-] as const
-
 const CELL_COUNT = GRID_SIZE * GRID_SIZE
-
-function indexOf(point: Point): number {
-  return point.y * GRID_SIZE + point.x
-}
-
-function pointOf(index: number): Point {
-  return { x: index % GRID_SIZE, y: Math.floor(index / GRID_SIZE) }
-}
 
 /**
  * Kürzester Weg in Schritten vom Spawn zum Boss, oder `undefined`.
@@ -50,17 +36,7 @@ function shortestPath(grid: DungeonGrid): Point[] | undefined {
   while (head < tail) {
     const current = queue[head++]
     if (current === target) break
-    const point = pointOf(current)
-    for (const direction of NEIGHBORS) {
-      const next = { x: point.x + direction.x, y: point.y + direction.y }
-      if (
-        next.x < 0 ||
-        next.x >= GRID_SIZE ||
-        next.y < 0 ||
-        next.y >= GRID_SIZE
-      )
-        continue
-      const index = indexOf(next)
+    for (const index of neighbors(current)) {
       if (seen[index]) continue
       if (grid.cells[index] === CellType.Wall) continue
       seen[index] = 1

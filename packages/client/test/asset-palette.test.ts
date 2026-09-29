@@ -1,3 +1,4 @@
+import { createRng as createSimRng, nextUint32 } from '@floor/sim-core'
 import { describe, expect, it } from 'vitest'
 import {
   createRng,
@@ -89,6 +90,23 @@ describe('saturate und mix', () => {
 })
 
 describe('PRNG des Generators', () => {
+  it('liefert dieselbe Folge wie der PRNG der Simulation', () => {
+    // Die Werkzeugkopie darf nicht allein stehen. Sie trug ein `state = value`
+    // am Ende und war damit ab dem zweiten Zug eine andere Folge als
+    // `sim-core/src/prng` — unentdeckt, weil dieser Test bisher nur Eigenheiten
+    // prüfte und beide Fassungen die erste Ziehung gemeinsam haben. Der Vergleich
+    // über zehn Ziehungen ist das, was eine dritte Abweichung sofort zeigt.
+    const werkzeug = createRng(2024)
+    const simulation = createSimRng(2024)
+    const verglichen = Array.from({ length: 10 }, () => ({
+      werkzeug: werkzeug(),
+      simulation: nextUint32(simulation) / 0x100000000,
+    }))
+    for (const zug of verglichen) {
+      expect(zug.werkzeug).toBe(zug.simulation)
+    }
+  })
+
   it('liefert für denselben Seed dieselbe Folge', () => {
     const a = createRng(42)
     const b = createRng(42)

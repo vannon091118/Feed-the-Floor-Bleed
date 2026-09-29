@@ -1,3 +1,4 @@
+import { neighbors } from './grid'
 import { CellType, type DungeonGrid, GRID_SIZE } from './types'
 
 export type DungeonZoneType = 'corridor' | 'arena' | 'ambush' | 'boss-chamber'
@@ -14,21 +15,31 @@ export interface DungeonZones {
   placements: number[][]
 }
 
-const NEIGHBORS = [1, GRID_SIZE, -1, -GRID_SIZE] as const
 const CELL_COUNT = GRID_SIZE * GRID_SIZE
 
-function neighbors(index: number): number[] {
-  const x = index % GRID_SIZE
-  const y = Math.floor(index / GRID_SIZE)
-  return NEIGHBORS.flatMap((step) => {
-    const next = index + step
-    if (next < 0 || next >= CELL_COUNT) return []
-    if (step === 1 && x === GRID_SIZE - 1) return []
-    if (step === -1 && x === 0) return []
-    if (step === GRID_SIZE && y === GRID_SIZE - 1) return []
-    if (step === -GRID_SIZE && y === 0) return []
-    return [next]
-  })
+/**
+ * Die zusammenhängende Zellenmenge um `start`, gefiltert nach `isOpen`.
+ *
+ * **Es gibt genau eine Flutfüllung im Raster.** Zuvor standen zwei davon nebeneinander:
+ * eine für die Platzierungsgruppen und eine für die Zonen, mit je eigenem
+ * `seen`-Feld und derselben Schleife. Der Unterschied lag nur im Prädikat.
+ * `seen` markiert hier selbst, damit der Aufrufer kein zweites Merkfeld führt.
+ */
+function component(
+  start: number,
+  isOpen: (index: number) => boolean,
+  seen: Uint8Array,
+): number[] {
+  const cells = [start]
+  seen[start] = 1
+  for (let cursor = 0; cursor < cells.length; cursor += 1) {
+    for (const next of neighbors(cells[cursor])) {
+      if (seen[next] || !isOpen(next)) continue
+      seen[next] = 1
+      cells.push(next)
+    }
+  }
+  return cells
 }
 
 function placementGroups(grid: DungeonGrid): number[][] {
@@ -36,16 +47,9 @@ function placementGroups(grid: DungeonGrid): number[][] {
   const groups: number[][] = []
   for (let index = 0; index < CELL_COUNT; index += 1) {
     if (grid.cells[index] !== CellType.Placement || seen[index]) continue
-    const cells = [index]
-    seen[index] = 1
-    for (let cursor = 0; cursor < cells.length; cursor += 1) {
-      for (const next of neighbors(cells[cursor])) {
-        if (grid.cells[next] !== CellType.Placement || seen[next]) continue
-        seen[next] = 1
-        cells.push(next)
-      }
-    }
-    groups.push(cells)
+    groups.push(
+      component(index, (next) => grid.cells[next] === CellType.Placement, seen),
+    )
   }
   return groups
 }
@@ -73,19 +77,13 @@ export function classifyDungeonZones(grid: DungeonGrid): DungeonZones {
 
   const byCell: DungeonZones['byCell'] = Array(CELL_COUNT).fill(null)
   const zones: DungeonZone[] = []
+  const seen = new Uint8Array(CELL_COUNT)
   for (let index = 0; index < CELL_COUNT; index += 1) {
     const type = types[index]
-    if (type === null || byCell[index]) continue
+    if (type === null || seen[index]) continue
     const id = zones.length
-    const cells = [index]
-    byCell[index] = { id, type }
-    for (let cursor = 0; cursor < cells.length; cursor += 1) {
-      for (const next of neighbors(cells[cursor])) {
-        if (types[next] !== type || byCell[next]) continue
-        byCell[next] = { id, type }
-        cells.push(next)
-      }
-    }
+    const cells = component(index, (next) => types[next] === type, seen)
+    for (const cell of cells) byCell[cell] = { id, type }
     zones.push({ id, type, cells })
   }
   return { byCell, zones, placements: placementGroups(grid) }

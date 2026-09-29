@@ -6,6 +6,12 @@
 
 **Contract v8, Migration 006 und ein neuer Golden-Pin gehören zusammen, weil dieselbe Änderung drei Folgen hat.** `log.units[]` trägt `behavior` als Pflichtfeld (`.strict()`), weil `replayCombat` und `verifyCombatLog` ausschließlich den Log lesen und die Zielwahl sonst neu erfunden wäre; `CONTRACT_VERSION 7→8`, `sim_version 0.0.6→0.0.7`. `packages/server/migrations/006_contract_v8.sql` hebt v7-Zeilen an statt sie zu löschen, der v7-Test prüft ab jetzt seine abgelöste Ära wie der v6-Test, und der Golden-Pin steht auf `9f919007`/`f93e3175` — ein neues Feld im Hash und auf der Umweg-Route eine andere Wahl, die einen Tick kostet; die Verschiebung und ihre Gründe stehen im Kopf der Pin-Datei. **Gates:** typecheck 0, 500 Tests in 73 Dateien, Lint 0, LOC-Caps ok, Hygiene ok, Redundancy-Gate ok, Shinon PASS.
 
+## 2026-09-29 — Zwei kopierte Zufallswellen und zwei Nachbarschaften, alles belegt
+
+**Der PRNG-Fehler war zweimal da und ist beidesmal weg.** `sim-core/src/prng/mulberry32.ts` und `client/tools/palette.mjs` schrieben den gemischten Wert in den Zustand zurück; die Folge wich ab dem zweiten Zug vom mulberry32 ab. Unentdeckt blieb es, weil `combat/actions.ts` pro Wurf einen neuen Strom anlegt und genau einmal zieht — und die erste Ziehung ist mit und ohne Rückkopplung bitgleich. Kein Lauf hat sich geändert, beide Golden-Pins stehen; sichtbar sind sechs neu erzeugte Spritesheets, weil das Werkzeug mit dem reparierten Zähler anderes Bildrauschen liefert. Neu gepinnt sind der publizierte Vektor, die Zählerinvariante und der Abgleich der Werkzeugkopie gegen `sim-core`.
+
+**Zwei Nachbarschaftsdefinitionen und zwei Flutfüllungen in `sim-core/src/grid` sind eine geworden.** `grid/grid.ts` besitzt jetzt die Geometrie, `zones.ts` eine `component`. Das redundancy-gate meldete nichts, weil es wörtliche sechs Zeilen vergleicht und die beiden Schleifen sich in der Mitte unterschieden — die Dublette war da und das Gate still. Gemessen ändert eine Umordnung der Nachbarn den Weg bei gleicher Länge; `path.test.ts` blieb in der Gegenprobe grün, der neue `neighbors.test.ts` fängt es.
+
 ## 2026-09-29 — Die freie Fläche fällt, der Hinterhalt kommt, und der Log bleibt verifizierbar
 
 **Der rote Fremdbereich ist grün, und der Grund war eine Naht, kein Detail.** Die laufende Kampf-Zonen-Arbeit hinterließ 45 Typprüf-Fehler und 14 rote Tests in `packages/sim-core/src/combat/`, den Contracts und den Client-Tests; dazu 34 `TS7006` in `packages/client/tools/*.mjs`, die beim Grafik-Block außen vor geblieben waren. Alle vier Bereiche sind nachgezogen: `typecheck` 0, 480 Tests in 69 Dateien, Lint 0, Shinon PASS, Client-Build 425,01 kB.
@@ -182,16 +188,4 @@
 
 **Gates:** typecheck 0, 360 Tests in 54 Dateien, Lint 0, LOC-Caps ok (246 Quellen), Hygiene ok, Shinon PASS.
 
-## 2026-09-29 — Der Typecheck läuft einmal statt viermal, und die Roadmap übergibt an T1
-
-**Die Messung, nicht der Verdacht.** Derselbe Compilerlauf über dieselben 245 Quelldateien lief lokal viermal: als eigener Schritt von `pnpm run -s gate`, ein zweites Mal in `check`, ein drittes Mal im Plugin `dead-code-gate` und ein viertes Mal im `pre-push`-Hook, der die Plugin-Suite erneut fährt. Im Remote-Gate-Job waren es entsprechend drei Läufe pro Lauf. Ein zweiter Durchgang derselben Prüfung ist keine zweite Sicherheit, sondern Wartezeit; zwei Aufrufstellen mit zwei Regelsätzen sind zusätzlich ein Fehler, der grün bleibt.
-
-**Der Schnitt ist ein Owner statt vier Aufrufer.** `tsconfig.json` trägt `noUnusedLocals` und `noUnusedParameters` jetzt selbst — vorher standen sie nur auf der Kommandozeile von `scripts/shinon/plugins/dead-code-gate.mjs`, weshalb `pnpm run -s typecheck` und die Engine streng genommen zwei verschiedene Programme fuhren. `dead-code-gate` bleibt danach die einzige Stelle, die den Compiler startet: `check` erreicht ihn über die Engine, `gate` nur über `check`, und der `gate`-Job in `.github/workflows/shinon.yml` verliert seinen eigenen Typecheck-Schritt. Der Windows-Job behält seinen, weil er `check` nicht fährt und sonst gar keinen Typecheck hätte.
-
-**Ein Wächter statt einer Konvention.** `scripts/shinon/tests/typecheck-owner.test.mjs` hält den Vertrag fest: `gate` und `gate:quick` erreichen den Compiler nur mittelbar, genau eine Plugin-Datei startet `tsc`, die Flags liegen im tsconfig statt auf einer Kommandozeile, `dead-code-gate` steht in `scripts/shinon/policy.json` unter `always` — ohne das fehlte der Typecheck an Commit und Push —, und der Remote-Job wiederholt ihn nicht.
-
-**Die Roadmap übergibt.** Mit dem Abschluss von T1 greift die eigene Prioritätsregel: Das bisherige T2 ist jetzt T1, das bisherige T3 ist jetzt T2. Die Altfassung mit allen Statusupdates vom 2026-09-25 bis 2026-09-28 liegt wortgleich in `docs/historisch/2026-09-29_roadmap-altfassung.md`, `docs/ROADMAP.md` führt als aktives Fenster die offenen Blöcke, die Prioritätsregel und die offenen Punkte mit Besitzer. **Der direkte Followup ist T1 mit dem Block T2.2** — die Verdrahtung der Platzierungsgeometrie an die Dorfszene und der Rückkehr-Toast.
-
-**Gates:** typecheck 0 (ein Lauf), 353 Tests in 52 Dateien, Lint 0, LOC-Caps ok (245 Quellen), Hygiene ok, Shinon PASS, Client-Build und Worker-Dry-Run ok.
-
-Der Eintrag vom 2026-09-28 zum Verteidiger-Roster im Wire-Contract und zum Boss als eigenes Wesen steht wortgleich in `docs/historisch/2026-09-28_changelog-roster-und-boss.md`. Er ist unverändert erhalten, samt seines Verweises auf `docs/historisch/2026-09-28_changelog-dorfbalance.md`.
+Die Einträge vom 2026-09-29 zum einmaligen Typecheck und zur Roadmap-Übergabe sowie vom 2026-09-28 zum Verteidiger-Roster stehen wortgleich in `docs/historisch/2026-09-29_changelog-typecheck-owner.md` und `docs/historisch/2026-09-28_changelog-roster-und-boss.md`; sie sind unverändert erhalten.

@@ -15,6 +15,12 @@ import type { BaseMonster } from './types'
  * `mutation.ts` verschiedene Wesen erzeugt. Ein „Wolfsgezücht" mit hohem
  * Angriff und niedriger Zähigkeit ist damit ein anderer Kampf als ein
  * „Kiesling" mit hohem Angriff und hoher Zähigkeit.
+ *
+ * **Die Archetypen sind ebenfalls `[K]`.** Sie sind aus dem Zahlenprofil
+ * abgelesen und nicht aus einer abgenommenen Rollenliste: dieses Roster trägt
+ * vier Tanks, drei Schadenslinge, zwei Hinterhalter und einen Schwarm. Die
+ * Verteilung ist damit Teil der offenen Kampfbalance, nicht ihr Ergebnis —
+ * `combat/balance-report.test.ts` misst sie.
  */
 export const ROSTER_A: readonly BaseMonster[] = [
   {
@@ -24,6 +30,7 @@ export const ROSTER_A: readonly BaseMonster[] = [
     elements: [4200, 6800, 3100],
     trait: 'restless',
     bonus: 'frenzy',
+    archetype: 'ambusher',
   },
   {
     id: 'stone-golem',
@@ -32,6 +39,7 @@ export const ROSTER_A: readonly BaseMonster[] = [
     elements: [8600, 2600, 7800],
     trait: 'toughHide',
     bonus: 'bulwark',
+    archetype: 'tank',
   },
   {
     id: 'mire-hound',
@@ -40,6 +48,7 @@ export const ROSTER_A: readonly BaseMonster[] = [
     elements: [5500, 5200, 2400],
     trait: 'restless',
     bonus: 'swiftness',
+    archetype: 'damage',
   },
   {
     id: 'ember-cub',
@@ -48,6 +57,7 @@ export const ROSTER_A: readonly BaseMonster[] = [
     elements: [6100, 5900, 3600],
     trait: 'keenEdge',
     bonus: 'frenzy',
+    archetype: 'damage',
   },
   {
     id: 'bone-thrall',
@@ -56,6 +66,7 @@ export const ROSTER_A: readonly BaseMonster[] = [
     elements: [4800, 4400, 5200],
     trait: 'focused',
     bonus: 'endurance',
+    archetype: 'damage',
   },
   {
     id: 'hollow-warden',
@@ -64,6 +75,7 @@ export const ROSTER_A: readonly BaseMonster[] = [
     elements: [5200, 3800, 6400],
     trait: 'toughHide',
     bonus: 'endurance',
+    archetype: 'tank',
   },
   {
     id: 'marsh-horror',
@@ -72,6 +84,7 @@ export const ROSTER_A: readonly BaseMonster[] = [
     elements: [7400, 4600, 5100],
     trait: 'heavyTread',
     bonus: 'bulwark',
+    archetype: 'tank',
   },
   {
     id: 'cinder-wisp',
@@ -80,6 +93,7 @@ export const ROSTER_A: readonly BaseMonster[] = [
     elements: [3400, 7200, 2100],
     trait: 'keenEdge',
     bonus: 'precision',
+    archetype: 'ambusher',
   },
   {
     id: 'grave-moth',
@@ -88,6 +102,7 @@ export const ROSTER_A: readonly BaseMonster[] = [
     elements: [3100, 4600, 2800],
     trait: 'deepLungs',
     bonus: 'swiftness',
+    archetype: 'swarm',
   },
   {
     id: 'iron-crawler',
@@ -96,5 +111,6 @@ export const ROSTER_A: readonly BaseMonster[] = [
     elements: [6800, 3800, 7200],
     trait: 'toughHide',
     bonus: 'bulwark',
+    archetype: 'tank',
   },
 ]

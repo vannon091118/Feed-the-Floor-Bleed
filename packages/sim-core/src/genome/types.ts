@@ -20,6 +20,17 @@ export interface BaseMonster {
   readonly elements: readonly [number, number, number]
   readonly trait: TraitId
   readonly bonus: BonusId
+  /**
+   * Die Kampfrolle der Art, aus der die Taktik sie liest.
+   *
+   * Sie ist eine feste Eigenschaft der **Basis-Art** und wandert darum nicht
+   * in `Genome`: `genome` besitzt Zucht, Stats und Gen-Seed, und eine Zucht
+   * aus einem Schattenläufer bleibt ein Schattenläufer. Wer sie liest, holt
+   * `baseMonster(genome.baseId).archetype`; ein zweites Feld im Genom wäre eine
+   * zweite Wahrheit über dieselbe Sache und würde in jeden eingefrorenen
+   * Contract-Stand wandern.
+   */
+  readonly archetype: ArchetypeId
 }
 
 /**
@@ -68,6 +79,29 @@ export const BONUS_IDS = [
   'vitality',
 ] as const
 export type BonusId = (typeof BONUS_IDS)[number]
+
+/**
+ * Die sechs Kampfrollen des Pools.
+ *
+ * Der Trait sagt, **wie** ein Wesen kämpft, und ist vererblich und veränderlich.
+ * Die Rolle sagt, **wofür** es im Kampf da ist, und ist an die Basis-Art
+ * gebunden. Genau diese Trennung ist der Grund, warum beides getrennte Felder
+ * sind und nicht eines: ein gezüchteter Steingolem behält `tank`, aber nicht
+ * zwingend `toughHide`.
+ *
+ * Die Rollen selbst rechnen nichts — sie sind der Schlüssel, an dem Taktik und
+ * die Balance-Messung hängen. Welche Rolle wie stark wiegt, ist `[K]`; die
+ * Kampfbalance ist laut `docs/VISUAL_GRUNDSATZ.md` offen.
+ */
+export const ARCHETYPE_IDS = [
+  'tank',
+  'damage',
+  'support',
+  'ambusher',
+  'controller',
+  'swarm',
+] as const
+export type ArchetypeId = (typeof ARCHETYPE_IDS)[number]
 
 /** Elementgrenzen. Beide Werte sind Permille, also 1,00 und 10,00. */
 export const ELEMENT_MIN = 1000
