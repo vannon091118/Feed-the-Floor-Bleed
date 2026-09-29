@@ -10,8 +10,11 @@
 | `genome/bonus` | `bulwark`, `frenzy`, `endurance`, `swiftness`, `precision`, `vitality` |
 | `genome/element` | Drei Elemente je Monster, ganzzahlig in Permille, Grenze `1000` (1,00) bis `10000` (10,00) |
 | `genome/generation` | `1` beim Basis-Monster, jede Zucht oder Mutation erhöht um `1` |
-| `combat/stage` | `heroes-win`, `monsters-win`, `timeout` |
-| `combat/event` | `move`, `attack`, `death`, `end` |
+| `combat/stage` | `heroes-win`, `monsters-win`, `timeout`, `extracted`; `extracted` setzt der Auftrag, die Engine liefert ihn nicht |
+| `combat/event` | `move`, `attack`, `death`, `ambush`, `ability`, `reveal`, `end` |
+| `combat/class` | `none`, `vanguard`, `breaker`, `scout`, `medic`, `controller`, `guardian` — Vokabular aus `@floor/contracts/abilities.ts`, hier nur gelesen |
+| `combat/ability` | `shield`, `shatter`, `reveal`, `mend`, `frost`, `hold` — je eine pro Klasse, `reveal` gehört dem Späher |
+| `combat/tactic-when` | `immediate`, `allyBelow`, `selfBelow`, `bossNear`; `thresholdPermille` (0..1000) ist bei den beiden `Below`-Arten Pflicht und sonst verboten |
 | `combat/role` | `hero`, `monster`, `boss` |
 | `combat/side` | `heroes`, `monsters` |
 | `grid/64x64` | Etagen-Größe, Zellen-Array |

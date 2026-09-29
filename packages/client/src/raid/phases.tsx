@@ -16,6 +16,8 @@ const CLUSTER_LABELS: Record<EventCluster['type'], string> = {
   attack: 'Angriff',
   death: 'Tod',
   ambush: 'Hinterhalt',
+  ability: 'Fähigkeit',
+  reveal: 'Aufdeckung',
   end: 'Ende',
 }
 

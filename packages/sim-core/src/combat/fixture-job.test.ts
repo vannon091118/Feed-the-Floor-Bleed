@@ -41,7 +41,7 @@ function upload(): UploadRequest {
       { heroId: 'sim-hero-1', temporaryFatigue: 0, temporaryInjury: 0 },
     ],
     dungeon: { cells, spawn: { x: 0, y: 0 }, boss: { x: 63, y: 63 } },
-    tactics: [['hold']],
+    tactics: [[{ ability: 'hold' }]],
   }
 }
 

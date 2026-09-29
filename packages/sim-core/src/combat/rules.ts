@@ -38,6 +38,9 @@ function heroSpec(index: number, trailIndex: number): CombatUnitSpec {
     side: 'heroes',
     role: 'hero',
     behavior: 'none',
+    // Die Klasse kommt mit ihrem Slice; bis dahin trägt jeder Held den
+    // Grundfall, und die Engine schreibt keinen zweiten Wert.
+    class: 'none',
     maxHp: base.maxHp,
     attack: base.attack,
     defense: base.defense,
@@ -77,6 +80,8 @@ function monsterSpec(
     // Das Verhalten folgt dem Trait der Art — kein zweites Feld, das daneben
     // veralten könnte. Unbekannte Art: Grundfall `none` statt erfundener Rolle.
     behavior: base ? behaviorForTrait(base.trait) : 'none',
+    // Klassen sind das Vokabular der Helden; ein Verteidiger trägt sie nicht.
+    class: 'none',
     maxHp: stats.maxHp,
     attack: stats.attack,
     defense: stats.defense,

@@ -8,6 +8,7 @@
 | `migrations/004_contract_v6.sql` | Hebt die v5-Zeilen auf `simVersion 0.0.5` und `contractVersion 6` an, ohne Daten zu verlieren; das neue `generation`-Feld ist optional |
 | `migrations/005_contract_v7.sql` | Hebt die v6-Zeilen auf `simVersion 0.0.6` und `contractVersion 7` an, ohne Daten zu verlieren; das Kampfmodell ändert sich, die eingefrorene Eingabe nicht |
 | `migrations/006_contract_v8.sql` | Hebt die v7-Zeilen auf `simVersion 0.0.7` und `contractVersion 8` an, ohne Daten zu verlieren; `behavior` und die profilabhängige Zielwahl verschieben die Hashes der Epoche |
+| `migrations/007_contract_v9.sql` | Hebt die v8-Zeilen auf `simVersion 0.0.8` und `contractVersion 9` an, ohne Daten zu verlieren; `class` im `specHash` verschiebt die Hashes der Epoche, die Zahlen der Läufe bleiben |
 | `src/db/d1.ts` | Minimale strukturelle D1-Port-Typen |
 | `src/db/raid-checkpoint.ts` | Atomarer vollständiger Snapshot-/Job-Sync-Checkpoint und Idempotenz |
 | `src/db/raid-store.ts` | Öffentliche Checkpoint-/Transition-/Expiry-API |
@@ -15,7 +16,7 @@
 | `src/db/raid-queries.ts` | Einziger Owner für D1-Statements und typisierte Reads |
 | `src/db/job-state.ts` | Re-Exports des Contract-Vokabulars, terminale Datenregeln, Fehlercode-Prüfung |
 | `src/db/errors.ts` | Verständliche Persistenzfehler |
-| `src/db/*.test.*` | Vollständigkeits-, Checkpoint-, Ziel-, Idempotenz-, Zustands-, TTL- und Migrationstests; `raid-migration-v4.test.mjs` bis `raid-migration-v8.test.mjs` prüfen je Migration getrennt, inklusive Kettenlauf |
+| `src/db/*.test.*` | Vollständigkeits-, Checkpoint-, Ziel-, Idempotenz-, Zustands-, TTL- und Migrationstests; `raid-migration-v4.test.mjs` bis `raid-migration-v9.test.mjs` prüfen je Migration getrennt, inklusive Kettenlauf |
 | `src/db/migration-fixtures.mjs` | Gemeinsames Gerüst der Migrationsprüfungen: Datenbank, Migrationskette, Snapshot und Job, Versionsleser |
 | `src/worker.ts` | Worker-Rand für `feed-the-floor-bleed.vannon-fs.workers.dev`: `/api/health`, `/api/sync/checkpoint`, `/api/sync/job/:id` |
 | `src/worker.test.ts` | Randtests gegen den SQLite-D1-Doppel: Health, 503 ohne D1, Idempotenz, 409, 404, 400/405 |

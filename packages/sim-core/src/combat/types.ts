@@ -1,10 +1,23 @@
+import type { HeroClass } from '@floor/contracts'
 import type { MonsterBehavior } from '../genome/behavior'
 
-export type { MonsterBehavior }
+export type { HeroClass, MonsterBehavior }
 export type CombatSide = 'heroes' | 'monsters'
 export type CombatRole = 'hero' | 'monster' | 'boss'
-export type CombatStage = 'heroes-win' | 'monsters-win' | 'timeout'
-export type CombatEventType = 'move' | 'attack' | 'death' | 'ambush' | 'end'
+export type CombatStage =
+  | 'heroes-win'
+  | 'monsters-win'
+  | 'timeout'
+  /** Kein Kampfergebnis: der Lauf wurde nach dem Boss-Sieg gesichert. */
+  | 'extracted'
+export type CombatEventType =
+  | 'move'
+  | 'attack'
+  | 'death'
+  | 'ambush'
+  | 'ability'
+  | 'reveal'
+  | 'end'
 
 export interface CombatConfig {
   tickRate: number
@@ -28,6 +41,15 @@ export interface CombatUnitSpec {
    * Wahrheit über denselben Zug.
    */
   behavior: MonsterBehavior
+  /**
+   * Klasse des Helden aus dem Contract-Vokabular (`@floor/contracts`).
+   *
+   * Monster und klassenlose Helden tragen `none`; bis der Klassen-Slice die
+   * Werte liefert, ist das der einzige Wert, den die Engine schreibt. Sie steht
+   * aus demselben Grund im Spec wie `behavior`: der Log ist die einzige Quelle,
+   * aus der ein Replay einen Zug rekonstruieren kann.
+   */
+  class: HeroClass
   maxHp: number
   attack: number
   defense: number

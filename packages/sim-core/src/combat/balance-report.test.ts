@@ -17,7 +17,15 @@ import { defaultCombatConfig, resolveCombat } from './index'
 const SEEDS = Number(process.env.BALANCE_SEEDS ?? 32)
 const SLOTS = [0, 1, 2, 3, 4, 5] as const
 const TEAM_SIZE = 3
-const STAGES = ['heroes-win', 'monsters-win', 'timeout'] as const
+/**
+ * Die gezählten Ausgänge.
+ *
+ * `extracted` steht seit Contract v9 im Vokabular: die Engine liefert ihn nicht,
+ * der Auftrag setzt ihn, wenn der Lauf nach dem Boss-Sieg gesichert wird. Er
+ * wird trotzdem mitgezählt, damit ein solcher Lauf die Summenprüfung im Test
+ * unten rot macht, statt still aus der Messung zu fallen.
+ */
+const STAGES = ['heroes-win', 'monsters-win', 'timeout', 'extracted'] as const
 
 type Stage = (typeof STAGES)[number]
 
@@ -56,6 +64,7 @@ function measure(monsterSlots: number) {
     'heroes-win': 0,
     'monsters-win': 0,
     timeout: 0,
+    extracted: 0,
   }
   let ticks = 0
   for (let seed = 0; seed < SEEDS; seed += 1) {
@@ -125,6 +134,7 @@ function missArchetyp(archetype: ArchetypeId): ArchetypZeile {
     'heroes-win': 0,
     'monsters-win': 0,
     timeout: 0,
+    extracted: 0,
   }
   let ticks = 0
   for (const base of roster) {

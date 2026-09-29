@@ -37,10 +37,24 @@ const activeTeamMemberSchema = z
   })
   .strict()
 
+/**
+ * Die Beute, die noch nicht im Dorfbestand steht.
+ *
+ * Der Escrow ist der Zwischenstand der Push-Your-Luck-Schleife: Beute einer
+ * Etage liegt gesichert hier, bis der Lauf ans Dorf übergeben wird; bei einer
+ * Niederlage wird nur der **ungesicherte** Anteil fällig. Er steht optional im
+ * eingefrorenen Stand, weil ältere Stände keinen führen — fehlend heißt „noch
+ * nichts gesichert" und nicht „unbekannt". Die Zahlen sind `[K]`.
+ */
+const escrowSchema = z
+  .object({ gold: wholeNumberSchema, materials: wholeNumberSchema })
+  .strict()
+
 export const raidSnapshotShape = {
   resources: z
     .object({ gold: wholeNumberSchema, materials: wholeNumberSchema })
     .strict(),
+  escrow: escrowSchema.optional(),
   monsterSlots: z.array(monsterSlotSchema).length(5),
   activeTeam: z.array(activeTeamMemberSchema).min(1).max(5),
   dungeon: DungeonGridSchema,

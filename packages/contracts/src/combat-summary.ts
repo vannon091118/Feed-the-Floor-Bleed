@@ -1,5 +1,6 @@
 import { z } from 'zod'
-import { CombatHashSchema, CombatStageSchema, count, fixed } from './combat-log'
+import { CombatHashSchema, count, fixed } from './combat-log'
+import { CombatStageSchema } from './combat-vocabulary'
 
 /**
  * Ergebnis-Kurzfassung für Listen, Logs und Client-Anzeige.

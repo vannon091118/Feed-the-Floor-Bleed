@@ -47,8 +47,10 @@ export function bossSpec(routeIndex: number): CombatUnitSpec {
     side: 'monsters',
     role: BOSS_ROLE,
     // Der Boss trägt kein Genom und damit kein Profil: er ist Bedingung des
-    // Heldensiegs und wählt wie zuvor das nächste Ziel.
+    // Heldensiegs und wählt wie zuvor das nächste Ziel. Eine Klasse hat er
+    // ebenso wenig — Klassen sind das Vokabular der Helden.
     behavior: 'none',
+    class: 'none',
     maxHp: BOSS_RULES.maxHp,
     attack: BOSS_RULES.attack,
     defense: BOSS_RULES.defense,

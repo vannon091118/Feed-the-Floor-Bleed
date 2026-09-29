@@ -1,10 +1,5 @@
 import type { ErrorCode, TerminalRaidJob } from '@floor/contracts'
-
-const STAGE_TEXT = {
-  'heroes-win': 'Heldensieg',
-  'monsters-win': 'Boss hält',
-  timeout: 'Zeitlimit erreicht',
-} as const
+import { STAGE_LABELS } from './timeline-model'
 
 const CODE_TEXT: Record<ErrorCode, string> = {
   blocked: 'Route blockiert',
@@ -20,7 +15,7 @@ function completedView(job: Extract<TerminalRaidJob, { status: 'completed' }>) {
     <>
       <div className="raid-verdict">
         <span className={`raid-stage raid-stage--${summary.stage}`}>
-          {STAGE_TEXT[summary.stage]}
+          {STAGE_LABELS[summary.stage]}
         </span>
         <code className="raid-hash">{job.result.hash}</code>
       </div>
@@ -71,8 +66,9 @@ function failedView(
  * Reine Ergebnis-Darstellung eines TerminalRaidJob: keine Zustände, keine
  * Knöpfe, keine Entscheidung über den Raid-Ausgang.
  *
- * `STAGE_TEXT` und `CODE_TEXT` sind die einzige Textquelle für Urteil und
- * Fehler; es gibt bewusst keinen zweiten Formulierer daneben.
+ * `STAGE_LABELS` (bei der Timeline, weil die Phasen-Ansicht dieselben Worte
+ * braucht) und `CODE_TEXT` sind die einzige Textquelle für Urteil und Fehler;
+ * es gibt bewusst keinen zweiten Formulierer daneben.
  */
 export function RaidResultView({ job }: { job: TerminalRaidJob }) {
   return (

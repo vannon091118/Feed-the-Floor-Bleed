@@ -1,3 +1,5 @@
+import type { TacticRule } from '@floor/contracts'
+
 export interface Resources {
   gold: number
   materials: number
@@ -10,7 +12,11 @@ export interface Hero {
   hp: number
   fatigue: number
   injury: number
-  tactics: string[]
+  /**
+   * Bis zu drei Taktikregeln. Sie sind Contract-Form und keine Opaque-Strings
+   * mehr: der Core liest sie, und der Editor zeigt dieselben Regeln an.
+   */
+  tactics: TacticRule[]
 }
 
 export interface MonsterSlot {
@@ -57,7 +63,7 @@ export const fixture: FixtureData = {
       hp: 42,
       fatigue: 2,
       injury: 0,
-      tactics: ['scout', 'retreat'],
+      tactics: [{ ability: 'reveal' }],
     },
     {
       id: 'hero-bram',
@@ -66,7 +72,7 @@ export const fixture: FixtureData = {
       hp: 56,
       fatigue: 0,
       injury: 1,
-      tactics: ['hold'],
+      tactics: [{ ability: 'shatter' }],
     },
     {
       id: 'hero-nell',
@@ -75,7 +81,12 @@ export const fixture: FixtureData = {
       hp: 38,
       fatigue: 1,
       injury: 0,
-      tactics: ['guard', 'mend'],
+      tactics: [
+        {
+          ability: 'mend',
+          when: { kind: 'allyBelow', thresholdPermille: 400 },
+        },
+      ],
     },
   ],
   // Verteidiger-Roster ist Fixture-Daten, keine Gameplay-Ableitung: T1.3

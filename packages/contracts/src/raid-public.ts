@@ -1,4 +1,4 @@
-import type { z } from 'zod'
+import { z } from 'zod'
 import { EMPTY_CELL, PLACEMENT_CELL } from './cell'
 import { DungeonGridSchema } from './grid'
 import type { RaidSnapshot } from './raid-snapshot'
@@ -19,7 +19,18 @@ import { versionEnvelope } from './version'
  * mitschickt. Verbergen am Bildschirm wäre keine Verbergung.
  */
 export const RaidPublicViewSchema = versionEnvelope
-  .extend({ dungeon: DungeonGridSchema })
+  .extend({
+    dungeon: DungeonGridSchema,
+    /**
+     * Zellen, die der Späher beantwortet hat — als Zellnummern des Rasters.
+     *
+     * Die Menge ist Teil der Sicht und nicht der Anzeige: Was der Angreifer
+     * nicht aufgedeckt hat, sieht er auch nicht, und der Bildschirm darf die
+     * Liste nicht raten müssen. Bis der Nebel gebaut ist, ist sie leer und der
+     * Angreifer sieht genau das, was er heute sieht.
+     */
+    revealed: z.array(z.number().int().min(0).max(4095)).max(4096),
+  })
   .strict()
 
 export type RaidPublicView = z.infer<typeof RaidPublicViewSchema>
@@ -41,7 +52,10 @@ function maskedCells(cells: readonly number[]): number[] {
  * Raster nicht ungültig macht — genau ein Spawn, genau ein Boss, nur bekannte
  * Zellnummern.
  */
-export function toPublicView(snapshot: RaidSnapshot): RaidPublicView {
+export function toPublicView(
+  snapshot: RaidSnapshot,
+  revealed: readonly number[] = [],
+): RaidPublicView {
   return RaidPublicViewSchema.parse({
     contractVersion: snapshot.contractVersion,
     simVersion: snapshot.simVersion,
@@ -50,5 +64,9 @@ export function toPublicView(snapshot: RaidSnapshot): RaidPublicView {
       spawn: { ...snapshot.dungeon.spawn },
       boss: { ...snapshot.dungeon.boss },
     },
+    // Der Aufrufer liefert die aufgedeckten Zellen; ohne sie ist die Sicht so
+    // verdeckt wie heute. Die Ableitung aus Route und Späherin gehört in den
+    // Nebel-Slice und nicht in die Maske — die Maske maskiert, sie rechnet nicht.
+    revealed: [...revealed],
   })
 }

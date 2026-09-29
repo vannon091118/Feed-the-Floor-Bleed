@@ -27,6 +27,7 @@ function state(overrides: Partial<CombatUnitState>): CombatUnitState {
     side: 'monsters',
     role: 'monster',
     behavior: 'none',
+    class: 'none',
     maxHp: 100,
     hp: 100,
     attack: 10,

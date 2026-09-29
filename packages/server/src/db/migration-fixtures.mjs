@@ -27,6 +27,23 @@ export function migration(name) {
 export { DatabaseSync }
 
 /**
+ * Die Migrationskette als Inhalt, in Sprungreihenfolge.
+ *
+ * Sie steht hier, weil vier Dateien dieselben `const toV5 = migration('…')`-Zeilen
+ * sonst nebeneinander führen und das Redundancy-Gate in dasselbe Sechs-Zeilen-
+ * Fenster laufen lässt: die Dublette wird nicht umgangen, sondern zu den übrigen
+ * Handgriffen gelegt. Wer seine Schritte ausdrücklich zeigen will, ruft
+ * `migration()` weiterhin selbst auf.
+ */
+export const MIGRATIONS = {
+  v5: migration('003_contract_v5.sql'),
+  v6: migration('004_contract_v6.sql'),
+  v7: migration('005_contract_v7.sql'),
+  v8: migration('006_contract_v8.sql'),
+  v9: migration('007_contract_v9.sql'),
+}
+
+/**
  * Eine frische Datenbank mit dem Grundschema und den übergebenen Migrationen.
  *
  * Nimmt den **Inhalt** von Migrationen, nicht ihre Namen — die Tests lesen

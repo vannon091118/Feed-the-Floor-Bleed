@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { TacticRuleSchema } from './abilities'
 import { CombatHashSchema, CombatLogSchema } from './combat-log'
 import { CombatSummarySchema } from './combat-summary'
 import { RaidPublicViewSchema } from './raid-public'
@@ -8,7 +9,8 @@ import { versionEnvelope } from './version'
 const opaqueIdSchema = z.string().min(1)
 const floorSchema = z.number().int().positive().max(Number.MAX_SAFE_INTEGER)
 const seedSchema = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER)
-const tacticsSchema = z.array(z.array(opaqueIdSchema).max(3)).max(5)
+/** Je Held bis zu drei Regeln; die erste erfüllte verbraucht ihre Fähigkeit. */
+const tacticsSchema = z.array(z.array(TacticRuleSchema).max(3)).max(5)
 
 export const UploadRequestSchema = RaidSnapshotSchema.extend({
   tactics: tacticsSchema,

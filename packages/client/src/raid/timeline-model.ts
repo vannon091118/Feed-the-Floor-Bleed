@@ -56,6 +56,7 @@ export const STAGE_LABELS: Record<CombatStage, string> = {
   'heroes-win': 'Heldensieg',
   'monsters-win': 'Boss hält',
   timeout: 'Zeitlimit erreicht',
+  extracted: 'Beute gesichert',
 }
 
 const PLACEMENT_CELL: CellTypeValue = 2

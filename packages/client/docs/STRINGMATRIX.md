@@ -5,7 +5,7 @@
 | `editor/brush1-2-4` | Pinselgrößen (4 = sichtbares Tile) |
 | `editor/brush` | Aktiver Pinsel `'empty' \| 'wall' \| 'trap'` |
 | `editor/marker` | `'start' \| 'boss' \| null` — Anker im Tile |
-| `raid/tactics3` | 3 Regeln/Held, If-Then |
+| `raid/tactics3` | höchstens 3 Regeln je Held; jede ist eine `TacticRule` aus `@floor/contracts` (`{ ability, when? }`, `when` fehlend heißt `immediate`). Die Fixture schreibt Regeln, die Anzeige führt sie als Ableitung |
 | `raid/job-id` | `fixture-raid-1` — Job-ID und Token des Probelaufs |
 | `raid/seed` | `4242` — fester Fixture-Seed, keine Uhr, kein Zufall |
 | `raid/floor` | `1` — Etage des Fixture-Auftrags |

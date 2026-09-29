@@ -14,7 +14,7 @@
 | `tools/preview.mjs` | Vergrößerte Vorschau der Blätter zum Ansehen; Ausgabe nach `tools/_preview/`, bewusst unversioniert |
 | `src/main.tsx` | Einstiegspunkt: rendert die Shell in `#app` |
 | `src/vite-env.d.ts` | Vite-Client-Typen für CSS-Importe |
-| `src/fixture-data.ts` | Read-only Fixture-Daten (Dorf, Starttag, Team, Monster, Auftrag); keine Wirtschaftsgröße, die steht in `village/balance.ts` |
+| `src/fixture-data.ts` | Read-only Fixture-Daten (Dorf, Starttag, Team, Monster, Auftrag); keine Wirtschaftsgröße, die steht in `village/balance.ts`; `Hero.tactics` trägt `TacticRule` aus `@floor/contracts` und keine Opaque-Strings mehr |
 | `src/world/geometry.ts` | Weltmaße, Zell-zu-Welt-Umrechnung, Zell-Seed |
 | `src/world/materials.ts` | Materialdefinitionen und deterministische Variantenwahl |
 | `src/world/tiles.ts` | `CellType` → `TileDescriptor` (Höhe, Occlusion, Marker) |
@@ -129,7 +129,7 @@
 | `src/raid/fixture-raid.ts` | Contract-v4-Upload und lokaler Fixture-Auftrag |
 | `src/raid/combat-source.ts` | Einziger Besitzer des Raid-Logs: Core-Aufruf, Lade-/Entlade-Pfad, Plan-Synchronisierung |
 | `src/raid/raid-panel.tsx` | Probelauf-Panel, reicht den terminalen Auftrag an die Schleife weiter |
-| `src/raid/panel.tsx` | Reine Ergebnis-Darstellung eines TerminalRaidJob |
+| `src/raid/panel.tsx` | Reine Ergebnis-Darstellung eines TerminalRaidJob; die Stufenworte liest sie als `STAGE_LABELS` aus `timeline-model.ts`, es gibt keinen zweiten Formulierer daneben |
 | `src/raid/playback.ts` | Playback-Store: Log, Tick, Pause, abgeleitete Routenposition |
 | `src/raid/timeline-model.ts` | Reine Abschnitts- und Phasenmodelle des Logs; die Überlebendenzahlen kommen aus `@floor/sim-core`; Trail-Marken sind Platzierung, Spawn und Boss; `ambushEvents` liefert jedes Hinterhalt-Ereignis einzeln mit Tick und Ziel |
 | `src/raid/timeline.tsx` | Re-Export von Timeline und Steuerung für die Shell |
@@ -141,6 +141,10 @@
 | `test/day-night-loop.test.ts` | End-to-End-Loop mit Fake-Timern unter 5 s |
 | `test/raid-job.test.ts` | Upload-Gültigkeit, Hash und Auftragszustände |
 | `test/visual-foundation.test.ts` | Tests für World-Definitionen, Kamera, Depth, Observer |
+| `test/asset-palette.test.ts` | Farbwerte und Determinismus der Generator-Werkzeuge: `shift`, `mix`, `saturate`, PRNG, Puffer und PNG-Encoder |
+| `test/asset-frames.test.ts` | Frame-Naht: Index aus `tile.variant` über alle 4096 Zellen, Frame-Anzahl gegen `materials.ts`, Wandhöhe gegen `tiles.ts`, Fallback ohne Textur |
+| `test/asset-generator.test.ts` | Der Generator liefert zwei Läufe bytegleich und schreibt saubere PNG-Struktur |
+| `test/asset-sheets.test.ts` | Pinnt die committed Blätter an ihre Quelle: Boden-Abmessung gegen `materials.ts`-Varianten, Wand-Höhe gegen `tiles.ts` — macht eine veraltete Datei rot statt prozedural fallen zu lassen |
 | `test/render-animation.test.ts` | Periodik, Determinismus, Grenzen und Amplituden der Render-Animation |
 | `test/input-drag.test.ts` | Slop-Verhalten: ein Down ohne Weg erzeugt keinen Drop |
 | `test/village-settlement.test.ts` | Dorfblick: Name, Tag, Phase und Roster ohne Kopie |

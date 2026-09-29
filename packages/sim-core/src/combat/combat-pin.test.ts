@@ -71,6 +71,20 @@ import { resolveCombat } from './index'
  *
  * `sim_version 0.0.6→0.0.7`, `CONTRACT_VERSION 7→8`, Migration
  * `006_contract_v8.sql`.
+ *
+ * **Vierte Verschiebung vom 2026-09-29 — die Klasse steht im Spec, ohne dass
+ * sie jemand liest.** Jede Einheit trägt jetzt `class` aus dem Vokabular des
+ * Contracts, und weil `specHash` den Spec vollständig hasht, verschiebt das
+ * beide Läufe. Sonst ändert sich nichts: die Engine schreibt ausschließlich
+ * `none`, und Ticks, Ereignisse, Trail und Stufe unten bleiben deshalb Zeichen
+ * für Zeichen dieselben. Der Pin belegt damit genau das, was er soll — der
+ * Hash folgt dem Feld, nicht dem Verhalten, und kein Lauf hat sich anders
+ * entschieden. Anders als bei der dritten Verschiebung ist hier **kein**
+ * Ereignis dazugekommen: `ability` und `reveal` stehen im Vokabular, aber noch
+ * schreibt sie niemand.
+ *
+ * `sim_version 0.0.7→0.0.8`, `CONTRACT_VERSION 8→9`, Migration
+ * `007_contract_v9.sql`.
  */
 function observed(
   grid: ReturnType<typeof createDungeonGrid>,
@@ -100,7 +114,7 @@ function snakeGrid() {
 describe('Golden-Pin des Kampf-Hashes', () => {
   it('pinnt den Lauf auf dem offenen Fixture-Grid', () => {
     expect(observed(createDungeonGrid(), 2)).toEqual({
-      hash: '9f919007',
+      hash: '98cd6dda',
       stage: 'monsters-win',
       ticks: 216,
       events: 413,
@@ -110,7 +124,7 @@ describe('Golden-Pin des Kampf-Hashes', () => {
 
   it('pinnt den Lauf auf der Umweg-Route mit voller Belegung', () => {
     expect(observed(snakeGrid(), 5)).toEqual({
-      hash: 'f93e3175',
+      hash: 'ebbe2010',
       stage: 'monsters-win',
       ticks: 166,
       events: 674,

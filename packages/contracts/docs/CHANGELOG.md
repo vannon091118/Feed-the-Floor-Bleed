@@ -1,5 +1,19 @@
 # packages/contracts/docs/CHANGELOG.md
 
+## 2026-09-29 — Contract v9: Heldenklasse, Taktikregel und der gesicherte Lauf
+
+**Scope:** neu `src/abilities.ts`, `src/combat-vocabulary.ts` und `test/abilities.test.ts`. Geändert `src/combat-log.ts`, `src/combat-summary.ts`, `src/raid-public.ts`, `src/raid-snapshot.ts`, `src/protocol.ts`, `src/version.ts`, `src/index.ts` sowie `test/raid-fixtures.ts`, `test/combat-log.test.ts`, `test/raid-public.test.ts` und `test/raid-snapshot.test.ts`. `CONTRACT_VERSION 8→9`, `sim_version 0.0.7→0.0.8`.
+
+**Drei Flächen, ein Grund: Phase 3 braucht Wörter, bevor sie Zahlen braucht.** `src/abilities.ts` ist neu und führt das Wire-Vokabular der Helden — `HERO_CLASSES`, `ABILITY_IDS`, `TACTIC_WHEN_KINDS` und `TacticRuleSchema` (`{ ability, when? }`, `.strict()`). Es liegt im Contract und nicht im Core, weil `sim-core` damit rechnet, der Angreifer es sehen darf und der Server es prüft; zwei Listen wären zwei Wahrheiten, und die Drift fiele erst beim Upload auf. `log.units[]` trägt `class` als Pflichtfeld aus genau demselben Grund wie `behavior` ein Feld vorher: `replayCombat` und `verifyCombatLog` lesen ausschließlich den Log, und eine Klasse, die nur im Speicher läge, müsste das Replay neu erfinden.
+
+**Die Bedingung entscheidet wann, nie wie viel.** `thresholdPermille` ist Pflicht, sobald die Bedingung sie liest (`allyBelow`, `selfBelow`), und verboten, wo sie nichts bedeutete (`immediate`, `bossNear`): ein unbenutzter Wert wäre eine Zahl ohne Leser. Die Opaque-Strings in `UploadRequest.tactics` sind damit tot — was ein Mensch als `'guard'` schrieb, ist jetzt eine Regel aus Fähigkeit und optionaler Bedingung, und der Angreifer kann in sie hineinsehen.
+
+**Fog und Ausstieg bekommen ihre Felder, ihre Mechanik noch nicht.** `RaidPublicView` führt `revealed` (die Zellen, die der Späher beantwortet hat; leer ist der heutige Stand), der Freeze führt optional `escrow`, und `COMBAT_STAGES` kennt `extracted` — kein Kampfergebnis, sondern das Ende eines gesicherten Laufs, das der Auftrag setzt. Alle drei sind Form ohne Rechnung: `toPublicView` reicht die Menge durch, die Ableitung aus Route und Späherin gehört in den Nebel-Slice. Das ist ausgesprochen und nicht als fertig ausgegeben.
+
+**Ein Cap hat eine Datei geteilt, und der Grund steht in der Datei.** Mit `extracted`, `ability` und `reveal` riss `combat-log.ts` den 120-Zeilen-Cap der Domäne. Statt Kommentare zu kürzen und Code auf eine Zeile zu quetschen, ist das **Vokabular** ausgezogen: `src/combat-vocabulary.ts` hält die fünf Wortlisten samt Schemas, `combat-log.ts` ihre Verwendung — derselbe Zug, mit dem `trail.ts` und `combat-summary.ts` den Cap vorher gehalten haben. Die Form ist unverändert, `sim-core` und `combat-summary.ts` lesen dieselben Schemas an einem neuen Ort.
+
+**Was der Sprung anfasst und was nicht.** Die eingefrorene Eingabe bleibt in ihrer Form lesbar; `escrow` ist optional, `class` und `revealed` sind abgeleitet, und die Taktiken stehen im Upload und nicht im Snapshot. `packages/server/migrations/007_contract_v9.sql` hebt v8-Zeilen auf `sim_version 0.0.8` und `contractVersion 9` an, statt sie zu löschen. Der Hash jedes Laufs verschiebt sich trotzdem — `class` steht im `specHash` —, obwohl sich an den Zahlen der Läufe nichts ändert, weil die Engine bis zum Klassen-Slice ausschließlich `none` schreibt; der Golden-Pin belegt beide Hashes neu und nennt den Grund ausdrücklich.
+
 ## 2026-09-29 — Contract v8: das Verhaltensprofil steht im Log
 
 **Scope:** geändert `src/combat-log.ts`, `src/version.ts`, `src/index.ts` sowie `test/raid-fixtures.ts` und `test/combat-log.test.ts`. `CONTRACT_VERSION 7→8`, `sim_version 0.0.6→0.0.7`.

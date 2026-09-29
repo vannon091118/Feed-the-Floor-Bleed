@@ -38,7 +38,17 @@ export function raidSnapshot(): RaidSnapshot {
 }
 
 export function upload(): UploadRequest {
-  return { ...raidSnapshot(), tactics: [['guard']] }
+  return {
+    ...raidSnapshot(),
+    tactics: [
+      [
+        {
+          ability: 'hold',
+          when: { kind: 'selfBelow', thresholdPermille: 400 },
+        },
+      ],
+    ],
+  }
 }
 
 /** Die Angreifer-Sicht auf denselben Stand, über den erlaubten Weg gebaut. */
@@ -65,6 +75,7 @@ export function combatLog(): CombatLog {
         side: 'heroes',
         role: 'hero',
         behavior: 'none',
+        class: 'none',
         maxHp: 60000,
         attack: 12000,
         defense: 3000,
@@ -79,6 +90,7 @@ export function combatLog(): CombatLog {
         side: 'monsters',
         role: 'boss',
         behavior: 'none',
+        class: 'none',
         maxHp: 200000,
         attack: 16000,
         defense: 5000,

@@ -1,5 +1,15 @@
 # packages/sim-core/docs/CHANGELOG.md
 
+## 2026-09-29 — Die Heldenklasse steht im Spec, ohne dass jemand sie liest
+
+**Scope:** geändert `src/combat/types.ts` (Feld `class`, Stufe `extracted`, Ereignisarten `ability`/`reveal`), `rules.ts` und `boss.ts` (`class: 'none'`), `fingerprint.ts` (`class` im `specHash`), `ambush.test.ts`, `behavior.test.ts` und `balance-report.test.ts`. Neue Mechanik: keine.
+
+**Ein Feld ohne Leser wäre eine zweite Wahrheit — dieses Feld ist in v9 trotzdem keines.** Contract v9 verlangt `class` an jeder Einheit, weil ein Replay ausschließlich den Log liest. Der Core schreibt deshalb überall `none`: klassenlose Helden, Monster und Boss gleichermaßen. Erst der Klassen-Slice füllt die Zuordnung aus dem Snapshot; bis dahin ist `none` der einzige Wert und die Engine tut genau das, was sie vor Phase 3 tat.
+
+**Der Pin belegt, dass sich nichts bewegt hat.** `class` steht im `specHash`, also verschieben sich beide Golden-Werte (`98cd6dda`, `ebbe2010`), während Ticks, Ereignisse, Trail und Stufe Zeichen für Zeichen dieselben bleiben. Genau das ist die Aussage: der Hash folgt dem Feld, nicht dem Verhalten. `sim_version 0.0.7→0.0.8`, `CONTRACT_VERSION 8→9`, Migration `007_contract_v9.sql`.
+
+**Gates:** typecheck 0, 524 Tests in 77 Dateien, Lint 0, LOC-Caps ok, Hygiene ok.
+
 ## 2026-09-29 — Das Verhalten kommt aus dem Genom und entscheidet das Ziel
 
 **Scope:** neu `src/genome/behavior.ts` mit `src/genome/behavior.test.ts` und `src/combat/behavior.test.ts`. Geändert `src/genome/index.ts`, `src/combat/types.ts`, `rules.ts`, `boss.ts`, `state.ts`, `simulate.ts`, `fingerprint.ts`, `ambush.test.ts` und `combat-pin.test.ts`.

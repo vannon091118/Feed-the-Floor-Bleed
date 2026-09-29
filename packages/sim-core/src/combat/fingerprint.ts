@@ -13,6 +13,7 @@ function specHash(spec: CombatUnitSpec): number {
   hash = hashText(hash, spec.side)
   hash = hashText(hash, spec.role)
   hash = hashText(hash, spec.behavior)
+  hash = hashText(hash, spec.class)
   hash = hashWords(hash, [
     spec.maxHp,
     spec.attack,

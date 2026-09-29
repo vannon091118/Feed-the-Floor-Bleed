@@ -1,4 +1,17 @@
 export {
+  ABILITY_IDS,
+  type AbilityId,
+  AbilityIdSchema,
+  HERO_CLASSES,
+  type HeroClass,
+  HeroClassSchema,
+  TACTIC_WHEN_KINDS,
+  type TacticRule,
+  TacticRuleSchema,
+  type TacticWhen,
+  TacticWhenSchema,
+} from './abilities'
+export {
   BOSS_CELL,
   CellTypeSchema,
   type CellTypeValue,
@@ -8,33 +21,35 @@ export {
   WALL_CELL,
 } from './cell'
 export {
-  COMBAT_EVENT_TYPES,
-  COMBAT_ROLES,
-  COMBAT_SIDES,
-  COMBAT_STAGES,
   type CombatConfig,
   CombatConfigSchema,
   type CombatEvent,
   CombatEventSchema,
-  type CombatEventType,
-  CombatEventTypeSchema,
   CombatHashSchema,
   type CombatLog,
   CombatLogSchema,
-  CombatRoleSchema,
-  CombatSideSchema,
-  type CombatStage,
-  CombatStageSchema,
   type CombatUnitSpec,
   CombatUnitSpecSchema,
-  MONSTER_BEHAVIORS,
-  type MonsterBehavior,
-  MonsterBehaviorSchema,
 } from './combat-log'
 export {
   type CombatSummary,
   CombatSummarySchema,
 } from './combat-summary'
+export {
+  COMBAT_EVENT_TYPES,
+  COMBAT_ROLES,
+  COMBAT_SIDES,
+  COMBAT_STAGES,
+  type CombatEventType,
+  CombatEventTypeSchema,
+  CombatRoleSchema,
+  CombatSideSchema,
+  type CombatStage,
+  CombatStageSchema,
+  MONSTER_BEHAVIORS,
+  type MonsterBehavior,
+  MonsterBehaviorSchema,
+} from './combat-vocabulary'
 export {
   type DungeonGridPayload,
   DungeonGridSchema,

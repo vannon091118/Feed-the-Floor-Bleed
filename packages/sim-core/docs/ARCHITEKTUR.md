@@ -86,6 +86,14 @@ bewusst unbelegt, solange die Mechanik dahinter fehlt. Die Liste der Profile
 selbst gehört nach `@floor/contracts` und wird von dort re-exportiert — eine
 zweite Definition wäre eine zweite Wahrheit gegenüber dem `.strict()`-Schema.
 
+Seit Contract v9 trägt jede Einheit außerdem eine **Klasse**
+(`CombatUnitSpec.class`); das Vokabular steht in `@floor/contracts/abilities.ts`
+und wird von dort gelesen, nie hier gespiegelt. Der Core schreibt bis zum
+Klassen-Slice ausschließlich `none`. Das Feld steht schon jetzt im Spec und im
+`specHash`, weil die Zuordnung Held → Klasse aus dem eingefrorenen Stand kommt
+und ein Replay sie sonst neu erfinden müsste — dieselbe Begründung wie bei
+`behavior`.
+
 `src/genome/strength.ts` besitzt die **Stärke** eines Wesens, eine Stufe von 0
 bis 5, und ist die zweite Eingabe der Goldformel (`docs/GOLDFORMEL.md`). Sie
 kommt aus dem Elementbudget, der Summe der drei Elemente, nicht aus den

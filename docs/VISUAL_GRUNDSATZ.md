@@ -78,6 +78,8 @@ Rathaus und Gilde tragen `buildable: false`: Sie sind feste Startorte und werden
 
 Alle sechs Blätter sind **selbst erstellt** und werden von einem Skript im Repository erzeugt, nicht von Hand geliefert: `pnpm --filter @floor/client assets`. Die Erzeugung ist deterministisch — derselbe Aufruf liefert bytegleiche Dateien, geprüft von `packages/client/test/asset-generator.test.ts`. E6 ist damit erfüllt: Herkunft und Erzeugung sind nachvollziehbar, nicht behauptet.
 
+`packages/client/test/asset-sheets.test.ts` pinnt zusätzlich die **committed** Blätter an ihre Quelle (Bodenbreite gegen die Variantenzahl in `materials.ts`, Wandhöhe gegen `tiles.ts`). Ändert jemand eine dieser Zahlen, muss er die Blätter neu erzeugen und committen — der Test schlägt sonst rot, statt die Wand im Dungeon still auf die prozedurale Fallback-Textur zurückfallen zu lassen.
+
 | Blatt | Maße | Frames | Herkunft und Freigabe |
 | -------- | ------ | -------: | ---------------------- |
 | `dungeon_floor_arcane.png` | 32×32 | 5 | Selbst erzeugt, `tools/draw.mjs`. Freigegeben: Auftraggeber, 2026-09-29 |

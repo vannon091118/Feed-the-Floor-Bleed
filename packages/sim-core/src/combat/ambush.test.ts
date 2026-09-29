@@ -36,6 +36,7 @@ function unit(overrides: Partial<CombatUnitState>): CombatUnitState {
     attackCooldown: 3,
     routeIndex: 0,
     behavior: 'none',
+    class: 'none',
     ambushZoneId: -1,
     hp: 60000,
     alive: true,

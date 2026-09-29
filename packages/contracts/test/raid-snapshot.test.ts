@@ -48,6 +48,30 @@ describe('Kanonischer Raid-Snapshot', () => {
     ).toBe(false)
   })
 
+  it('führt den Escrow als optionalen Zwischenstand', () => {
+    // Fehlend heißt „noch nichts gesichert“ und nicht „unbekannt“: ältere
+    // Stände bleiben damit lesbar, ohne dass eine Zahl erfunden wird.
+    const snapshot = raidSnapshot()
+    expect(snapshot.escrow).toBeUndefined()
+    expect(RaidSnapshotSchema.safeParse(snapshot).success).toBe(true)
+    expect(
+      RaidSnapshotSchema.safeParse({
+        ...snapshot,
+        escrow: { gold: 5, materials: 1 },
+      }).success,
+    ).toBe(true)
+    expect(
+      RaidSnapshotSchema.safeParse({ ...snapshot, escrow: { gold: 5 } })
+        .success,
+    ).toBe(false)
+    expect(
+      RaidSnapshotSchema.safeParse({
+        ...snapshot,
+        escrow: { gold: 5, materials: 1, gems: 1 },
+      }).success,
+    ).toBe(false)
+  })
+
   it('gehört ausschließlich zur aktuellen Contract-Version', () => {
     const snapshot = raidSnapshot()
     expect(versions.contractVersion).toBe(CONTRACT_VERSION)

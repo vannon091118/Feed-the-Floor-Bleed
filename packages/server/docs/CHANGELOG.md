@@ -1,5 +1,17 @@
 # packages/server/docs/CHANGELOG.md
 
+## 2026-09-29 — Migration 007 zieht Contract v9 nach, und der Sprung ist kleiner als er klingt
+
+**Scope:** neu `migrations/007_contract_v9.sql` und `src/db/raid-migration-v9.test.mjs`. Geändert `src/db/raid-migration-v8.test.mjs` (wird zum Ära-Test). Keine Route, kein Schema, keine Spalte geändert.
+
+**Viel Vokabular, wenig Bestand — und genau das gehört in den Kommentar der Datei, statt es zu behaupten.** Der Sprung bringt Klassen, Taktikregeln, `ability`/`reveal`, `extracted` und `revealed`; angefasst wird trotzdem nur das Versionsfeld. Das ist keine Nachlässigkeit, sondern folgt aus der Form: `class` am Log, `revealed` in der Angreifer-Sicht und `extracted` in den Stufen sind abgeleitete Formen, die beim Rechnen und Lesen entstehen, und die Taktiken stehen im Upload und **nicht** im Snapshot — der Checkpoint streicht sie beim Einfrieren, es gibt also keine gespeicherten Opaque-Strings, die umgeschrieben werden müssten. Neu im eingefrorenen Stand ist allein der **optionale** `escrow`; eine v8-Zeile ohne ihn liest sich als „noch nichts gesichert“, genau wie ein Snapshot ohne `generation` als Generation 1 gilt.
+
+**Angehoben statt gelöscht, dieselbe Haltung wie in 004 bis 006.** Ein v8-Snapshot ist die eingefrorene Eingabe; der Kampf wird beim Lesen neu gerechnet, und die Zeile bleibt semantisch eine v9-Zeile. Nichts wird nachgerechnet — das serverseitige Replay-Gate ist T3.2 und nicht gebaut. `raid_jobs` bleibt unberührt: die Tabelle trägt keine Versionsfelder und verweist über `snapshot_id` auf dieselben Zeilen.
+
+**Der v8-Test wird zum Ära-Test, derselbe Zug wie beim v6- und v7-Test.** Seine Versionszusage vergleicht jetzt die Werte der abgelösten Ära (`0.0.7`/`8`) einzeln statt gegen `sim_version` aus dem Contract; den aktuellen Wert prüft `raid-migration-v9.test.mjs` über `versionsOf`. Die beiden Sichtweisen stehen in `migration-fixtures.mjs`.
+
+**Gates:** typecheck 0, 524 Tests in 77 Dateien, Lint 0, LOC-Caps ok, Hygiene ok.
+
 ## 2026-09-29 — Migration 006 zieht Contract v8 nach, ohne Daten zu verlieren
 
 **Scope:** neu `migrations/006_contract_v8.sql` und `src/db/raid-migration-v8.test.mjs`. Geändert `src/db/raid-migration-v7.test.mjs`. Keine Route, kein Schema, keine Spalte geändert.

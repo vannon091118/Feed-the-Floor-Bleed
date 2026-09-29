@@ -42,6 +42,7 @@ describe('Öffentliche Angreifer-Sicht', () => {
     expect(Object.keys(view).sort()).toEqual([
       'contractVersion',
       'dungeon',
+      'revealed',
       'simVersion',
     ])
     // Kein Roster, kein Bestand, keine Teamdaten — auch nicht als leeres Feld.
@@ -79,9 +80,27 @@ describe('Öffentliche Angreifer-Sicht', () => {
     // Damit bleiben die beiden Richtungen unterscheidbar: Der Verteidiger
     // schickt weiter den vollen Stand, der Angreifer bekommt nur die Fassade.
     expect(
-      UploadRequestSchema.safeParse({ ...raidSnapshot(), tactics: [['guard']] })
-        .success,
+      UploadRequestSchema.safeParse({
+        ...raidSnapshot(),
+        tactics: [[{ ability: 'hold' }]],
+      }).success,
     ).toBe(true)
     expect(RaidPublicViewSchema.safeParse(raidSnapshot()).success).toBe(false)
+  })
+
+  it('führt die aufgedeckten Zellen als Teil der Sicht', () => {
+    // Die Menge gehört zur Sicht und nicht zur Anzeige: was der Angreifer
+    // nicht aufgedeckt hat, sieht er nicht, und der Bildschirm darf die Liste
+    // nicht raten müssen.
+    expect(toPublicView(raidSnapshot()).revealed).toEqual([])
+    expect(toPublicView(raidSnapshot(), [1, 2]).revealed).toEqual([1, 2])
+    const view = { ...toPublicView(raidSnapshot()), revealed: [4096] }
+    expect(RaidPublicViewSchema.safeParse(view).success).toBe(false)
+    expect(
+      RaidPublicViewSchema.safeParse({
+        ...toPublicView(raidSnapshot()),
+        revealed: [1.5],
+      }).success,
+    ).toBe(false)
   })
 })

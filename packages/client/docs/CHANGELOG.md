@@ -1,5 +1,25 @@
 # packages/client/docs/CHANGELOG.md
 
+## 2026-09-29 — Die Anzeige kennt Klasse, Fähigkeit und den gesicherten Lauf
+
+**Scope:** geändert `src/fixture-data.ts` (`Hero.tactics` ist `TacticRule[]` statt `string[]`), `src/raid/timeline-model.ts` (`extracted`), `src/raid/phases.tsx` (Cluster-Labels `ability`/`reveal`) und `src/raid/panel.tsx`: der lokale `STAGE_TEXT` ist entfallen und liest `STAGE_LABELS` aus `raid/timeline-model.ts`. Kein Pixel neu, keine Mechanik.
+
+**Zwei Formulierer für dieselben Stufen gab es, jetzt gibt es einen.** `panel.tsx` führte einen eigenen Record für `'heroes-win'`, `'monsters-win'` und `'timeout'`, während `timeline-model.ts` dieselben Worte schon als `STAGE_LABELS` hielt und die Phasen-Ansicht sie von dort las. Mit der neuen Stufe `extracted` wäre daraus ein zweiter, unvollständiger Textbestand geworden — das Gate hätte nichts gemerkt, weil beide in derselben Domäne liegen. Der Record ist gelöscht, `panel.tsx` importiert `STAGE_LABELS`; der Doc-Kommentar sagt jetzt, wo die Worte wohnen.
+
+**Was sichtbar ist und was nicht.** Sichtbar ist heute nichts: die Etikettentafel kennt `extracted` („Beute gesichert"), die Ereignisklassen kennen „Fähigkeit" und „Aufdeckung". Kein Lauf erzeugt diese Ereignisse, bis die Klassen- und Nebel-Slices sie schreiben; die Labels stehen bereit, damit die Timeline an dem Tag kein leeres Feld zeigt. Das ist die ehrliche Beschreibung: Beschriftung ohne Ereignis ist keine Funktion.
+
+**Die Taktik ist Form geworden, nicht Anzeige.** `Hero.tactics` trägt jetzt `TacticRule[]` aus dem Contract statt Opaque-Strings. Der Editor, der sie ändert, und die Anzeige, die sie erklärt, kommen mit S3.6; hier hat sich nur der Typ geändert, und die Fixture schreibt echte Regeln statt `'guard'`.
+
+**Gates:** typecheck 0, 524 Tests in 77 Dateien, Lint 0, LOC-Caps ok, Hygiene ok.
+
+## 2026-09-29 — Die committed Blätter tragen einen Staleness-Pin
+
+**Der Befund.** `asset-generator.test.ts` führt den Generator in `public/assets/` und vergleicht nur Lauf gegen Lauf — eine Drift zwischen der committed Datei und einer geänderten Quelle (`materials.ts`, `tiles.ts`, `geometry.ts`) fängt er nicht: die Wand fällt im Dungeon still auf die prozedurale Fallback-Textur zurück, ohne dass ein Gate rot wäre. Das 5-Perspektiven-Audit belegte die Lücke aus drei Richtungen (Deletion-Prüfung, Beleg-Prüfung, Spieler-Perspektive).
+
+**Der Pin liest die committed Bytes, nicht den frischen Lauf.** `test/asset-sheets.test.ts` vergleicht IHDR-Breite und -Höhe der sechs PNGs gegen `materials.ts` (Variante pro Boden, Rahmenbreite) und `tiles.ts` (Wandhöhe), denselben Weg, den `assets.ts` beim Frame-Schnitt benutzt. Mutation-Beleg: `height: 22 → 20` in `tiles.ts` macht den Test rot (54 statt 52), die Datei bleibt unverändert. Wer eine Quellzahl ändert, erzeugt die Blätter neu und committet sie — `docs/VISUAL_GRUNDSATZ.md` sagt das jetzt im Asset-Register, `packages/client/docs/REPOINDEX.md` führt die vier Asset-Tests einzeln.
+
+**Gates:** typecheck 0, 242 Tests in 30 Dateien, Lint 0, LOC-Caps ok, Hygiene ok.
+
 ## 2026-09-29 — Der Hinterhalt wird sichtbar, und der Probelauf stellt seine Verteidiger auf
 
 **Scope:** geändert `src/raid/phases.tsx`, `src/raid/raid-timeline.tsx`, `src/raid/timeline-model.ts`, `src/visual/event-fx.ts`, `src/world/descriptors.ts`, `src/render/fx-styles.ts`, `src/dungeon-editor/model.ts`, `src/dungeon-editor/state.ts`, `src/ui/styles/raid.css` sowie `test/raid-timeline.test.ts`, `test/dungeon-editor.test.ts`, `test/visual-foundation.test.ts` und `test/raid-fixtures.ts`. Kein Contract, kein Hash, keine Zahl aus `[K]`.
@@ -154,24 +174,6 @@
 
 **Gates:** typecheck 0, 317 Tests in 46 Dateien, Lint 0, LOC-Caps ok (237 Quellen, `balance.ts` 114, `economy.ts` 132, `state.ts` 84 von je 150 Codelinien), Hygiene ok, Shinon PASS, Client-Build und Worker-Dry-Run ok. Der älteste aktive Eintrag ist wortgleich nach `historisch/2026-09-27_client-zweite-dorfdarstellung.md` gewandert.
 
-## 2026-09-28 — Der obere Kantennachbar überlappte den eigenen Grundriss
-
-**Scope:** geändert `src/village/plot.ts` (eine Zeile plus Doc-Kommentar) und `test/village-plot.test.ts` (ein korrigierter Erwartungswert, ein neuer Invariantenfall, ein korrigierter Determinismusvergleich); geändert `docs/REPOINDEX.md` und `docs/ROADMAP.md`. Keine Signatur geändert, kein neuer Export, kein Abnehmer verdrahtet, keine Wirtschaftsgröße.
-
-**Der Befund.** `edgeNeighbours` baute den oberen Streifen als `{ x, y: y - 1, width, height }` — also über die volle Höhe des Grundrisses statt über eine Zelle. Für jedes Gebäude mit `height > 1` überlappte dieser Streifen damit eine ganze Zeile des eigenen Grundrisses, den er doch beschreiben sollte. Bei einem 2×2-Gebäude war der obere Nachbar `{x, y-1, width: 2, height: 2}` statt `{x, y-1, width: 2, height: 1}`; `rectsIntersect` meldete dafür `true`, und `canPlace(nachbar, [gebaeude], FELD)` lehnte die Nachbarlage mit `overlaps` und dem Gebäude selbst als Konflikt ab. Die Nachbarlage, die das Modul ausdrücklich als platzierbar ausgibt, war für jedes mehrreihige Gebäude unplatzierbar. Die drei anderen Streifen waren schon eine Zelle dick auf der geteilten Kante; nur der obere war es nicht.
-
-**Der Test, der es festhielt statt es zu fangen.** Die feste Reihenfolge in `test/village-plot.test.ts` pinnte genau den falschen Wert: `{ x: 4, y: 3, width: 2, height: 2 }` an der alten Zeile 110. Ein Test, der den Fehler als Sollwert festschreibt, ist eine Fehlerquelle mit grüner Anzeige — er hätte den Defekt beim Review bestätigt statt ihn aufzudecken. Der Wert ist auf `{ x: 4, y: 3, width: 2, height: 1 }` korrigiert, und der Doc-Kommentar an `edgeNeighbours` benennt die Regel jetzt ausdrücklich: jeder Streifen ist an der geteilten Kante eine Zelle dick und läuft sonst über die Ausdehnung des Grundrisses.
-
-**Die Invariante, die den Fehler gefangen hätte.** Neu ist `überlappt keinen Nachbarn mit dem eigenen Grundriss`: es laufen alle Nachbarn eines 3×2-Gebäudes durch, und für jeden gilt `rectsIntersect(gebaeude, nachbar) === false` **und** `canPlace(nachbar, [gebaeude], FELD)` ist `{ ok: true }`. Die Einzelwerte zu prüfen hätte den Fehler nur an einer Größe bemerkt; die Aussage gilt für jede Höhe > 1, und genau die fehlte. Im Determinismusvergleich stand zudem ein Tautologiesfehler: `edgeNeighbours(...)` wurde mit einem zweiten frischen Aufruf verglichen, was nur behauptet, dass die Funktion zweimal dasselbe tut, statt dass der Wert stimmt. Das Ergebnis wird jetzt einmal in `nachbarn` festgehalten und dagegen verglichen.
-
-**Doku.** Die Zeile zu `src/village/index.ts` in `docs/REPOINDEX.md` nannte das Barrel „Barrel der village-Domäne", obwohl es `plot` bewusst nicht re-exportiert, weil `plot` noch keinen Abnehmer hat — die Beschreibung behauptete also mehr Abdeckung, als die Datei liefert. Sie sagt jetzt, dass das Barrel die Loop-Domäne abdeckt und `plot` während seiner Abnehmerlosigkeit absichtlich fehlt. In `docs/ROADMAP.md` nannte der Abschnitt „Nächster konkreter Schritt" dieselbe Freigabe-Liste ein zweites Mal mit eigener Formulierung; maßgeblich bleibt dafür jetzt allein der Statusabschnitt, der Abschnitt verweist weiter auf `docs/VISUAL_GRUNDSATZ.md:45`.
-
-**Unverändert bleibt die Zusage.** Dieser Slice enthält weiterhin **keine einzige Wirtschaftsgröße** — keine Kosten, kein Ertrag, kein Bestand, keine Bauplatzgrenze, keine Attraktivität, und keine Konstante, die für eine davon einspringt. Die ökonomische Hälfte von T2.2 bleibt blockiert, bis die in `docs/VISUAL_GRUNDSATZ.md:45` geforderte Beispieltabelle samt Grenzfällen freigegeben ist.
-
-**Tests.** `test/village-plot.test.ts` prüft jetzt 285 Tests in 43 Dateien insgesamt; der neue Fall hängt an der Kantennachbarschaft und kostet keinen LOC-Budget in `plot.ts` (72 von 150 Codelinien).
-
-**Gates:** typecheck 0, Testlauf 285 Tests in 43 Dateien, Lint 0, LOC-Caps ok (232 Quelldateien, `plot.ts` 72 von 150 Codelinien), Hygiene ok, Shinon PASS.
-
 ## 2026-09-28 — Die Dorfplatzierung rechnet, ohne Zahlen zu erfinden
 
 **Der Befund.** Für T2.2 gibt es noch keine einzige Platzierungsregel: kein Rastermaß, keine Grenzprüfung, keine Aussage darüber, warum ein Bauwunsch abgelehnt wird. Bis die Balance freigegeben ist, darf aber nur „schemafrei“ vorbereitet werden — und das hieß bisher nichts. Die Frage nach den Zahlen wurde zurückgestellt; das ist keine Freigabe. Dieser Slice liefert deshalb **ausschließlich Geometrie und keine einzige Wirtschaftsgröße**: keine Kosten, keine Erträge, kein Startbestand, keine Tagesabrechnung, kein Lohn, keine Bauplatzgrenze, keine Attraktivität. Auch keine Konstante, die für eine davon einspringt. Die ökonomische Hälfte von T2.2 bleibt bis zur Balancefreigabe blockiert; dieser Slice macht sie nicht fertig.
@@ -184,11 +186,5 @@
 
 **Gates:** typecheck 0, Testlauf 284 Tests in 43 Dateien, Lint 0, LOC-Caps ok (232 Quelldateien, `plot.ts` 72 von 150 Codelinien), Hygiene ok, Shinon PASS.
 
-## 2026-09-28 — Die Pfeiltasten-Abbildung bekommt einen Eigentümer
-
-**Der Befund.** `window/keys.ts` und `render/camera-keys.ts` bildeten dieselbe Sache zweimal ab — Pfeiltaste zu Richtung, je vier Ternäre und eigene Schrittkonstanten, rund ein Dutzend Zeilen —, und die beiden Kopien hätten auseinanderlaufen können, ohne dass ein Gate etwas merkte. Zugleich behauptete `keys.ts` für `boxAfterKey` „rein rechnend“, während `windowKeyProps` als einzige Stelle das DOM liest; die Grenze, dass ein Tastenanschlag aus dem Fensterinhalt dem Inhalt gehört, stand in keiner Prüfung. `input/arrows.ts` hält die Abbildung jetzt allein (`arrowDirection`, rein rechnend, ohne DOM, Richtung als `{dx, dy}`); die Schrittweite bleibt bei den Aufrufern, weil sie sich unterscheidet — 16 px im Fenster, 48 px in der Weltansicht. Das Verhalten ist unverändert, es gibt keine neue Taste.
-
-**Die Zusagen, gepinnt.** `test/keyboard-access.test.ts` prüft die vier Richtungen und die Ruhe bei jeder anderen Taste; die Datei ist dafür geteilt, weil sie den globalen Datei-Cap riss — die Verdrahtung liegt in `test/keyboard-wiring.test.ts`. Dort fährt ein gestelltes `keydown` die echten Handler: am Rahmen verschiebt es das Fenster um 16 px, holt es nach vorn und ruft `preventDefault`; dasselbe Ereignis mit einem Ziel aus dem Rumpf lässt es stehen und ruft `preventDefault` nicht; in der Schubladenanordnung bewegt dieselbe Taste nichts. Ein Browser-Nachweis wurde für diesen Slice nicht wiederholt: die Tastenwege selbst trägt der T2.1-Eintrag, geändert hat sich nur, wer die Richtung liefert.
-
-Der Eintrag vom 2026-09-28 zur Fenstergeometrie in der Schubladenanordnung steht wortgleich in `packages/client/docs/historisch/2026-09-28_client-schubladen-geometrie.md`. Er ist unverändert erhalten.
+Drei Einträge vom 2026-09-28 stehen wortgleich in `packages/client/docs/historisch/`: die Fenstergeometrie in der Schubladenanordnung (`2026-09-28_client-schubladen-geometrie.md`), die Pfeiltasten-Abbildung (`2026-09-28_client-pfeiltasten.md`) und der obere Kantennachbar (`2026-09-28_client-kantennachbar.md`, ausge­lagert, weil der aktive Changelog an den 200-Zeilen-Cap stieß). Alle drei sind unverändert erhalten.
 

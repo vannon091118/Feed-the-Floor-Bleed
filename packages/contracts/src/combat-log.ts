@@ -1,6 +1,3 @@
-import { z } from 'zod'
-import { CombatTrailEntrySchema } from './trail'
-
 /**
  * Strikte Wire-Form des Combat-Logs.
  *
@@ -8,32 +5,21 @@ import { CombatTrailEntrySchema } from './trail'
  * versionfreien Log, der Aufrufer hüllt ihn in `RaidLogPayload` mit Envelope.
  * Jedes Schema ist `.strict()`, damit unbekannte Felder keinen
  * ahead-of-time-Vertrag stillschweigend erweitern.
- */
-export const COMBAT_STAGES = ['heroes-win', 'monsters-win', 'timeout'] as const
-export const COMBAT_EVENT_TYPES = [
-  'move',
-  'attack',
-  'death',
-  'ambush',
-  'end',
-] as const
-export const COMBAT_SIDES = ['heroes', 'monsters'] as const
-export const COMBAT_ROLES = ['hero', 'monster', 'boss'] as const
-/**
- * Verhaltensprofil des Verteidigers — abgeleitet aus dem Genom, nicht gesetzt.
  *
- * `none` ist der Grundfall (Helden, Boss, Arten ohne Profil): das nächste
- * Ziel. Die drei Profile ändern ausschließlich die Zielentscheidung und damit
- * keine Zahl — daran liegt es, warum sie im Log stehen und nicht nur im Speicher:
- * ein Replay liest nur den Log und müsste die Wahl sonst neu erfinden.
+ * Die festen Wörter — Stufen, Ereignisarten, Seiten, Rollen und Profile —
+ * stehen in `combat-vocabulary.ts`, weil sie mehrere Formen tragen; hier steht
+ * ausschließlich ihre Verwendung.
  */
-export const MONSTER_BEHAVIORS = ['none', 'tank', 'hunter', 'control'] as const
-
-export const CombatStageSchema = z.enum(COMBAT_STAGES)
-export const CombatEventTypeSchema = z.enum(COMBAT_EVENT_TYPES)
-export const CombatSideSchema = z.enum(COMBAT_SIDES)
-export const CombatRoleSchema = z.enum(COMBAT_ROLES)
-export const MonsterBehaviorSchema = z.enum(MONSTER_BEHAVIORS)
+import { z } from 'zod'
+import { HeroClassSchema } from './abilities'
+import {
+  CombatEventTypeSchema,
+  CombatRoleSchema,
+  CombatSideSchema,
+  CombatStageSchema,
+  MonsterBehaviorSchema,
+} from './combat-vocabulary'
+import { CombatTrailEntrySchema } from './trail'
 
 /** Achtstelliger Hex-Hash wie `fingerprintCombatLog` ihn liefert. */
 export const CombatHashSchema = z.string().regex(/^[0-9a-f]{8}$/)
@@ -60,6 +46,8 @@ export const CombatUnitSpecSchema = z
     role: CombatRoleSchema,
     /** Verhalten aus dem Genom der Art; `none` ist der Grundfall. */
     behavior: MonsterBehaviorSchema,
+    /** Klasse des Helden; `none` steht bei Monstern und klassenlosen Helden. */
+    class: HeroClassSchema,
     maxHp: fixed.positive(),
     attack: fixed.nonnegative(),
     defense: fixed.nonnegative(),
@@ -134,9 +122,6 @@ export const CombatLogSchema = z
       })
   })
 
-export type CombatStage = z.infer<typeof CombatStageSchema>
-export type MonsterBehavior = z.infer<typeof MonsterBehaviorSchema>
-export type CombatEventType = z.infer<typeof CombatEventTypeSchema>
 export type CombatConfig = z.infer<typeof CombatConfigSchema>
 export type CombatUnitSpec = z.infer<typeof CombatUnitSpecSchema>
 export type CombatEvent = z.infer<typeof CombatEventSchema>

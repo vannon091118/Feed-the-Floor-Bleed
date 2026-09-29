@@ -100,6 +100,41 @@ describe('Strikter Combat-Log', () => {
     expect(CombatLogSchema.safeParse(invented).success).toBe(false)
   })
 
+  it('verlangt eine Klasse und nur die sechs Namen', () => {
+    // Dieselbe Grenze wie beim Verhalten, aus demselben Grund: die Klasse steht
+    // im Log, weil ein Replay ausschließlich den Log liest und eine Fähigkeit
+    // sonst ohne ihren Auslöser dastünde.
+    const log = combatLog()
+    const without = {
+      ...log,
+      units: log.units.map(({ class: _klasse, ...unit }) => unit),
+    }
+    expect(CombatLogSchema.safeParse(without).success).toBe(false)
+    const invented = {
+      ...log,
+      units: log.units.map((unit) => ({ ...unit, class: 'warlord' })),
+    }
+    expect(CombatLogSchema.safeParse(invented).success).toBe(false)
+    const assigned = {
+      ...log,
+      units: log.units.map((unit) => ({ ...unit, class: 'vanguard' })),
+    }
+    expect(CombatLogSchema.safeParse(assigned).success).toBe(true)
+  })
+
+  it('kennt Fähigkeit und Aufdeckung als Ereignisarten', () => {
+    const log = combatLog()
+    const rewritten = (type: string) => ({
+      ...log,
+      events: log.events.map((event, index) =>
+        index === 0 ? { ...event, type } : event,
+      ),
+    })
+    expect(CombatLogSchema.safeParse(rewritten('ability')).success).toBe(true)
+    expect(CombatLogSchema.safeParse(rewritten('reveal')).success).toBe(true)
+    expect(CombatLogSchema.safeParse(rewritten('spell')).success).toBe(false)
+  })
+
   it('hält die Summary geschlossen und typisiert', () => {
     const summary = combatSummary()
     expect(
@@ -111,5 +146,10 @@ describe('Strikter Combat-Log', () => {
     expect(
       CombatSummarySchema.safeParse({ ...summary, stage: 'draw' }).success,
     ).toBe(false)
+    // `extracted` ist ein echtes Ergebnis der neuen Stufenliste und kein
+    // Kampfergebnis: es steht hier, damit die Zusammenfassung es trägt.
+    expect(
+      CombatSummarySchema.safeParse({ ...summary, stage: 'extracted' }).success,
+    ).toBe(true)
   })
 })
