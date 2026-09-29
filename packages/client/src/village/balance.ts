@@ -12,7 +12,8 @@ import type { Resources } from '../fixture-data'
  * Die Zahlen sind am 2026-09-28 vom Auftraggeber freigegeben und mit einer
  * Grenzfallzeile je Wert in `docs/VISUAL_GRUNDSATZ.md` begründet. Die
  * Grundrisse sind gemessen: Rathaus und Gilde 3×3, Wohnhaus 2×2, Werkstatt
- * 2×3 Rasterzellen auf dem 10×10-Feld.
+ * 2×3 Rasterzellen auf dem 10×10-Feld. Die Zellpositionen der beiden festen
+ * Startorte sind am 2026-09-29 nachgezogen: Rathaus (3,1), Gilde (3,6).
  */
 
 /** Die Baugegenstand-Arten des Dorfes. Der Renderer leiht sich diese Union. */
@@ -28,6 +29,24 @@ export interface Cost {
 export interface FootprintCells {
   width: number
   height: number
+}
+
+/**
+ * Ein fester Startort des Dorfes: die Gebäudeart und ihre linke obere Zelle.
+ *
+ * Die Breite und die Höhe stehen ausdrücklich nicht hier, sondern am Grundriss
+ * derselben Art unter `buildings`. Eine zweite Zahl daneben wäre eine zweite
+ * Wahrheit: Sie könnte von der Freigabetabelle wegdriften, ohne dass ein Gate
+ * es merkte.
+ *
+ * Der Ort ist gesetzt, wenn das Dorf beginnt, und wird nie gebaut. Weil er im
+ * selben Bestand liegt wie alles Gebaute, schützt die Platzierungsprüfung der
+ * Kommandos ihn, ohne dass ein Kommando die festen Orte eigens kennt.
+ */
+export interface FixedSite {
+  kind: BuildingKind
+  x: number
+  y: number
 }
 
 /**
@@ -81,6 +100,14 @@ export interface BalanceConfig {
      * Zahl außerhalb dieser Datei liegen darf.
      */
     landRows: number
+    /**
+     * Die festen Startorte, die beim Anlegen des Dorfes gesetzt werden.
+     *
+     * Sie stehen hier und nicht im Store: Zellpositionen sind freigegebene
+     * Zahlen, und der Store leitet sie nur daraus ab. Ein Rathaus ohne Zelle
+     * wäre kein Startort, sondern ein ungeschützter Fleck Raster.
+     */
+    fixedSites: readonly FixedSite[]
   }
   buildings: Record<BuildingKind, BuildingBalance>
   /** Werkstattertrag: Materialien je Tag für Stufe 1 und je weiterer Stufe. */
@@ -134,6 +161,10 @@ const CONFIG = {
     workerBase: 12,
     landColumns: 10,
     landRows: 10,
+    fixedSites: [
+      { kind: 'hall', x: 3, y: 1 },
+      { kind: 'guild', x: 3, y: 6 },
+    ],
   },
   buildings: {
     // Rathaus und Gilde sind feste Startorte: Sie werden nie gebaut und nie

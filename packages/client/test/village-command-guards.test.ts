@@ -25,6 +25,10 @@ import { JOB } from './raid-fixtures'
  * dagegen: nur am Tag, kein negativer und kein gebrochener Betrag, kein Raster
  * unter der Startbreite. Diese Datei fährt genau diese Eingaben gegen ihn und
  * prüft danach, dass ein abgelehnter Befehl nichts hinterlässt.
+ *
+ * Dazu gehören seit dem 2026-09-29 die beiden festen Startorte: Sie liegen im
+ * selben Bestand wie alles Gebaute, und die Platzierungsprüfung schützt sie
+ * deshalb, ohne dass ein Kommando die festen Orte eigens kennt.
  */
 
 function bestand(): VillageHoldings {
@@ -64,10 +68,13 @@ describe('Der Bestand bleibt ganzzahlig und nicht negativ', () => {
   })
 
   it('weist eine Ausbaustelle ab, an der nichts steht', () => {
-    expect(upgradeBuilding(0, BALANCE)).toEqual({
+    // Die festen Startorte belegen die ersten Stellen der Liste; die erste
+    // freie Stelle liegt dahinter.
+    const leer = bestand().buildings.length
+    expect(upgradeBuilding(leer, BALANCE)).toEqual({
       ok: false,
       reason: 'unknown-building',
-      index: 0,
+      index: leer,
     })
     expect(bestand().resources).toEqual(BALANCE.start.resources)
   })
@@ -91,6 +98,55 @@ describe('Der Bestand bleibt ganzzahlig und nicht negativ', () => {
   })
 })
 
+describe('Feste Startorte des Dorfes', () => {
+  it('legt Rathaus und Gilde an den freigegebenen Zellen an', () => {
+    // Absolute Werte und keine Ableitung aus der Config: Die Zellen sind
+    // freigegeben, eine verschobene Zahl muss hier auffallen und nicht erst
+    // daran, dass ein Baukommando etwas anderes als belegt ansieht.
+    expect(bestand().buildings).toEqual([
+      {
+        kind: 'hall',
+        level: 1,
+        footprint: { x: 3, y: 1, width: 3, height: 3 },
+      },
+      {
+        kind: 'guild',
+        level: 1,
+        footprint: { x: 3, y: 6, width: 3, height: 3 },
+      },
+    ])
+  })
+
+  it('lässt sich nicht ein zweites Mal bauen, auch nicht auf freiem Raster', () => {
+    // Die Zelle liegt frei und im Raster: Die Ablehnung kann deshalb nur an
+    // der Art hängen und nicht an der Geometrie.
+    const vorher = bestand()
+    for (const kind of ['hall', 'guild'] as const) {
+      expect(buildBuilding(kind, { x: 7, y: 0 }, BALANCE)).toEqual({
+        ok: false,
+        reason: 'not-buildable',
+      })
+    }
+    expect(bestand()).toEqual(vorher)
+  })
+
+  it('weist eine Baustelle auf einem festen Startort ab', () => {
+    const vorher = bestand()
+
+    expect(buildBuilding('house', { x: 3, y: 1 }, BALANCE)).toEqual({
+      ok: false,
+      reason: 'overlaps',
+      conflict: { x: 3, y: 1, width: 3, height: 3 },
+    })
+    expect(buildBuilding('house', { x: 5, y: 6 }, BALANCE)).toEqual({
+      ok: false,
+      reason: 'overlaps',
+      conflict: { x: 3, y: 6, width: 3, height: 3 },
+    })
+    expect(bestand()).toEqual(vorher)
+  })
+})
+
 describe('Gebautes Dorf und Tagesabrechnung', () => {
   it('zahlt am nächsten Morgen den Ertrag der gebauten Werkstatt', () => {
     expect(buildBuilding('workshop', { x: 0, y: 0 }, BALANCE).ok).toBe(true)
@@ -106,7 +162,9 @@ describe('Gebautes Dorf und Tagesabrechnung', () => {
     expect(bestand().resources.materials).toBe(
       nachBau.materials + workshopYield(1, BALANCE),
     )
-    expect(bestand().buildings).toHaveLength(1)
+    expect(bestand().buildings).toHaveLength(
+      BALANCE.start.fixedSites.length + 1,
+    )
   })
 
   it('bucht den Bau nicht erneut, wenn der Tag zweimal schließt', () => {

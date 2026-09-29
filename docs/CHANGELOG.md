@@ -1,5 +1,13 @@
 # docs/CHANGELOG.md — Global
 
+## 2026-09-29 — Rathaus und Gilde stehen fest, und das Baukommando kennt sie
+
+**Die Freigabe.** Der Auftraggeber hat die Zellpositionen der beiden festen Startorte genannt: Rathaus (3,1), Gilde (3,6), je 3×3 Zellen auf dem 10×10-Raster. Sie stehen als `fixedSites` in `packages/client/src/village/balance.ts`, und `docs/VISUAL_GRUNDSATZ.md` führt sie mit eigener Zeile und Grenzfall in der Freigabetabelle; die Fußnote, die sie bis dahin ausdrücklich ausgenommen hatte, ist weg.
+
+**Die Wirkung.** `packages/client/src/village/state.ts` legt beide beim Startbestand aus der Config an — Art und Zelle aus `start.fixedSites`, die Maße aus dem Grundriss derselben Art, Stufe 1. Damit liegen sie im selben Bestand wie alles Gebaute, und `buildBuilding` weist eine Baustelle auf ihnen als `overlaps` mit dem konkurrierenden Grundriss ab, ohne die festen Orte zu kennen. Vorher prüfte das Kommando Überlappung nur gegen das, was der Store selbst führte. Arbeiterbasis, Werkstattertrag und Golden-Pin bleiben unberührt, weil Rathaus und Gilde weder Wohnhaus noch Werkstatt sind; ein Ausbau an ihnen scheitert an `maxLevel: 1`.
+
+**Tests und Doku.** `packages/client/test/village-command-guards.test.ts` hält die freigegebenen Zellen absolut fest und prüft den Schutz gegen Überbauung, `packages/client/test/village-commands.test.ts` zählt mit den festen Orten und baut nur noch auf freien Zellen, `packages/client/test/village-day-close.test.ts` verweist für sie auf die Wächter-Datei, und `packages/client/docs/REPOINDEX.md`, `docs/ROADMAP.md` sowie die Dateien `docs/CHANGELOG.md` und `packages/client/docs/CHANGELOG.md` sind nachgezogen. Weil der Client-Changelog mit dem Eintrag über den 200-Zeilen-Cap lief, ist sein ältester Eintrag wortgleich nach `packages/client/docs/historisch/2026-09-27_client-offene-punkte.md` gewandert. **Gates:** typecheck 0, 362 Tests in 54 Dateien, Lint 0, LOC-Caps ok, Hygiene ok, Shinon PASS.
+
 ## 2026-09-29 — Die Dorfszene wird zweigeteilt, damit die Verdrahtung hineinpasst
 
 **Der Befund.** `packages/client/src/render/village-scene.ts` stand bei 149 von 150 erlaubten Codelinien, und die Verdrahtung des Dorfbestands an die Szene — der nächste offene Punkt in T2.2 — hätte dort keinen Platz mehr gefunden. Die Datei führte außerdem zwei Jobs in einer: Sie malte den unbeweglichen Untergrund und leitete daneben Gebäude, Bewohner und ihre Bewegung.

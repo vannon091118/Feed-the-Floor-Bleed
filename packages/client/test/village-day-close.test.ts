@@ -110,7 +110,8 @@ describe('Startzustand des Dorf-Owners', () => {
   it('nimmt Ressourcen und Landbreite aus der Balance', () => {
     resetDayNight()
     expect(dayNight.value.village.resources).toEqual(BALANCE.start.resources)
-    expect(dayNight.value.village.buildings).toEqual([])
+    // Die beiden festen Startorte gehören zum selben Startbestand und stehen
+    // mit ihren freigegebenen Zellen in `village-command-guards.test.ts`.
     expect(dayNight.value.village.landColumns).toBe(BALANCE.start.landColumns)
     expect(dayNight.value.daySettlement).toBeNull()
   })

@@ -30,7 +30,12 @@ export interface DayNightState {
 }
 
 /**
- * Ein platziertes Gebäude des Dorfes: Art, Stufe und belegter Grundriss.
+ * Ein Gebäude des Dorfes: Art, Stufe und belegter Grundriss.
+ *
+ * Die Liste führt seit dem 2026-09-29 auch die beiden festen Startorte. Sie
+ * werden nie gebaut und stehen trotzdem hier, weil die Platzierungsprüfung der
+ * Baukommandos gegen genau diese Liste läuft: Ein Rathaus, das nur in der
+ * Config steht, wäre gegen Überbauung ungeschützt.
  *
  * Nicht zu verwechseln mit dem gleichnamigen Präsentationsort in
  * `render/village-layout.ts`: jener liegt in Weltpixeln, dieser in
@@ -78,10 +83,32 @@ export interface DaySettlement {
   materials: number
 }
 
+/**
+ * Der Startbestand des Dorfes.
+ *
+ * Ressourcen und Landbreite kommen aus der Config, und die beiden festen
+ * Startorte werden aus ihr angelegt statt gebaut: Art und Zelle stehen unter
+ * `start.fixedSites`, die Maße kommen aus dem Grundriss derselben Art. So gibt
+ * es genau eine Quelle für beide Zahlen und keinen zweiten Ort, an dem ein
+ * Rathaus entstehen könnte.
+ *
+ * Stufe 1 ist der Zählungsbeginn jedes Gebäudes und keine Balancegröße. Die
+ * Config weist einen Ausbau mit `maxLevel: 1` ab, und weil die beiden festen
+ * Arten weder Wohnhaus noch Werkstatt sind, ändern sie weder Arbeiterbasis noch
+ * Werkstattertrag.
+ */
 function startVillage(): VillageHoldings {
   return {
     resources: { ...BALANCE.start.resources },
-    buildings: [],
+    buildings: BALANCE.start.fixedSites.map((site) => ({
+      kind: site.kind,
+      level: 1,
+      footprint: {
+        x: site.x,
+        y: site.y,
+        ...BALANCE.buildings[site.kind].footprint,
+      },
+    })),
     landColumns: BALANCE.start.landColumns,
   }
 }
