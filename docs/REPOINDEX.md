@@ -31,10 +31,10 @@
 | `packages/server/src/*` | Server: `db` als Persistenz- und Zustands-Owner, `worker.ts` als schmaler HTTP-Rand (`/api/health`, `/api/sync/checkpoint`, `/api/sync/job/:id`), `matchmaking` und `sync` noch leer |
 | `scripts/bump-version.mjs` | Next-Bump-Zähler mit Basis aus `origin/main` (PATCH→MINOR→MAJOR, verweigert doppelte Nummern) |
 | `.agents/skills/` | Installierte Review-Skills (`code-slop`, `typescript-review`, `code-quality`), Registry in `skills-lock.json` |
-| `scripts/shinon/engine.mjs` | Shinon Slicer + Runner (Base immer, Core nach Bedarf) |
+| `scripts/shinon/engine.mjs` | Shinon Slicer + Runner: Standard-Slice, `--full` (alle Plugins, Job `Shinon Gate`) und `--local` (kurze Menge aus `policy.engine.local`, beide Hooks) |
 | `scripts/shinon/lib/commit-text.mjs` | Einzige Quelle der Commit-Regeln, geteilt von lokalem Hook und CI-Plugin |
 | `scripts/shinon/plugins/*` | Blockierende Governance-Module (global-loc, contract, modularity, dead-code, redundancy, commit-integrity) plus Slice-Plugins |
-| `scripts/shinon/tests/gate-parity.test.mjs` | Paritätsvertrag: vergleicht die `run:`-Befehle des `gate`-Jobs mit dem lokalen `gate`-Script, prüft `gate:quick` als Teilmenge und verbietet kostenpflichtige Runner |
+| `scripts/shinon/tests/gate-parity.test.mjs` | Paritätsvertrag: vergleicht die `run:`-Befehle des `gate`-Jobs mit `gate:full`, hält `gate` als Teilmenge, verlangt das lokale Minimal-Gate als Teilmenge von `always`, verbannt Engine `--full`, Tests und Lint aus dem lokalen Weg und verbietet kostenpflichtige Runner |
 | `scripts/shinon/tests/main-writer.test.mjs` | Einziger Schreiber nach `main`: fährt den echten `pre-push`-Hook mit einer `main`-Refspec, verlangt Ablehnung vor der Suite, Durchlass für Feature-Branches, ausdrückliche Freigabe für den Notfallweg und die Sperre auch im Generator `install-hooks.mjs` |
 | `scripts/watchdog-classify.mjs` | Einzige Wahrheit, ob ein abgeschlossener Shinon-Lauf ein Vorfall ist: meldet rote Push-Läufe auf `main` und gescheiterte `promote`-Läufe, schweigt bei rotem Gate und Feature-Branch-Pushes; liefert Titel, Label und Fließtext |
 | `scripts/shinon/tests/watchdog-classify.test.mjs` | Zusicherung für den Watchdog-Klassifizierer inklusive Gegenproben: rotes Gate und roter Feature-Branch-Push dürfen keinen Vorfall erzeugen, und `renderIssue` darf für keinen Nicht-Vorfall einen Text erfinden |

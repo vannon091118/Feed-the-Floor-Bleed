@@ -15,9 +15,14 @@ import { describe, expect, it } from 'vitest'
  *
  * Der Vertrag ist deshalb: `tsconfig.json` trägt die Regeln, das Plugin
  * `dead-code-gate` ist die einzige Stelle, die den Compiler startet, und
- * `check` ist der einzige Einstieg, über den `gate` und der Remote-Job ihn
- * erreichen. `pnpm run -s typecheck` bleibt der Einzelbefehl mit demselben
- * Programm.
+ * `check` ist der einzige Einstieg, über den der Remote-Job und der volle
+ * lokale Lauf `gate:full` ihn erreichen. `pnpm run -s typecheck` bleibt der
+ * Einzelbefehl mit demselben Programm.
+ *
+ * Seit dem 2026-09-29 fahren die Hooks nur noch die kurze Menge aus
+ * `policy.engine.local`; der Compilerlauf liegt damit fail-closed im Job
+ * `gate`, der `check` aufruft. Dieser Test hält fest, dass die Teilmenge ihn
+ * nicht enthält und der Job ihn trotzdem erreicht.
  */
 
 const ROOT = path.resolve(
@@ -90,7 +95,9 @@ describe('Der Typecheck läuft genau einmal', () => {
         `${name} fährt den Compiler zusätzlich: ${direct}`,
       ).toEqual([])
     }
-    expect(chain('gate')).toContain('node scripts/shinon/engine.mjs --full')
+    expect(chain('gate:full')).toContain(
+      'node scripts/shinon/engine.mjs --full',
+    )
   })
 
   it('lässt genau ein Plugin den Compiler fahren', () => {
@@ -109,12 +116,19 @@ describe('Der Typecheck läuft genau einmal', () => {
     expect(script('typecheck')).toBe('tsc --noEmit')
   })
 
-  it('fährt ihn auf dem Commit-Pfad über die Plugin-Suite', () => {
-    // Ohne Eintrag in `always` würde der Compiler an Commit und Push fehlen,
-    // weil dort nur die Engine läuft und nicht `pnpm run -s check`.
+  it('fährt ihn remote und lässt den lokalen Weg frei', () => {
+    // `always` hält den Compiler im vollen Lauf. Die Hooks fahren seit dem
+    // 2026-09-29 nur noch `policy.engine.local`, damit die Schleife am
+    // Arbeitsplatz nicht am Compilerlauf hängt; die Durchsetzung liegt dafür
+    // fail-closed im Job `gate`, der `check` und damit den vollen Lauf fährt.
     const policy = JSON.parse(read('scripts/shinon/policy.json'))
     expect(policy.engine.always).toContain('dead-code-gate')
-    expect(read('.husky/pre-push')).toContain('engine.mjs --full')
+    expect(policy.engine.local).not.toContain('dead-code-gate')
+    const workflow = read('.github/workflows/shinon.yml')
+    expect(jobBlock(workflow, 'gate')).toContain('pnpm run -s check')
+    expect(read('.husky/pre-push')).toContain('engine.mjs --local')
+    // Der Kommentar nennt den vollen Lauf weiterhin; gefahren wird er nicht.
+    expect(read('.husky/pre-push')).not.toContain('engine.mjs --full')
   })
 
   it('wiederholt ihn im Remote-Gate-Job nicht als eigenen Schritt', () => {

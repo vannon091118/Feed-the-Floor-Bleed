@@ -2,15 +2,15 @@
 
 | Pfad | Job |
 |------|-----|
-| `engine.mjs` | Slicer + Runner (Base immer, Core nach Bedarf, 200 Cap) |
-| `install-hooks.mjs` | Hook-Installation (Husky, Kette slice→gate→bump→push) |
+| `engine.mjs` | Slicer + Runner: Slice (Standard), `--full` (alle Plugins), `--local` (kurze Menge für beide Hooks), 200 Cap |
+| `install-hooks.mjs` | Hook-Installation (Husky, Kette local→gate→bump→local) |
 | `commit-msg.mjs` | Commit-Gate Shim für den lokalen Hook (Prosa 200, Bullets, Footer, Datei-Nennung) |
 | `prepare-commit-msg.mjs` | Shim des prepare-commit-msg Hooks; ersetzt zu dünne Merge-/Squash-Bodies |
 | `lib/commit-text.mjs` | Einzige Quelle der Commit-Regeln, pure Funktion ohne I/O, geteilt von Hook und Plugin |
 | `lib/integration-text.mjs` | Reine Erzeugung gate-konformer Rebase-, Merge- und PR-Nachrichten |
 | `lib/source-scan.mjs` | Gemeinsamer Source-Scanner, Ignore-Regeln und LOC-Zählung |
-| `lib/engine-policy.mjs` | Reine Slicer-Entscheidung für Always- und Slice-Trigger |
-| `policy.json` / `policy.mjs` | Versionierte Gate-, LOC-, Ignore- und Dependency-Policies |
+| `lib/engine-policy.mjs` | Reine Slicer-Entscheidung für Always-, Slice- und lokale Trigger (`shouldRun`, `shouldRunLocal`) |
+| `policy.json` / `policy.mjs` | Versionierte Gate-, LOC-, Ignore- und Dependency-Policies samt `engine.local` (lokales Minimal-Gate) |
 | `policy-schema.mjs` | Strikter Zod-Validator und formatierte Policy-Fehler |
 | `plugins/loc-gate.mjs` | Ownership-LOC-Cap Plugin (Base) |
 | `plugins/global-loc-gate.mjs` | Globaler Datei-Cap-Gate ohne künstliches Gesamtbudget (Base) |
@@ -28,6 +28,7 @@
 | `tests/engine-policy.test.mjs` | Schnelle Policy-Matching-Unit-Tests |
 | `tests/engine-slicing.test.mjs` | Ein echter Engine-Smoke-Test für gemischte Slices |
 | `tests/integration-text.test.mjs` | Generierte Integrations-Nachrichten erfüllen die Commit-Regeln und bleiben datei-treu |
-| `tests/typecheck-owner.test.mjs` | Der Typecheck hat genau einen Owner: eine Plugin-Datei startet den Compiler, die Regeln stehen im tsconfig, der Remote-Job wiederholt ihn nicht |
+| `tests/typecheck-owner.test.mjs` | Der Typecheck hat genau einen Owner: eine Plugin-Datei startet den Compiler, die Regeln stehen im tsconfig, der Remote-Job wiederholt ihn nicht, und der lokale Weg fährt ihn nicht |
+| `tests/gate-parity.test.mjs` | Paritätsvertrag gegen den Job `gate`: lokales Minimal-Gate und `gate:full`, Verbannung der schweren Checks aus dem lokalen Weg |
 | `tests/fixtures/*` | Isolierte Testdaten für Gate-Validierung |
 | `docs/*` | Pflicht-Doku dieser Domäne |

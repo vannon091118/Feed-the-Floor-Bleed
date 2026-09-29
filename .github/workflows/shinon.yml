@@ -60,6 +60,16 @@ jobs:
       # `tsconfig.json`, damit beide Aufrufer denselben Regelsatz sehen.
       - name: Run hard-fail Shinon suite
         run: pnpm run -s check
+      # Lint und Test liefen bis zum 2026-09-29 nur auf Entwicklermaschinen
+      # (`pnpm run -s gate`) beziehungsweise nur im Windows-Job, der ein reines
+      # Signal ist und nichts blockiert. Damit der lokale Weg auf die kurze
+      # Menge aus `policy.engine.local` zurückfallen darf, ohne dass eine
+      # Prüfung ihre Durchsetzung verliert, sind beide hier pflichtig: Ein roter
+      # Lauf lässt `promote` per `needs: gate` scheitern und nichts landet.
+      - name: Lint
+        run: pnpm run -s lint
+      - name: Test
+        run: pnpm test -- --run
       - name: Deploy-Build
         run: pnpm --filter @floor/client build
       # Bündelt den Worker, ohne etwas hochzuladen. Ohne diesen Schritt wäre ein

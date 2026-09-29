@@ -25,24 +25,25 @@ Bootstrap: `bash scripts/install-requirements.sh` prüft Node, pnpm, Git und Pyt
 | Befehl | Wirkung | Wann |
 |--------|--------|------|
 | `pnpm run -s typecheck` | `tsc --noEmit` über `packages/*/src`, `packages/*/test` und `scripts/**/*` einschließlich der `.mjs`; deren Typen sind JSDoc, `allowJs`/`checkJs` und `@types/node` sind gesetzt. Die Regeln `noUnusedLocals`/`noUnusedParameters` stehen seit dem 2026-09-29 in `tsconfig.json`, nicht auf einer Kommandozeile — die Engine fährt dasselbe Programm | im Einzelfall; im Gate und im Remote-Job läuft er genau einmal, über `check` |
-| `pnpm test -- --run` | Vitest, einmal ohne Watch | vor jedem Commit |
-| `pnpm run -s lint` | `biome check --error-on-warnings`, formatiert nicht; Warnungen blockieren | vor jedem Commit |
-| `pnpm run check` | `check-loc`, `check-hygiene`, Shinon `--full` — und damit den einen Typecheck über `plugins/dead-code-gate.mjs` | vor jedem Commit und vor dem Push |
+| `pnpm test -- --run` | Vitest, einmal ohne Watch | blockierender Schritt im Job `Shinon Gate`; lokal vor jedem Push |
+| `pnpm run -s lint` | `biome check --error-on-warnings`, formatiert nicht; Warnungen blockieren | blockierender Schritt im Job `Shinon Gate`; lokal über `gate:quick` und `gate` |
+| `pnpm run check` | `check-loc`, `check-hygiene`, Shinon `--full` — und damit den einen Typecheck über `plugins/dead-code-gate.mjs` | wenn du die volle Shinon-Suite lokal fahren willst; im Job `Shinon Gate` ist sie Pflicht |
 | `pnpm run check:loc` | nur LOC-Caps | beim Splitten einer Datei |
 | `pnpm run check:hygiene` | nur Doku-Pflicht | beim Doku-Touch |
 | `pnpm run check:shinon` | nur Shinon Full-Run | wenn Gates fehlschlagen und du den Fehler isolieren willst |
 | `pnpm run check:worker` | `wrangler deploy --dry-run`, bündelt den Worker ohne Upload | nach Änderungen an `packages/server/src/worker.ts`, `wrangler.jsonc` oder den Contracts |
 | `pnpm run -s dev` | Client-Dev-Server | nur manuelles Testen, kein Gate |
-| `node scripts/shinon/engine.mjs` | Slice-Run über den staged Diff | Hook automatisch, manuell zur Diagnose |
-| `node scripts/shinon/engine.mjs --full` | alle Plugins unabhängig vom Diff | entspricht `pre-push` |
+| `node scripts/shinon/engine.mjs` | Slice-Run über den staged Diff | manuell zur Diagnose |
+| `node scripts/shinon/engine.mjs --local` | nur die kurze Menge aus `policy.engine.local` (LOC, Ownership, Doku-Hygiene, Version, Commit-Text/-Integrität) | beide Hooks automatisch, `pnpm run -s gate` |
+| `node scripts/shinon/engine.mjs --full` | alle Plugins unabhängig vom Diff | entspricht dem Job `Shinon Gate` beziehungsweise `pnpm run -s check` |
 
 Für „ist mein Stand sauber“ zählt nur die Kombination aus `typecheck`, `test`, `lint` und `check`; ein grüner `typecheck` allein sagt nichts.
 
 ## 3. Gate-Matrix
 
-Ausführungskette: `pre-commit` (Slice) → `commit-msg` (Prosa) → `post-commit` (Bump, Amend, Push) → `pre-push` (Full) → GitHub Actions `Shinon Gate` auf Branch/PR → Job `promote` schiebt den grünen PR-Kopf per Fast-Forward mit `PROMOTE_TOKEN` nach `main` → push-Lauf auf `main` wiederholt die Kette, bündelt den Worker mit `wrangler deploy --dry-run` und erzeugt `client-dist`; den Cloudflare-Deploy übernimmt parallel die installierte App → Main-Watchdog meldet einen roten Push-Lauf als offenen Issue.
+Ausführungskette: `pre-commit` (lokales Minimal-Gate) → `commit-msg` (Prosa) → `post-commit` (Bump, Amend, Push) → `pre-push` (Sperre auf `main` + Minimal-Gate) → GitHub Actions `Shinon Gate` auf Branch/PR, der Lint, Tests, die volle Shinon-Suite, Deploy-Build und Worker-Bündel fährt → Job `promote` schiebt den grünen PR-Kopf per Fast-Forward mit `PROMOTE_TOKEN` nach `main` → push-Lauf auf `main` wiederholt die Kette, bündelt den Worker mit `wrangler deploy --dry-run` und erzeugt `client-dist`; den Cloudflare-Deploy übernimmt parallel die installierte App → Main-Watchdog meldet einen roten Push-Lauf als offenen Issue.
 
-Der Typecheck hat in dieser Kette genau einen Owner: `plugins/dead-code-gate.mjs` startet den Compiler, die Pre-Commit-Kette, `pnpm run -s check` und der PR-Gate erreichen ihn alle über dieses Plugin. `scripts/shinon/tests/typecheck-owner.test.mjs` hält das fest, nachdem derselbe Lauf bis zum 2026-09-29 lokal viermal und im PR-Gate dreimal lief.
+Der Typecheck hat in dieser Kette genau einen Owner: `plugins/dead-code-gate.mjs` startet den Compiler, `pnpm run -s check` und der PR-Gate erreichen ihn über dieses Plugin. Seit dem 2026-09-29 liegt er damit ausschließlich remote und in `gate:full`; die lokale Hook-Kette fährt ihn nicht mehr. `scripts/shinon/tests/typecheck-owner.test.mjs` hält das fest, nachdem derselbe Lauf bis zum 2026-09-29 lokal viermal und im PR-Gate dreimal lief.
 
 Fail-closed gilt nur auf dem PR-Pfad. `promote` hängt per `needs: gate` daran, ein roter Gate verhindert die Landung. Der Push-Pfad kann das nicht: Branch-Protection prüft einen SHA, und die Pflichtprüfung muss vor dem Push existieren. Dort entsteht `client-dist` und `Commit integrity` laufen als Nachweis; ein roter Lauf meldet, er hält nichts auf. Bricht `commit-integrity` ab, werden alle späteren Schritte des Push-Laufs übersprungen — ein roter Lauf prüft dann weniger als ein grüner.
 
@@ -60,6 +61,8 @@ Fail-closed gilt nur auf dem PR-Pfad. `promote` hängt per `needs: gate` daran, 
 | `redundancy-gate` | immer | identische 6-Zeilen-Blöcke über zwei Package-Dateien | Fenster 6 |
 | `core-determinism` | `sim-core/`, `contracts/` | verbietet `Math.random`, `Date.now`, `new Date`, `Math.sqrt`, `Math.pow`, `Math.sin`, `Math.cos`, `Math.tan`, `parseFloat`, `crypto.getRandomValues`, `crypto.randomUUID`, `crypto.randomBytes` | — |
 | `false-positive` | `/combat/`, `/genome/`, `/matchmaking/`, `/sync/` | `while (true)` ohne Tick-Limit | — |
+
+Lokal fährt die Engine seit dem 2026-09-29 nur noch die kurze Menge aus `policy.engine.local`: `loc-gate`, `global-loc-gate`, `hygiene-gate`, `modularity-gate`, `version-gate`, `commit-gate` und `commit-integrity`. Die übrigen Plugins der Tabelle — `schema-contract`, `dead-code-gate`, `redundancy-gate`, `core-determinism` und `false-positive` — laufen ausschließlich im Job `Shinon Gate` und in `gate:full`. `scripts/shinon/tests/gate-parity.test.mjs` prüft, dass die lokale Menge eine Teilmenge von `always` bleibt und kein schwerer Check in den lokalen Weg zurückwandert.
 
 Der Deploy auf `feed-the-floor-bleed.vannon-fs.workers.dev` braucht **keine** Repository-Secrets: Die App `cloudflare-workers-and-pages` erzeugt ihr API-Token selbst. Einzige Pflicht ist der *Build command* im Dashboard unter *Settings > Build*; Wortlaut in `wrangler.jsonc` und `docs/REGELWERK_GIT.md`. Ohne ihn deployt Wrangler ein `packages/client/dist`, das es in einem frischen Checkout nicht gibt. Das Spiel kommt über die Asset-Kante aus, der Worker läuft wegen `run_worker_first: ["/api/*"]` nur bei `/api/health` und `/api/sync/*`.
 

@@ -13,6 +13,15 @@
       "commit-gate",
       "commit-integrity"
     ],
+    "local": [
+      "loc-gate",
+      "global-loc-gate",
+      "hygiene-gate",
+      "modularity-gate",
+      "version-gate",
+      "commit-gate",
+      "commit-integrity"
+    ],
     "slices": {
       "core-determinism": {
         "prefixes": ["packages/sim-core/", "packages/contracts/"]

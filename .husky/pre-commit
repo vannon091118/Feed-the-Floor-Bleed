@@ -1,8 +1,7 @@
 #!/usr/bin/env sh
-# Shinon pre-commit — Slice Test-Suite (sicher + performant)
-# Globale Base-Gates laufen IMMER: loc, global-loc, hygiene, version, commit, contracts, modularity, dead-code, redundancy
-# Core-Tests laufen nur bei relevantem Slice: core-determinism, false-positive
-# Full-Run ist NICHT der Standard — nur der Slicer entscheidet
+# Shinon pre-commit — lokales Minimal-Gate: LOC, Ownership, Doku-Hygiene, Version, Commit-Text/-Integrität
+# Alles Schwere (Typecheck, Redundanz, Contract-Schema, Slices, Tests, Build, Worker-Bündel) läuft
+# fail-closed im Job Shinon Gate; die Menge steht in scripts/shinon/policy.json unter engine.local.
 set -e
-echo "🦊 Shinon pre-commit — Slice Test-Suite läuft..."
-node scripts/shinon/engine.mjs
+echo "🦊 Shinon pre-commit — Minimal-Gate läuft..."
+node scripts/shinon/engine.mjs --local

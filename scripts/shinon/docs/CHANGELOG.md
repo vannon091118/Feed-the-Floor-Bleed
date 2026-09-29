@@ -1,5 +1,15 @@
 # scripts/shinon/docs/CHANGELOG.md
 
+## 2026-09-29 — Lokal nur noch, was einen Commit durchlässt; die schwere Prüfung liegt fail-closed remote
+
+**Der Befund.** Der lokale Weg war der teuerste Teil der Schleife und trug dabei Prüfungen, die sich remote billiger und verlässlicher wiederholen ließen: `pnpm run -s gate` brauchte **102 943 ms**, der Pre-Commit-Hook über den staged Slice **24 821 ms**, der Pre-Push-Hook über `engine.mjs --full` **46 709 ms**. Der Job `Shinon Gate` führte dieselbe Plugin-Suite ohnehin, aber Lint und Tests liefen nur auf Entwicklermaschinen und im **nicht blockierenden** Signal-Job `gate-windows`; ein roter Lint- oder Testlauf hielt also keinen Merge auf.
+
+**Der Schnitt.** Neu ist `engine.local` in `policy.json`: **sieben** Plugins — `loc-gate`, `global-loc-gate`, `hygiene-gate`, `modularity-gate`, `version-gate`, `commit-gate`, `commit-integrity`. Genau diese Menge fährt der neue Modus `engine.mjs --local`, den beide Hooks (`pre-commit`, `pre-push`) und das neue `pnpm run -s gate` aufrufen. `lib/engine-policy.mjs` bekommt dafür die reine Funktion `shouldRunLocal`, `policy-schema.mjs` das Feld `local` unter `engine`. Die Sperre auf den Default-Branch bleibt in `pre-push` unverändert **vor** dem Minimal-Gate stehen.
+
+**Nichts verliert seine Durchsetzung.** Was lokal wegfällt, läuft seit demselben Tag im Job `gate`: zwei neue Schritte **Lint** und **Test** vor dem Deploy-Build, in derselben Kette hinter `pnpm run -s check`, die über `dead-code-gate` den einen Typecheck fährt. `promote` hängt per `needs: gate` an diesem Job, ein roter Lauf hält den Merge also auf. Das neue `gate:full` in `package.json` ist das lokale Spiegelbild desselben Jobs; `gate` ist die kurze Schleife aus `gate:quick` (Lint, LOC, Doku-Hygiene) und `engine.local`.
+
+**Gemessen.** `engine.mjs --local` **4 486 ms** bei sieben Plugins, `pnpm run -s gate` **9 792 ms** — zusammen also rund **14 s** dort, wo vorher 102 943 ms standen. `tests/gate-parity.test.mjs` vergleicht den `gate`-Job jetzt mit `gate:full`, hält `gate` als Teilmenge, verlangt die lokale Menge als Teilmenge von `always` und verbietet Engine `--full`, Tests und Lint im lokalen Weg; `tests/typecheck-owner.test.mjs` prüft zusätzlich, dass beide Hooks `--local` fahren und der Compiler remote bleibt. `scripts/shinon/docs/ARCHITEKTUR.md`, `REPOINDEX.md` und `FUNKTIONSGRAPH.md` sind nachgezogen, ebenso `docs/REGELWERK_GIT.md`, `docs/DEV_REQUIREMENTS.md` und `docs/REPOINDEX.md`. **Gates:** typecheck 0, 365 Tests in 54 Dateien, Shinon-Tests 88 in 13 Dateien, Lint 0, LOC-Caps ok, Hygiene ok.
+
 ## 2026-09-29 — Der Typecheck läuft einmal, und ein Test hält es fest
 
 Derselbe Compilerlauf über dieselben Quelldateien lief viermal: als eigener Schritt von `pnpm run -s gate`, erneut in `check`, erneut in `plugins/dead-code-gate.mjs` und erneut im `pre-push`-Hook, der über `engine.mjs --full` die Plugin-Suite fährt. Der Remote-Job hatte dieselbe Doppelung. Schlimmer als die Wartezeit war der zweite Regelsatz: `noUnusedLocals` und `noUnusedParameters` standen nur auf der Kommandozeile des Plugins, `pnpm run -s typecheck` prüfte also weniger als die Engine.

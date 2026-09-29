@@ -2,8 +2,12 @@
 import { execSync } from 'node:child_process'
 /**
  * Installiert Husky + Shinon Hooks. Läuft via `pnpm prepare`.
- * Kette: pre-commit (slice) → prepare-commit-msg (Integration) → commit-msg (gate) →
- *        post-commit (bump+push) → pre-push (full)
+ * Kette: pre-commit (lokales Minimal-Gate) → prepare-commit-msg (Integration) →
+ *        commit-msg (gate) → post-commit (bump+push) → pre-push (Sperre + Minimal-Gate)
+ *
+ * Die lokale Menge steht seit dem 2026-09-29 in `policy.json` unter
+ * `engine.local`; die vollständige Prüfung fährt der Job `Shinon Gate`. Wer hier
+ * eine Hook-Zeile ändert, muss `.husky/*` mitziehen — die Dateien sind erzeugt.
  */
 import fs from 'node:fs'
 import path from 'node:path'
@@ -37,13 +41,12 @@ try {
 writeHook(
   'pre-commit',
   `#!/usr/bin/env sh
-# Shinon pre-commit — Slice Test-Suite (sicher + performant)
-# Globale Base-Gates laufen IMMER: loc, global-loc, hygiene, version, commit, contracts, modularity, dead-code, redundancy
-# Core-Tests laufen nur bei relevantem Slice: core-determinism, false-positive
-# Full-Run ist NICHT der Standard — nur der Slicer entscheidet
+# Shinon pre-commit — lokales Minimal-Gate: LOC, Ownership, Doku-Hygiene, Version, Commit-Text/-Integrität
+# Alles Schwere (Typecheck, Redundanz, Contract-Schema, Slices, Tests, Build, Worker-Bündel) läuft
+# fail-closed im Job Shinon Gate; die Menge steht in scripts/shinon/policy.json unter engine.local.
 set -e
-echo "🦊 Shinon pre-commit — Slice Test-Suite läuft..."
-node scripts/shinon/engine.mjs
+echo "🦊 Shinon pre-commit — Minimal-Gate läuft..."
+node scripts/shinon/engine.mjs --local
 `,
 )
 
@@ -122,11 +125,14 @@ fi
 writeHook(
   'pre-push',
   `#!/usr/bin/env sh
-# Shinon pre-push — Full Test-Suite (alle Plugins, letzte Sicherung)
-# Davor die Sperre auf den Default-Branch. Branch-Protection prüft einen
-# Status-Check auf einem SHA, nicht den Weg dorthin, und strict wirkt nur auf
-# Merges: Ein lokaler Push auf einen SHA, dessen Shinon Gate aus dem PR-Lauf
-# schon grün ist, wird akzeptiert. Die Sperre sitzt deshalb hier.
+# Shinon pre-push — Sperre auf den Default-Branch, dann das lokale Minimal-Gate.
+# Die Sperre steht hier, weil Branch-Protection einen Status-Check auf einem SHA
+# prüft und nicht den Weg dorthin: Ein lokaler Push auf einen SHA, dessen Shinon
+# Gate aus dem PR-Lauf schon grün ist, würde akzeptiert.
+# Die vollständige Prüfung liegt seit dem 2026-09-29 im Job Shinon Gate (Engine
+# mit --full, Tests, Lint, Build, Worker-Bündel); dieser Hook fährt nur die kurze
+# Menge aus policy.engine.local. Nach main kommt davon nichts ungeprüft: promote
+# hängt per needs: gate am grünen Required Check.
 set -e
 
 main_branch="\${SHINON_MAIN_BRANCH:-$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||' || true)}"
@@ -147,8 +153,8 @@ while read -r _local_ref _local_sha remote_ref _remote_sha; do
   fi
 done
 
-echo "🦊 Shinon pre-push — Full Test-Suite..."
-node scripts/shinon/engine.mjs --full
+echo "🦊 Shinon pre-push — Minimal-Gate läuft..."
+node scripts/shinon/engine.mjs --local
 `,
 )
 
@@ -156,5 +162,5 @@ console.log(
   '✅ Shinon Hooks installiert (.husky/pre-commit, prepare-commit-msg, commit-msg, post-commit, pre-push)',
 )
 console.log(
-  '   Kette: pre-commit (slice) → prepare-commit-msg (Integration) → commit-msg (gate) → post-commit (bump+push) → pre-push (full)',
+  '   Kette: pre-commit (lokal minimal) → prepare-commit-msg (Integration) → commit-msg (gate) → post-commit (bump+push) → pre-push (Sperre + lokal minimal)',
 )

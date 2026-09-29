@@ -1,7 +1,7 @@
 {
   "name": "feed-the-floor",
   "private": true,
-  "version": "0.0.68",
+  "version": "0.0.69",
   "description": "Feed the Floor: Meet Your Fate — Dorf + Dungeon Keeper + Auto-Battler, deterministisch, async, PWA",
   "type": "module",
   "packageManager": "pnpm@9.12.3",
@@ -18,7 +18,8 @@
     "check:hygiene": "node scripts/check-hygiene.mjs",
     "check:shinon": "node scripts/shinon/engine.mjs --full",
     "check:worker": "npx --yes wrangler@4 deploy --dry-run --outdir .wrangler-dry",
-    "gate": "pnpm test -- --run && pnpm run -s lint && pnpm run -s check && pnpm --filter @floor/client build && pnpm run -s check:worker",
+    "gate": "pnpm run -s gate:quick && node scripts/shinon/engine.mjs --local",
+    "gate:full": "pnpm run -s gate && pnpm test -- --run && pnpm run -s check && pnpm --filter @floor/client build && pnpm run -s check:worker",
     "gate:quick": "pnpm run -s lint && node scripts/check-loc.mjs && node scripts/check-hygiene.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "biome check --error-on-warnings .",

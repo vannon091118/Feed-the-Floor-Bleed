@@ -3,10 +3,16 @@ import { execSync, spawnSync } from 'node:child_process'
 /**
  * Shinon — modulare Commit-Gate & Test Engine.
  * Slicing nach git diff, Plugin-Slices als isolierte Checks.
+ *
+ * Drei Betriebsarten: `SLICE` (Standard, staged Diff), `--full` (alle Plugins,
+ * der Job `Shinon Gate` und die Bündel-Probe) und `--local` (nur die kurze
+ * Menge aus `policy.engine.local`, die Hooks pre-commit und pre-push). Der
+ * lokale Pfad trägt seit dem 2026-09-29 nur noch, was einen Commit durchlässt;
+ * Typecheck, Redundanz, Contract-Schema und die Slices liegen remote.
  */
 import fs from 'node:fs'
 import path from 'node:path'
-import { shouldRun } from './lib/engine-policy.mjs'
+import { shouldRun, shouldRunLocal } from './lib/engine-policy.mjs'
 import { POLICY } from './policy.mjs'
 
 const ROOT = process.cwd()
@@ -69,29 +75,33 @@ function runPlugin(plugin, changedFiles) {
 function main() {
   const args = process.argv.slice(2)
   const forceFull = args.includes('--full') || args.includes('--push')
-  // pre-commit prüft den Index, --full/--push den Stand gegen HEAD.
-  const changedFiles = forceFull
-    ? (() => {
-        try {
-          const out = execSync('git diff --name-only HEAD', {
-            encoding: 'utf8',
-            cwd: ROOT,
-          })
-          const stagedOut = execSync('git diff --cached --name-only', {
-            encoding: 'utf8',
-            cwd: ROOT,
-          })
-          const set = new Set(
-            [...out.split('\n'), ...stagedOut.split('\n')]
-              .map((s) => s.trim())
-              .filter(Boolean),
-          )
-          return [...set]
-        } catch {
-          return []
-        }
-      })()
-    : getChangedFiles({ staged: true })
+  const localOnly = args.includes('--local')
+  // pre-commit prüft den Index, --full/--push den Stand gegen HEAD. Das lokale
+  // Minimal-Gate braucht keinen Diff: Seine Menge steht fest in der Policy.
+  const changedFiles = localOnly
+    ? []
+    : forceFull
+      ? (() => {
+          try {
+            const out = execSync('git diff --name-only HEAD', {
+              encoding: 'utf8',
+              cwd: ROOT,
+            })
+            const stagedOut = execSync('git diff --cached --name-only', {
+              encoding: 'utf8',
+              cwd: ROOT,
+            })
+            const set = new Set(
+              [...out.split('\n'), ...stagedOut.split('\n')]
+                .map((s) => s.trim())
+                .filter(Boolean),
+            )
+            return [...set]
+          } catch {
+            return []
+          }
+        })()
+      : getChangedFiles({ staged: true })
 
   const plugins = loadPlugins()
   if (plugins.length === 0) {
@@ -99,7 +109,7 @@ function main() {
   }
 
   console.log(
-    `🦊 Shinon Gate — ${forceFull ? 'FULL' : 'SLICE'} Mode — ${changedFiles.length} geänderte Dateien`,
+    `🦊 Shinon Gate — ${localOnly ? `LOCAL (${POLICY.engine.local.length} Plugins)` : forceFull ? 'FULL' : 'SLICE'} Mode — ${changedFiles.length} geänderte Dateien`,
   )
   if (changedFiles.length > 0) {
     for (const f of changedFiles) console.log(`  • ${f}`)
@@ -109,9 +119,13 @@ function main() {
   const results = []
 
   for (const p of plugins) {
-    const run = shouldRun(p.name, changedFiles, forceFull, POLICY)
+    const run = localOnly
+      ? shouldRunLocal(p.name, POLICY)
+      : shouldRun(p.name, changedFiles, forceFull, POLICY)
     if (!run) {
-      console.log(`⏭️  ${p.name} — geskippt (kein relevanter Slice)`)
+      console.log(
+        `⏭️  ${p.name} — geskippt (${localOnly ? 'nicht im lokalen Minimal-Gate' : 'kein relevanter Slice'})`,
+      )
       results.push({ name: p.name, skipped: true })
       continue
     }

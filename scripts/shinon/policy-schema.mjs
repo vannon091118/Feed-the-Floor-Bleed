@@ -36,6 +36,7 @@ export const policySchema = z
     engine: z
       .object({
         always: stringList,
+        local: stringList,
         slices: z.record(
           z
             .object({

@@ -4,13 +4,20 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 /**
- * Parität zwischen dem Remote-Gate und dem lokalen Gate.
+ * Parität zwischen dem Remote-Gate und dem lokalen Lauf.
  *
- * Der Workflow-Job `gate` ist die verbindliche Fassung. `pnpm run -s gate`
+ * Der Workflow-Job `gate` ist die verbindliche Fassung. `pnpm run -s gate:full`
  * ist ihr lokales Spiegelbild, und dieser Test verhindert, dass die beiden
- * auseinanderlaufen: Wer einen Schritt im Workflow ergänzt und ihn lokal
- * vergisst, bekommt hier rot statt ein grünes lokales Gate, das der Remote
- * nicht kennt.
+ * auseinanderlaufen: Wer einen Schritt im Workflow ergänzt und ihn dort vergisst,
+ * bekommt hier rot statt eines grünen Remote-Gates, das der lokale Lauf nicht
+ * kennt.
+ *
+ * Seit dem 2026-09-29 liegt die Durchsetzung fail-closed remote, und der lokale
+ * Weg ist die kurze Menge aus `policy.engine.local` (`pnpm run -s gate`, Hooks).
+ * Deshalb prüft dieselbe Datei in der anderen Richtung: Jedes Plugin des lokalen
+ * Minimal-Gates steht auch in `engine.always`, und die schweren Prüfungen
+ * (Engine `--full`, Tests, Lint, Build) liegen im Workflow und nicht im lokalen
+ * Weg.
  */
 
 const ROOT = path.resolve(
@@ -153,9 +160,9 @@ function expand(scriptName, seen = new Set()) {
 }
 
 describe('Parität zwischen Remote-Gate und lokalem Gate', () => {
-  it('spiegelt jeden Workflow-Schritt im gate-Script', () => {
+  it('spiegelt jeden Workflow-Schritt im vollen lokalen Lauf gate:full', () => {
     const remote = remoteGateCommands()
-    const local = expand('gate')
+    const local = expand('gate:full')
     for (const cmd of remote) {
       expect(local.has(cmd), `lokal fehlt: ${cmd}`).toBe(true)
     }
@@ -167,6 +174,56 @@ describe('Parität zwischen Remote-Gate und lokalem Gate', () => {
     expect(quick.size).toBeGreaterThan(0)
     for (const cmd of quick) {
       expect(full.has(cmd), `gate:quick läuft ${cmd}, gate nicht`).toBe(true)
+    }
+  })
+
+  it('hält gate als echte Teilmenge von gate:full', () => {
+    const local = expand('gate')
+    const full = expand('gate:full')
+    expect(local.size).toBeGreaterThan(0)
+    for (const cmd of local) {
+      expect(full.has(cmd), `gate läuft ${cmd}, gate:full nicht`).toBe(true)
+    }
+  })
+
+  /** Die Policy-Anteile, die der lokale Weg und der Remote-Lauf lesen. */
+  function policy() {
+    return JSON.parse(
+      fs.readFileSync(path.join(ROOT, 'scripts/shinon/policy.json'), 'utf8'),
+    )
+  }
+
+  it('fährt lokal nur Plugins, die der volle Lauf auch fährt', () => {
+    const engine = policy().engine
+    expect(engine.local.length).toBeGreaterThan(0)
+    for (const name of engine.local) {
+      expect(engine.always, `lokal, aber nicht in always: ${name}`).toContain(
+        name,
+      )
+    }
+  })
+
+  it('lässt Typecheck, Tests, Lint und Build remote und nicht im lokalen Weg', () => {
+    const remote = remoteGateCommands()
+    for (const cmd of ['pnpm test', 'pnpm lint', 'pnpm build']) {
+      expect(remote.has(cmd), `remote fehlt: ${cmd}`).toBe(true)
+    }
+    expect(expand('gate:full')).toContain(
+      'node scripts/shinon/engine.mjs --full',
+    )
+    const local = expand('gate')
+    expect(local.has('node scripts/shinon/engine.mjs --full')).toBe(false)
+    expect(local.has('pnpm test')).toBe(false)
+    for (const hook of ['.husky/pre-commit', '.husky/pre-push']) {
+      const text = fs.readFileSync(path.join(ROOT, hook), 'utf8')
+      expect(text, `${hook} fährt nicht das lokale Gate`).toContain(
+        'engine.mjs --local',
+      )
+      // Nur die Befehlszeile zählt: Der Kommentar darüber erklärt den vollen
+      // Lauf und darf ihn nennen, gefahren werden darf er hier nicht.
+      expect(text, `${hook} fährt den vollen Lauf`).not.toContain(
+        'engine.mjs --full',
+      )
     }
   })
 
