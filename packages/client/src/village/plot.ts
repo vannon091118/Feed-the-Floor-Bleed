@@ -27,9 +27,32 @@ export interface GridBounds {
 
 /** Warum eine Platzierung abgewiesen wurde. */
 export type PlacementRejection =
+  | { ok: false; reason: 'not-a-cell' }
   | { ok: false; reason: 'out-of-bounds' }
   | { ok: false; reason: 'overlaps'; conflict: Footprint }
   | { ok: true }
+
+/**
+ * Belegt der Grundriss ganze Rasterzellen mit Ausdehnung?
+ *
+ * Ein Raster besteht aus ganzen Zellen; `x: 1.5` liegt zwar innerhalb der
+ * Grenzen, bezeichnet aber keine. `Number.isInteger` fällt dabei zugleich für
+ * `NaN` und für beide Unendlichkeiten. Die Breite und die Höhe müssen
+ * mindestens 1 sein: ein Grundriss ohne Ausdehnung überlappt nichts und wäre
+ * sonst unbegrenzt oft platzierbar. Eine negative Lage bleibt dagegen eine
+ * Randlage und wird als solche gemeldet — dafür ist der nächste Test da.
+ */
+function isCellFootprint(footprint: Footprint): boolean {
+  const { x, y, width, height } = footprint
+  return (
+    Number.isInteger(x) &&
+    Number.isInteger(y) &&
+    Number.isInteger(width) &&
+    Number.isInteger(height) &&
+    width >= 1 &&
+    height >= 1
+  )
+}
 
 /**
  * Schneiden sich zwei Grundrisse in mindestens einer Zelle?
@@ -73,8 +96,8 @@ export function footprintWithinBounds(
 }
 
 /**
- * Die eine Platzierungsentscheidung: erst die Rastergrenze, dann die
- * Überlappung. Bei Ablehnung nennt das Ergebnis den Grund und im
+ * Die eine Platzierungsentscheidung: erst die Zelle, dann die Rastergrenze,
+ * dann die Überlappung. Bei Ablehnung nennt das Ergebnis den Grund und im
  * Überlappungsfall den konkurrierenden Grundriss, damit die Oberfläche später
  * sagen kann, woran es lag.
  */
@@ -83,6 +106,7 @@ export function canPlace(
   occupied: readonly Footprint[],
   bounds: GridBounds,
 ): PlacementRejection {
+  if (!isCellFootprint(candidate)) return { ok: false, reason: 'not-a-cell' }
   if (!footprintWithinBounds(candidate, bounds))
     return { ok: false, reason: 'out-of-bounds' }
   const conflict = occupied.find((other) => rectsIntersect(candidate, other))

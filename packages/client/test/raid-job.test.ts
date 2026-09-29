@@ -1,12 +1,14 @@
 import { RaidJobSchema, UploadRequestSchema } from '@floor/contracts'
 import { CellType, createDungeonGrid, setCell } from '@floor/sim-core'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { paintTile } from '../src/dungeon-editor/model'
 import {
   buildFixtureUpload,
   runLocalFixtureRaid,
 } from '../src/raid/fixture-raid'
 import { BALANCE } from '../src/village/balance'
+import { buildBuilding } from '../src/village/commands'
+import { dayNight, resetDayNight } from '../src/village/state'
 
 /** Zwei versetzte Barrieren zwingen die Route deutlich über die Minimalzahl. */
 function snakeGrid() {
@@ -16,8 +18,12 @@ function snakeGrid() {
   return grid
 }
 
+afterEach(() => {
+  resetDayNight()
+})
+
 describe('Fixture-Raid aus dem Client', () => {
-  it('baut einen gültigen Contract-v2-Upload aus Grid und Fixture', () => {
+  it('baut einen gültigen Contract-v4-Upload aus Grid und Fixture', () => {
     const upload = buildFixtureUpload(createDungeonGrid())
     expect(UploadRequestSchema.safeParse(upload).success).toBe(true)
     expect(upload.dungeon.cells).toHaveLength(4096)
@@ -25,9 +31,14 @@ describe('Fixture-Raid aus dem Client', () => {
     expect(upload.monsterSlots).toHaveLength(5)
   })
 
-  it('sendet den Startbestand aus der Balance statt einer Fixture-Kopie', () => {
+  it('sendet den Dorfbestand, nicht den Startbestand der Config', () => {
+    expect(buildBuilding('house', { x: 0, y: 0 }, BALANCE).ok).toBe(true)
+
     const upload = buildFixtureUpload(createDungeonGrid())
-    expect(upload.resources).toEqual(BALANCE.start.resources)
+    expect(upload.resources).toEqual(dayNight.value.village.resources)
+    expect(upload.resources.gold).toBe(
+      BALANCE.start.resources.gold - BALANCE.buildings.house.buildCost.gold,
+    )
   })
 
   it('liefert lokal einen abgeschlossenen Auftrag mit reproduzierbarem Hash', () => {

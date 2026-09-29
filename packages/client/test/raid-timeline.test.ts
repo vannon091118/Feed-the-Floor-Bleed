@@ -1,5 +1,5 @@
 import { RaidLogPayloadSchema } from '@floor/contracts'
-import { CellType, findPath } from '@floor/sim-core'
+import { CellType, findPath, summarizeCombat } from '@floor/sim-core'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { buildCombatLog } from '../src/raid/combat-source'
 import {
@@ -16,7 +16,6 @@ import {
   clusterEvents,
   eventsByPhase,
   phaseForTick,
-  resultCard,
   trailBadge,
 } from '../src/raid/timeline-model'
 import { blockedGrid, fixtureRaidLog } from './raid-fixtures'
@@ -147,23 +146,29 @@ describe('RaidTimeline-Ergebnis-Phase', () => {
         { ...log.events[log.events.length - 1], stage: 'timeout' as const },
       ],
     }
-    const card = resultCard(timeoutLog)
-    expect(card.stage).toBe('timeout')
-    expect(card.timeout).toBe(true)
-    const plain = resultCard(log)
-    expect(plain.timeout).toBe(false)
-    expect(plain.stage).not.toBe('timeout')
+    expect(summarizeCombat(timeoutLog).stage).toBe('timeout')
+    expect(summarizeCombat(log).stage).not.toBe('timeout')
   })
 
-  it('zählt Überlebende aus Todesereignissen ohne zweite Simulation', () => {
+  it('zählt Überlebende ohne den Boss in monstersAlive und ohne zweite Simulation', () => {
     const { payload } = fixtureRaidLog()
     const log = payload.log
-    const card = resultCard(log)
-    const dead = log.events.filter((event) => event.type === 'death').length
-    const survivors = log.units.length - dead
-    expect(card.heroes + card.monsters + (card.bossAlive ? 1 : 0)).toBe(
-      survivors,
+    const summary = summarizeCombat(log)
+    const dead = new Set(
+      log.events
+        .filter((event) => event.type === 'death')
+        .map((event) => event.actorId),
     )
+    expect(
+      summary.heroesAlive + summary.monstersAlive + (summary.bossAlive ? 1 : 0),
+    ).toBe(log.units.length - dead.size)
+    const monstersOnly = log.units.filter(
+      (unit) =>
+        unit.side === 'monsters' &&
+        unit.role === 'monster' &&
+        !dead.has(unit.id),
+    ).length
+    expect(summary.monstersAlive).toBe(monstersOnly)
     expect(RaidLogPayloadSchema.safeParse(payload).success).toBe(true)
   })
 })

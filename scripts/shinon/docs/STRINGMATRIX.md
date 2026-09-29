@@ -12,7 +12,7 @@
 | `gate/hygiene` | Doku-Pflicht Check (Base) |
 | `gate/contracts` | Zod, sim_version und Contract-Grenzen (Base) |
 | `gate/modularity` | Domain-Grenzen, Deep-Imports und Import-Zyklen (Base) |
-| `gate/dead-code` | TypeScript-NoUnused und Dead-Code-Muster (Base) |
+| `gate/dead-code` | Der eine Compilerlauf des Repos (`tsc -p tsconfig.json`, `noUnusedLocals`/`noUnusedParameters` aus dem tsconfig) und Dead-Code-Muster (Base) |
 | `gate/redundancy` | Duplizierte Codeblöcke in Package-Quellen (Base) |
 | `gate/version` | VERSION sync + 0..99 Range (Base) |
 | `gate/commit` | Commit-Gate Shim (Base, Detail in commit-msg) |

@@ -121,6 +121,7 @@ export function combatSummary(): CombatSummary {
     events: 2,
     attacks: 0,
     damage: 0,
+    defendersTotal: 2,
     heroesAlive: 1,
     monstersAlive: 1,
     bossAlive: true,

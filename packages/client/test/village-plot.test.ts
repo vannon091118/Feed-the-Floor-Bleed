@@ -67,6 +67,38 @@ describe('Grundriss und Rastergrenze', () => {
   })
 })
 
+describe('Ein Grundriss besteht aus ganzen Rasterzellen', () => {
+  it('weist eine Lage ab, die keine Zelle bezeichnet', () => {
+    // `1.5` liegt im Raster, ist aber keine Zelle. Ohne diese Prüfung käme es
+    // als gültig durch und stünde hinterher im Dorf.
+    for (const x of [1.5, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(canPlace({ x, y: 0, width: 1, height: 1 }, [], FELD)).toEqual({
+        ok: false,
+        reason: 'not-a-cell',
+      })
+    }
+  })
+
+  it('weist einen Grundriss ohne Ausdehnung ab', () => {
+    // Breite 0 überlappt nichts und wäre sonst unbegrenzt oft platzierbar.
+    expect(canPlace({ x: 0, y: 0, width: 0, height: 1 }, [], FELD)).toEqual({
+      ok: false,
+      reason: 'not-a-cell',
+    })
+    expect(canPlace({ x: 0, y: 0, width: 1, height: -1 }, [], FELD)).toEqual({
+      ok: false,
+      reason: 'not-a-cell',
+    })
+  })
+
+  it('nennt bei negativer Lage weiterhin die Rastergrenze', () => {
+    expect(canPlace({ x: -1, y: 0, width: 1, height: 1 }, [], FELD)).toEqual({
+      ok: false,
+      reason: 'out-of-bounds',
+    })
+  })
+})
+
 describe('Die eine Platzierungsentscheidung', () => {
   it('lässt eine freie Lage im Raster zu', () => {
     expect(

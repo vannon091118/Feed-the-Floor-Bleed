@@ -5,6 +5,7 @@ import {
   defaultCombatConfig,
   replayCombat,
   resolveCombat,
+  summarizeCombat,
   verifyCombatLog,
 } from './index'
 import { createUnitStates, damageFor } from './state'
@@ -43,6 +44,46 @@ describe('Deterministischer Combat-Core', () => {
 
   it('liefert einen achtstelligen Hex-Hash', () => {
     expect(resolveCombat({ ...base, seed: 99 }).hash).toMatch(/^[0-9a-f]{8}$/)
+  })
+
+  it('zählt Monster ohne den Boss und führt den Boss als eigenes Feld', () => {
+    const config = { ...defaultCombatConfig(), maxTicks: 1 }
+    const log = resolveCombat({
+      grid,
+      seed: 5,
+      teamSize: 1,
+      monsterSlots: 2,
+      config,
+    })
+    const summary = summarizeCombat(log)
+    expect(log.units.filter((unit) => unit.side === 'monsters')).toHaveLength(3)
+    expect(summary.defendersTotal).toBe(3)
+    expect(summary.monstersAlive).toBe(2)
+    expect(summary.bossAlive).toBe(true)
+    expect(summary.heroesAlive).toBe(1)
+  })
+
+  it('macht die gefallenen Verteidiger aus der Summary allein berechenbar', () => {
+    // Die Summary ist der einzige Teil des Laufs, der in einem abgelegten
+    // Ergebnis steht; der Kampflog liegt dort nicht. Diese Zusage steht in
+    // `contracts/src/combat-log.ts` und in `docs/VISUAL_GRUNDSATZ.md` — hier
+    // wird sie gegen die Ereignisse des Logs geprüft, statt sie zu glauben.
+    const log = resolveCombat({ ...base, seed: 42 })
+    const summary = summarizeCombat(log)
+    const defenderIds = new Set(
+      log.units
+        .filter((unit) => unit.side === 'monsters')
+        .map((unit) => unit.id),
+    )
+    const slain = log.events.filter(
+      (event) => event.type === 'death' && defenderIds.has(event.actorId),
+    ).length
+    const reckoning =
+      summary.defendersTotal -
+      summary.monstersAlive -
+      (summary.bossAlive ? 1 : 0)
+    expect(reckoning).toBe(slain)
+    expect(summary.defendersTotal).toBe(base.monsterSlots + 1)
   })
 
   it('stellt Helden vorne und den Boss ans Routenende', () => {

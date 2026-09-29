@@ -53,12 +53,11 @@ jobs:
       - name: Commit integrity (Pull Request)
         if: ${{ github.event_name == 'pull_request' }}
         run: node scripts/shinon/plugins/commit-integrity.mjs --from ${{ github.event.pull_request.base.sha }}
-      - name: Typecheck
-        run: pnpm run -s typecheck
-      - name: Test
-        run: pnpm test -- --run
-      - name: Lint
-        run: pnpm run -s lint
+      # Kein eigener Typecheck-Schritt mehr: `pnpm run -s check` fährt die
+      # Shinon-Suite, und deren `dead-code-gate` ist der eine Owner des
+      # Compiler-Programmlaufs. Bis zum 2026-09-29 lief derselbe Typecheck hier
+      # dreimal pro Lauf (Schritt, `check`, Plugin); die Regeln kommen jetzt aus
+      # `tsconfig.json`, damit beide Aufrufer denselben Regelsatz sehen.
       - name: Run hard-fail Shinon suite
         run: pnpm run -s check
       - name: Deploy-Build

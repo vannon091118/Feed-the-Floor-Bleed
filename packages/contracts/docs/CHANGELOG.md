@@ -1,5 +1,19 @@
 # packages/contracts/docs/CHANGELOG.md
 
+## 2026-09-28 — Contract v4: das Rosterfeld macht die gefallenen Gegner berechenbar
+
+**Der Anlass war eine belegte Lücke, kein Wunsch.** `docs/VISUAL_GRUNDSATZ.md` hält fest, dass die Stärke-/Generations-Goldformel nicht freigegeben werden kann, solange die Zahl der besiegten Gegner in keinem Contract-Feld steht: `ResultPayloadSchema` trägt den Kampflog nicht, und `monstersAlive`/`bossAlive` nennen nur die Überlebenden. Die Zahl der Gefallenen war aus einem abgelegten Ergebnis deshalb nicht rekonstruierbar.
+
+**Das Feld.** `CombatSummarySchema` führt jetzt `defendersTotal: nonnegative int` — den eingefrorenen Verteidiger-Roster, also alle Einheiten der Monster-Seite mit dem Boss. Die Differenz `defendersTotal - monstersAlive - (bossAlive ? 1 : 0)` ist damit ohne den Log berechenbar. Die Heldenseite bekommt bewusst kein Gegenstück: die Formel braucht nur die Verteidiger, und ein Feld ohne Leser wäre vorbereitete Flexibilität.
+
+**Der Bump.** `CONTRACT_VERSION 3→4`, `sim_version 0.0.2→0.0.3`. Beides ist nötig und beides ist bewusst: die akzeptierte Form von `result.summary` ändert sich (ein neues Pflichtfeld), und `sim-core` ist der Erzeuger dieser Summary. Der Kampf-Hash selbst ist unverändert — der Golden-Pin in `packages/sim-core/src/combat/combat-pin.test.ts` bleibt grün und ist der Beleg dafür.
+
+**Ohne Verhalten.** Es wird keine Goldformel gerechnet und kein neues Feld gelesen. Der Slice friert nur die Form ein, damit alles Weitere Sim- oder Client-Verhalten auf stabilem Grund ist. v1/v2/v3 werden abgewiesen; die Datenmigration der alten Zeilen liegt in `packages/server/migrations/002_contract_v4.sql`.
+
+## 2026-09-28 — `monstersAlive` ist als Feld ohne den Boss festgelegt
+
+**Keine Formänderung, eine Semantikentscheidung.** `CombatSummarySchema` führt neben `monstersAlive` ein eigenes `bossAlive`; wer die beiden Felder liest, versteht daraus, dass der Boss nicht in beiden zugleich stehen soll. Die Umsetzung tat das eine Zeit lang doch: `sim-core` zählte den Boss über seine Seite `monsters` mit, der Client zog ihn ab. Das Schema bleibt deshalb unverändert — dieselbe akzeptierte JSON-Form, `CONTRACT_VERSION` bleibt 3 —, aber `STRINGMATRIX.md` nennt die Bedeutung von `monstersAlive` jetzt ausdrücklich (ohne den Boss), und `sim-core` liefert sie. v4 bleibt für das Rosterfeld reserviert, das die Stärke-/Generations-Goldformel braucht.
+
 ## 2026-09-27 — `useOptionalChain` in `combat-log.ts` behoben
 
 `CombatLogSchema.superRefine` prüfte das letzte Ereignis mit `!last || last.type !== 'end'`; die Bedingung ist jetzt `last?.type !== 'end'`. Verhalten unverändert: bei fehlendem `last` liefert `last?.type` `undefined`, der Vergleich ist wahr und der Rest der Bedingung wird nicht ausgewertet. Der Grund ist die Umstellung von `pnpm run -s lint` auf `biome check --error-on-warnings`; weitere Dateien dieser Domäne sind unberührt.

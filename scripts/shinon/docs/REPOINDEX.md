@@ -20,7 +20,7 @@
 | `plugins/commit-integrity.mjs` | Fail-closed Fernprüfung der echten Inhalts-Commits einer Range, Merge-Commits ausgenommen (Base, CI) |
 | `plugins/schema-contract.mjs` | Zod- und Contract-Grenzen-Gate (Base) |
 | `plugins/modularity-gate.mjs` | Domain-Grenzen und Import-Zyklen-Gate (Base) |
-| `plugins/dead-code-gate.mjs` | NoUnused- und Dead-Code-Gate (Base) |
+| `plugins/dead-code-gate.mjs` | Der einzige Compilerlauf (`tsc -p tsconfig.json`) und das Dead-Code-Gate (Base) |
 | `plugins/redundancy-gate.mjs` | Redundanz-Gate für Package-Code (Base) |
 | `plugins/core-determinism.mjs` | Determinismus Scan (Core, crypto+Math Ban) |
 | `plugins/false-positive.mjs` | Dead-Lock Smoke (Core) |
@@ -28,5 +28,6 @@
 | `tests/engine-policy.test.mjs` | Schnelle Policy-Matching-Unit-Tests |
 | `tests/engine-slicing.test.mjs` | Ein echter Engine-Smoke-Test für gemischte Slices |
 | `tests/integration-text.test.mjs` | Generierte Integrations-Nachrichten erfüllen die Commit-Regeln und bleiben datei-treu |
+| `tests/typecheck-owner.test.mjs` | Der Typecheck hat genau einen Owner: eine Plugin-Datei startet den Compiler, die Regeln stehen im tsconfig, der Remote-Job wiederholt ihn nicht |
 | `tests/fixtures/*` | Isolierte Testdaten für Gate-Validierung |
 | `docs/*` | Pflicht-Doku dieser Domäne |

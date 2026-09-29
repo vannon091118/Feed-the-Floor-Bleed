@@ -87,30 +87,33 @@ village (einziger Phase- und Dorfwirtschafts-Owner)
   │           Stufe, Etage, Platz und Landausgang müssen Ganzzahlen sein;
   │           Ablehnungen sind unterscheidbare Ergebnisse, keine Wurf-Fehler.
   ├─ state: dayNight Signal (phase, day, job, village, daySettlement),
-  │         setPhase (einziger Schreibpfad) — rechnet im Übergang result → tag
-  │         den Werkstattertrag gut, closeDay ist die reine Rechnung dahinter;
-  │         recordRaidJob
+  │         setPhase — rechnet im Übergang result → tag den Werkstattertrag gut,
+  │         closeDay ist die reine Rechnung dahinter; recordRaidJob;
+  │         commitVillage (Schreibpfad der Kommandos, nur am Tag) und
+  │         villageEditable als die eine Phasenfrage
   ├─ phase-actions: startNight / triggerRaid / completeRaid / finishResult
   ├─ plot: Footprint/GridBounds → rectsIntersect / footprintOverlaps /
   │        footprintWithinBounds / canPlace (Begründung bei Ablehnung) /
   │        edgeNeighbours (4-Nachbarschaft, Diagonalen zählen nicht) /
   │        expandHorizontally (Höhe bleibt, Spaltenzahl kommt herein)
   │        Datenfluss: `village/plot` besitzt die Platzierungsgeometrie;
-  │        aufrufen darf später nur die Dorf-Bauoberfläche, die das Raster
-  │        und die belegten Grundrisse selbst durchreicht. Aktuell hat das
-  │        Modul noch keinen Abnehmer — die Verdrahtung an Pixi, `ui/` und
-  │        die Store ist ein eigener Slice. Kein Import aus `render/` oder
-  │        `world/`, damit die Geometrie frei von Darstellung bleibt.
+  │        Abnehmer ist `village/commands`, das Raster und belegte Grundrisse
+  │        aus dem Store durchreicht. Kein Import aus `render/` oder `world/`,
+  │        damit die Geometrie frei von Darstellung bleibt; die Dorfszene auf
+  │        der Bühne liest den Store noch nicht.
+  ├─ commands: buildBuilding / upgradeBuilding / extendLand — nur am Tag,
+  │        mit Deckung, Arbeiterkapazität und Platzierung, jede Ablehnung ein
+  │        Ergebnis mit Grund; schreibt über commitVillage
   └─ settlement: villageOutlook() → Dorfname, Tag, Phasentext + Gildenroster
 
 Wirtschaftskette (nur in dieser Richtung):
   balance (Zahlen) → economy (Regeln, Config als Parameter)
-    → state.village (Bestand) → state.daySettlement (Buchung im Übergang
-    result → tag) → ui/topbar (Bestandsanzeige) und später der Rückkehr-Toast
-  Von der freigegebenen Balance ist nur der Tagesertrag verdrahtet; Bau-,
-  Ausbau-, Land-, Etagen- und Platzpreis haben noch keinen Aufrufer.
-  Kein Baukommando: `village.buildings` ist heute nur über den Store zu
-  füllen, und `raid/fixture-raid.ts` sendet den Startbestand der Balance.
+    → commands (Entscheidung) → state.village (Bestand) → state.daySettlement
+    (Buchung im Übergang result → tag) → ui/topbar (Bestandsanzeige) und
+    später der Rückkehr-Toast
+  Verdrahtet sind Tagesertrag, Bauen, Ausbauen und Landkauf; Etagen- und
+  Platzpreis haben noch keinen Aufrufer. `raid/fixture-raid.ts` sendet den
+  Bestand des Dorfes, nicht mehr den Startbestand der Balance.
 
 raid/fixture-raid
   ├─ buildFixtureUpload(grid) → @floor/contracts UploadRequest
@@ -122,7 +125,10 @@ raid (besitzt den Lauf; die Timeline liest ihn, rechnet nichts)
   ├─ playback: playbackLog / playbackTick / playbackPaused, stepPlayback,
   │            setScrubTick, playbackRouteIndex
   ├─ timeline-model: buildTimelineSections, phaseForTick, clusterEvents,
-  │                 trailBadge, resultCard
+  │                 trailBadge
+  ├─ phases: RoutePhase / CombatPhase / ResultPhase — die Überlebendenzahlen
+  │          kommen aus @floor/sim-core summarizeCombat, nicht aus einer
+  │          zweiten Zählung
   ├─ phase-nav: drei Phasen-Knöpfe → setScrubTick(Phasenbeginn)
   ├─ raid-timeline: TimelineTransport (Scrubber, Play/Pause) + PhaseNav +
   │                RoutePhase + CombatPhase + ResultPhase

@@ -1,5 +1,31 @@
 # packages/sim-core/docs/CHANGELOG.md
 
+## 2026-09-28 — Die Summary trägt den Verteidiger-Roster
+
+**Scope:** geändert `src/combat/summary.ts` (neues Feld `defendersTotal`). Kein Hash, keine Regel und kein Verhalten geändert — der Golden-Pin bleibt wortgleich grün und belegt das.
+
+`summarizeCombat` füllt jetzt `defendersTotal` aus den Einheiten des Logs: alle Einheiten der Monster-Seite, den Boss eingeschlossen. Damit ist die Zahl der gefallenen Gegner aus einem abgelegten Ergebnis berechenbar, ohne den Kampflog zu laden — `monstersAlive` und `bossAlive` nennen nur die Überlebenden, und `ResultPayloadSchema` trägt den Log nicht. Die Zahl kommt aus derselben Einheitenliste wie die Überlebendenzahlen, es gibt also keine zweite Quelle. Der Anlass des Felds steht im Contract, gerechnet wird damit noch nichts. `combat.test.ts` prüft beide Zusagen gegen die Todesereignisse des Logs statt sie zu glauben: den Pin auf `defendersTotal` und die Identität `defendersTotal - monstersAlive - (bossAlive ? 1 : 0)` gleich der Zahl der gefallenen Verteidiger.
+
+## 2026-09-28 — Golden-Pin des Kampf-Hashes und ein Messwerkzeug für die Siegquoten
+
+**Scope:** neu `src/combat/combat-pin.test.ts` und `src/combat/balance-report.test.ts`. Kein Produktivcode, keine Regel und kein Hash geändert.
+
+**Die Lücke war der Pin, nicht die Abdeckung.** Die Engine-Tests verglichen bisher ausschließlich zwei Läufe miteinander (gleicher Seed, Seed-Sensitivität, Trail, Replay). Eine beiläufige Änderung an Einheiten, Regelwerten oder Event-Reihenfolge wäre damit grün geblieben, solange sie nur deterministisch ist — und hätte den Hash jedes gespeicherten Replays verschoben, ohne dass eine Version steigt. `combat-pin.test.ts` pinnt zwei Läufe absolut, beide Seed 4242, Teamgröße 3: offenes Fixture-Grid mit zwei belegten Plätzen (`94ba1954`, `monsters-win`, 225 Ticks, 417 Ereignisse, 127 Trail-Zellen) und die Umweg-Route mit voller Belegung (`f85b31c0`, `monsters-win`, 401 Ticks, 1010 Ereignisse, 253 Trail-Zellen). Der rote Erstlauf vor dem Eintragen der Werte belegt, dass der Pin greift. Ein roter Lauf ist dann eine Entscheidung — gewollt? Version anheben? Doku nachziehen? —, und die Zahlen werden im selben Commit angepasst.
+
+**Ein Messwerkzeug, kein Sollwert.** `balance-report.test.ts` fährt die Stufenverteilung über Seeds und Verteidigerplätze und druckt sie als Tabelle. Es pinnt bewusst kein gewünschtes Ergebnis: ein Test, der den Ist-Stand als Ziel festschreibt, wäre die Fehlerquelle mit grüner Anzeige. Standardbreite 32 Seeds je Zeile, `BALANCE_SEEDS=500` für eine belastbare Messung. Geprüft wird nur, was gelten muss: jede Stufe ist bekannt, und die Rohzahlen summieren sich je Zeile auf die Seed-Zahl — nicht die gerundeten Prozente, die sich auf 99 bis 101 summieren.
+
+**Befund, 500 Seeds je Belegung bei Teamgröße 3 auf dem offenen Fixture-Grid:** Siegquote 90 % bei null belegten Plätzen, 65 % bei einem, 81 % bei zwei und 0 % ab drei; ein Zeitlimit tritt nicht auf, die mittlere Kampfdauer liegt bei 217 bis 228 Ticks. Die Roadmap-Behauptung „0 % ab drei belegten Verteidigerplätzen" ist damit im Repo reproduziert. Zwei Auffälligkeiten, die keine Regeländerung sind: Die Kurve ist zwischen einem und zwei Plätzen nicht monoton, weil der zweite Platz an Routenposition 900 fast am Boss sitzt und die Zielwahl sich mit der Einheitenliste ändert; und die 2-Platz-Zeile lag bei 200 Seeds bei 84 % und bei 500 Seeds bei 81 %, die Standardbreite ist für Aussagen also zu klein.
+
+## 2026-09-28 — Der Boss bekommt ein Modul, und `monstersAlive` zählt ohne ihn
+
+**Scope:** neu `src/combat/boss.ts`; geändert `src/combat/rules.ts` (Boss-Werte und `bossSpec` ausgezogen), `src/combat/state.ts` (`isBoss` statt Zeichenkettenvergleich), `src/combat/summary.ts` (`monstersAlive` ohne Boss, `bossAlive` über `isBossAlive`), `src/combat/index.ts` (Barrel) und `src/combat/combat.test.ts` (ein neuer Fall). Contracts, Werte und Log-Hash unberührt.
+
+**Der Befund.** `monstersAlive` wurde an zwei Stellen berechnet und uneinig: `summary.ts` zählte über `aliveOnSide(..., 'monsters')` und damit den Boss mit — er trägt `side: 'monsters'` —, während `packages/client/src/raid/timeline-model.ts` ihn in einem eigenen Zweig abzog. Für denselben Log nannten Core und Client verschiedene Zahlen, und beide standen im Bild.
+
+**Die Korrektur.** `boss.ts` ist der neue Owner: `BOSS_ROLE`, `isBoss`, `isBossAlive`, `BOSS_RULES` und `bossSpec`. `rules.ts` importiert `bossSpec` statt ihn zu führen, `state.ts` sucht den Boss mit `states.find(isBoss)`, und `summary.ts` zählt Monster über eine Rolle, die den Boss ausnimmt, während `bossAlive` aus derselben Rollenerkennung kommt. Damit können die beiden Felder nicht mehr auseinanderlaufen. Boss-exklusive Verstärkungen haben jetzt einen Platz, statt als dritter Monsterwert in `PROVISIONAL_RULES` zu liegen.
+
+**Was sich nicht ändert.** Werte, IDs, Reihenfolge und Spec-Form sind unverändert; der Kampf-Hash bleibt gleich. `combat.test.ts` pinnt den neuen Fall mit abgeschaltetem Tick-Limit: zwei Monster, ein Boss, `monstersAlive === 2`, `bossAlive === true`.
+
 ## 2026-09-27 — `divFixed` trägt seine Genauigkeitsgrenze und hat einen Test
 
 **Scope:** geändert `src/math/fixed.ts` und `src/math/math.test.ts`. Kein Produktionsaufrufer, kein Verhalten geändert.

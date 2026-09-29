@@ -9,7 +9,7 @@ engine → plugins/global-loc-gate → global LOC-Budget
 engine → plugins/hygiene-gate → check-hygiene.mjs
 engine → plugins/schema-contract (Zod+sim_version+Grenzen)
 engine → plugins/modularity-gate (Domain-Grenzen+Zyklen)
-engine → plugins/dead-code-gate (NoUnused+Dead-Code)
+engine → plugins/dead-code-gate (der eine Typecheck + Dead-Code-Muster)
 engine → plugins/redundancy-gate (Duplikatblöcke)
 engine → plugins/core-determinism (Scan)
 engine → plugins/false-positive (Dead-Lock Smoke)

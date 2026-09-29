@@ -1,5 +1,17 @@
 # packages/server/docs/CHANGELOG.md
 
+## 2026-09-28 — Migration der alten Raid-Zeilen auf Contract v4
+
+**Scope:** neu `migrations/002_contract_v4.sql` und `src/db/raid-migration-v4.test.mjs`. Kein Produktivcode, kein Tabellenschema geändert.
+
+**Warum überhaupt eine Migration.** Ab v4 akzeptieren `RaidSnapshotSchema` und `ResultPayloadSchema` nur noch `contractVersion 4` mit `simVersion "0.0.3"`. `toSnapshot` parst `payload_json` mit dem strikten Schema und würde für jede v3-Zeile werfen; das `result_json` einer abgeschlossenen Nacht trägt `contractVersion 3`. Alte Zeilen sind damit unlesbar, und `raid_snapshots` ist per Trigger unveränderlich.
+
+**Warum entfernt und nicht umgeschrieben.** Ein bloßes Hochsetzen der Versionsfelder reparierte nur die halbe Zeile: Im `result_json` steckt die Summary ohne `defendersTotal`, und der Kampflog liegt dort nicht — die Zahl der Verteidiger ist aus der Zeile nicht rekonstruierbar. Ein Bestand mit v4-Snapshots und v3-Ergebnissen wäre widersprüchlich, und ein erratener Roster wäre eine Lüge im Spielstand. Die Migration entfernt deshalb die v3-Snapshots samt der Jobs, die sie als `snapshot_id` oder `target_snapshot_id` führen, und legt die beiden Unveränderlichkeitstrigger danach wortgleich wieder an — ohne dieses kurzzeitige Ablegen ließe sich keine Zeile löschen. **Korrigierte Fassung:** Der erste Entwurf löschte mit `sim_version <> '0.0.3'` alles außer der damals aktuellen Version. Das trifft auch jede Zeile, die eine spätere Codebasis geschrieben hat — ein erneuter Lauf derselben Migration wäre stiller Datenverlust. Genannt werden jetzt ausdrücklich nur die abgelösten Versionen `0.0.1` und `0.0.2`.
+
+**Der Test ist eine eigene Datei.** `raid-migration-v4.test.mjs` prüft genau eine Migration; `raid-migration.test.mjs` prüft das 001-Schema. Die Trennung ist auch eine Cap-Frage: zusammengelegt hätte die Datei den 120-Zeilen-Cap der Domäne gerissen. Der neue Test baut den v3-Bestand auf dem 001-Schema auf, fährt die 002-Migration und prüft drei Seiten — v3-Snapshots und der abhängige Job sind weg, die v4-Zeile und ihr Job bleiben, und eine Zeile einer späteren Version samt ihrem Job überlebt die Migration, weil sie nicht zu ihrem Auftrag gehört; danach weisen die Trigger ein `UPDATE` und ein `DELETE` wieder mit `immutable` ab. Die erwartete Simulationsversion kommt aus `sim_version` in `@floor/contracts`, damit die Zahl in der SQL-Datei nicht unbemerkt vom Code abdriftet.
+
+**Was das nicht ist.** Kein Produktivlauf: Die D1-Bindung in `wrangler.jsonc` ist weiterhin auskommentiert, es gibt keinen Bestand, auf dem die Migration liefe. Sie beschreibt, was passiert, sobald einer da ist.
+
 ## 2026-09-27 — Worker-Rand und „Checkpoint" statt „Commit"
 
 - **Umbenennung, weil der Begriff falsch war.** `raid-commit.ts` → `raid-checkpoint.ts`, `commitRaid` → `checkpointRaid`, `CommitRaidInput`/`CommitRaidResult` → `CheckpointRaidInput`/`CheckpointRaidResult`, `ATOMIC_COMMIT_FAILED` → `ATOMIC_CHECKPOINT_FAILED`, `D1RaidStore.commit` → `D1RaidStore.checkpoint`. Der Vorgang ist ein Git-Commit und auch kein Transaktions-Commit aus der Datenbanksprache, sondern ein geprüfter Fortschrittspunkt: ab hier gilt der hochgeladene Zustand als angekommen und ist per Trigger nicht mehr änderbar. Die älteren Einträge unten benutzen noch den alten Namen; sie beschreiben den damaligen Stand und wurden nicht angeschrieben.

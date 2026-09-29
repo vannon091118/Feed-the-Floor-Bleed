@@ -5,6 +5,7 @@ import { fixture } from '../fixture-data'
 import { BALANCE } from './balance'
 import { dailyYield, type PlacedBuilding } from './economy'
 import { type Phase, resolvePhaseTransition } from './phase'
+import type { Footprint } from './plot'
 
 /**
  * DayNightState: einziger Owner der Schleifenphase und des Dorfbestands.
@@ -15,9 +16,10 @@ import { type Phase, resolvePhaseTransition } from './phase'
  * `daySettlement` die Bilanz des zuletzt abgerechneten Tages. Keine zweite
  * Phase-Wahrheit in Komponenten, kein lokaler useState neben dem Store.
  *
- * Die Lage eines platzierten Gebäudes steht hier nicht: sie ist Frage der
- * Platzierungsgeometrie in `plot` und kommt mit deren Verdrahtung dazu. Der
- * Bestand trägt Art und Ausbaustufe, weil genau das die Regeln lesen.
+ * Ein Gebäude trägt seit den Baukommandos auch seinen Grundriss: Die
+ * Platzierungsprüfung in `plot` braucht die belegten Zellen, und ein zweiter
+ * Ort für dieselbe Lage wäre eine zweite Wahrheit. Die Weltkoordinaten der
+ * Szene bleiben davon getrennt.
  */
 export interface DayNightState {
   phase: Phase
@@ -27,10 +29,22 @@ export interface DayNightState {
   daySettlement: DaySettlement | null
 }
 
+/**
+ * Ein platziertes Gebäude des Dorfes: Art, Stufe und belegter Grundriss.
+ *
+ * Nicht zu verwechseln mit dem gleichnamigen Präsentationsort in
+ * `render/village-layout.ts`: jener liegt in Weltpixeln, dieser in
+ * Rasterzellen. Die Regeln (`dailyYield`, `workerBase`) lesen Art und Stufe
+ * strukturell aus `PlacedBuilding` heraus, das hier erweitert wird.
+ */
+export interface VillageBuilding extends PlacedBuilding {
+  footprint: Footprint
+}
+
 /** Der Dorfbestand: Ressourcen, platzierte Gebäude, Breite des Landes. */
 export interface VillageHoldings {
   resources: Resources
-  buildings: PlacedBuilding[]
+  buildings: VillageBuilding[]
   landColumns: number
 }
 
@@ -41,19 +55,21 @@ export interface VillageHoldings {
  * Goldseite aus besiegten Raid-Gegnern (E1) fehlt hier bewusst und ist keine
  * Lücke, die ein Platzhalter füllen könnte:
  *
- * - Die Zahl der Gegner steht in keinem Contract-Feld. `CombatSummarySchema`
- *   (`packages/contracts/src/combat-log.ts:113`) ist `.strict()` und führt
- *   keine Rostergröße, und `ResultPayloadSchema` (`protocol.ts:41`) trägt gar
- *   keinen Combat-Log. `slain` ist aus einem abgeschlossenen Auftrag nicht berechenbar.
+ * - Die Stärke-/Generations-Goldformel selbst ist nicht freigegeben (`[K]` in
+ *   `docs/VISUAL_GRUNDSATZ.md`). Sie hier zu erfinden wäre keine Ableitung,
+ *   sondern eine Annahme.
  * - Das einzige lokal verfügbare Roster ist das des eigenen Fixtures
  *   (`monsterSlots`). Daraus eine Beute zu rechnen wäre gegenüber jedem fremden
  *   Ziel eine Lüge.
- * - Zwei Leser im Repo sind sich über `monstersAlive` uneinig:
- *   `sim-core/src/combat/summary.ts:39` zählt den Boss mit, `client/src/raid/timeline-model.ts:158`
- *   nicht. Jede Formel bräuchte also zuerst eine benannte Quelle.
  *
- * Bis `CONTRACT_VERSION 4` ein Rosterfeld führt, bleibt die Naht offen und
- * wird nicht geraten.
+ * Die Überlebendenzahlen haben seit dem Boss-Slice eine einzige Quelle:
+ * `sim-core/src/combat/summary.ts` legt fest, dass `monstersAlive` ohne den
+ * Boss zählt und `bossAlive` ein eigenes Feld ist; der frühere Widerspruch
+ * zwischen Core und Timeline ist damit behoben. Seit Contract v4 trägt die
+ * Summary außerdem `defendersTotal`, den eingefrorenen Verteidiger-Roster —
+ * die Zahl der gefallenen Gegner ist damit ohne den Log berechenbar. Blockiert
+ * ist die Formelfreigabe; ob die Formel nach E1 über diese Zahl hinaus Stärke
+ * und Generation je Gegner braucht, führt kein Schema und ist offen.
  */
 export interface DaySettlement {
   /** Der Tag, der abgerechnet wurde — vor dem Hochzählen. */
@@ -133,6 +149,47 @@ export function setPhase(to: Phase): boolean {
       ? abgerechnet.daySettlement
       : current.daySettlement,
   }
+  return true
+}
+
+/**
+ * Ist der Dorfbestand gerade veränderbar? Nur am Tag: In Nacht, Raid und
+ * Ergebnis steht der Plan, ausgegeben und gebaut wird am Tag.
+ */
+export function villageEditable(): boolean {
+  return dayNight.value.phase === 'tag'
+}
+
+/** Ein Bestandsbetrag ist ganzzahlig und nicht negativ; `NaN` fällt heraus. */
+function istBestandswert(wert: number): boolean {
+  return Number.isInteger(wert) && wert >= 0
+}
+
+/**
+ * Der Schreibpfad der Bau-, Ausbau- und Landkommandos.
+ *
+ * Die Preise und Grenzen liegen in `economy.ts`, die Entscheidung in
+ * `commands.ts`; hier stehen allein die Zusagen, die für **jeden** Schreibzugriff
+ * auf den Dorfbestand gelten müssen: nur am Tag, kein negativer und kein
+ * gebrochener Betrag und kein Raster unter der Startbreite. Eine Ablehnung
+ * verändert nichts und meldet `false` — dieselbe Form wie `setPhase`.
+ *
+ * Warum überhaupt eine zweite Schreibstelle neben `setPhase`: Die
+ * Tagesabrechnung hängt am Übergang `result → tag` und muss mit dem Hochzählen
+ * des Tages in einem Zug geschrieben werden. Die Kommandos laufen dagegen
+ * ausschließlich am Tag. Über die Phase schließen sich beide Wege deshalb
+ * gegenseitig aus, und einen dritten gibt es nicht.
+ */
+export function commitVillage(next: VillageHoldings): boolean {
+  if (!villageEditable()) return false
+  if (!istBestandswert(next.resources.gold)) return false
+  if (!istBestandswert(next.resources.materials)) return false
+  if (
+    !Number.isInteger(next.landColumns) ||
+    next.landColumns < BALANCE.start.landColumns
+  )
+    return false
+  dayNight.value = { ...dayNight.value, village: next }
   return true
 }
 

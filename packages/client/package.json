@@ -1,9 +1,11 @@
 {
   "name": "@floor/client",
-  "version": "0.0.65",
+  "version": "0.0.66",
   "private": true,
   "type": "module",
   "dependencies": {
+    "@floor/contracts": "workspace:*",
+    "@floor/sim-core": "workspace:*",
     "@preact/signals": "^2.11.2",
     "pixi.js": "^8",
     "preact": "^10.29.8",

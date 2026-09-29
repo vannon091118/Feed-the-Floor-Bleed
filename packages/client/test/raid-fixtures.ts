@@ -40,6 +40,7 @@ export const JOB: TerminalRaidJob = {
       events: 0,
       attacks: 0,
       damage: 0,
+      defendersTotal: 1,
       heroesAlive: 3,
       monstersAlive: 0,
       bossAlive: false,

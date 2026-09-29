@@ -1,10 +1,10 @@
+import { summarizeCombat } from '@floor/sim-core'
 import { playbackLog } from './playback'
 import {
   clusterEvents,
   type EventCluster,
   eventsByPhase,
   PHASE_LABELS,
-  resultCard,
   STAGE_LABELS,
   TRAIL_BADGE_LABELS,
   trailBadge,
@@ -92,32 +92,40 @@ export function CombatPhase() {
   )
 }
 
-/** Ergebnis-Phase: Stage, Überlebende und Boss-Status als Karte. */
+/**
+ * Ergebnis-Phase: Stage, Überlebende und Boss-Status als Karte.
+ *
+ * Die Zahlen kommen aus `summarizeCombat` und nicht aus einer zweiten Zählung:
+ * dieselbe Funktion erzeugt die Summary des Auftrags und damit die Bilanz im
+ * Dorf und im Ergebnis-Panel. Die Timeline hält nur den Log, nicht den Auftrag,
+ * deshalb leitet sie die Kurzfassung aus dem Log ab statt sie zu kopieren.
+ */
 export function ResultPhase() {
   const current = playbackLog.value
   if (!current) return null
-  const card = resultCard(current.log)
+  const summary = summarizeCombat(current.log)
+  const timeout = summary.stage === 'timeout'
   return (
     <section class="timeline-phase" data-phase="result">
       <h3>{PHASE_LABELS.result}</h3>{' '}
       <output
         class={
-          card.timeout
+          timeout
             ? 'timeline-result timeline-result--timeout'
-            : `timeline-result timeline-result--${card.stage}`
+            : `timeline-result timeline-result--${summary.stage}`
         }
       >
-        {card.timeout
+        {timeout
           ? 'Zeitlimit erreicht — kein Sieger'
-          : STAGE_LABELS[card.stage]}
+          : STAGE_LABELS[summary.stage]}
       </output>
       <dl class="timeline-facts">
         <dt>Überlebende Helden</dt>
-        <dd>{card.heroes}</dd>
+        <dd>{summary.heroesAlive}</dd>
         <dt>Überlebende Monster</dt>
-        <dd>{card.monsters}</dd>
+        <dd>{summary.monstersAlive}</dd>
         <dt>Boss</dt>
-        <dd>{card.bossAlive ? 'steht' : 'gefällt'}</dd>
+        <dd>{summary.bossAlive ? 'steht' : 'gefällt'}</dd>
       </dl>
     </section>
   )

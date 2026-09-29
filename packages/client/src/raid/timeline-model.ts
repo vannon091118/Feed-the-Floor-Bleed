@@ -38,14 +38,6 @@ export interface EventBuckets {
   result: CombatEvent[]
 }
 
-export interface ResultCardData {
-  stage: CombatStage
-  timeout: boolean
-  heroes: number
-  monsters: number
-  bossAlive: boolean
-}
-
 export const PHASE_LABELS: Record<PhaseId, string> = {
   route: 'Routen-Phase',
   combat: 'Kampf-Phase',
@@ -146,29 +138,4 @@ export function phaseForTick(
   if (tick >= sections.lastTick) return 'result'
   if (tick < sections.combatStart) return 'route'
   return 'combat'
-}
-
-/** Überlebende aus Einheiten und Todesereignissen, ohne zweite Simulation. */
-export function resultCard(log: CombatLog): ResultCardData {
-  const dead = new Set(
-    log.events
-      .filter((event) => event.type === 'death')
-      .map((event) => event.actorId),
-  )
-  let heroes = 0
-  let monsters = 0
-  let bossAlive = false
-  for (const unit of log.units) {
-    if (dead.has(unit.id)) continue
-    if (unit.role === 'hero') heroes += 1
-    else if (unit.role === 'boss') bossAlive = true
-    else monsters += 1
-  }
-  return {
-    stage: log.stage,
-    timeout: log.stage === 'timeout',
-    heroes,
-    monsters,
-    bossAlive,
-  }
 }

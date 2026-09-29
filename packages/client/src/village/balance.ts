@@ -47,6 +47,14 @@ export type DeepReadonly<T> = T extends (...args: never[]) => unknown
 
 /** Alles, was je Gebäudeart eingestellt werden kann. */
 export interface BuildingBalance {
+  /**
+   * Darf diese Art überhaupt gebaut werden?
+   *
+   * Rathaus und Gilde sind feste Startorte: ihre Nullkosten allein sagten das
+   * nicht, denn ein Preis von 0 könnte auch ein kostenloses Angebot sein. Ohne
+   * dieses Feld stünde die Regel „sie werden nie gebaut" nur im Kommentar.
+   */
+  buildable: boolean
   /** Einmaliger Preis des Baus. */
   buildCost: Cost
   /**
@@ -61,11 +69,18 @@ export interface BuildingBalance {
 }
 
 export interface BalanceConfig {
-  /** Startbestand, Startarbeiterbasis und Ausgangsbreite des Landes. */
+  /** Startbestand, Startarbeiterbasis und Maße des Dorfrasters. */
   start: {
     resources: Resources
     workerBase: number
     landColumns: number
+    /**
+     * Höhe des Rasters in Zellen. Sie wächst nie: die Landerweiterung ist
+     * ausdrücklich horizontal, also gibt es für Zeilen auch keinen Preis. Der
+     * Wert steht hier, weil die Rastergrenze beim Bauen geprüft wird und keine
+     * Zahl außerhalb dieser Datei liegen darf.
+     */
+    landRows: number
   }
   buildings: Record<BuildingKind, BuildingBalance>
   /** Werkstattertrag: Materialien je Tag für Stufe 1 und je weiterer Stufe. */
@@ -118,30 +133,35 @@ const CONFIG = {
     resources: { gold: 120, materials: 7 },
     workerBase: 12,
     landColumns: 10,
+    landRows: 10,
   },
   buildings: {
     // Rathaus und Gilde sind feste Startorte: Sie werden nie gebaut und nie
     // ausgebaut. Ihre Nullwerte halten die Tabelle vollständig, damit eine
     // Regelfunktion je Gebäudeart eine Antwort liefern kann.
     hall: {
+      buildable: false,
       buildCost: { gold: 0, materials: 0 },
       upgradeCoefficient: 0,
       maxLevel: 1,
       footprint: { width: 3, height: 3 },
     },
     guild: {
+      buildable: false,
       buildCost: { gold: 0, materials: 0 },
       upgradeCoefficient: 0,
       maxLevel: 1,
       footprint: { width: 3, height: 3 },
     },
     house: {
+      buildable: true,
       buildCost: { gold: 30, materials: 4 },
       upgradeCoefficient: 8,
       maxLevel: 5,
       footprint: { width: 2, height: 2 },
     },
     workshop: {
+      buildable: true,
       buildCost: { gold: 80, materials: 6 },
       upgradeCoefficient: 20,
       maxLevel: 5,

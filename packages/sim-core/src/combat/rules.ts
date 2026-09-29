@@ -1,8 +1,11 @@
 import { toFixed } from '../math'
+import { bossSpec } from './boss'
 import type { CombatConfig, CombatUnitSpec } from './types'
 
 // Vorläufige, NICHT abgenommene Balancing-Werte (siehe docs/CONCEPT_REVIEW.md, [K]).
 // Sie liegen bewusst zentral und sind ersetzbar, ohne die Engine umzubauen.
+// Die Werte des Bosses stehen nicht hier, sondern in `boss.ts`: er ist ein
+// eigenes Wesen mit eigenen Verstärkungen, kein dritter Monsterwert.
 export const PROVISIONAL_RULES = {
   tickRate: 20,
   maxTicks: 1800,
@@ -25,14 +28,6 @@ export const PROVISIONAL_RULES = {
     initiative: 300,
     moveCooldown: 3,
     attackCooldown: 4,
-  },
-  boss: {
-    maxHp: toFixed(200),
-    attack: toFixed(16),
-    defense: toFixed(5),
-    initiative: 700,
-    moveCooldown: 4,
-    attackCooldown: 3,
   },
   route: {
     monsterRatioStart: 500,
@@ -73,22 +68,6 @@ function monsterSpec(slot: number, routeIndex: number): CombatUnitSpec {
     id: `monster-${slot}`,
     side: 'monsters',
     role: 'monster',
-    maxHp: base.maxHp,
-    attack: base.attack,
-    defense: base.defense,
-    initiative: base.initiative,
-    moveCooldown: base.moveCooldown,
-    attackCooldown: base.attackCooldown,
-    routeIndex,
-  }
-}
-
-function bossSpec(routeIndex: number): CombatUnitSpec {
-  const base = PROVISIONAL_RULES.boss
-  return {
-    id: 'boss-0',
-    side: 'monsters',
-    role: 'boss',
     maxHp: base.maxHp,
     attack: base.attack,
     defense: base.defense,

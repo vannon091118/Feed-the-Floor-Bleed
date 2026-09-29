@@ -37,10 +37,12 @@
 | `village/building-kind` | `'hall' \| 'guild' \| 'house' \| 'workshop'` — Union in `village/balance.ts`, von der Renderer-Seite nur entlehnt |
 | `village/building-level` | Ganzzahl ab 1, erzwungen in `village/economy.ts`; letzte Stufe je Art steht in `BALANCE.buildings.<art>.maxLevel`, der Ausbaupreis ist `upgradeCoefficient · n²` |
 | `village/resource` | `gold`, `materials` — Form wie `Resources` in `fixture-data.ts`; Anzeige über `resources/catalog.ts`, Bestand in `dayNight.village.resources` |
-| `village/land` | `dayNight.village.landColumns`, Startwert `BALANCE.start.landColumns`; eine Erweiterung muss ein ganzes Vielfaches von `columnsPerStep` sein |
+| `village/land` | `dayNight.village.landColumns`, Startwert `BALANCE.start.landColumns`; eine Erweiterung muss ein ganzes Vielfaches von `columnsPerStep` sein, die Höhe des Rasters steht fest in `BALANCE.start.landRows` und wächst nie |
+| `village/buildable` | `BALANCE.buildings.<art>.buildable` — `false` für Rathaus und Gilde: feste Startorte werden nie gebaut, und das steht als Feld und nicht mehr nur im Kommentar |
 | `village/day-settlement` | `daySettlement: DaySettlement \| null` — `day` des abgerechneten Tages und `materials` als Gutschrift; gesetzt nur im Übergang `result → tag` |
-| `village/store-key` | `dayNight` — ein Signal für Phase, Tag, Auftrag, Dorfbestand und Abrechnung; `setPhase` ist der einzige Schreibpfad |
+| `village/store-key` | `dayNight` — ein Signal für Phase, Tag, Auftrag, Dorfbestand und Abrechnung; zwei Schreibpfade, über die Phase getrennt: `setPhase` bucht im Übergang `result → tag` ab, `commitVillage` schreibt die Kommandos am Tag |
 | `economy/rejection` | `below-first-level`, `above-max-level`, `worker-capacity`, `below-start-columns`, `not-wider`, `not-a-whole-step`, `below-first-paid-floor`, `slot-out-of-range` — unterscheidbare Gründe, kein Wurf-Fehler; eine kaputte Werkstattrechnung ergibt 0 und lehnt nicht ab |
+| `command/rejection` | `not-day-phase`, `not-buildable`, `not-affordable`, `unknown-building` — dazu die Gründe aus `plot` (`not-a-cell`, `out-of-bounds`, `overlaps`) und aus `economy`; jeder Grund nennt seinen Grenzwert oder Preis |
 | `phase/transitions` | erlaubt: `tag→night`, `night→raid`, `raid→result`, `result→tag`, `result→raid`; jeder andere Übergang wird verworfen |
 | `phase/day` | Start `fixture.day` (18), Zähler hoch bei `result→tag`, Auftrag wird dabei gelöscht |
 | `phase/actions` | `startNight`, `triggerRaid`, `completeRaid` (nur aus `raid`), `finishResult` (Nachfolge nach Auftragsstatus) |

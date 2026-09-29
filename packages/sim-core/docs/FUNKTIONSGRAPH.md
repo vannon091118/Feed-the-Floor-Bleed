@@ -9,6 +9,7 @@ hash:fnv1a ──────▶ combat:fingerprint ──▶ CombatLog.hash
 grid:serialize ───▶ combat:fixture-job (Upload → DungeonGrid)
 grid:findPath ───▶ combat:resolve (Routenlänge) ──▶ combat:simulate
 combat:simulate ─▶ combat:state (Zielwahl, Stage) + combat:actions (move/attack)
+combat:boss ──────▶ combat:rules (Boss-Spec) + combat:state (Stage) + combat:summary (bossAlive)
 combat:summary ───▶ combat:resolve-snapshot (ResultPayload)
 combat:resolve-snapshot ──▶ combat:fixture-job (RaidJob)
 combat:replay ───▶ combat:simulate ──▶ Hash-Prüfung in combat:fixture-job

@@ -9,6 +9,12 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    // Der Typecheck hat genau einen Owner: `pnpm run -s typecheck` und die
+    // Engine fahren dasselbe Programm. Vorher standen die beiden Flags nur auf
+    // der Kommandozeile des Plugins, der Typecheck lief dadurch viermal. Hier
+    // gelten sie für jeden Aufruf, auch in der IDE.
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,

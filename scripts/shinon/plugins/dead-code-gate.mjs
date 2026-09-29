@@ -1,6 +1,13 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process'
-/** Dead-Code-Gate — TypeScript-NoUnused plus AST-basierte Dead-Code-Muster. */
+/**
+ * Dead-Code-Gate — der einzige Typecheck-Lauf plus AST-basierte Dead-Code-Muster.
+ *
+ * `noUnusedLocals` und `noUnusedParameters` stehen seit dem 2026-09-29 in
+ * `tsconfig.json` und nicht mehr auf dieser Kommandozeile: Der Typecheck hat
+ * genau einen Owner, und das ist der Programmlauf, den dieses Plugin fährt.
+ * `pnpm run -s typecheck` fährt dasselbe Programm für den Einzelfall.
+ */
 import fs from 'node:fs'
 import path from 'node:path'
 import ts from 'typescript'
@@ -59,24 +66,19 @@ for (const file of files) {
 }
 
 // Tests dürfen einen leichten Double als SHINON_TSC injizieren; der normale Lauf nutzt TypeScript.
+// Keine Flags auf der Kommandozeile: das tsconfig trägt sie, sonst liefe derselbe
+// Typecheck mit zwei verschiedenen Regelsätzen je nach Aufrufer.
 const tsc =
   process.env.SHINON_TSC ||
   path.join(ROOT, 'node_modules', 'typescript', 'bin', 'tsc')
 if (!fs.existsSync(tsc))
   failures.push(
-    'node_modules/typescript/bin/tsc fehlt — NoUnused-Prüfung nicht ausführbar',
+    'node_modules/typescript/bin/tsc fehlt — Typecheck und NoUnused-Prüfung nicht ausführbar',
   )
 else {
   const result = spawnSync(
     process.execPath,
-    [
-      tsc,
-      '--noEmit',
-      '--noUnusedLocals',
-      '--noUnusedParameters',
-      '-p',
-      path.join(ROOT, 'tsconfig.json'),
-    ],
+    [tsc, '--noEmit', '-p', path.join(ROOT, 'tsconfig.json')],
     {
       cwd: ROOT,
       encoding: 'utf8',
@@ -85,7 +87,7 @@ else {
   )
   if (result.status !== 0)
     failures.push(
-      `TypeScript NoUnused fehlgeschlagen:\n${(result.stdout || result.stderr || '').trim()}`,
+      `TypeScript-Programmlauf fehlgeschlagen:\n${(result.stdout || result.stderr || '').trim()}`,
     )
 }
 if (failures.length > 0) {
@@ -94,5 +96,5 @@ if (failures.length > 0) {
   process.exit(1)
 }
 console.log(
-  `✅ Dead-Code-Gate ok — NoUnused über das tsconfig-Programm (packages/*/src, packages/*/test, scripts/**/* mit .mjs), AST-Muster über ${files.length} Quellen inklusive .mjs.`,
+  `✅ Dead-Code-Gate ok — Typecheck und NoUnused über das tsconfig-Programm (packages/*/src, packages/*/test, scripts/**/* mit .mjs), AST-Muster über ${files.length} Quellen inklusive .mjs.`,
 )

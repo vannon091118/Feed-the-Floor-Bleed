@@ -6,12 +6,13 @@ Single Source of Truth für versionierte Schemas, Payloads und `sim_version`. Da
 
 ## Versionierung
 
-- `CONTRACT_VERSION = 3` kennzeichnet das Wire-Format major.
-- `sim_version = "0.0.2"` ist die einzige von v3 akzeptierte Simulationsversion.
+- `CONTRACT_VERSION = 4` kennzeichnet das Wire-Format major.
+- `sim_version = "0.0.3"` ist die einzige von v4 akzeptierte Simulationsversion.
 - Upload, Match, Result, Ergebnislog, Auftrag, Fehler und jeder eigenständige Raid-Snapshot tragen beide Pflichtfelder `contractVersion` und `simVersion`.
-- Ein v3-Empfänger akzeptiert nur exakt diese Kombination. v1/v2 und inkompatible Folgestände scheitern vor jeder Domänenverarbeitung.
-- Inkompatible Form- oder Bedeutungsänderungen erhöhen `CONTRACT_VERSION`; Korrekturen ohne Änderung des akzeptierten JSON dürfen v3 erhalten. Unbekannte Felder werden nicht ignoriert.
-- Grid- und Pathfinding-Schemas sind versionierte Runtime-Werte des v3-Vertrags, aber noch kein eigenständiges Transportformat.
+- Ein v4-Empfänger akzeptiert nur exakt diese Kombination. v1/v2/v3 und inkompatible Folgestände scheitern vor jeder Domänenverarbeitung.
+- Inkompatible Form- oder Bedeutungsänderungen erhöhen `CONTRACT_VERSION`; Korrekturen ohne Änderung des akzeptierten JSON dürfen die laufende Version erhalten. Unbekannte Felder werden nicht ignoriert.
+- Grid- und Pathfinding-Schemas sind versionierte Runtime-Werte des v4-Vertrags, aber noch kein eigenständiges Transportformat.
+- Ein Versionssprung zieht eine Datenmigration mit: eine Zeile, die unter der alten Version geschrieben wurde, ist unter der neuen nicht lesbar. Die Contract-v4-Migration liegt in `packages/server/migrations/002_contract_v4.sql`.
 
 ## Kanonischer Raid-Freeze
 
@@ -29,7 +30,7 @@ Der Contract legt keine Formeln, Grenzen, Umrechnungen oder Gameplay-Effekte fü
 - `PathResultSchema`: die drei bestehenden Modi sowie Pfad, Bewegungskosten und Umwegkosten.
 - `UploadRequestSchema`: vollständiger `RaidSnapshot` plus `tactics`; genau eine Taktikliste je aktivem Helden.
 - `MatchResponseSchema`: `seed`, `floor` und ein vollständiger versionierter `RaidSnapshot` als späteres Ziel.
-- `ResultPayloadSchema`: `token`, `floor`, `hash` und typisiertes `CombatSummary`.
+- `ResultPayloadSchema`: `token`, `floor`, `hash` und typisiertes `CombatSummary` mit `defendersTotal` (eingefrorener Verteidiger-Roster inklusive Boss). Die Zahl der gefallenen Gegner ist damit ohne den Log ableitbar.
 - `RaidLogPayloadSchema`: derselbe Hash plus der vollständige `CombatLog`. Eigenes Artefakt, damit `result_json` klein bleibt.
 - `CombatLogSchema`: Config, Einheiten, Ereignisse, Stufe, Ticks, Hash und `trail` (jeder Schritt mit `x/y/cell`). Seit T1.1 fließt der Trail in `fingerprintCombatLog`; `verifyCombatLog` deckt ihn über den Hash-Vergleich ab. Invarianten erzwingen eindeutige IDs, ein schließendes `end`-Ereignis und Tick ≤ `log.ticks`.
 - `ErrorPayloadSchema`: `blocked`, `invalid-hash`, `invalid-request`, `protected`, `timeout` plus optionales `detail`.

@@ -24,7 +24,15 @@ export interface VillageTree {
   y: number
 }
 
-/** Präsentationsorte, bis platzierte Siedlungsdaten als eigener Store existieren. */
+/**
+ * Präsentationsorte in Weltpixeln.
+ *
+ * Der Dorf-Owner führt seit den Baukommandos einen eigenen Bestand
+ * (`village/state.ts`) — in Rasterzellen, nicht in Pixeln. Diese Liste ist damit
+ * die Anzeige von etwas, das es zweimal gibt: Bis die Dorfszene den Store liest,
+ * ist sie die einzige Quelle des Bildes; die Verdrahtung ist ein eigener Slice,
+ * weil `village-scene.ts` am LOC-Cap steht.
+ */
 export const VILLAGE_BUILDINGS: readonly VillageBuilding[] = [
   { id: 'rathaus', kind: 'hall', x: 205, y: 190, width: 112, height: 126 },
   { id: 'gilde', kind: 'guild', x: 600, y: 202, width: 104, height: 118 },

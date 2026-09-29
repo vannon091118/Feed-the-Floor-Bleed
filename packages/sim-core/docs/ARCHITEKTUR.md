@@ -17,7 +17,10 @@ und feste Tick-Reihenfolge. Kein Zugriff auf Client, Server, `fs` oder Zeit.
   nimmt den Weg mit den wenigsten Tiles.
 - `combat` bounded Tick-Simulation (`simulateCombat`) mit deterministischer
   Zielwahl, Seed-Varianz pro Angriff, Event-Log und kanonischem Log-Hash.
-- `combat/summary.ts` verdichtet den Log zu einer typisierten Kurzfassung.
+- `combat/boss.ts` besitzt den Boss: `isBoss`/`isBossAlive` als einzige
+  Rollenerkennung, `BOSS_RULES` als seine Ausgangswerte und `bossSpec` als
+  Spec-Bau. Boss-exklusive Verstärkungen gehören hierher.
+- `combat/summary.ts` verdichtet den Log zu einer typisierten Kurzfassung, inklusive `defendersTotal` — dem eingefrorenen Verteidiger-Roster.
 - `combat/resolve-snapshot.ts` setzt den Contract-Envelope und liefert
   Ergebnis plus Log als zwei getrennte Payloads.
 - `combat/fixture-job.ts` führt einen Auftrag lokal aus: Schema, Frist, Route,
@@ -45,10 +48,23 @@ Seit T1.1 fließt der vollständige Trail aus dem Grid in den Kampf: `resolveCom
 
 ## Combat-Regeln
 
-Die konkreten HP-, Angriffs- und Cooldown-Werte stehen zentral als
-`PROVISIONAL_RULES` in `src/combat/rules.ts`. Sie sind nicht abgenommen
-(`[K]` in `docs/CONCEPT_REVIEW.md`) und werden dort ersetzt, ohne die Engine
-umzubauen. Die Engine selbst kennt keine eigenen Balancing-Zahlen.
+Die HP-, Angriffs- und Cooldown-Werte von Helden und Monstern stehen zentral als
+`PROVISIONAL_RULES` in `src/combat/rules.ts`, die des Bosses als `BOSS_RULES` in
+`src/combat/boss.ts`. Beide sind nicht abgenommen (`[K]` in
+`docs/CONCEPT_REVIEW.md`) und werden dort ersetzt, ohne die Engine umzubauen. Die
+Engine selbst kennt keine eigenen Balancing-Zahlen.
+
+## Eine Quelle der Überlebendenzahlen
+
+`summary.ts` ist die einzige Stelle, die Überlebende zählt. `monstersAlive`
+zählt ohne den Boss — er trägt `side: 'monsters'`, ist aber ein eigenes Wesen mit
+eigenem Feld `bossAlive` — und alle drei Zahlen gehen aus derselben
+Rollenerkennung (`isBoss`/`isBossAlive`) hervor. Der Ergebnislog im Client liest
+diese Werte über `summarizeCombat`, statt sie ein zweites Mal zu zählen.
+Dasselbe gilt für `defendersTotal`: Die Zahl der eingefrorenen Verteidiger
+kommt aus der Einheitenliste des Logs und nicht aus dem Upload, den der Client
+oder der Server daneben hält. Aus `defendersTotal` minus den Überlebenden ist
+die Zahl der gefallenen Gegner ableitbar, ohne den Log zu laden.
 
 ## Regeln
 

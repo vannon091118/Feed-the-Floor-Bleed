@@ -19,7 +19,8 @@ Autoritative Instanz für Defender-State, Pool, Validierung und Progression-Tor.
 - Tests verwenden einen schlanken transaktionalen SQLite-D1-Adapter statt eines zweiten Zustandsmodells.
 
 - `001_raid_jobs.sql` legt `raid_snapshots`, `raid_jobs`, Unveränderlichkeits-Trigger, TTL- und Slot-Constraints an.
-- Der vollständige `RaidSnapshot` wird vor D1-Zugriff über Contract v3 validiert.
+- `002_contract_v4.sql` zieht den Bestand auf Contract v4 nach: Es entfernt Snapshots der abgelösten Simulationsversionen `0.0.1` und `0.0.2` samt den Jobs, die auf sie zeigen — genannt sind die Altsversionen ausdrücklich, damit ein erneuter Lauf keine Zeile einer späteren Codebasis trifft —, und legt die Unveränderlichkeitstrigger danach wieder an. Entfernt statt umgeschrieben, weil im `result_json` einer alten Nacht die Summary ohne `defendersTotal` steckt und der Kampflog dort nicht liegt — die Zahl der Verteidiger ist aus der Zeile nicht rekonstruierbar. Details im Domänen-Changelog.
+- Der vollständige `RaidSnapshot` wird vor D1-Zugriff über Contract v4 validiert.
 - Der Store persistiert genau `resources`, `monsterSlots`, `activeTeam` und `dungeon`. Upload-Taktiken werden nicht als Teil des Raid-Freeze gespeichert.
 - Ein einzelner D1-Batch beendet fällige Altjobs und schreibt den Sync-Checkpoint aus Snapshot plus `accepted`-Job. Bei jeder Batch-Abweichung bleibt der vorherige Zustand erhalten.
 - `idempotencyKey` ist zugleich Snapshot-/Job-ID. Gleiche Schlüssel+Daten liefern denselben Job; abweichende Daten oder ein bereits offener Job desselben Angreifers ergeben einen Fehler.

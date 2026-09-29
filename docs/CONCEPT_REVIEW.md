@@ -124,5 +124,5 @@ Die vollständige Detail- und Sprintquelle ist `docs/VISUAL_GRUNDSATZ.md`; die f
 
 ## 9. Abnahmegrenze
 
-- Implementiert: 64×64-Grid, Pathfinding, Contract-v3, D1-Jobstatus, Trail-Hash, deterministischer Combat- und Replay-Core sowie lokale Tag/Nacht/Raid-Schleife (T1 abgeschlossen). Nicht implementiert: echtes HTTP-Netzwerk/Auth, Queue, Remote-Matching, Ghost-Fallback, Moral-Verlustfolgen, Zucht-UI, Items und Dorf-Ökonomie (T2/T3).
+- Implementiert: 64×64-Grid, Pathfinding, Contract-v4, D1-Jobstatus, Trail-Hash, deterministischer Combat- und Replay-Core sowie lokale Tag/Nacht/Raid-Schleife (T1 abgeschlossen). Nicht implementiert: echtes HTTP-Netzwerk/Auth, Queue, Remote-Matching, Ghost-Fallback, Moral-Verlustfolgen, Zucht-UI, Items und Dorf-Ökonomie (T2/T3).
 - Alle `[K]`-Punkte sind keine Implementierungsfreigabe.

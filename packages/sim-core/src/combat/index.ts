@@ -1,3 +1,4 @@
+export * from './boss'
 export * from './fingerprint'
 export * from './fixture-job'
 export * from './replay'

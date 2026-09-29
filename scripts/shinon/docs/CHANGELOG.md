@@ -1,5 +1,13 @@
 # scripts/shinon/docs/CHANGELOG.md
 
+## 2026-09-29 — Der Typecheck läuft einmal, und ein Test hält es fest
+
+Derselbe Compilerlauf über dieselben Quelldateien lief viermal: als eigener Schritt von `pnpm run -s gate`, erneut in `check`, erneut in `plugins/dead-code-gate.mjs` und erneut im `pre-push`-Hook, der über `engine.mjs --full` die Plugin-Suite fährt. Der Remote-Job hatte dieselbe Doppelung. Schlimmer als die Wartezeit war der zweite Regelsatz: `noUnusedLocals` und `noUnusedParameters` standen nur auf der Kommandozeile des Plugins, `pnpm run -s typecheck` prüfte also weniger als die Engine.
+
+Beide Flags stehen jetzt in `tsconfig.json`; sie gelten damit für jeden Aufruf, auch in der IDE. `plugins/dead-code-gate.mjs` bleibt die einzige Stelle, die den Compiler startet, verliert aber seine Flags: `tsc --noEmit -p tsconfig.json` ist genau das, was `pnpm run -s typecheck` fährt. Aus `package.json` ist `pnpm run -s typecheck` aus `check` und `gate` entfernt, aus `.github/workflows/shinon.yml` der eigene Typecheck-Schritt des Jobs `gate`; der Windows-Job behält seinen, weil er `check` nicht fährt.
+
+`tests/typecheck-owner.test.mjs` ist neu und prüft den Vertrag statt der Konvention: `gate` und `gate:quick` erreichen den Compiler nur mittelbar, genau eine Plugin-Datei startet `tsc`, die Flags stehen im tsconfig, `dead-code-gate` bleibt in `policy.json` unter `always` — sonst fehlte der Typecheck an Commit und Push —, und der Remote-Job wiederholt ihn nicht.
+
 ## 2026-09-28 — Die Gate-Skripte sind typgeprüft, der Scanner liest Kommentare wieder richtig
 
 `allowJs`, `checkJs` und `@types/node` holen die `.mjs` ins `tsc`-Programm. Damit wurden 192 echte Fehler in `scripts/**` sichtbar — fast alle implizit typisierte Parameter —, die als JSDoc typisiert sind; die Skripte bleiben `.mjs`. Seitdem fällt auch das Programm der Gates unter dieselbe Prüfung, die sie selbst durchsetzen.

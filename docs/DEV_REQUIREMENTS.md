@@ -24,10 +24,10 @@ Bootstrap: `bash scripts/install-requirements.sh` prüft Node, pnpm, Git und Pyt
 
 | Befehl | Wirkung | Wann |
 |--------|--------|------|
-| `pnpm run -s typecheck` | `tsc --noEmit` über `packages/*/src`, `packages/*/test` und `scripts/**/*` einschließlich der `.mjs`; deren Typen sind JSDoc, `allowJs`/`checkJs` und `@types/node` sind gesetzt | vor jedem Commit |
+| `pnpm run -s typecheck` | `tsc --noEmit` über `packages/*/src`, `packages/*/test` und `scripts/**/*` einschließlich der `.mjs`; deren Typen sind JSDoc, `allowJs`/`checkJs` und `@types/node` sind gesetzt. Die Regeln `noUnusedLocals`/`noUnusedParameters` stehen seit dem 2026-09-29 in `tsconfig.json`, nicht auf einer Kommandozeile — die Engine fährt dasselbe Programm | im Einzelfall; im Gate und im Remote-Job läuft er genau einmal, über `check` |
 | `pnpm test -- --run` | Vitest, einmal ohne Watch | vor jedem Commit |
 | `pnpm run -s lint` | `biome check --error-on-warnings`, formatiert nicht; Warnungen blockieren | vor jedem Commit |
-| `pnpm run check` | Typecheck, `check-loc`, `check-hygiene`, Shinon `--full` | vor jedem Commit und vor dem Push |
+| `pnpm run check` | `check-loc`, `check-hygiene`, Shinon `--full` — und damit den einen Typecheck über `plugins/dead-code-gate.mjs` | vor jedem Commit und vor dem Push |
 | `pnpm run check:loc` | nur LOC-Caps | beim Splitten einer Datei |
 | `pnpm run check:hygiene` | nur Doku-Pflicht | beim Doku-Touch |
 | `pnpm run check:shinon` | nur Shinon Full-Run | wenn Gates fehlschlagen und du den Fehler isolieren willst |
@@ -42,6 +42,8 @@ Für „ist mein Stand sauber“ zählt nur die Kombination aus `typecheck`, `te
 
 Ausführungskette: `pre-commit` (Slice) → `commit-msg` (Prosa) → `post-commit` (Bump, Amend, Push) → `pre-push` (Full) → GitHub Actions `Shinon Gate` auf Branch/PR → Job `promote` schiebt den grünen PR-Kopf per Fast-Forward mit `PROMOTE_TOKEN` nach `main` → push-Lauf auf `main` wiederholt die Kette, bündelt den Worker mit `wrangler deploy --dry-run` und erzeugt `client-dist`; den Cloudflare-Deploy übernimmt parallel die installierte App → Main-Watchdog meldet einen roten Push-Lauf als offenen Issue.
 
+Der Typecheck hat in dieser Kette genau einen Owner: `plugins/dead-code-gate.mjs` startet den Compiler, die Pre-Commit-Kette, `pnpm run -s check` und der PR-Gate erreichen ihn alle über dieses Plugin. `scripts/shinon/tests/typecheck-owner.test.mjs` hält das fest, nachdem derselbe Lauf bis zum 2026-09-29 lokal viermal und im PR-Gate dreimal lief.
+
 Fail-closed gilt nur auf dem PR-Pfad. `promote` hängt per `needs: gate` daran, ein roter Gate verhindert die Landung. Der Push-Pfad kann das nicht: Branch-Protection prüft einen SHA, und die Pflichtprüfung muss vor dem Push existieren. Dort entsteht `client-dist` und `Commit integrity` laufen als Nachweis; ein roter Lauf meldet, er hält nichts auf. Bricht `commit-integrity` ab, werden alle späteren Schritte des Push-Laufs übersprungen — ein roter Lauf prüft dann weniger als ein grüner.
 
 | Plugin | Trigger | Prüft | Cap |
@@ -54,7 +56,7 @@ Fail-closed gilt nur auf dem PR-Pfad. `promote` hängt per `needs: gate` daran, 
 | `commit-integrity` | immer | Fernprüfung der echten Inhalts-Commits einer Range gegen `lib/commit-text.mjs`, Merge-Commits ausgenommen, fail-closed | — |
 | `schema-contract` | immer | Zod-Imports in Contracts, `sim_version`, Zod `3.23.8` | — |
 | `modularity-gate` | immer | Domain-Grenzen, Deep-Imports, Import-Zyklen | — |
-| `dead-code-gate` | immer | `noUnusedLocals`, `noUnusedParameters`, `debugger`, `if (false)` | — |
+| `dead-code-gate` | immer | der einzige Compilerlauf des Repos (`tsc -p tsconfig.json`, inklusive `noUnusedLocals`/`noUnusedParameters` aus dem tsconfig), dazu `debugger` und `if (false)` per AST | — |
 | `redundancy-gate` | immer | identische 6-Zeilen-Blöcke über zwei Package-Dateien | Fenster 6 |
 | `core-determinism` | `sim-core/`, `contracts/` | verbietet `Math.random`, `Date.now`, `new Date`, `Math.sqrt`, `Math.pow`, `Math.sin`, `Math.cos`, `Math.tan`, `parseFloat`, `crypto.getRandomValues`, `crypto.randomUUID`, `crypto.randomBytes` | — |
 | `false-positive` | `/combat/`, `/genome/`, `/matchmaking/`, `/sync/` | `while (true)` ohne Tick-Limit | — |

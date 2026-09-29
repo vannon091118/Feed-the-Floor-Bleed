@@ -29,6 +29,12 @@ importers:
 
   packages/client:
     dependencies:
+      '@floor/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@floor/sim-core':
+        specifier: workspace:*
+        version: link:../sim-core
       '@preact/signals':
         specifier: ^2.11.2
         version: 2.11.2(preact@10.29.8)
@@ -66,6 +72,9 @@ importers:
 
   packages/sim-core:
     dependencies:
+      '@floor/contracts':
+        specifier: workspace:*
+        version: link:../contracts
       zod:
         specifier: 3.23.8
         version: 3.23.8

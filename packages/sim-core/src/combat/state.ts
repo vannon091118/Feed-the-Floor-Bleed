@@ -1,4 +1,5 @@
 import { absInt, clampInt, mulFixed } from '../math'
+import { isBoss } from './boss'
 import type {
   CombatConfig,
   CombatStage,
@@ -62,7 +63,7 @@ export function evaluateStage(
   ticks: number,
   config: CombatConfig,
 ): CombatStage | 'running' {
-  const boss = states.find((unit) => unit.role === 'boss')
+  const boss = states.find(isBoss)
   if (!boss?.alive) return 'heroes-win'
   const heroesAlive = states.some(
     (unit) => unit.side === 'heroes' && unit.alive,

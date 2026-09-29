@@ -1,4 +1,13 @@
 export {
+  type BuildResult,
+  type BuildSite,
+  buildBuilding,
+  extendLand,
+  type LandResult,
+  type UpgradeResult,
+  upgradeBuilding,
+} from './commands'
+export {
   ALLOWED_TRANSITIONS,
   canAdvancePhase,
   PHASE_ORDER,
@@ -16,9 +25,13 @@ export {
 } from './phase-actions'
 export { type VillageOutlook, villageOutlook } from './settlement'
 export {
+  commitVillage,
   type DayNightState,
   dayNight,
   recordRaidJob,
   resetDayNight,
   setPhase,
+  type VillageBuilding,
+  type VillageHoldings,
+  villageEditable,
 } from './state'

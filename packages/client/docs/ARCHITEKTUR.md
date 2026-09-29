@@ -50,10 +50,15 @@ Simulation bleibt der einzige Owner der Spielentscheidungen.
   neben Phase und Tag den Bestand (`village`) und die Tagesabrechnung
   (`daySettlement`), gebucht im selben Übergang `result → tag`, der auch den Tag
   hochzählt; die Phasenguarde ist zugleich die Idempotenz der Buchung.
-  `settlement.ts` leitet daraus den Dorfblick als reine Funktion ab: Dorfname,
-  Tag, Phasentext und das Gildenroster. Die Lage eines platzierten Gebäudes
-  gehört der Platzierungsgeometrie (`plot.ts`) und kommt mit deren Verdrahtung
-  dazu.
+  `commands.ts` ist die Kommandoschicht: Bauen, Ausbauen und Landerweiterung
+  laufen ausschließlich am Tag, prüfen Deckung, Arbeiterkapazität und
+  Platzierung und schreiben erst danach über `commitVillage` — den zweiten
+  Schreibpfad neben der Abrechnung. Beide schließen sich über die Phase aus:
+  `commitVillage` nimmt nur am Tag an, die Abrechnung nur aus dem Ergebnis.
+  Jedes Gebäude trägt seinen Grundriss, weil die Platzierungsgeometrie
+  (`plot.ts`) die belegten Zellen braucht; sie rechnet in Rasterzellen, nicht in
+  Weltpixeln. `settlement.ts` leitet daraus den Dorfblick als reine Funktion ab:
+  Dorfname, Tag, Phasentext und das Gildenroster.
 - `ui/` — Shell und Bühne. Die Shell ist Layout und liest den Phase-Store
   allein, um je Phase eine Ebene der Tagesstimmung auf den Überzug zu setzen;
   `daylight-fade.ts` fährt deren Blende ein und hält den Renderlauf aus der
@@ -78,12 +83,14 @@ Simulation bleibt der einzige Owner der Spielentscheidungen.
   aufklappt. `view.ts` hält den Blick auf die Bühne (`village | dungeon`) und
   ist bewusst kein Phasenzustand. `styles/` ist in Raster, Grundlage, Shell, Dorf, Panels,
   Fenster, Editor und Raid getrennt, eingebunden über `styles/index.css`.
-- `raid/` — bestehender Contract-v3-Upload und lokaler Fixture-Auftrag; dazu
+- `raid/` — bestehender Contract-v4-Upload und lokaler Fixture-Auftrag; dazu
   die Raid-Timeline: `combat-source.ts` besitzt den Lauf und legt ihn über
   `setPlaybackLog` in den Store, `playback.ts` hält Log, Tick und Pause,
   `timeline-model.ts` die reinen Modelle, `raid-timeline.tsx`, `phase-nav.tsx`
   und `phases.tsx` die Darstellung. Die Timeline liest den Store und rechnet
-  nichts selbst; den Takt treibt der Runtime-Ticker in `ui/world-host.tsx`
+  nichts selbst; die Überlebendenzahlen holt `phases.tsx` über `summarizeCombat`
+  aus `@floor/sim-core`, damit sie dieselbe Quelle haben wie die Auftrags-Summary
+  und die Dorf-Bilanz. Den Takt treibt der Runtime-Ticker in `ui/world-host.tsx`
   über `stepPlayback`, damit der Replay im Dorf wie im Dungeon läuft.
   `showcase/scene.ts` liest Log und Tick im Raid-Modus nur noch aus dem Store.
   Das Phasenfenster montiert sie in der Raid-Phase; die Steuerung
@@ -132,10 +139,11 @@ und `ui/view.ts` hält diese Wahl ohne Spielregel. Im Dorf zeigt
 Verteidigerplätze und das Ergebnis des letzten Auftrags. Die Wirtschaft hängt
 dagegen am Bestand in `village/state.ts`: die Topbar zeigt den gehaltenen
 Bestand, und die Rückkehr schreibt den Werkstattertrag gut, genau einmal je
-Expedition. Gold aus besiegten Gegnern gibt es noch nicht — die Zahl der
-Gegner steht in keinem Contract-Feld, die Naht ist an `DaySettlement`
-dokumentiert. Bau-, Upgrade- und Landbefehle, die den Bestand füllen, sind ein
-späterer Slice.
+Expedition. Bauen, Ausbauen und Landkauf schreiben am Tag über dieselbe
+Oberfläche des Stores und kosten Gold und Material; die Dorfszene zeigt
+weiterhin ihre Präsentationsorte und nicht den Store, der Rückkehr-Toast fehlt.
+Gold aus besiegten Gegnern gibt es noch nicht — die Zahl der Gegner steht in
+keinem Contract-Feld, die Naht ist an `DaySettlement` dokumentiert.
 
 ## Grenzen
 
@@ -151,7 +159,11 @@ als Preact-DOM über der Szene.
 
 - `dungeon-editor/state.ts` bleibt der einzige Grid-Owner.
 - `village/state.ts` bleibt der einzige Phase- und Dorfwirtschafts-Owner; keine
-  Komponente hält eine zweite Phase- oder Bestandswahrheit. `village/balance.ts`
+  Komponente hält eine zweite Phase- oder Bestandswahrheit. Gebaut und ausgegeben
+  wird nur am Tag: `villageEditable` ist die eine Phasenfrage, `commitVillage`
+  der eine Schreibpfad dafür, und beide lehnen außerhalb des Tages ab, statt zu
+  werfen. Preise kommen aus `economy.ts`, Zellen aus `plot.ts` — kein Kommando
+  rechnet mit einer eigenen Zahl. `village/balance.ts`
   ist die einzige Zahlenquelle, `village/economy.ts` rechnet ohne Zustand, und
   der Renderer leiht sich aus `village` höchstens eine Typenunion. Die
   Fixture-Daten tragen keine Dorfwirtschaftsgröße: Startbestand, Startarbeiter-

@@ -14,15 +14,22 @@ import { FAILED, JOB } from './raid-fixtures'
 /**
  * Die Tagesabrechnung am einzigen Schreibpfad des Dorf-Owners.
  *
- * Der Bestand wird hier direkt eingestellt: ein Baukommando gibt es in diesem
- * Slice noch nicht, die Oberfläche kann den Dorfbestand also noch nicht füllen.
- * Geprüft wird deshalb die Buchung selbst — einmal je Rückkehr, nie öfter.
+ * Der Bestand wird hier direkt eingestellt statt über ein Baukommando: Geprüft
+ * wird die Buchung selbst — einmal je Rückkehr, nie öfter —, und die Stufe eines
+ * Gebäudes ist für sie der einzige Eingang. Grundrisse stehen deshalb als
+ * Auffüllung dabei, ohne dass hier eine Lage geprüft würde.
  */
 
 function mitGebaeuden(buildings: PlacedBuilding[]): void {
   dayNight.value = {
     ...dayNight.value,
-    village: { ...dayNight.value.village, buildings },
+    village: {
+      ...dayNight.value.village,
+      buildings: buildings.map((building, stelle) => ({
+        ...building,
+        footprint: { x: stelle * 3, y: 0, width: 2, height: 3 },
+      })),
+    },
   }
 }
 

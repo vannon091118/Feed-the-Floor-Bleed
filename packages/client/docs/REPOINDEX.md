@@ -102,23 +102,24 @@
 | `src/dungeon-editor/model.ts` | Pure Editor-Regeln (Pinsel, 4x4-Tiles, Marker) |
 | `src/dungeon-editor/state.ts` | Einziger Owner von Grid, Pinsel und Route |
 | `src/village/phase.ts` | Phase-Union in Schleifenreihenfolge, erlaubte Übergänge, reine Entscheidungsfunktion |
-| `src/village/state.ts` | DayNightState-Signal (`phase`, `day`, `job`, `village`, `daySettlement`), einziger Schreibpfad `setPhase` mit der Tagesabrechnung im Übergang `result → tag` |
+| `src/village/state.ts` | DayNightState-Signal (`phase`, `day`, `job`, `village`, `daySettlement`), Tagesabrechnung im Übergang `result → tag` in `setPhase`, dazu `commitVillage` als Schreibpfad der Baukommandos; ein Gebäude trägt seinen Grundriss |
+| `src/village/commands.ts` | Kommandoschicht des Dorfes: `buildBuilding`, `upgradeBuilding`, `extendLand` — nur am Tag, mit Deckung, Arbeiterkapazität und Platzierungsprüfung, jede Ablehnung ein Ergebnis mit Grund |
 | `src/village/balance.ts` | Einzige Quelle aller Dorf-Stellschrauben: tief eingefrorene und tief unveränderliche Config mit benannten Gruppen, vom Startbestand über Startarbeiterbasis und Attraktivität bis zu Etagen- und Platzpreis |
 | `src/village/economy.ts` | Reine Dorfregeln: Bau-, Ausbau-, Ertrags-, Kapazitäts-, Land- und Slotkosten — jede Funktion nimmt ihre Balance ausdrücklich entgegen, prüft Stufe, Etage, Platz und Landausgang auf Ganzzahl und wirft nie |
 | `src/village/phase-actions.ts` | Schleifen-Kommandos: Nacht starten, Raid auslösen (lädt den Log), Ergebnis abschließen (räumt ihn auf) |
 | `src/village/settlement.ts` | Dorfblick als reine Ableitung aus Phase-Owner und Fixture, ohne Wirtschaft |
-| `src/village/plot.ts` | Platzierungsgeometrie des Dorfes: Grundriss, Rastergrenze, Überlappung, Kantennachbarn, horizontale Landerweiterung — reine Funktionen, keine Wirtschaftszahlen |
-| `src/village/index.ts` | Barrel der Schleifendomäne (Phase, Aktionen, Blick, Zustand); `plot` ist bewusst nicht enthalten, solange es keinen Abnehmer hat |
-| `src/raid/fixture-raid.ts` | Contract-v3-Upload und lokaler Fixture-Auftrag |
+| `src/village/plot.ts` | Platzierungsgeometrie des Dorfes: Grundriss, Ganzzelligkeit, Rastergrenze, Überlappung, Kantennachbarn, horizontale Landerweiterung — reine Funktionen, keine Wirtschaftszahlen; Abnehmer ist die Kommandoschicht |
+| `src/village/index.ts` | Barrel der Schleifendomäne (Phase, Aktionen, Kommandos, Blick, Zustand); `plot` ist bewusst nicht enthalten, weil die Oberfläche es nicht aufruft |
+| `src/raid/fixture-raid.ts` | Contract-v4-Upload und lokaler Fixture-Auftrag |
 | `src/raid/combat-source.ts` | Einziger Besitzer des Raid-Logs: Core-Aufruf, Lade-/Entlade-Pfad, Plan-Synchronisierung |
 | `src/raid/raid-panel.tsx` | Probelauf-Panel, reicht den terminalen Auftrag an die Schleife weiter |
 | `src/raid/panel.tsx` | Reine Ergebnis-Darstellung eines TerminalRaidJob |
 | `src/raid/playback.ts` | Playback-Store: Log, Tick, Pause, abgeleitete Routenposition |
-| `src/raid/timeline-model.ts` | Reine Abschnitts-, Phasen- und Ergebnismodelle des Logs |
+| `src/raid/timeline-model.ts` | Reine Abschnitts- und Phasenmodelle des Logs; die Überlebendenzahlen kommen aus `@floor/sim-core` |
 | `src/raid/timeline.tsx` | Re-Export von Timeline und Steuerung für die Shell |
 | `src/raid/raid-timeline.tsx` | `TimelineTransport` (Scrubber, Play/Pause) und die drei Phasenreihen |
 | `src/raid/phase-nav.tsx` | Drei Phasen-Knöpfe, setzen den Scrubber auf den Phasenbeginn |
-| `src/raid/phases.tsx` | Routen-, Kampf- und Ergebnisdarstellung der Timeline |
+| `src/raid/phases.tsx` | Routen-, Kampf- und Ergebnisdarstellung der Timeline; die Ergebniszahlen liest sie über `summarizeCombat` |
 | `test/dungeon-editor.test.ts` | State-/Model-Tests der Editor-Logik |
 | `test/village-phase.test.ts` | Phase-Übergänge, Skip-Verbot und Store-Verhalten |
 | `test/day-night-loop.test.ts` | End-to-End-Loop mit Fake-Timern unter 5 s |
@@ -131,6 +132,8 @@
 | `test/village-economy.test.ts` | Regelinvarianten: Wachstum und Ganzzahligkeit jeder Kostenfunktion, die Grenzfälle (Maximalstufe, Etage, Platznummer, Land-Schritt), Werkstattkapazität, Ertragssumme, bezahlbarer Startbestand |
 | `test/village-balance-guards.test.ts` | Eingabewächter: NaN, Unendlichkeit, gebrochene und negative Werte als Stufe, Etage, Platz und Landausgang mit dem erwarteten Ablehnungsgrund, die Baupreis-Kopie und drei absolute Werte aus der Freigabetabelle |
 | `test/village-day-close.test.ts` | Tagesabrechnung am Store: genau einmal je Rückkehr, auch nach Niederlage, kein Doppelbuch auf dem Retry-Weg |
+| `test/village-commands.test.ts` | Die drei Kommandos: Preisabbuchung, Phasengrenze, Gangbarkeit, Kapazität, Ausbaustufen, Landschritt — jeweils mit dem Bestand vor und nach dem Befehl |
+| `test/village-command-guards.test.ts` | Bestandsinvarianten am Store: negative, gebrochene und verkleinerte Bestände werden abgewiesen, abgelehnte Befehle hinterlassen nichts, der gebaute Ertrag wird gutgeschrieben |
 | `test/stage-view.test.ts` | Blickwechsel verändert die Spielphase nicht |
 | `test/world-presentation.test.ts` | Anklickbare Dorforte, deterministische Bewohnerbewegung, Kamera-Clamp beider Welten |
 | `test/window-routing.test.ts` | Fenster-ID → Inhalt, Phasenaktion über eine stabile Fenster-ID |
@@ -153,9 +156,10 @@ Weltansicht sind fokussierbar, ihre Schrittlogik liegt in `window/keys.ts` und
 `render/camera-keys.ts`; die Richtung liefert beiden `input/arrows.ts`.
 
 Die Wirtschaftskette läuft in eine Richtung: `village/balance.ts` (Zahlen) →
-`village/economy.ts` (Regeln, Config als Parameter) → `village/state.ts`
-(Bestand und Buchung) → Topbar und der spätere Rückkehr-Toast. Von der
-freigegebenen Balance ist bisher nur der Tagesertrag verdrahtet; Bau-, Ausbau-,
-Land-, Etagen- und Platzpreis haben noch keinen Aufrufer. Ein Baukommando,
-das den Bestand füllt, existiert noch nicht; `plot.ts` hat weiterhin keinen
-Abnehmer, und `raid/fixture-raid.ts` sendet den Startbestand der Balance.
+`village/economy.ts` (Regeln, Config als Parameter) → `village/commands.ts`
+(Entscheidung und Schreiben) → `village/state.ts` (Bestand und Buchung) →
+Topbar und der spätere Rückkehr-Toast. Verdrahtet sind jetzt der Tagesertrag,
+das Bauen, das Ausbauen und der Landkauf; Etagen- und Platzpreis haben noch
+keinen Aufrufer. Die Dorfszene auf der Bühne zeigt weiterhin die Orte aus
+`render/village-layout.ts` und nicht den Store, und `raid/fixture-raid.ts`
+sendet inzwischen den Bestand des Dorfes statt des Startbestands.
