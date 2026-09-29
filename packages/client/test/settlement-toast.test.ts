@@ -29,6 +29,11 @@ import { JOB } from './raid-fixtures'
  * Der Store wird dabei ausdrücklich mitgeprüft: `SettlementToast` darf ihn
  * lesen und nicht schreiben. Weil jeder Schreibzugriff ein neues Objekt setzt,
  * genügt dafür die Referenz.
+ *
+ * Die Ansageregion der Meldung bleibt dauerhaft im Baum, auch wenn nichts zu
+ * melden ist; sonst entstünde sie erst mit ihrem Text und die Sprachausgabe
+ * könnte den Text verpassen. Auch das wird geprüft, weil es am Bild allein
+ * nicht zu sehen ist.
  */
 
 /** Ein Dorf mit einer Werkstatt; der Grundriss ist hier nur Auffüllung. */
@@ -64,7 +69,8 @@ describe('Rückkehrbilanz', () => {
   it('zeigt vor der ersten Rückkehr nichts', () => {
     resetDayNight()
     expect(settlementToastView(dayNight.value)).toBeNull()
-    expect(SettlementToast()).toBeNull()
+    const region = SettlementToast() as VNode<{ children: unknown }>
+    expect(region.props.children).toBeNull()
   })
 
   it('zeigt im Ergebnis noch nichts und erst danach die Bilanz', () => {
@@ -103,6 +109,10 @@ describe('Rückkehrbilanz', () => {
 
     expect(startNight()).toBe(true)
     expect(settlementToastView(dayNight.value)).toBeNull()
+    // Die Region bleibt stehen, nur ihr Inhalt verschwindet.
+    expect(
+      (SettlementToast() as VNode<{ children: unknown }>).props.children,
+    ).toBeNull()
 
     expect(triggerRaid()).toBe(true)
     expect(completeRaid(JOB)).toBe(true)
@@ -137,25 +147,30 @@ describe('Rückkehrbilanz', () => {
     expect(markup).not.toBeNull()
   })
 
-  it('malt eine Meldung ohne Klickfang und gibt sie der Sprachausgabe', () => {
+  it('legt die Meldung in eine dauerhafte Region statt sie mit ihr zu zeigen', () => {
     resetDayNight()
     mitWerkstatt(1)
     bisZurRueckkehr()
-    const markup = SettlementToast() as VNode<{
-      class: string
+    const region = SettlementToast() as VNode<{
       role: string
+      children: VNode<{ class: string }>
     }>
-    expect(markup.type).toBe('div')
-    expect(markup.props.class).toBe('settlement-toast')
-    expect(markup.props.role).toBe('status')
+    expect(region.type).toBe('div')
+    expect(region.props.role).toBe('status')
+    const meldung = region.props.children as VNode<{ class: string }>
+    expect(meldung.type).toBe('div')
+    expect(meldung.props.class).toBe('settlement-toast')
   })
 
   it('hält die Meldung aus dem Stylesheet über den Klassennamen', () => {
     expect(shellCss).toContain('.settlement-toast {')
     expect(shellCss).toContain('.settlement-toast__title {')
     expect(shellCss).toContain('.settlement-toast__detail {')
-    // Kein Bedienelement: Klicks gehen durch sie hindurch.
-    expect(shellCss.split('.settlement-toast {')[1]).toContain(
+    // Kein Bedienelement: Klicks gehen durch sie hindurch. Gelesen wird nur
+    // der Regelblock bis zur schließenden Klammer — der Rest der Datei trägt
+    // dieselbe Zeile mehrfach und verdeckte ein Entfernen hier sonst.
+    const [, nachDerRegel = ''] = shellCss.split('.settlement-toast {')
+    expect(nachDerRegel.slice(0, nachDerRegel.indexOf('}'))).toContain(
       'pointer-events: none',
     )
   })

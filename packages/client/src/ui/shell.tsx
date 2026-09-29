@@ -27,9 +27,9 @@ const DAYLIGHT_LAYERS = daylightLayers()
  * trägt mit der Deckkraft den weichen Wechsel. Das ist Darstellung, keine
  * Spielentscheidung: keine
  * Phase-Aktion, kein Dorfzustand, und der Store bleibt in `village/state.ts` der
- * einzige Owner. Topbar, Bühne und Fensterschicht lesen ihre Stores selbst. Die
- * zwei Rückrufe hier sind Verdrahtung — ein Klick auf eine Kreatur öffnet ein
- * Fenster, ein Zug meldet sich im Werkzeugstatus.
+ * einzige Owner. Topbar, Bühne, Fensterschicht und die Rückkehrbilanz lesen
+ * ihre Stores selbst. Die zwei Rückrufe hier sind Verdrahtung — ein Klick auf
+ * eine Kreatur öffnet ein Fenster, ein Zug meldet sich im Werkzeugstatus.
  */
 export function Shell() {
   const { phase } = dayNight.value
@@ -64,9 +64,11 @@ export function Shell() {
       <section class="stage">
         <Stage onActorClick={handleActorClick} onDrop={handleDrop} />
       </section>
-      {/* Die Rückkehrbilanz liegt über der Bühne und unter keinem Fenster, das
-          sie verdeckte; sie liest ihren Zustand selbst und ist kein
-          Bedienelement. Vor dem Überzug, damit dieser das letzte Kind bleibt. */}
+      {/* Die Rückkehrbilanz liegt über der Bühne und über dem Tagesüberzug;
+          das macht ihr `z-index 6` aus `shell.css` gegen Überzug (4) und Topbar
+          (5), nicht die Stelle im Baum. Sie steht trotzdem hier, vor dem
+          Überzug, damit der das letzte Kind bleibt. Sie liest die Buchung
+          selbst aus dem Phase-Owner und ist kein Bedienelement. */}
       <SettlementToast />
       {/* Letztes Kind: der Überzug belegt dieselbe Ebene (z-index 4) wie die
           Fensterschicht und soll deren Kontextfenster verdecken, also malt ihn

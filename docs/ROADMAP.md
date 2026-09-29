@@ -8,9 +8,15 @@ Diese Roadmap ist die einzige aktive Reihenfolge für Produkt- und Technikarbeit
 
 T1 (Spielbarer Kern und reproduzierbarer Raid-Loop) ist abgeschlossen. Die Prioritätsregel weiter unten verlangt für genau diesen Moment die Neupriorisierung: **Das bisherige T2 (Alltagstiefe und Visual-Epic) ist jetzt T1, das bisherige T3 (Autorität und asynchroner Multiplayer) ist jetzt T2.** Die Block-IDs bleiben bei ihren historischen Nummern (`T2.2` bis `T2.6`, `T3.1` bis `T3.4`), weil die Changelogs und die archivierten Statusupdates unter genau diesen Nummern zitieren; die Abschnittsüberschriften tragen den neuen Rang und nennen die alte Bezeichnung.
 
-**Der direkte Followup ist T1 mit dem Block T2.2.** Dort sind zwei Punkte offen und keiner davon ist eine Zahl: die Verdrahtung der Platzierungsgeometrie an die Dorfszene und der Rückkehr-Toast über `daySettlement`.
+**Der direkte Followup sind die Etagen (T2.3).** T2.2 ist seit dem 2026-09-29 vollständig — die Platzierungsgeometrie ist an die Dorfszene verdrahtet, und der Rückkehr-Toast über `daySettlement` steht in `ui/settlement-toast.tsx`; beide Punkte standen hier bis zum 2026-09-29 noch als offen.
 
 **Das Begegnungsmodell ist die eigentliche Design-Bremse.** Zonen, Gruppen, sequenzielle Begegnungen und dynamische Patrouillen sind entschieden und in `docs/CONCEPT_REVIEW.md` Abschnitt 0b festgehalten, aber noch nicht gebaut; sie ändern, was ein Raid ist — und damit auch, wie viele Verteidiger überhaupt gleichzeitig kämpfen. Das Zielband der Kampfbalance hängt daran und wird deshalb erst danach verhandelt.
+
+## Statusupdate — 2026-09-29 (Die Rückkehrbilanz folgt der Region, die schon steht)
+
+**Vier Nachzügler aus dem Lesepass des Toast-Slice sind geschlossen.** Die Meldung steckt in einer dauerhaft stehenden Ansageregion (`role="status"` um den Text), so wie `ui/phase-badge.tsx` und `ui/village-host.tsx` ihre Regionen halten — vorher entstand die Region erst mit ihrem Text und die Sprachausgabe konnte ihn verpassen. Der Kommentar in `ui/shell.tsx` nennt als tragenden Grund den `z-index 6` aus `shell.css` gegen Überzug (4) und Topbar (5) statt der DOM-Reihenfolge, die am Bild nichts entscheidet, und zählt die Rückkehrbilanz als vierten Store-Leser mit. Der Style-Test schneidet den Regelblock bis zur schließenden Klammer; vorher las er den ganzen Dateirest mit und blieb grün, auch als `.settlement-toast` sein `pointer-events: none` verlor. Die Aussage unter der Neunummerierung, im Block T2.2 seien noch zwei Punkte offen, ist korrigiert.
+
+**Beleg.** Gegenproben an der echten Datei: die entfernte Stylezeile macht die Zusicherung rot, und der alte bedingte Aufbau lässt zwei Region-Tests fallen. Im Browser trägt die Seite vor der Rückkehr genau eine leere `role="status"`-Region und danach dieselbe mit der Meldung darin; Rechteck, `z-index` und Klickdurchlässigkeit sind unverändert. **Gates:** typecheck 0, 376 Tests in 55 Dateien, Lint 0 (274 Dateien), LOC-Caps ok (249 Quellen), Hygiene ok, Shinon PASS, Client-Build und Worker-Dry-Run 138,83 KiB.
 
 ## Statusupdate — 2026-09-29 (Die Rückkehrbilanz steht als Toast)
 

@@ -84,7 +84,7 @@
 | `src/ui/actor-label.ts` | Kennung → sprechender Name für Fenster und Werkzeugstatus |
 | `src/ui/building-label.ts` | `BuildingKind` → sprechender Ortsname, einzige Label-Quelle |
 | `src/ui/drop-status.tsx` | Rückmeldung über den letzten Zug im Editor |
-| `src/ui/settlement-toast.tsx` | Rückkehrbilanz als reine Ableitung aus dem Phase-Owner; sichtbar nur am Tag, kein Bedienelement und kein eigener Sichtbarkeitszustand |
+| `src/ui/settlement-toast.tsx` | Rückkehrbilanz als reine Ableitung aus dem Phase-Owner; sichtbar nur am Tag, kein Bedienelement und kein eigener Sichtbarkeitszustand; die Ansageregion steht dauerhaft und ist ohne Meldung leer |
 | `src/ui/phase-windows.tsx` | Fensterinhalt der Phase und des Editors hinter festen IDs |
 | `src/ui/window-content.tsx` | Fenster-ID → Inhalt, eine Quelle für die Fensterschicht |
 | `src/ui/world-host.tsx` | Stabiler DOM-Host und Lebenszyklus der Pixi-Runtime, zugleich fokussierbares Tastaturziel der Kamera |

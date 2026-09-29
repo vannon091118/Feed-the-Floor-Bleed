@@ -47,16 +47,25 @@ export function settlementToastView(
 /**
  * Die Bilanz als Meldung über der Bühne. Sie liest ausschließlich den
  * Phase-Owner und ist kein Bedienelement: kein Klick, kein Fokus, kein
- * eigener Zustand. `role="status"` gibt sie der Sprachausgabe, ohne den Fokus
- * zu stehlen.
+ * eigener Zustand.
+ *
+ * Die Region steht dauerhaft, und nur ihr Inhalt kommt und geht — dasselbe
+ * Muster wie `PhaseBadge` und `VillageHost`. Eine Live-Region, die erst mit
+ * ihrem Text in den Baum kommt, wird nicht zuverlässig vorgelesen; sie muss
+ * beim Eintreffen des Textes schon da sein. Die Region trägt keinen sichtbaren
+ * Zustand: leer ist sie ein Element ohne Inhalt und ohne Fläche, und die
+ * Meldung selbst bleibt weiterhin die reine Ableitung aus dem Phase-Owner.
  */
 export function SettlementToast() {
   const view = settlementToastView(dayNight.value)
-  if (view === null) return null
   return (
-    <div class="settlement-toast" role="status">
-      <strong class="settlement-toast__title">{view.title}</strong>
-      <span class="settlement-toast__detail tnum">{view.detail}</span>
+    <div role="status">
+      {view === null ? null : (
+        <div class="settlement-toast">
+          <strong class="settlement-toast__title">{view.title}</strong>
+          <span class="settlement-toast__detail tnum">{view.detail}</span>
+        </div>
+      )}
     </div>
   )
 }

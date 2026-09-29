@@ -182,6 +182,9 @@ als Preact-DOM über der Szene.
 - Die Rückkehrbilanz ist eine Ableitung: `ui/settlement-toast.tsx` liest den
   Phase-Owner, führt keinen Sichtbarkeitszustand und ist kein Bedienelement —
   sie zeigt die Buchung nur am Tag und verschwindet mit der nächsten Nacht.
+  Ihre Ansageregion (`role="status"`) steht dauerhaft im Baum und ist leer,
+  wenn nichts zu melden ist; sonst käme der Text in eine Region, die es beim
+  Eintreffen noch nicht gibt.
 - Der Observer hält keine Grid-Kopie; Terrain wird nur bei geänderter
   Grid-Referenz neu gelesen, sonst meldet er `terrain: null`.
 - Kein Clientpfad entscheidet den Raid-Ausgang.
