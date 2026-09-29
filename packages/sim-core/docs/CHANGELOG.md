@@ -1,5 +1,24 @@
 # packages/sim-core/docs/CHANGELOG.md
 
+## 2026-09-29 — Der Boss war die Wand, und der erste gewonnene Lauf
+
+**Scope:** geändert `src/combat/boss.ts` (`BOSS_RULES` 200000/16000/5000/700 → 132000/12000/1000/500) und `src/combat/combat-pin.test.ts` (beide Pins, plus der Vermerk zur fünften Verschiebung). Keine neue Mechanik, kein Contract.
+
+**Der Spielstand davor hatte keinen Siegzustand.** Gemessen mit 32 Seeds je Verteidigerplatz: das Dreierteam gewann in **0 von 32 Läufen** — und zwar auch dann, wenn gar kein Platzmonster aufgestellt war, also allein gegen den Boss. Das Dreierteam hatte zusammen 144000 Leben gegen 200000 Boss-Gesundheit, und die Rüstung 5000 drückte jeden Heldenangriff von 12000 auf rund 4070. Der Kampf lief dabei bis zum Ende: 208 von 1800 Ticks, im Nahkampf auf Trail-Index 83/84. Es war keine Wegführungs- und keine Zeitfrage, es war eine Größenordnung.
+
+**Die Heldenbasis war unschuldig, und das kostete einen Slice.** Eine Senkung von `UNIT_BASE.hero` und `UNIT_BASE.monster` auf 48/10/2/420 und 32/7/2/260 änderte an der Siegquote **nichts** (0 von 32 vor wie nachher, auch nicht bei doppelter Heldenstärke mit 96000/18000) und verschob trotzdem beide Golden-Pins. Sie wurde zurückgenommen: eine Zahl, die keinen Lauf entscheidet, ist Arbeit ohne Spielwirkung.
+
+**Was jetzt gilt, ist gemessen.** 48 Seeds je Verteidigerplatz:
+
+| Plätze | 0 | 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|---|
+| 3 Helden | 100 % | 100 % | 100 % | **88 %** | 0 % | 0 % |
+| 4 Helden | 100 % | 100 % | 100 % | 100 % | 100 % | 100 % |
+
+Der Referenzkampf aus `docs/CONCEPT_REVIEW.md` Abschnitt 0b — drei Helden gegen Boss plus drei Platzmonster — liegt damit bei 88 % und im Band 80–95 %. Die verbleibende Wand zwischen drei und vier Plätzen ist der Hebel der Teambeschaffung: eine voll bestückte Etage braucht vier oder fünf Helden, und Abschnitt 2 gibt genau diese Grenze her.
+
+**Der erste Pin ist zum ersten Mal ein gewonnener Lauf.** Auf dem offenen Fixture-Grid mit zwei Plätzen kippt `monsters-win` auf `heroes-win`, 216 → 196 Ticks und 413 → 396 Ereignisse. Der zweite Lauf bleibt `monsters-win` und verliert genau ein Ereignis. Fünfte Verschiebung: `sim_version 0.0.8→0.0.9`; `CONTRACT_VERSION` bleibt 9 und es gibt keine Migration, weil sich die Form des Wire-Formats nicht ändert, nur eine Zahl der Simulation.
+
 ## 2026-09-29 — Die Nachwirkung bekommt ihren ersten Leser, und sie steht im Spec
 
 **Scope:** neu `src/combat/conditions.ts` und `src/combat/conditions.test.ts`; geändert `src/combat/rules.ts` (`heroSpec` nimmt eine Bedingung, `BuildUnitsInput.team?`), `src/combat/resolve.ts` (`ResolveCombatInput.team?`), `src/combat/resolve-snapshot.ts` (`SnapshotRaidInput.team?`), `src/combat/fixture-job.ts` (`team: parsed.data.activeTeam`) und `src/combat/index.ts` (Barrel). Keine neue Kampfzahl, kein Contract, kein Hash.
@@ -175,25 +194,3 @@ Die Domäne `genome` ist damit gebaut und nicht mehr offen: sie besitzt Zucht, S
 **Scope:** geändert `src/combat/summary.ts` (neues Feld `defendersTotal`). Kein Hash, keine Regel und kein Verhalten geändert — der Golden-Pin bleibt wortgleich grün und belegt das.
 
 `summarizeCombat` füllt jetzt `defendersTotal` aus den Einheiten des Logs: alle Einheiten der Monster-Seite, den Boss eingeschlossen. Damit ist die Zahl der gefallenen Gegner aus einem abgelegten Ergebnis berechenbar, ohne den Kampflog zu laden — `monstersAlive` und `bossAlive` nennen nur die Überlebenden, und `ResultPayloadSchema` trägt den Log nicht. Die Zahl kommt aus derselben Einheitenliste wie die Überlebendenzahlen, es gibt also keine zweite Quelle. Der Anlass des Felds steht im Contract, gerechnet wird damit noch nichts. `combat.test.ts` prüft beide Zusagen gegen die Todesereignisse des Logs statt sie zu glauben: den Pin auf `defendersTotal` und die Identität `defendersTotal - monstersAlive - (bossAlive ? 1 : 0)` gleich der Zahl der gefallenen Verteidiger.
-
-## 2026-09-28 — Golden-Pin des Kampf-Hashes und ein Messwerkzeug für die Siegquoten
-
-**Scope:** neu `src/combat/combat-pin.test.ts` und `src/combat/balance-report.test.ts`. Kein Produktivcode, keine Regel und kein Hash geändert.
-
-**Die Lücke war der Pin, nicht die Abdeckung.** Die Engine-Tests verglichen bisher ausschließlich zwei Läufe miteinander (gleicher Seed, Seed-Sensitivität, Trail, Replay). Eine beiläufige Änderung an Einheiten, Regelwerten oder Event-Reihenfolge wäre damit grün geblieben, solange sie nur deterministisch ist — und hätte den Hash jedes gespeicherten Replays verschoben, ohne dass eine Version steigt. `combat-pin.test.ts` pinnt zwei Läufe absolut, beide Seed 4242, Teamgröße 3: offenes Fixture-Grid mit zwei belegten Plätzen (`94ba1954`, `monsters-win`, 225 Ticks, 417 Ereignisse, 127 Trail-Zellen) und die Umweg-Route mit voller Belegung (`f85b31c0`, `monsters-win`, 401 Ticks, 1010 Ereignisse, 253 Trail-Zellen). Der rote Erstlauf vor dem Eintragen der Werte belegt, dass der Pin greift. Ein roter Lauf ist dann eine Entscheidung — gewollt? Version anheben? Doku nachziehen? —, und die Zahlen werden im selben Commit angepasst.
-
-**Ein Messwerkzeug, kein Sollwert.** `balance-report.test.ts` fährt die Stufenverteilung über Seeds und Verteidigerplätze und druckt sie als Tabelle. Es pinnt bewusst kein gewünschtes Ergebnis: ein Test, der den Ist-Stand als Ziel festschreibt, wäre die Fehlerquelle mit grüner Anzeige. Standardbreite 32 Seeds je Zeile, `BALANCE_SEEDS=500` für eine belastbare Messung. Geprüft wird nur, was gelten muss: jede Stufe ist bekannt, und die Rohzahlen summieren sich je Zeile auf die Seed-Zahl — nicht die gerundeten Prozente, die sich auf 99 bis 101 summieren.
-
-**Befund, 500 Seeds je Belegung bei Teamgröße 3 auf dem offenen Fixture-Grid:** Siegquote 90 % bei null belegten Plätzen, 65 % bei einem, 81 % bei zwei und 0 % ab drei; ein Zeitlimit tritt nicht auf, die mittlere Kampfdauer liegt bei 217 bis 228 Ticks. Die Roadmap-Behauptung „0 % ab drei belegten Verteidigerplätzen" ist damit im Repo reproduziert. Zwei Auffälligkeiten, die keine Regeländerung sind: Die Kurve ist zwischen einem und zwei Plätzen nicht monoton, weil der zweite Platz an Routenposition 900 fast am Boss sitzt und die Zielwahl sich mit der Einheitenliste ändert; und die 2-Platz-Zeile lag bei 200 Seeds bei 84 % und bei 500 Seeds bei 81 %, die Standardbreite ist für Aussagen also zu klein.
-
-## 2026-09-28 — Der Boss bekommt ein Modul, und `monstersAlive` zählt ohne ihn
-
-**Scope:** neu `src/combat/boss.ts`; geändert `src/combat/rules.ts` (Boss-Werte und `bossSpec` ausgezogen), `src/combat/state.ts` (`isBoss` statt Zeichenkettenvergleich), `src/combat/summary.ts` (`monstersAlive` ohne Boss, `bossAlive` über `isBossAlive`), `src/combat/index.ts` (Barrel) und `src/combat/combat.test.ts` (ein neuer Fall). Contracts, Werte und Log-Hash unberührt.
-
-**Der Befund.** `monstersAlive` wurde an zwei Stellen berechnet und uneinig: `summary.ts` zählte über `aliveOnSide(..., 'monsters')` und damit den Boss mit — er trägt `side: 'monsters'` —, während `packages/client/src/raid/timeline-model.ts` ihn in einem eigenen Zweig abzog. Für denselben Log nannten Core und Client verschiedene Zahlen, und beide standen im Bild.
-
-**Die Korrektur.** `boss.ts` ist der neue Owner: `BOSS_ROLE`, `isBoss`, `isBossAlive`, `BOSS_RULES` und `bossSpec`. `rules.ts` importiert `bossSpec` statt ihn zu führen, `state.ts` sucht den Boss mit `states.find(isBoss)`, und `summary.ts` zählt Monster über eine Rolle, die den Boss ausnimmt, während `bossAlive` aus derselben Rollenerkennung kommt. Damit können die beiden Felder nicht mehr auseinanderlaufen. Boss-exklusive Verstärkungen haben jetzt einen Platz, statt als dritter Monsterwert in `PROVISIONAL_RULES` zu liegen.
-
-**Was sich nicht ändert.** Werte, IDs, Reihenfolge und Spec-Form sind unverändert; der Kampf-Hash bleibt gleich. `combat.test.ts` pinnt den neuen Fall mit abgeschaltetem Tick-Limit: zwei Monster, ein Boss, `monstersAlive === 2`, `bossAlive === true`.
-
-Die Einträge vom 2026-09-27 zur längsten Route und zum Review der Kernannahmen stehen wortgleich in `packages/sim-core/docs/historisch/2026-09-27_changelog-laengste-route.md` und `2026-09-27_changelog-kernannahmen-review.md`; sie sind unverändert erhalten.

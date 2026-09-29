@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const sim_version = '0.0.8' as const
+export const sim_version = '0.0.9' as const
 export const CONTRACT_VERSION = 9 as const
 export type ContractVersion = typeof CONTRACT_VERSION
 

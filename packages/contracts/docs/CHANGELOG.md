@@ -1,5 +1,13 @@
 # packages/contracts/docs/CHANGELOG.md
 
+## 2026-09-29 — `sim_version 0.0.8→0.0.9`, ohne Contract-Sprung
+
+**Scope:** geändert `src/version.ts`. `CONTRACT_VERSION` bleibt 9. Keine Migration.
+
+**Warum die Simulationsversion steigt und der Contract nicht.** Die Kampfbalance ist am 2026-09-29 freigegeben und mit `BOSS_RULES` 132000/12000/1000/500 gebaut; das verschiebt den Hash jedes gespeicherten Replays. `raid_snapshots.sim_version` ist genau das Feld, an dem ein alter Lauf als fremd erkannt wird — `packages/server/src/db/raid-queries.ts` gleicht darüber ab, das Replay-Gate ist T3.2. Eine Zahl der Simulation, die einen Lauf entscheidet, ist deshalb ein Versionssprung. Die **Form** des Wire-Formats bleibt unberührt: kein Feld, kein Schema, keine Migration, nur ein anderer Wert in derselben Spalte.
+
+**Die Migration `007_contract_v9.sql` bleibt unangetastet.** Sie stempelt weiter `'0.0.8'`, weil sie laut eigenem Kommentar „eine Momentaufnahme des Sprungs 8→9" ist. Ihr Test `raid-migration-v9.test.mjs` prüft darum nicht mehr die laufende Konstante, sondern die Zahl, die die Migration setzt.
+
 ## 2026-09-29 — Contract v9: Heldenklasse, Taktikregel und der gesicherte Lauf
 
 **Scope:** neu `src/abilities.ts`, `src/combat-vocabulary.ts` und `test/abilities.test.ts`. Geändert `src/combat-log.ts`, `src/combat-summary.ts`, `src/raid-public.ts`, `src/raid-snapshot.ts`, `src/protocol.ts`, `src/version.ts`, `src/index.ts` sowie `test/raid-fixtures.ts`, `test/combat-log.test.ts`, `test/raid-public.test.ts` und `test/raid-snapshot.test.ts`. `CONTRACT_VERSION 8→9`, `sim_version 0.0.7→0.0.8`.

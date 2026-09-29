@@ -18,14 +18,36 @@ import type { CombatLog, CombatUnitSpec } from './types'
 export const BOSS_ROLE = 'boss' as const
 
 /**
- * Ausgangswerte des Bosses. Wie die Werte der Helden und Monster vorläufig und
- * nicht abgenommen (`[K]` in `docs/CONCEPT_REVIEW.md`).
+ * Ausgangswerte des Bosses. **Freigegeben am 2026-09-29** (`[N]`), gemessen
+ * statt gesetzt; die Zahlen und ihre Quelle stehen in
+ * `docs/CONCEPT_REVIEW.md` Abschnitt 0b.
+ *
+ * **Der Boss war die eigentliche Wand, nicht die Heldenbasis.** Mit den
+ * Vorgängerwerten 200/16/5/700 gewann das Dreierteam in **0 von 32 Seeds** —
+ * auch ohne einen einzigen Platzmonster, also allein gegen den Boss. Der Lauf
+ * war kein Zeitproblem: er endete nach rund 208 von 1800 Ticks im Nahkampf.
+ * Rechnerisch 200000 Boss-Gesundheit gegen 144000 für das ganze Team, dazu
+ * Rüstung 5, die den Heldenangriff von 12000 auf rund 4070 drückte.
+ *
+ * **Die Form, die daraus folgt:** ein Koloss, der nicht gepanzert, sondern
+ * groß ist. Die Rüstung sinkt unter die eines Basishelden, damit der Kampf
+ * lang genug dauert, bis Schwankung und die Platzmonster eine echte
+ * Niederlage erzeugen; die Bedrohung kommt aus der Lebensleiste, nicht aus
+ * der Panzerung. Deshalb ist der Angriff des Bosses gleich dem eines Helden
+ * und seine Initiative gleich der des Teams — er ist nicht unfair, er ist
+ * ausdauernd.
+ *
+ * **Der Wert ist gemessen, nicht geschätzt.** 48 Seeds je Verteidigerplatz,
+ * Teamgröße 3: Boss plus drei Platzmonster ergibt 88 % Heldensiege und liegt
+ * damit im 80–95-%-Band des Referenzkampfs aus Abschnitt 0b. Der Golden-Pin in
+ * `combat-pin.test.ts` ist mit diesen Werten gewandert und trägt den Grund
+ * dort.
  */
 export const BOSS_RULES = {
-  maxHp: toFixed(200),
-  attack: toFixed(16),
-  defense: toFixed(5),
-  initiative: 700,
+  maxHp: toFixed(132),
+  attack: toFixed(12),
+  defense: toFixed(1),
+  initiative: 500,
   moveCooldown: 4,
   attackCooldown: 3,
 }

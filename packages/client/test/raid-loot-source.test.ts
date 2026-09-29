@@ -30,8 +30,11 @@ describe('Beutequelle des geladenen Laufs', () => {
     const { log } = fixtureRaidLog()
     setPlaybackLog(log)
     // Frostwolf Stärke 2, Steingolem Stärke 5, beide Generation 1. Beide
-    // sterben, obwohl die Monster den Kampf gewinnen.
-    expect(log.stage).toBe('monsters-win')
+    // sterben — und seit dem 2026-09-29 gewinnen **auch die Helden**, weil der
+    // Boss von 200000/16000/5000/700 auf 132000/12000/1000/500 gegangen ist.
+    // Die Zeile ist eine Voraussetzung des Laufs, nicht der geprüfte Gegenstand:
+    // die Beute bleibt dieselbe, weil beide Monster wie vorher fallen.
+    expect(log.stage).toBe('heroes-win')
     expect(fallenLootProfiles()).toEqual([
       { strength: 2, generation: 1 },
       { strength: 5, generation: 1 },

@@ -85,6 +85,27 @@ import { resolveCombat } from './index'
  *
  * `sim_version 0.0.7→0.0.8`, `CONTRACT_VERSION 8→9`, Migration
  * `007_contract_v9.sql`.
+ *
+ * **Fünfte Verschiebung vom 2026-09-29 — der Boss war die Wand, und der erste
+ * Pin kippt zum ersten Mal auf `heroes-win`.** `BOSS_RULES` gingen von
+ * 200000/16000/5000/700 auf 132000/12000/1000/500. Der Grund ist eine
+ * Freigabe, keine Abstimmung: mit den Vorgängerwerten gewann das Dreierteam in
+ * **0 von 32 Seeds**, auch ohne einen einzigen Platzmonster. 48 Seeds je
+ * Verteidigerplatz nach der Änderung ergeben Boss plus drei Platzmonster zu
+ * 88 % — dem Zielband des Referenzkampfs aus `docs/CONCEPT_REVIEW.md`
+ * Abschnitt 0b.
+ *
+ * **Der erste Pin ist deshalb der Beleg und nicht nur eine gewanderte Zahl:**
+ * `monsters-win` wird `heroes-win`, der Lauf endet nach 196 statt 216 Ticks
+ * und 396 statt 413 Ereignissen. Das ist die erste Stelle im Repository, an
+ * der ein Lauf nachweislich **gewonnen** wird. Der zweite Lauf bleibt
+ * `monsters-win` und verliert genau ein Ereignis — dort ändert sich die
+ * Reihenfolge, nicht der Ausgang.
+ *
+ * `sim_version 0.0.8→0.0.9`: gespeicherte Läufe rechnen mit dem Bosswert
+ * weiter, und genau deshalb muss der alte Stand als fremd erkannt werden.
+ * `CONTRACT_VERSION` bleibt 9 und es gibt keine Migration — die Form des
+ * Wire-Formats ändert sich nicht, nur eine Zahl der Simulation.
  */
 function observed(
   grid: ReturnType<typeof createDungeonGrid>,
@@ -114,20 +135,20 @@ function snakeGrid() {
 describe('Golden-Pin des Kampf-Hashes', () => {
   it('pinnt den Lauf auf dem offenen Fixture-Grid', () => {
     expect(observed(createDungeonGrid(), 2)).toEqual({
-      hash: '98cd6dda',
-      stage: 'monsters-win',
-      ticks: 216,
-      events: 413,
+      hash: '261cd39a',
+      stage: 'heroes-win',
+      ticks: 196,
+      events: 396,
       trail: 127,
     })
   })
 
   it('pinnt den Lauf auf der Umweg-Route mit voller Belegung', () => {
     expect(observed(snakeGrid(), 5)).toEqual({
-      hash: 'ebbe2010',
+      hash: 'ee21afc5',
       stage: 'monsters-win',
       ticks: 166,
-      events: 674,
+      events: 673,
       trail: 253,
     })
   })

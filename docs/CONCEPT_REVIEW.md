@@ -54,6 +54,22 @@ Die vollständige Detail- und Sprintquelle ist `docs/VISUAL_GRUNDSATZ.md`; die f
 
   **Die Ursache ist eine Größenordnung, keine Abstimmung.** Gemessen: ein Held hat 60000 Gesundheit und 12000 Angriff, ein echtes Monster rund 41000 und rund 9000. Die `HP_GAIN`/`ATTACK_GAIN` des Genoms sind auf einen 40000er-Nullpunkt gerechnet, während die Heldenbasis mit 60000 nie gegen einen echten Monsterwert gemessen wurde. Der zweite Golden-Pin bestätigt es: fünf Monster beenden den Kampf in 180 statt 401 Ticks. **Die Zahl, die das richtet, ist eine `[K]`-Größe und wird hier nicht erfunden.** Zu entscheiden ist, ob die Heldenbasis steigt, die Monsterbasis sinkt oder die Elementgewichte neu gesetzt werden — jede dieser drei Wege verschiebt die Goldformel nicht, aber den Golden-Pin. `[K]`
 
+- **Der Boss war die eigentliche Wand — freigegeben und gebaut am 2026-09-29.** Der Befund der dritten Messung war: das Dreierteam gewann in **0 von 32 Seeds**, auch ohne einen einzigen Platzmonster. Nicht die Heldenbasis war daran schuld, sondern `BOSS_RULES`. Mit 200000 Gesundheit, 16000 Angriff und 5000 Rüstung stand der Boss gegen 144000 Leben für das ganze Team, und seine Rüstung drückte jeden Heldenangriff von 12000 auf rund 4070. **Freigegebene Werte (`[N]`, gemessen und nicht geschätzt), jetzt in `packages/sim-core/src/combat/boss.ts`:** 132000 / 12000 / 1000 / 500 bei gleichbleibenden Cooldowns.
+
+  **Die Form, die daraus folgt, ist eine Aussage über das Spiel, nicht nur eine Zahl:** der Boss ist ein Koloss, der nicht gepanzert, sondern groß ist. Seine Bedrohung kommt aus der Lebensleiste und nicht aus der Rüstung, damit der Kampf lang genug dauert, bis Schwankung und die Platzmonster eine echte Niederlage erzeugen. Er ist nicht unfair, er ist ausdauernd.
+
+  **Gemessene Kurve nach der Freigabe**, 48 Seeds je Verteidigerplatz, offenes Fixture-Grid, Standardregeln, Quelle `packages/sim-core/src/combat/balance-report.test.ts`:
+
+  | Plätze | 0 | 1 | 2 | 3 | 4 | 5 |
+  |---|---|---|---|---|---|---|
+  | 3 Helden | 100 % | 100 % | 100 % | **88 %** | 0 % | 0 % |
+  | 4 Helden | 100 % | 100 % | 100 % | 100 % | 100 % | 100 % |
+  | 5 Helden | 100 % | 100 % | 100 % | 100 % | 100 % | 100 % |
+
+  **Der Referenzkampf ist damit erreicht:** drei Helden gegen Boss plus drei Platzmonster liegen bei 88 % und damit im Band 80–95 %. Die Tabelle oben mit dem „Bruch zwischen zwei und drei Plätzen" ist durch diese Zeile ersetzt.
+
+  **Die verbleibende Wand ist eine Entscheidung, keine Fehlmessung.** Ab vier belegten Plätzen verliert das Dreierteam, und ab vier Plätzen gewinnt es. Das ist der Hebel, an dem die Heldenzahl wirkt: wer eine voll bestückte Etage angreift, braucht vier oder fünf Helden. `docs/CONCEPT_REVIEW.md` Abschnitt 2 nennt „Heldengruppe maximal 5" und Abschnitt 0b als Referenz mindestens drei — beides ist mit dieser Kurve vereinbar, und die Kurve macht die Teambeschaffung zu einer echten Entscheidung statt zu einer Nebensache. `[N]`
+
 - **Der Angreifer sieht nur den Maze-Weg und die Bonus-Schätze.** Sichtbar sind der Maze-Weg (Labyrinth, Spawn, Boss) und die Bonus-Schätze, sonst nichts — auch nicht die Anzahl der Monster. Seine einzige Eingabe ist die Heldenauswahl. Monsterplatzierungen, Gruppen, Patrouillen und die Platzierungsmarkierungen selbst bleiben für ihn unsichtbar; sichtbar wird eine Begegnung erst, wenn der Run läuft. Die Route bestimmt immer das Pathfinding, nie eine Spielentscheidung; den Umweg wählt der Angreifer nur mittelbar über markierte Schätze. Umgesetzt am 2026-09-29 als `RaidPublicViewSchema` mit `toPublicView` in `packages/contracts/src/raid-public.ts`: Die Match-Antwort trägt diese Sicht, der volle Stand bleibt beim Server. `[N]`
 - **Platzierungsmarkierung statt Falle.** Eine Placement Tile markiert den Bereich, in dem eine Monster-Gruppe steht. Sie macht keinen Schaden; die bisherige Optik darf vorerst bleiben. `[N]`
 - **Patrouille ist ein Weg.** Ein Bereich trägt eine Zellenliste als Weg; der angezeigte Pfeil nennt Startpunkt und erste Richtung. Gruppen laufen diesen Weg während des Raids. `[N]`
