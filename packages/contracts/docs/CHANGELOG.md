@@ -1,5 +1,15 @@
 # packages/contracts/docs/CHANGELOG.md
 
+## 2026-09-29 — Contract v5: öffentliche Angreifer-Sicht, und die Falle verliert ihr Budget
+
+**Der Sprung hat zwei Gründe, beide entschieden.** Erstens sieht der Angreifer nur den Maze-Weg und die Bonus-Schätze; Monsterzahl, Platzierungen und Gruppen bleiben verborgen. Dafür gibt es neu `src/raid-public.ts` mit `RaidPublicViewSchema` (`.strict()`, nur Envelope und `dungeon`) und `toPublicView` als einzigem erlaubten Weg vom privaten `RaidSnapshot` zur Sicht. Die Maske tauscht ausschließlich Zellnummer 2 gegen Boden, also Platzierungsmarkierung gegen `Empty`; Spawn, Boss und Wände bleiben — und weil eine Platzierungszelle seit demselben Tag so viel kostet wie Boden, bleibt auch die Route dieselbe. `MatchResponseSchema.snapshot` trägt jetzt diese Sicht. Damit ist im Schema festgehalten, was am Bildschirm verborgen wäre: Eine Match-Antwort mit `monsterSlots` scheitert.
+
+Zweitens ist `PathResultSchema` kürzer geworden. Mit der Falle entfällt ihr Kostenmodell: `mode` kennt nur noch `reachable` und `unreachable`, `detourCost` ist weg. `src/cell.ts` nennt die Zellnummern zusätzlich beim Namen (`EMPTY_CELL` bis `BOSS_CELL`), weil dieses Paket `sim-core` nicht importieren darf und ein Leser trotzdem sehen soll, was eine `2` bedeutet. `CONTRACT_VERSION 4→5`, `sim_version 0.0.3→0.0.4`.
+
+**Was der Sprung nicht anfasst:** Die Form des privaten `RaidSnapshot` bleibt unverändert, `UploadRequestSchema` ebenso — der Verteidiger schickt weiter seinen vollen Stand. `toPublicView` hat noch keinen Aufrufer außerhalb der Tests, weil es weder Matchmaking noch einen Dienst gibt, der eine Match-Antwort ausliefert; sein Test ist bis dahin die Durchsetzung der Regel. `MatchResponseSchema` wird von keiner Produktionsstelle gelesen.
+
+**Gates:** typecheck 0, 360 Tests in 54 Dateien, Shinon PASS.
+
 ## 2026-09-28 — Contract v4: das Rosterfeld macht die gefallenen Gegner berechenbar
 
 **Der Anlass war eine belegte Lücke, kein Wunsch.** `docs/VISUAL_GRUNDSATZ.md` hält fest, dass die Stärke-/Generations-Goldformel nicht freigegeben werden kann, solange die Zahl der besiegten Gegner in keinem Contract-Feld steht: `ResultPayloadSchema` trägt den Kampflog nicht, und `monstersAlive`/`bossAlive` nennen nur die Überlebenden. Die Zahl der Gefallenen war aus einem abgelegten Ergebnis deshalb nicht rekonstruierbar.

@@ -48,7 +48,7 @@ describe('Kanonischer Raid-Snapshot', () => {
     ).toBe(false)
   })
 
-  it('gehört ausschließlich zu Contract v3', () => {
+  it('gehört ausschließlich zur aktuellen Contract-Version', () => {
     const snapshot = raidSnapshot()
     expect(versions.contractVersion).toBe(CONTRACT_VERSION)
     expect(

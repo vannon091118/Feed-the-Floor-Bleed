@@ -17,7 +17,7 @@ const CLUSTER_LABELS: Record<EventCluster['type'], string> = {
   end: 'Ende',
 }
 
-/** Routen-Phase: Trail-Zellen mit Falle-, Spawn- und Boss-Markierung. */
+/** Routen-Phase: Trail-Zellen mit Platzierungs-, Spawn- und Boss-Markierung. */
 export function RoutePhase(props: {
   scrub: (tick: number) => void
   active: number
@@ -60,7 +60,7 @@ export function RoutePhase(props: {
         })}
       </ol>
       <p class="timeline-hint">
-        Falle, Spawn und Boss hervorgehoben; Klick springt zum Tick.
+        Platzierung, Spawn und Boss hervorgehoben; Klick springt zum Tick.
       </p>
     </section>
   )

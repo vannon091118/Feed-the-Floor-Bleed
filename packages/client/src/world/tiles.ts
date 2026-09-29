@@ -40,8 +40,8 @@ export const TILES: Record<CellTypeValue, TileDescriptor> = {
     occludes: true,
     marker: 'none',
   },
-  [CellType.Trap]: {
-    cell: CellType.Trap,
+  [CellType.Placement]: {
+    cell: CellType.Placement,
     materialId: MATERIAL_ARCANE.id,
     walkable: true,
     height: 0,

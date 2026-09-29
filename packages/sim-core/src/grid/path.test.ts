@@ -11,7 +11,6 @@ import {
   setCell,
   visibleTileCount,
 } from './index'
-import { search } from './path-search'
 
 function carveStraightRoute(grid: DungeonGrid): void {
   for (let y = 0; y < GRID_SIZE; y += 1) {
@@ -59,31 +58,40 @@ describe('dungeon grid', () => {
     expect(16 * 16 * 4 * 4).toBe(grid.cells.length)
   })
 
-  it('finds the empty direct route', () => {
+  it('findet den direkten Weg durch das leere Raster', () => {
     const result = findPath(createDungeonGrid())
-    expect(result.mode).toBe('within-budget')
+    expect(result.mode).toBe('reachable')
     expect(result.path).toHaveLength(127)
-    expect(result.movementCost).toBe(125)
-    expect(result.detourCost).toBe(0)
+    // Bewegungspunkte sind Schritte: 63 nach rechts, 63 nach unten.
+    expect(result.movementCost).toBe(126)
   })
 
-  it('keeps a single trap inside the five-point detour budget', () => {
+  it('führt eine Platzierungsmarkierung wie Boden, ohne Umweg', () => {
+    // Bis zum 2026-09-29 kostete diese Zelle vier Punkte statt einen und die
+    // Route wich ihr aus. Sie markiert nur noch einen Bereich; der Weg über sie
+    // ist der direkte.
     const grid = createDungeonGrid()
     carveStraightRoute(grid)
-    setCell(grid, { x: 1, y: 0 }, CellType.Trap)
-    const result = findPath(grid)
-    expect(result.mode).toBe('within-budget')
-    expect(result.detourCost).toBe(3)
+    setCell(grid, { x: 1, y: 0 }, CellType.Placement)
+    const placement = findPath(grid)
+    expect(placement.mode).toBe('reachable')
+    expect(placement.movementCost).toBe(126)
+    expect(placement.path).toContainEqual({ x: 1, y: 0 })
+
+    // Gegenprobe: eine Wand an derselben Stelle erzwingt den vollen Umweg.
+    const walled = createDungeonGrid()
+    carveStraightRoute(walled)
+    setCell(walled, { x: 1, y: 0 }, CellType.Wall)
+    expect(findPath(walled).mode).toBe('unreachable')
   })
 
-  it('falls back to trap damage when the detour budget is exceeded', () => {
+  it('liefert für dasselbe Raster denselben Weg', () => {
+    // Die Breitensuche entscheidet Gleichstand über die feste Nachbarreihenfolge
+    // und eine FIFO-Warteschlange; zwei Läufe müssen denselben Weg ergeben.
     const grid = createDungeonGrid()
     carveStraightRoute(grid)
-    setCell(grid, { x: 1, y: 0 }, CellType.Trap)
-    setCell(grid, { x: 2, y: 0 }, CellType.Trap)
-    const result = findPath(grid)
-    expect(result.mode).toBe('trap-fallback')
-    expect(result.detourCost).toBe(6)
+    setCell(grid, { x: 1, y: 0 }, CellType.Placement)
+    expect(findPath(grid).path).toEqual(findPath(grid).path)
   })
 
   it('hard-blocks a boss with no route', () => {
@@ -132,32 +140,5 @@ describe('dungeon grid', () => {
     // zweimal betritt und damit höchstens so viele Schritte hat wie das Raster
     // Zellen: 2079 Schritte, größter `routeIndex` 2079.
     expect(result.path.length).toBeLessThanOrEqual(grid.cells.length)
-  })
-
-  it('optimizes the fallback for minimum steps, not minimum cost', () => {
-    const grid = createDungeonGrid()
-    carveStraightRoute(grid)
-    setCell(grid, { x: 10, y: 0 }, CellType.Trap)
-    setCell(grid, { x: 11, y: 0 }, CellType.Trap)
-    for (const x of [9, 10, 11, 12]) {
-      setCell(grid, { x, y: 1 }, CellType.Empty)
-    }
-
-    // Trap-Route: 126 Steps, 131 Kosten. Umweg-Loop über y=1: 128 Steps, 127 Kosten.
-    const stepsFirst = search(grid, Number.POSITIVE_INFINITY, true)
-    const costFirst = search(grid, Number.POSITIVE_INFINITY, false)
-    expect(stepsFirst?.steps).toBe(126)
-    expect(stepsFirst?.cost).toBe(131)
-    expect(costFirst?.cost).toBe(127)
-    expect(costFirst?.steps).toBe(128)
-
-    // Budget 1 lässt beide Wege platzen. Der Fallback muss die Route mit den
-    // wenigsten Tiles nehmen (Trap-Route), nicht die billigere Umweg-Route.
-    const result = findPath(grid, 1)
-    expect(result.mode).toBe('trap-fallback')
-    expect(result.movementCost).toBe(131)
-    expect(result.detourCost).toBe(6)
-    expect(result.path).toContainEqual({ x: 10, y: 0 })
-    expect(result.path).toContainEqual({ x: 11, y: 0 })
   })
 })

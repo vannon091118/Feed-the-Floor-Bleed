@@ -5,6 +5,7 @@ import {
   type RaidJob,
   type RaidSnapshot,
   sim_version,
+  toPublicView,
   type UploadRequest,
 } from '../src'
 
@@ -38,6 +39,11 @@ export function raidSnapshot(): RaidSnapshot {
 
 export function upload(): UploadRequest {
   return { ...raidSnapshot(), tactics: [['guard']] }
+}
+
+/** Die Angreifer-Sicht auf denselben Stand, über den erlaubten Weg gebaut. */
+export function publicView() {
+  return toPublicView(raidSnapshot())
 }
 
 export const HASH = 'a1b2c3d4'

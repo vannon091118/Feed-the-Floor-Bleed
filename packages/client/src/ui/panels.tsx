@@ -34,8 +34,7 @@ export function RoutePanel() {
       rows={[
         ['Modus', current.mode],
         ['Schritte', String(current.path.length)],
-        ['Kosten', finite(current.movementCost)],
-        ['Umweg', finite(current.detourCost)],
+        ['Bewegungspunkte', finite(current.movementCost)],
       ]}
     />
   )

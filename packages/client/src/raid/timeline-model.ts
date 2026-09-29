@@ -7,7 +7,7 @@ import type {
 } from '@floor/contracts'
 
 export type PhaseId = 'route' | 'combat' | 'result'
-export type TrailBadge = 'trap' | 'spawn' | 'boss'
+export type TrailBadge = 'placement' | 'spawn' | 'boss'
 
 export interface TimelinePhase {
   id: PhaseId
@@ -50,18 +50,18 @@ export const STAGE_LABELS: Record<CombatStage, string> = {
   timeout: 'Zeitlimit erreicht',
 }
 
-const TRAP_CELL: CellTypeValue = 2
+const PLACEMENT_CELL: CellTypeValue = 2
 const SPAWN_CELL: CellTypeValue = 3
 const BOSS_CELL: CellTypeValue = 4
 
 const CELL_BADGES: Partial<Record<CellTypeValue, TrailBadge>> = {
-  [TRAP_CELL]: 'trap',
+  [PLACEMENT_CELL]: 'placement',
   [SPAWN_CELL]: 'spawn',
   [BOSS_CELL]: 'boss',
 }
 
 export const TRAIL_BADGE_LABELS: Record<TrailBadge, string> = {
-  trap: 'Falle',
+  placement: 'Platzierung',
   spawn: 'Spawn',
   boss: 'Boss',
 }

@@ -5,7 +5,13 @@ export const LOGIC_CELLS_PER_VISIBLE_TILE = 4
 export const CellType = {
   Empty: 0,
   Wall: 1,
-  Trap: 2,
+  /**
+   * Platzierungsmarkierung. Sie markiert den Bereich, in dem eine Gruppe
+   * steht, und ist für den Angreifer unsichtbar. Bis zum 2026-09-29 hieß sie
+   * `Trap` und war ein Schadensfeld mit Kostenzuschlag; beides ist entfallen,
+   * die Zellnummer 2 bleibt damit unverändert.
+   */
+  Placement: 2,
   Spawn: 3,
   Boss: 4,
 } as const
@@ -23,11 +29,11 @@ export interface DungeonGrid {
   boss: Point
 }
 
-export type PathMode = 'within-budget' | 'trap-fallback' | 'unreachable'
+export type PathMode = 'reachable' | 'unreachable'
 
 export interface PathResult {
   mode: PathMode
   path: Point[]
+  /** Schritte entlang der Route. Wände sind unpassierbar, alles andere kostet eins. */
   movementCost: number
-  detourCost: number
 }

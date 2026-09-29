@@ -10,12 +10,12 @@ import {
   VISIBLE_TILE_SIZE,
 } from '@floor/sim-core'
 
-export type Brush = 'empty' | 'wall' | 'trap'
+export type Brush = 'empty' | 'wall' | 'placement'
 
 const CELL_BY_BRUSH: Record<Brush, CellTypeValue> = {
   empty: CellType.Empty,
   wall: CellType.Wall,
-  trap: CellType.Trap,
+  placement: CellType.Placement,
 }
 
 function isVisibleTile(value: number): boolean {

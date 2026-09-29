@@ -13,8 +13,8 @@ describe('Dungeon-Editor', () => {
   it('startet mit gültigem Spielstand und einer erreichbaren Route', () => {
     resetGrid()
     expect(fixture.team).toHaveLength(3)
-    expect(route.value.mode).toBe('within-budget')
-    expect(route.value.movementCost).toBe(125)
+    expect(route.value.mode).toBe('reachable')
+    expect(route.value.movementCost).toBe(126)
   })
 
   it('setzt ein sichtbares Tile in den 4x4-Logikbereich um', () => {

@@ -16,6 +16,7 @@ import {
 } from '../src'
 import {
   dungeon,
+  publicView,
   raidSnapshot,
   result as resultFixture,
   upload,
@@ -36,7 +37,8 @@ function straightCorridor() {
 describe('Versionierte Contracts', () => {
   it('akzeptiert die dokumentierten Upload-, Match- und Result-Payloads', () => {
     const request = upload()
-    const match = { ...versions, seed: 42, snapshot: raidSnapshot(), floor: 1 }
+    // Die Match-Antwort trägt die öffentliche Sicht, der Upload den vollen Stand.
+    const match = { ...versions, seed: 42, snapshot: publicView(), floor: 1 }
     const result = resultFixture()
 
     expect(UploadRequestSchema.safeParse(request).success).toBe(true)
@@ -45,7 +47,11 @@ describe('Versionierte Contracts', () => {
   })
 
   it('lehnt ungültige Match- und Result-Payloads ab', () => {
-    const match = { ...versions, seed: 42, snapshot: raidSnapshot(), floor: 1 }
+    const match = { ...versions, seed: 42, snapshot: publicView(), floor: 1 }
+    expect(
+      MatchResponseSchema.safeParse({ ...match, snapshot: raidSnapshot() })
+        .success,
+    ).toBe(false)
     const result = resultFixture()
     expect(MatchResponseSchema.safeParse({ ...match, seed: -1 }).success).toBe(
       false,
@@ -119,12 +125,12 @@ describe('Versionierte Contracts', () => {
     expect(
       PathResultSchema.safeParse(findPath(createDungeonGrid())).success,
     ).toBe(true)
-    const trapGrid = straightCorridor()
-    setCell(trapGrid, { x: 1, y: 0 }, CellType.Trap)
-    setCell(trapGrid, { x: 2, y: 0 }, CellType.Trap)
-    const trapResult = findPath(trapGrid)
-    expect(trapResult.mode).toBe('trap-fallback')
-    expect(PathResultSchema.safeParse(trapResult).success).toBe(true)
+    const placementGrid = straightCorridor()
+    setCell(placementGrid, { x: 1, y: 0 }, CellType.Placement)
+    setCell(placementGrid, { x: 2, y: 0 }, CellType.Placement)
+    const placementResult = findPath(placementGrid)
+    expect(placementResult.mode).toBe('reachable')
+    expect(PathResultSchema.safeParse(placementResult).success).toBe(true)
     const blockedGrid = straightCorridor()
     setCell(blockedGrid, { x: 63, y: 62 }, CellType.Wall)
     setCell(blockedGrid, { x: 62, y: 63 }, CellType.Wall)
@@ -133,10 +139,9 @@ describe('Versionierte Contracts', () => {
     expect(PathResultSchema.safeParse(unreachableResult).success).toBe(true)
     expect(
       PathResultSchema.safeParse({
-        mode: 'within-budget',
+        mode: 'reachable',
         path: [{ x: 0, y: 0 }],
         movementCost: 0,
-        detourCost: 0,
       }).success,
     ).toBe(true)
     expect(
@@ -144,7 +149,6 @@ describe('Versionierte Contracts', () => {
         mode: 'unreachable',
         path: [],
         movementCost: Number.POSITIVE_INFINITY,
-        detourCost: Number.POSITIVE_INFINITY,
       }).success,
     ).toBe(true)
     expect(
@@ -152,7 +156,6 @@ describe('Versionierte Contracts', () => {
         mode: 'unreachable',
         path: [],
         movementCost: 0,
-        detourCost: 0,
       }).success,
     ).toBe(false)
     const invalid = dungeon()

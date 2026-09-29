@@ -1,5 +1,13 @@
 # packages/server/docs/CHANGELOG.md
 
+## 2026-09-29 — Migration 003 zieht Contract v5 nach, und der Bestand wird einheitlich
+
+**Der Sprung auf v5 macht v4-Zeilen unlesbar**, weil `RaidSnapshotSchema` und `ResultPayloadSchema` nur noch `contractVersion 5` mit `simVersion 0.0.4` akzeptieren. `migrations/003_contract_v5.sql` entfernt deshalb die `0.0.3`-Ära samt der Jobs, die sie als `snapshot_id` oder `target_snapshot_id` führen, und legt die Unveränderlichkeitstrigger wortgleich wieder an — ohne dieses kurzzeitige Ablegen ließe sich keine Zeile löschen. Warum löschen statt umschreiben: Die Ergebniszeilen einer v4-Nacht wurden unter einem Routenmodell gerechnet, das es nicht mehr gibt.
+
+**Das Prädikat nennt die abgelöste Version ausdrücklich** und lautet nicht „alles außer der aktuellen". Der Fehler aus dem Audit vom 2026-09-28 — ein `sim_version <> '<aktuell>'` löschte auch spätere Zeilen — ist damit nicht wiederholbar; `raid-migration-v5.test.mjs` prüft drei Dinge getrennt: die v4-Ära fällt samt Jobs, eine spätere Version bleibt unangetastet, und die älteren Bestände überlässt 003 der Vorgängermigration. Ein vierter Test fährt die Kette 001 → 002 → 003 und verlangt einen einheitlichen Bestand.
+
+**D1 bleibt unprovisioniert.** Die Migration beschreibt den Fall und ist gegen den In-Memory-SQLite geprüft, nicht gegen eine echte Datenbank. Der Server-Rand selbst ändert sich nicht: `raid-checkpoint.ts` parst weiter den privaten Stand, und der HTTP-Rand liefert weiterhin keinen Match.
+
 ## 2026-09-28 — Migration der alten Raid-Zeilen auf Contract v4
 
 **Scope:** neu `migrations/002_contract_v4.sql` und `src/db/raid-migration-v4.test.mjs`. Kein Produktivcode, kein Tabellenschema geändert.

@@ -26,6 +26,19 @@ Die vollständige Detail- und Sprintquelle ist `docs/VISUAL_GRUNDSATZ.md`; die f
 - Online-Fortschritt gilt erst nach serverseitiger Authentifizierung, deterministischer Replayprüfung und idempotentem Persistenz-Commit als autoritativ. Der Client darf lokal rechnen und rendern. `[N]`
 - Gold-/Materialmengen, Startbestände, Bau-/Upgrade-/Landkosten, Haus-/Werkstatteffekte, Drop-Weights und Matchband bleiben gesperrte Balancewerte. Vorschläge `[K]` brauchen ausdrückliche Nutzerfreigabe, bevor sie Simulation oder Fortschritt beeinflussen. `[N]`
 
+## 0b. Begegnungsmodell, verborgenes Layout und Placement Tile — Entscheidungen vom 2026-09-29
+
+- **Basisreferenz.** Kämpfe rechnen mit allen Einheiten auf Level 1, ohne Ausrüstung, mit Grundwerten. Der Held ist in Basisform pro Einheit ein Ticken schwächer als ein Monster; das genaue Delta ist `[K]` und noch nicht genannt. Referenzkampf sind mindestens drei Helden gegen Boss plus drei Platzmonster, verstanden als Summe der Zonen auf ihrer Route. `[N]`
+- **Der Angreifer sieht nur den Maze-Weg und die Bonus-Schätze.** Sichtbar sind der Maze-Weg (Labyrinth, Spawn, Boss) und die Bonus-Schätze, sonst nichts — auch nicht die Anzahl der Monster. Seine einzige Eingabe ist die Heldenauswahl. Monsterplatzierungen, Gruppen, Patrouillen und die Platzierungsmarkierungen selbst bleiben für ihn unsichtbar; sichtbar wird eine Begegnung erst, wenn der Run läuft. Die Route bestimmt immer das Pathfinding, nie eine Spielentscheidung; den Umweg wählt der Angreifer nur mittelbar über markierte Schätze. Umgesetzt am 2026-09-29 als `RaidPublicViewSchema` mit `toPublicView` in `packages/contracts/src/raid-public.ts`: Die Match-Antwort trägt diese Sicht, der volle Stand bleibt beim Server. `[N]`
+- **Platzierungsmarkierung statt Falle.** Eine Placement Tile markiert den Bereich, in dem eine Monster-Gruppe steht. Sie macht keinen Schaden; die bisherige Optik darf vorerst bleiben. `[N]`
+- **Patrouille ist ein Weg.** Ein Bereich trägt eine Zellenliste als Weg; der angezeigte Pfeil nennt Startpunkt und erste Richtung. Gruppen laufen diesen Weg während des Raids. `[N]`
+- **Begegnung sequenziell.** Jede Zone ist eine eigene Begegnung; danach zieht die Gruppe weiter. `[N]`
+- **Status ist vollständig persistent.** HP und übrige Zustände bleiben über Zonen und Etagen erhalten, es gibt keine Erholung zwischen Zonen. Vorgesehen ist eine aktive Fähigkeit `Heilen`, die **nach Abschluss einer Etage** bis zu 1/2/3 mal und um 20/40/60 % der Gruppe wirkt; die Stufenzahlen sind damit freigegeben, die Fähigkeit selbst gehört in den Fähigkeiten-Block mit eigenem Contract-Sprung. **Offen:** `[N]` in Abschnitt 0a nennt Fähigkeiten „je Held einmal pro Expedition" — mit 1/2/3 je Etage steht daneben eine zweite Zählung, die vor dem Fähigkeiten-Block entschieden werden muss. `[N/O]`
+- **Schätze legt der Verteidiger.** Der Angreifer markiert nur, welche davon er plündern will; ob ein Umweg gegangen wird, hängt an dieser Markierung. Wie viel Mehrweg ein Schatz wert ist, bleibt `[K]`. `[N/K]`
+- **Zwei Fassungen desselben Stands.** Der Stand, der den Angreifer erreicht, trägt nur das Sichtbare (Raster, Spawn, Boss, später sichtbare Schätze). Roster, Gruppen und Patrouillen laufen in der privaten Fassung und werden serverseitig gerechnet; eine Kampfauflösung im Client wäre bei verborgenen Platzierungen nur Optik. `[N]`
+
+**Erledigt mit dem 2026-09-29:** Der `[K]`-Vorschlag „Falle kostet 3 Extrapunkte; Ausweichroute maximal 5 zusätzliche Bewegungspunkte" aus Abschnitt 4 ist gegenstandslos, ebenso „Gruppe läuft als ein Blob" für den Kampf — eine Gruppe läuft ihren Weg als Patrouille.
+
 ## 1. Spielform und Kernloop `[N]`
 
 - Persistentes Webspiel, asynchroner Multiplayer, kein Echtzeit-MMO.
@@ -84,8 +97,8 @@ Die vollständige Detail- und Sprintquelle ist `docs/VISUAL_GRUNDSATZ.md`; die f
 
 ### KI-Vorschläge zu Kosten/Budget `[K]`
 
-- Falle kostet 3 Extrapunkte; Ausweichroute maximal 5 zusätzliche Bewegungspunkte.
-- Einmal-Umweg pro Gruppe und Etage; Gruppe läuft als ein Blob.
+- **SUPERSEDIERT am 2026-09-29 (siehe 0b):** Falle kostet 3 Extrapunkte; Ausweichroute maximal 5 zusätzliche Bewegungspunkte. Die Placement Tile macht keinen Schaden und bestimmt keine Kosten mehr.
+- **SUPERSEDIERT am 2026-09-29 (siehe 0b):** Einmal-Umweg pro Gruppe und Etage; Gruppe läuft als ein Blob. Eine Gruppe läuft als Patrouille über einen Weg aus mehreren Zellen.
 - Wände werden von der KI nicht zerstört; exakt fünf Tile-Typen als v1-Contract.
 
 ## 5. Boss, Beute und Items `[N]`
@@ -124,5 +137,5 @@ Die vollständige Detail- und Sprintquelle ist `docs/VISUAL_GRUNDSATZ.md`; die f
 
 ## 9. Abnahmegrenze
 
-- Implementiert: 64×64-Grid, Pathfinding, Contract-v4, D1-Jobstatus, Trail-Hash, deterministischer Combat- und Replay-Core sowie lokale Tag/Nacht/Raid-Schleife (T1 abgeschlossen). Nicht implementiert: echtes HTTP-Netzwerk/Auth, Queue, Remote-Matching, Ghost-Fallback, Moral-Verlustfolgen, Zucht-UI, Items und Dorf-Ökonomie (T2/T3).
+- Implementiert: 64×64-Grid, Pathfinding ohne Zusatzkosten, Placement Tile, Contract v5 mit öffentlicher Angreifer-Sicht (`toPublicView`) und privatem Stand, D1-Jobstatus, Trail-Hash, deterministischer Combat- und Replay-Core sowie lokale Tag/Nacht/Raid-Schleife (T1 abgeschlossen). Nicht implementiert: echtes HTTP-Netzwerk/Auth, Queue, Remote-Matching, Ghost-Fallback, Moral-Verlustfolgen, Zucht-UI, Items und Dorf-Ökonomie (T2/T3).
 - Alle `[K]`-Punkte sind keine Implementierungsfreigabe.

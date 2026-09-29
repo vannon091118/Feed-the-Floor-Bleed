@@ -1,5 +1,17 @@
 # docs/CHANGELOG.md — Global
 
+## 2026-09-29 — Aus der Falle wird eine Platzierungsmarkierung, und der Angreifer bekommt eine eigene Fassade
+
+**Die Falle war nie im Scope, und der Code hat sie trotzdem gebaut.** Der `[K]`-Vorschlag „Falle kostet 3 Extrapunkte; Ausweichroute maximal 5 zusätzliche Bewegungspunkte" stand in `docs/CONCEPT_REVIEW.md` unter KI-Vorschlägen; `CellType.Trap = 2`, der Kostenzuschlag vier statt eins in `path-search.ts`, das Umwegbudget von fünf Punkten und der Rückfallzweig `trap-fallback` waren seine vollständige Umsetzung. Mit der Entscheidung vom 2026-09-29 ist die Zelle eine **Platzierungsmarkierung**: Sie markiert den Bereich, in dem eine Gruppe steht, macht keinen Schaden und kostet nichts.
+
+**Der Schnitt ist deshalb größer als eine Umbenennung, und das ist gewollt.** Ohne Kostenzuschlag ist die Suche gleichgewichtig: `grid/path.ts` fährt jetzt eine Breitensuche mit FIFO-Warteschlange, `path-search.ts` und `min-heap.ts` sind gelöscht, `PathResult` trägt nur noch `reachable`/`unreachable`, den Pfad und die Bewegungspunkte (`path.length - 1` — vorher zählten Spawn und Boss null). Der **Golden-Pin blieb dabei wortgleich grün** (`94ba1954`, `f85b31c0`), weil kein Fixture eine Platzierungszelle führt: Er belegt damit, dass die neue Suche für diese Raster denselben Weg wählt. Für die geänderte Regel steht ein eigener Test in `path.test.ts` — eine Platzierungszelle auf der Route wird durchschritten, eine Wand an derselben Stelle macht sie unerreichbar.
+
+**Und der Angreifer sieht nur, was er sehen darf.** Bestätigt am 2026-09-29: Maze-Weg und Bonus-Schätze sichtbar, sonst nichts — keine Monsterzahl, keine Platzierungen, keine Gruppen, keine Patrouillen. Neu `packages/contracts/src/raid-public.ts` mit `RaidPublicViewSchema` und `toPublicView` als einzigem Weg vom privaten Stand zur Angreifer-Sicht; die Maske tauscht ausschließlich Zellnummer 2 gegen Boden. `MatchResponseSchema.snapshot` ist auf diese Sicht umgestellt, und das Schema ist strikt: Eine Match-Antwort mit `monsterSlots` scheitert im Test. Der lokale Fixture-Lauf sendet weiter den vollen Stand — dort ist der Spieler Angreifer und Verteidiger in einer Person.
+
+**Ein Sprung statt zwei.** `CONTRACT_VERSION 4→5` deckt die Angreifer-Sicht und die kürzere `PathResultSchema`-Form, `sim_version 0.0.3→0.0.4` die geänderte Routenregel; `packages/server/migrations/003_contract_v5.sql` entfernt die `0.0.3`-Ära samt abhängigen Jobs und legt die Unveränderlichkeitstrigger wieder an. Das Prädikat nennt die abgelöste Version **ausdrücklich** — der Fix aus dem Audit vom 2026-09-28 —, und `raid-migration-v5.test.mjs` prüft zusätzlich, dass die älteren Bestände der Vorgängermigration überlassen bleiben und die Kette 001 → 002 → 003 einheitlich endet.
+
+**Gates:** typecheck 0, 360 Tests in 54 Dateien, Lint 0, LOC-Caps ok (246 Quellen), Hygiene ok, Shinon PASS.
+
 ## 2026-09-29 — Der Typecheck läuft einmal statt viermal, und die Roadmap übergibt an T1
 
 **Die Messung, nicht der Verdacht.** Derselbe Compilerlauf über dieselben 245 Quelldateien lief lokal viermal: als eigener Schritt von `pnpm run -s gate`, ein zweites Mal in `check`, ein drittes Mal im Plugin `dead-code-gate` und ein viertes Mal im `pre-push`-Hook, der die Plugin-Suite erneut fährt. Im Remote-Gate-Job waren es entsprechend drei Läufe pro Lauf. Ein zweiter Durchgang derselben Prüfung ist keine zweite Sicherheit, sondern Wartezeit; zwei Aufrufstellen mit zwei Regelsätzen sind zusätzlich ein Fehler, der grün bleibt.
@@ -178,20 +190,4 @@ Das Repository hatte genau einen Weg nach `main`: Pull Request, `Shinon Gate`, d
 **Für den Ausfall gibt es jetzt einen Notfallweg.** `scripts/break-glass-main.mjs` serialisiert den Protection-Zustand und setzt ausschließlich `required_status_checks` auf `null`; lineare Historie, Admin-Härte, Konfliktauflösung und das Verbot von Force-Pushes bleiben unangetastet. Der Zustand wird zurückgeschrieben und geprüft. Beide Befehle kennen `--dry-run`. Eine Probelockung gegen das echte `main` ist bewusst unterblieben, weil ein unterbrochener Lock `main` ungeschützt zurückließe; das ist als offene Lücke festgehalten und nicht als geprüft ausgegeben.
 
 
-## 2026-09-26 — Versions-Pins und -Grenzen der Toolchain festgehalten
-
-Vier Dependabot-PRs sind mit begründeten Kommentaren geschlossen: zod 3.23.8 auf 4.6.5, TypeScript 5.6.3 auf 7.0.2, Vitest 2.1.8 auf 5.0.1 und Biome 1.9.4 auf 2.5.14. Alle vier meldeten `mergeable`, scheiterten aber am `Shinon Gate`, und `main` verlangt genau diesen Status-Check.
-
-Die Gründe sind nicht ähnlich, und genau deshalb stehen sie jetzt in `docs/DEV_REQUIREMENTS.md` Abschnitt 6 statt nur in den geschlossenen Kommentaren. Der Zod-Pin ist eine Governance-Entscheidung: `scripts/shinon/policy.json` prüft die Version wörtlich, weil Client und Server dieselben Schema-Instanzen teilen, und zod v4 verweigert zusätzlich `Infinity` in `z.number()`, was der Contract als Sentinel für `unreachable` nutzt. Die TypeScript-Grenze ist strukturell: ab Version 7 fehlt die klassische Compiler-API, auf der `source-scan.mjs` und das `dead-code-gate` aufbauen — ein Bump liefert keine rote Gate-Ausgabe, sondern zwei stillschweigend wirkungslose Prüfungen. Vitest 5 scheitert reproduzierbar am Default-Timeout von fünf Sekunden, weil `engine-slicing.test.mjs` ein echtes Git-Repo anlegt und die Engine als Kindprozess startet. Biome 2 bringt neue Regeln in Bestandscode und ist damit ein Code-Slice, kein Versions-Slice.
-
-Zwei Entscheidungen bleiben ausdrücklich offen und sind nicht als getroffen dokumentiert: ob die Grenzen als `ignore` in `.github/dependabot.yml` festgeschrieben werden, damit Dependabot nicht erneut darauf zeigt, und ob die beiden reparierbaren Bumps Vitest und Biome als eigene Slices nachgezogen werden. Eine entsprechende `ignore`-Konfiguration wurde nicht angelegt, weil diese Frage unbeantwortet blieb.
-
-*Der Befund-Review vom 2026-09-26 (Sync-/Auth-Kanten, Trail-Hash, Idempotenz) ist wortgleich nach `docs/historisch/2026-09-26_changelog-befund-review.md` gewandert.*
-
-## 2026-09-26 — Freigegebene Werkzeug-Erweiterung des Reviewer-Profils
-
-`.github/agents/critical-adversarial-reviewer.agent.md` erhält mit `edit`, `vscodeGeneral/rename`, `vscodeGeneral/usages`, `vscodeNotebooks/createJupyterNotebook` und `vscodeNotebooks/editNotebook` zusätzliche Werkzeuge. Die Erweiterung wurde vom Nutzer ausdrücklich freigegeben; `Agents.md` verlangt für Änderungen an den beiden Ausnahmeprofilen genau diese Freigabe und einen Doku-Touch, den dieser Eintrag liefert.
-
-Der Schreibschutz dieses Profils war zuvor bewusst hergestellt worden: Commit `a1dca08` hieß „Schreibschutz des Reviewer-Profils gegen edit absichern“, und `Agents.md` sowie die `description` der Datei beschreiben das Profil als rein lesend und nicht reparierend. Mit `edit` in der Werkzeugliste können Findings künftig nicht mehr nur belegt, sondern auch direkt im Tree behoben werden. Das ist eine bewusste Abweichung von der bisherigen Leseregel und keine Folge eines Refactorings.
-
-`docs/ARCHITEKTUR.md` und `Agents.md` beschreiben beide Profile weiterhin als schreibgeschützt. Diese Beschreibung ist nach der Freigabe **nicht mehr deckungsgleich** mit der Werkzeugliste und wird bei der nächsten Konsistenzprüfung nachgezogen; sie war Teil desselben Arbeitspakets und ist in diesem Commit nicht enthalten.
+Die beiden Einträge zu den Toolchain-Pins und zur Werkzeug-Erweiterung des Reviewer-Profils liegen seit dem 2026-09-29 in `docs/historisch/2026-09-26_changelog-toolchain-und-reviewer.md`; ihre offenen Punkte stehen weiterhin in der aktiven Roadmap. Der Befund-Review vom 2026-09-26 (Sync-/Auth-Kanten, Trail-Hash, Idempotenz) liegt in `docs/historisch/2026-09-26_changelog-befund-review.md`.

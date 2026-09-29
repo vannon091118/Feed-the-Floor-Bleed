@@ -88,7 +88,7 @@
 | `src/ui/world-host.tsx` | Stabiler DOM-Host und Lebenszyklus der Pixi-Runtime, zugleich fokussierbares Tastaturziel der Kamera |
 | `src/ui/editor-panel.tsx` | DOM-Editorraster mit 16×16 sichtbaren Feldern |
 | `src/ui/editor-controls.tsx` | Pinselauswahl und Zurücksetzen |
-| `src/ui/panels.tsx` | Inhalte der Kontextfenster samt Steuerungslegende mit den Tastenhinweisen; Startbasis und Attraktivität liest es aus `village/balance` |
+| `src/ui/panels.tsx` | Inhalte der Kontextfenster samt Steuerungslegende mit den Tastenhinweisen; Startbasis und Attraktivität liest es aus `village/balance`; die Routenanzeige nennt Modus, Schritte und Bewegungspunkte |
 | `src/icons/resource-icon.tsx` | SVG-Icons der Ressourcenwerte in der Topbar |
 | `src/resources/catalog.ts` | Feste Ressourcen-IDs, Labels und Icons |
 | `src/ui/styles/index.css` | Einstiegspunkt der Oberflächen-Styles mit fester Importreihenfolge |
@@ -99,7 +99,7 @@
 | `src/ui/styles/windows.css` | Kontextfenster über der Bühne; unter 721 px Schubladenanordnung an der unteren Kante |
 | `src/ui/styles/editor.css` | Pinselwahl und Editorraster |
 | `src/ui/styles/raid.css` | Auftrag, Urteil und Hash |
-| `src/dungeon-editor/model.ts` | Pure Editor-Regeln (Pinsel, 4x4-Tiles, Marker) |
+| `src/dungeon-editor/model.ts` | Pure Editor-Regeln (Pinsel mit Leer/Wand/Platzierung, 4x4-Tiles, Marker) |
 | `src/dungeon-editor/state.ts` | Einziger Owner von Grid, Pinsel und Route |
 | `src/village/phase.ts` | Phase-Union in Schleifenreihenfolge, erlaubte Übergänge, reine Entscheidungsfunktion |
 | `src/village/state.ts` | DayNightState-Signal (`phase`, `day`, `job`, `village`, `daySettlement`), Tagesabrechnung im Übergang `result → tag` in `setPhase`, dazu `commitVillage` als Schreibpfad der Baukommandos; ein Gebäude trägt seinen Grundriss |
@@ -115,7 +115,7 @@
 | `src/raid/raid-panel.tsx` | Probelauf-Panel, reicht den terminalen Auftrag an die Schleife weiter |
 | `src/raid/panel.tsx` | Reine Ergebnis-Darstellung eines TerminalRaidJob |
 | `src/raid/playback.ts` | Playback-Store: Log, Tick, Pause, abgeleitete Routenposition |
-| `src/raid/timeline-model.ts` | Reine Abschnitts- und Phasenmodelle des Logs; die Überlebendenzahlen kommen aus `@floor/sim-core` |
+| `src/raid/timeline-model.ts` | Reine Abschnitts- und Phasenmodelle des Logs; die Überlebendenzahlen kommen aus `@floor/sim-core`; Trail-Marken sind Platzierung, Spawn und Boss |
 | `src/raid/timeline.tsx` | Re-Export von Timeline und Steuerung für die Shell |
 | `src/raid/raid-timeline.tsx` | `TimelineTransport` (Scrubber, Play/Pause) und die drei Phasenreihen |
 | `src/raid/phase-nav.tsx` | Drei Phasen-Knöpfe, setzen den Scrubber auf den Phasenbeginn |

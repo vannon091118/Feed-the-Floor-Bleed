@@ -57,10 +57,10 @@ describe('RaidTimeline-Phasen', () => {
     expect(phaseForTick(sections, sections.lastTick + 5)).toBe('result')
   })
 
-  it('markiert Falle-, Spawn- und Boss-Zellen im Trail', () => {
+  it('markiert Platzierungs-, Spawn- und Boss-Zellen im Trail', () => {
     expect(trailBadge(CellType.Empty)).toBeNull()
     expect(trailBadge(CellType.Wall)).toBeNull()
-    expect(trailBadge(CellType.Trap)).toBe('trap')
+    expect(trailBadge(CellType.Placement)).toBe('placement')
     expect(trailBadge(CellType.Spawn)).toBe('spawn')
     expect(trailBadge(CellType.Boss)).toBe('boss')
     const { log } = fixtureRaidLog()

@@ -6,7 +6,7 @@ import type { CombatConfig, CombatEvent, CombatUnitState } from './types'
 /**
  * Trennschritt zwischen Takt und Aktionsort im Saatindex.
  *
- * Eine Route betritt keine Zelle zweimal — `search` in `grid/path-search.ts`
+ * Eine Route betritt keine Zelle zweimal — die Breitensuche in `grid/path.ts`
  * führt dafür das `closed`-Feld und expandiert keine Zelle erneut —, also hat
  * keine Route mehr Schritte als das Raster Zellen. Mit diesem Faktor kodiert
  * `tick * ROUTE_SLOTS + routeIndex` jeden Takt eindeutig, solange kein

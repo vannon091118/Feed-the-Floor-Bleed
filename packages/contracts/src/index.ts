@@ -1,4 +1,12 @@
-export { CellTypeSchema, type CellTypeValue } from './cell'
+export {
+  BOSS_CELL,
+  CellTypeSchema,
+  type CellTypeValue,
+  EMPTY_CELL,
+  PLACEMENT_CELL,
+  SPAWN_CELL,
+  WALL_CELL,
+} from './cell'
 export {
   COMBAT_EVENT_TYPES,
   COMBAT_ROLES,
@@ -57,6 +65,11 @@ export {
   type UploadRequest,
   UploadRequestSchema,
 } from './protocol'
+export {
+  type RaidPublicView,
+  RaidPublicViewSchema,
+  toPublicView,
+} from './raid-public'
 export { type RaidSnapshot, RaidSnapshotSchema } from './raid-snapshot'
 export {
   type CombatTrailEntry,

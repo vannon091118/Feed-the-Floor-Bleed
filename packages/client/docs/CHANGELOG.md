@@ -1,5 +1,13 @@
 # packages/client/docs/CHANGELOG.md
 
+## 2026-09-29 — Der Editor markiert Platzierungen statt Fallen, und die Routenanzeige nennt keine Umwege mehr
+
+**Die Falle heißt jetzt Platzierung und tut nur noch eines: markieren.** `dungeon-editor/model.ts` kennt den Pinsel `placement` statt `trap`, `ui/editor-controls.tsx` beschriftet ihn mit `Platzierung`, `world/tiles.ts` führt den Deskriptor unter `CellType.Placement`, und die Trail-Marke in `raid/timeline-model.ts` heißt `placement` mit dem Label `Platzierung`; `raid/phases.tsx` nennt in seinem Hinweistext dieselben drei Marken. Die Optik bleibt vorerst die alte — der Pfeil, der die Patrouillenrichtung zeigt, kommt mit den Zonen.
+
+**Die Routenanzeige verliert eine Zeile, weil die Zahl weg ist.** `ui/panels.tsx` zeigte `Modus`, `Schritte`, `Kosten` und `Umweg`; mit dem Kostenzuschlag der Falle gibt es keinen Umweg mehr zu berechnen, und `movementCost` heißt in der Anzeige jetzt `Bewegungspunkte`, weil es Schritte sind. `test/dungeon-editor.test.ts` erwartet `reachable` und 126 statt `within-budget` und 125, `test/raid-timeline.test.ts` prüft die neue Marke.
+
+**Was der Client nicht tut:** Er zeigt keine Angreifer-Sicht. Die Maske (`toPublicView` in `@floor/contracts`) ist eine Contract-Regel; sichtbar wird sie erst, wenn ein Dienst eine Match-Antwort ausliefert. Der lokale Fixture-Lauf spielt weiter den vollen Stand, weil dort derselbe Spieler Angreifer und Verteidiger ist.
+
 ## 2026-09-28 — Bau-, Ausbau- und Landkommandos füllen den Dorfbestand
 
 **Scope:** neu `src/village/commands.ts`, `test/village-commands.test.ts` und `test/village-command-guards.test.ts`; geändert `src/village/state.ts` (Grundriss am Gebäude, `commitVillage`), `src/village/balance.ts` (`buildable`, `start.landRows`), `src/village/plot.ts` (Ganzzellprüfung), `src/village/index.ts`, `src/raid/fixture-raid.ts` (Upload liest den Bestand) sowie `test/{village-day-close,raid-job,village-plot}.test.ts`. Kein Contract, kein Hash und keine freigegebene Zahl geändert.
@@ -166,24 +174,6 @@
 
 **Gates:** typecheck 0, Lint 0 (`biome check --error-on-warnings`), 238 Tests in 39 Dateien grün, LOC-Caps ok, Hygiene ok, Shinon PASS.
 
-## 2026-09-27 — Das Raidfenster wächst mit seinem Inhalt
-
-**Scope:** neu `window/fit.ts`; geändert `window/drag.ts`, `window/window.tsx`, `ui/phase-windows.tsx`, `ui/window-launcher.tsx`, `ui/styles/windows.css`, `ui/styles/raid.css` und `test/window-routing.test.ts`. Store und Panels unberührt.
-
-**Der Befund.** Das Phasenfenster öffnete in der Raid-Phase mit 260 px, die Trail-Liste darunter ist mit über 3000 px länger als jeder Viewport. Die Steuerung klebte am Oberrand des Inhalts, doch das Fenster blieb ein schmaler Streifen: der Rest der Timeline lag dauerhaft unter der Falz und war nur über den Fenster-Scrollbalken erreichbar. Eine größere Öffnungsgröße im Launcher wäre eine zweite Schätzung gewesen — die echte Höhe kennt nur das DOM.
-
-**Der Fit.** `drag.ts` rechnet rein: `fittedHeight` ist Kopf plus gemessene Inhaltsfläche, geklemmt auf die Mindesthöhe des Resize-Griffs und den Platz zwischen Fensteroberkante und Falz. Damit endet ein angepasstes Fenster an der Unterkante des Sichtfelds statt darunter, und ein Inhalt, der auch dann nicht passt, scrollt im Fenster, statt das Fenster aus dem Bild zu schieben. `resizedBox` bündelt die Resize-Klemmung, damit Griff und Fit dieselben Grenzen lesen.
-
-**Die Messung.** `window/fit.ts` übersetzt DOM in Store: ein ResizeObserver am Inhaltsblock meldet dessen Höhe, `window.tsx` patcht ausschließlich die Höhe; Breite und Lage bleiben am Nutzer. Beobachtet wird der Block und nicht der Fensterrumpf — der Rumpf füllt als Flex-Kind genau die Fensterhöhe und hätte dem Fit seine eigene Wirkung zurückgemeldet, bis jedes Fenster am Anschlag stand. Dafür trägt jetzt `.game-window__content` das Padding und `.game-window__body` füllt nur noch und scrollt; die klebende Raid-Steuerung klebt deshalb bei `top: 0` statt negativ, sonst schnitte der Rumpf ihren oberen Rand ab.
-
-Vier Details stecken in der Messung, jedes aus einem beobachteten Fehler. Der Beobachter entsteht im Ref und nicht in einem Effekt: Effekte laufen nach dem Aufbau, zu dem der Ref den Knoten liefert — beim ersten Aufbau gäbe es sonst nichts zu beobachten und nie eine erste Messung. Der Ref behält seine Identität über die Renderdurchläufe, sonst hinge sich der Beobachter bei jedem Durchlauf neu an. Gemessen wird aufgerundet und erst im nächsten Frame gepatcht: ein angebrochenes Pixel Resthöhe öffnet einen Scrollbalken, den der Fit gerade vermeiden soll, und ein Patch mitten im Zustellschritt des Beobachters meldet dem Browser eine Beobachterschleife. Der Rahmen des Fensters liegt als Ring außerhalb der Box statt als Border: ein Border zählt in die Höhe und der Zuschnitt stünde dauerhaft einen Pixel zu kurz. Ein Zug am Resize-Griff bleibt stehen, weil der Fit den Inhaltsblock misst und nicht die Fenstergröße.
-
-**Tests.** `fittedHeight` ist rein und ohne DOM getestet: 3100 px Inhalt an einer 900-px-Fläche ergibt 900, 600 px ergeben 640 (Inhalt plus Kopf), bei einer Oberkante von 82 px endet das Fenster bei 818, 0 ergibt die Mindesthöhe. 13 Tests in `window-routing.test.ts`.
-
-**Im Browser.** Im Produktionsbuild bei 1440 × 1000: Das Raidfenster wächst von 260 auf 918 px, seine Unterkante liegt auf der Falz bei 1000 px, und bei 3876 px Inhalt scrollt es innen, während die Steuerung am Oberrand sichtbar bleibt. Ein Canvas, Topbar und Dorfblick unverändert, keine Konsolenfehler. Der kurze Tag-Inhalt endet dagegen ohne Scrollbalken bei 265 px.
-
-**Gates:** typecheck 0, Lint 0 (8 Baseline-Warnungen in nicht angefassten Dateien), 234 Tests in 39 Dateien grün, LOC ok (`window.tsx` 119/120, `drag.ts` 69, `fit.ts` 21), Hygiene ok, Shinon PASS.
-
 ## 2026-09-27 — Die drei offenen Punkte geprüft: zwei erledigt, einer accessorisch nachgezogen
 
 **Scope:** geändert `ui/window-launcher.tsx`, `ui/styles/panels.css`, `window/window.tsx` (nur die ARIA-Verdrahtung des Kopfes, keine Logik) sowie `docs/REPOINDEX.md` und `docs/STRINGMATRIX.md`. `render/village-*`, `ui/world-host.tsx`, `ui/stage.tsx` und die Dorf-Szene unberührt.
@@ -196,4 +186,4 @@ Vier Details stecken in der Messung, jedes aus einem beobachteten Fehler. Der Be
 
 **Gates:** typecheck 0, Lint 0, Tests grün, LOC-Caps ok, Hygiene ok, Shinon PASS einschließlich Redundanz-Gate.
 
-Die Oberfläche-Modularisierung vom 2026-09-26 steht in `historisch/2026-09-26_client-oberflaeche-modularisiert.md`; die Raid-Timeline-Verdrahtung und der Oberflächen-Rebase in `historisch/2026-09-26_client-raid-timeline.md`, die Render-Foundation-Einträge (Animation ohne Sinus, Route-Mapping und Actor-Varianten, Showcase-Optik, Atlas-Schnitt) in `historisch/2026-09-26_client-render-fundament.md`, der Raid-Replay samt Tick in `historisch/2026-09-27_client-raid-replay.md`, der Dashboard-Abbau mit der lebenden Welt in `historisch/2026-09-27_client-dashboard-abbau.md`, die Einträge der ersten Stunden in `historisch/2026-09-25_client-aufbau.md`, die drei Fenstereinträge vom 2026-09-27 — Kopfklemme, einzeilige Topbar und Fensterinhalt-Anfang — in `historisch/2026-09-27_client-fenster-geometrie.md`, der Abbau der zweiten Dorfdarstellung in `historisch/2026-09-27_client-zweite-dorfdarstellung.md`, der Tote-Code-Nachgang vom 2026-09-27 in `historisch/2026-09-27_client-tote-code-reste.md`.
+Die Oberfläche-Modularisierung vom 2026-09-26 steht in `historisch/2026-09-26_client-oberflaeche-modularisiert.md`; die Raid-Timeline-Verdrahtung und der Oberflächen-Rebase in `historisch/2026-09-26_client-raid-timeline.md`, die Render-Foundation-Einträge (Animation ohne Sinus, Route-Mapping und Actor-Varianten, Showcase-Optik, Atlas-Schnitt) in `historisch/2026-09-26_client-render-fundament.md`, der Raid-Replay samt Tick in `historisch/2026-09-27_client-raid-replay.md`, der Dashboard-Abbau mit der lebenden Welt in `historisch/2026-09-27_client-dashboard-abbau.md`, die Einträge der ersten Stunden in `historisch/2026-09-25_client-aufbau.md`, die drei Fenstereinträge vom 2026-09-27 — Kopfklemme, einzeilige Topbar und Fensterinhalt-Anfang — in `historisch/2026-09-27_client-fenster-geometrie.md`, der Abbau der zweiten Dorfdarstellung in `historisch/2026-09-27_client-zweite-dorfdarstellung.md`, der Tote-Code-Nachgang vom 2026-09-27 in `historisch/2026-09-27_client-tote-code-reste.md`, der Fit des Raidfensters an seinen Inhalt in `historisch/2026-09-27_client-raidfenster-fit.md`.

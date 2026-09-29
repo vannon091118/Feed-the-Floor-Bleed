@@ -13,8 +13,11 @@ und feste Tick-Reihenfolge. Kein Zugriff auf Client, Server, `fs` oder Zeit.
   sowie `isqrt`/`sqrtFixed` ohne `Math.sqrt`.
 - `hash` FNV-1a-Kette über Wörter und Text (`hashStart`, `hashWord`, `hashText`,
   `hashFinish`, `hashToHex`).
-- `grid` 64x64, fünf Tile-Typen, A* mit fester Nachbar-Reihenfolge; der Fallback
-  nimmt den Weg mit den wenigsten Tiles.
+- `grid` 64x64, fünf Tile-Typen, Breitensuche in `grid/path.ts` mit fester
+  Nachbar-Reihenfolge und FIFO-Warteschlange. Boden, Spawn, Boss und die
+  Platzierungsmarkierung kosten gleich viel, Wände sind unpassierbar — deshalb
+  braucht die Suche weder Heap noch Umwegbudget; die gewichtete Suche mit
+  Rückfallzweig ist mit der Falle am 2026-09-29 entfallen.
 - `combat` bounded Tick-Simulation (`simulateCombat`) mit deterministischer
   Zielwahl, Seed-Varianz pro Angriff, Event-Log und kanonischem Log-Hash.
 - `combat/boss.ts` besitzt den Boss: `isBoss`/`isBossAlive` als einzige

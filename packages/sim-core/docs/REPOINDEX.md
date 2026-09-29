@@ -5,7 +5,7 @@
 | `src/prng/` | Mulberry32, Seed-Ableitung |
 | `src/math/` | Fixed-Point, isqrt |
 | `src/hash/` | FNV-1a-Hash-Kette |
-| `src/grid/` | Grid, A*, Hard-Block, Contract-Serialisierung |
+| `src/grid/` | Grid, Breitensuche ohne Zusatzkosten, Hard-Block, Contract-Serialisierung |
 | `src/combat/` | Tick-Simulation, Events, Log-Hash, Replay, Summary, Fixture-Auftrag |
 | `src/combat/boss.ts` | Boss-Identität, Boss-Ausgangswerte und boss-exklusive Verstärkungen |
 | `src/combat/combat-pin.test.ts` | Golden-Pin des Kampf-Hashes: fester Seed, erwarteter Hash als Konstante |

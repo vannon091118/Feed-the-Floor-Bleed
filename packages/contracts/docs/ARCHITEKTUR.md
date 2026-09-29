@@ -23,13 +23,15 @@ Single Source of Truth für versionierte Schemas, Payloads und `sim_version`. Da
 - `activeTeam`: ein bis fünf aktive Helden mit `heroId`, `temporaryFatigue` und `temporaryInjury` als sichere Ganzzahlen.
 - `dungeon`: bestehender 64×64-Grid-Contract.
 
+Die Angreifer-Fassade `RaidPublicViewSchema` ist `.strict()` und trägt nur die Contract-Version und `dungeon`; ein Rohling mit `monsterSlots` scheitert dort. Die Maske tauscht ausschließlich Platzierungszellen gegen Boden — Spawn, Boss und Wände bleiben, die Route bleibt damit dieselbe.
+
 Der Contract legt keine Formeln, Grenzen, Umrechnungen oder Gameplay-Effekte für Ressourcen, Müdigkeit oder Verletzung fest. Taktiken gehören zum `UploadRequest`, werden aber nicht als Teil des eingefrorenen Raid-Snapshots persistiert.
 
 ## Vertragsumfang
 
-- `PathResultSchema`: die drei bestehenden Modi sowie Pfad, Bewegungskosten und Umwegkosten.
+- `PathResultSchema`: `reachable` oder `unreachable`, dazu Pfad und Bewegungspunkte. Das Umwegbudget der Falle ist mit dem 2026-09-29 entfallen: Eine Platzierungsmarkierung kostet wie Boden.
 - `UploadRequestSchema`: vollständiger `RaidSnapshot` plus `tactics`; genau eine Taktikliste je aktivem Helden.
-- `MatchResponseSchema`: `seed`, `floor` und ein vollständiger versionierter `RaidSnapshot` als späteres Ziel.
+- `MatchResponseSchema`: `seed`, `floor` und `RaidPublicViewSchema` — die **öffentliche** Sicht, die der Angreifer bekommen darf. Der volle `RaidSnapshot` bleibt privat und liegt beim Server; `toPublicView` ist der einzige erlaubte Weg von dort nach hier (siehe `raid-public.ts`).
 - `ResultPayloadSchema`: `token`, `floor`, `hash` und typisiertes `CombatSummary` mit `defendersTotal` (eingefrorener Verteidiger-Roster inklusive Boss). Die Zahl der gefallenen Gegner ist damit ohne den Log ableitbar.
 - `RaidLogPayloadSchema`: derselbe Hash plus der vollständige `CombatLog`. Eigenes Artefakt, damit `result_json` klein bleibt.
 - `CombatLogSchema`: Config, Einheiten, Ereignisse, Stufe, Ticks, Hash und `trail` (jeder Schritt mit `x/y/cell`). Seit T1.1 fließt der Trail in `fingerprintCombatLog`; `verifyCombatLog` deckt ihn über den Hash-Vergleich ab. Invarianten erzwingen eindeutige IDs, ein schließendes `end`-Ereignis und Tick ≤ `log.ticks`.

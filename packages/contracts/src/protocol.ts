@@ -4,6 +4,7 @@ import {
   CombatLogSchema,
   CombatSummarySchema,
 } from './combat-log'
+import { RaidPublicViewSchema } from './raid-public'
 import { RaidSnapshotSchema } from './raid-snapshot'
 import { versionEnvelope } from './version'
 
@@ -25,10 +26,16 @@ export const UploadRequestSchema = RaidSnapshotSchema.extend({
       })
   })
 
+/**
+ * Was ein Angreifer zur Auswahl bekommt: Seed, Etage und die öffentliche
+ * Sicht. Hier steht ausdrücklich `RaidPublicViewSchema` und nicht der private
+ * Stand — der Roster hat in dieser Antwort nichts zu suchen. Der Server führt
+ * den privaten Stand weiter und rechnet damit; der Angreifer spielt nur ab.
+ */
 export const MatchResponseSchema = versionEnvelope
   .extend({
     seed: seedSchema,
-    snapshot: RaidSnapshotSchema,
+    snapshot: RaidPublicViewSchema,
     floor: floorSchema,
   })
   .strict()

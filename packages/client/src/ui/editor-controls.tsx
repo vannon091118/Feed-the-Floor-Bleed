@@ -8,7 +8,7 @@ import {
 const BRUSHES: ReadonlyArray<{ id: Brush; label: string }> = [
   { id: 'empty', label: 'Leer' },
   { id: 'wall', label: 'Wand' },
-  { id: 'trap', label: 'Falle' },
+  { id: 'placement', label: 'Platzierung' },
 ]
 
 /** Pinselauswahl und Rücksetzen. Beides schreibt nur in den Grid-Owner. */

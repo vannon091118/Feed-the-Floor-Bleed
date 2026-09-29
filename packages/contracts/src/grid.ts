@@ -51,10 +51,9 @@ export type DungeonGridPayload = z.infer<typeof DungeonGridSchema>
 
 export const PathResultSchema = z
   .object({
-    mode: z.enum(['within-budget', 'trap-fallback', 'unreachable']),
+    mode: z.enum(['reachable', 'unreachable']),
     path: z.array(pointSchema),
     movementCost: z.number().nonnegative(),
-    detourCost: z.number().nonnegative(),
   })
   .strict()
   .superRefine((result, context) => {
@@ -62,8 +61,7 @@ export const PathResultSchema = z
     if (
       unreachable &&
       (result.path.length !== 0 ||
-        result.movementCost !== Number.POSITIVE_INFINITY ||
-        result.detourCost !== Number.POSITIVE_INFINITY)
+        result.movementCost !== Number.POSITIVE_INFINITY)
     )
       context.addIssue({
         code: 'custom',
@@ -72,9 +70,7 @@ export const PathResultSchema = z
       })
     if (
       !unreachable &&
-      (result.path.length === 0 ||
-        !Number.isFinite(result.movementCost) ||
-        !Number.isFinite(result.detourCost))
+      (result.path.length === 0 || !Number.isFinite(result.movementCost))
     )
       context.addIssue({
         code: 'custom',

@@ -1,36 +1,92 @@
-import { manhattan, reconstructPath, search } from './path-search'
-import type { DungeonGrid, PathResult } from './types'
+import {
+  CellType,
+  type DungeonGrid,
+  GRID_SIZE,
+  type PathResult,
+  type Point,
+} from './types'
 
-export function findPath(grid: DungeonGrid, maxDetourPoints = 5): PathResult {
-  if (!Number.isInteger(maxDetourPoints) || maxDetourPoints < 0) {
-    throw new Error('maxDetourPoints must be a non-negative integer')
-  }
-  const baseline = Math.max(0, manhattan(grid.spawn, grid.boss) - 1)
-  const bounded = search(grid, baseline + maxDetourPoints, true)
-  if (bounded) {
-    const path = reconstructPath(bounded)
-    return {
-      ...path,
-      mode: 'within-budget',
-      detourCost: Math.max(0, bounded.cost - baseline),
+const NEIGHBORS = [
+  { x: 1, y: 0 },
+  { x: 0, y: 1 },
+  { x: -1, y: 0 },
+  { x: 0, y: -1 },
+] as const
+
+const CELL_COUNT = GRID_SIZE * GRID_SIZE
+
+function indexOf(point: Point): number {
+  return point.y * GRID_SIZE + point.x
+}
+
+function pointOf(index: number): Point {
+  return { x: index % GRID_SIZE, y: Math.floor(index / GRID_SIZE) }
+}
+
+/**
+ * Kürzester Weg in Schritten vom Spawn zum Boss, oder `undefined`.
+ *
+ * Boden, Spawn, Boss und Platzierungsmarkierungen sind gleich teuer, Wände
+ * sind unpassierbar. Deshalb ist das eine Breitensuche und keine gewichtete
+ * Suche: Mit der Falle ist am 2026-09-29 auch ihr Kostenzuschlag entfallen,
+ * die Placement Tile markiert nur noch. Die alte Suche brauchte dafür einen
+ * Heap, ein Umwegbudget und einen Rückfallzweig; alle drei hatten nur diese
+ * eine Aufgabe und sind mit ihr verschwunden.
+ *
+ * Die Warteschlange ist FIFO und die Nachbarreihenfolge fest, damit derselbe
+ * Dungeon immer denselben Weg liefert.
+ */
+function shortestPath(grid: DungeonGrid): Point[] | undefined {
+  const start = indexOf(grid.spawn)
+  const target = indexOf(grid.boss)
+  const parent = new Int32Array(CELL_COUNT).fill(-1)
+  const seen = new Uint8Array(CELL_COUNT)
+  const queue = new Int32Array(CELL_COUNT)
+  let head = 0
+  let tail = 0
+  queue[tail++] = start
+  seen[start] = 1
+
+  while (head < tail) {
+    const current = queue[head++]
+    if (current === target) break
+    const point = pointOf(current)
+    for (const direction of NEIGHBORS) {
+      const next = { x: point.x + direction.x, y: point.y + direction.y }
+      if (
+        next.x < 0 ||
+        next.x >= GRID_SIZE ||
+        next.y < 0 ||
+        next.y >= GRID_SIZE
+      )
+        continue
+      const index = indexOf(next)
+      if (seen[index]) continue
+      if (grid.cells[index] === CellType.Wall) continue
+      seen[index] = 1
+      parent[index] = current
+      queue[tail++] = index
     }
   }
-  const fallback = search(grid, Number.POSITIVE_INFINITY, true)
-  if (!fallback)
+
+  if (!seen[target]) return undefined
+  const path: Point[] = []
+  for (let index = target; index !== -1; index = parent[index])
+    path.push(pointOf(index))
+  return path.reverse()
+}
+
+export function findPath(grid: DungeonGrid): PathResult {
+  const path = shortestPath(grid)
+  if (!path)
     return {
       mode: 'unreachable',
       path: [],
       movementCost: Number.POSITIVE_INFINITY,
-      detourCost: Number.POSITIVE_INFINITY,
     }
-  const path = reconstructPath(fallback)
-  return {
-    ...path,
-    mode: 'trap-fallback',
-    detourCost: Math.max(0, fallback.cost - baseline),
-  }
+  return { mode: 'reachable', path, movementCost: path.length - 1 }
 }
 
-export function hasValidRoute(grid: DungeonGrid, maxDetourPoints = 5): boolean {
-  return findPath(grid, maxDetourPoints).mode !== 'unreachable'
+export function hasValidRoute(grid: DungeonGrid): boolean {
+  return shortestPath(grid) !== undefined
 }
