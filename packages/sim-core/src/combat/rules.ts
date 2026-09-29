@@ -1,3 +1,4 @@
+import { behaviorForTrait } from '../genome/behavior'
 import { baseMonsters } from '../genome/registry'
 import { monsterStats } from '../genome/stats'
 import { GRID_SIZE } from '../grid'
@@ -36,6 +37,7 @@ function heroSpec(index: number, trailIndex: number): CombatUnitSpec {
     id: `hero-${index}`,
     side: 'heroes',
     role: 'hero',
+    behavior: 'none',
     maxHp: base.maxHp,
     attack: base.attack,
     defense: base.defense,
@@ -72,6 +74,9 @@ function monsterSpec(
     id: `monster-${slot}`,
     side: 'monsters',
     role: 'monster',
+    // Das Verhalten folgt dem Trait der Art — kein zweites Feld, das daneben
+    // veralten könnte. Unbekannte Art: Grundfall `none` statt erfundener Rolle.
+    behavior: base ? behaviorForTrait(base.trait) : 'none',
     maxHp: stats.maxHp,
     attack: stats.attack,
     defense: stats.defense,

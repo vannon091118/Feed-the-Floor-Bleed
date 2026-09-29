@@ -1,20 +1,17 @@
-import { CONTRACT_VERSION, sim_version } from '@floor/contracts'
 import { describe, expect, it } from 'vitest'
 import {
+  contractVersionOf,
   databaseWith,
   jobById,
   migration,
   openJob,
+  simVersionOf,
   snapshot,
-  versionsOf,
 } from './migration-fixtures.mjs'
 
 const toV5 = migration('003_contract_v5.sql')
 const toV6 = migration('004_contract_v6.sql')
 const toV7 = migration('005_contract_v7.sql')
-
-/** Der Stand, den `005` herstellt: beide Felder auf dem aktuellen Wert. */
-const current = { simVersion: sim_version, contractVersion: CONTRACT_VERSION }
 
 describe('Migration auf Contract v7', () => {
   it('hebt einen v6-Stand an, statt ihn zu löschen', () => {
@@ -23,7 +20,11 @@ describe('Migration auf Contract v7', () => {
     openJob(db, 'job-v6', 'v6', 'player-1')
     db.exec(toV7)
 
-    expect(versionsOf(db, 'v6')).toEqual(current)
+    // Der Wert der abgelösten Ära, nicht der aktuelle: `005` ist eine
+    // Momentaufnahme des Sprungs 6→7 und wird bei späteren Sprüngen nicht
+    // angepasst. Die aktuelle Version prüft der Test der neuesten Migration.
+    expect(simVersionOf(db, 'v6')).toBe('0.0.6')
+    expect(contractVersionOf(db, 'v6')).toBe(7)
     // Der Job bleibt: der eingefrorene Stand ist in v7 unverändert lesbar.
     expect(jobById(db, 'job-v6')).toBeTruthy()
     db.close()
@@ -33,10 +34,8 @@ describe('Migration auf Contract v7', () => {
     const db = databaseWith(toV5, toV6)
     snapshot(db, 'later', '0.0.7', 8)
     db.exec(toV7)
-    expect(versionsOf(db, 'later')).toEqual({
-      simVersion: '0.0.7',
-      contractVersion: 8,
-    })
+    expect(simVersionOf(db, 'later')).toBe('0.0.7')
+    expect(contractVersionOf(db, 'later')).toBe(8)
     db.close()
   })
 

@@ -19,11 +19,21 @@ export const COMBAT_EVENT_TYPES = [
 ] as const
 export const COMBAT_SIDES = ['heroes', 'monsters'] as const
 export const COMBAT_ROLES = ['hero', 'monster', 'boss'] as const
+/**
+ * Verhaltensprofil des Verteidigers — abgeleitet aus dem Genom, nicht gesetzt.
+ *
+ * `none` ist der Grundfall (Helden, Boss, Arten ohne Profil): das nächste
+ * Ziel. Die drei Profile ändern ausschließlich die Zielentscheidung und damit
+ * keine Zahl — daran liegt es, warum sie im Log stehen und nicht nur im Speicher:
+ * ein Replay liest nur den Log und müsste die Wahl sonst neu erfinden.
+ */
+export const MONSTER_BEHAVIORS = ['none', 'tank', 'hunter', 'control'] as const
 
 export const CombatStageSchema = z.enum(COMBAT_STAGES)
 export const CombatEventTypeSchema = z.enum(COMBAT_EVENT_TYPES)
 export const CombatSideSchema = z.enum(COMBAT_SIDES)
 export const CombatRoleSchema = z.enum(COMBAT_ROLES)
+export const MonsterBehaviorSchema = z.enum(MONSTER_BEHAVIORS)
 
 /** Achtstelliger Hex-Hash wie `fingerprintCombatLog` ihn liefert. */
 export const CombatHashSchema = z.string().regex(/^[0-9a-f]{8}$/)
@@ -48,6 +58,8 @@ export const CombatUnitSpecSchema = z
     id: unitId,
     side: CombatSideSchema,
     role: CombatRoleSchema,
+    /** Verhalten aus dem Genom der Art; `none` ist der Grundfall. */
+    behavior: MonsterBehaviorSchema,
     maxHp: fixed.positive(),
     attack: fixed.nonnegative(),
     defense: fixed.nonnegative(),
@@ -123,6 +135,7 @@ export const CombatLogSchema = z
   })
 
 export type CombatStage = z.infer<typeof CombatStageSchema>
+export type MonsterBehavior = z.infer<typeof MonsterBehaviorSchema>
 export type CombatEventType = z.infer<typeof CombatEventTypeSchema>
 export type CombatConfig = z.infer<typeof CombatConfigSchema>
 export type CombatUnitSpec = z.infer<typeof CombatUnitSpecSchema>

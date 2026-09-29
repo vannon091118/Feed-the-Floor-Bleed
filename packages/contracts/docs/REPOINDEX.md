@@ -9,7 +9,7 @@
 | `packages/contracts/src/protocol.ts` | Upload-, Match-, Result-, Log- und Fehler-Schemas; `MatchResponse.snapshot` ist die öffentliche Sicht |
 | `packages/contracts/src/raid-public.ts` | Öffentliche Angreifer-Sicht `RaidPublicViewSchema` und die Maske `toPublicView` |
 | `packages/contracts/src/trail.ts` | Trail-Schema: `CombatTrailEntry` mit x/y/cell/zoneId |
-| `packages/contracts/src/combat-log.ts` | Strikte Wire-Form von Config, Einheiten, Events und Log (inkl. Trail und Invarianten) |
+| `packages/contracts/src/combat-log.ts` | Strikte Wire-Form von Config, Einheiten (inkl. Verhaltensprofil), Events und Log (inkl. Trail und Invarianten) |
 | `packages/contracts/src/combat-summary.ts` | Ergebnis-Kurzfassung `CombatSummarySchema` für Listen, Logs und Client-Anzeige |
 | `packages/contracts/src/job.ts` | Auftragsstatus, Übergangsautomat, Job als Diskriminated Union |
 | `packages/contracts/src/index.ts` | Öffentliche Contract-Exports |
@@ -18,5 +18,5 @@
 | `packages/contracts/test/contracts.test.ts` | Snapshot-, Handshake- und Kompatibilitätstests |
 | `packages/contracts/test/combat-log.test.ts` | Log-Invarianten, Summary-Trennung, JSON-Roundtrip |
 | `packages/contracts/test/job.test.ts` | Zustandsautomat, Fehler/Timeout-Trennung, Roundtrip |
-| `packages/contracts/test/raid-fixtures.ts` | Gültige v7-Test-Snapshots, Logs und Jobs samt Angreifer-Sicht |
+| `packages/contracts/test/raid-fixtures.ts` | Gültige v8-Test-Snapshots, Logs und Jobs samt Angreifer-Sicht |
 | `packages/contracts/docs/*` | Pflicht-Doku dieser Domäne |

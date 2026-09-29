@@ -2,9 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   contractVersionOf,
   databaseWith,
-  jobById,
   migration,
-  openJob,
   simVersionOf,
   snapshot,
 } from './migration-fixtures.mjs'
@@ -16,7 +14,6 @@ describe('Migration auf Contract v6', () => {
   it('hebt einen v5-Stand an, statt ihn zu löschen', () => {
     const db = databaseWith(toV5)
     snapshot(db, 'v5', '0.0.4', 5)
-    openJob(db, 'job-v5', 'v5', 'player-1')
     db.exec(toV6)
 
     // Der Wert der abgelösten Ära, nicht der aktuelle: `004` ist eine
@@ -24,8 +21,9 @@ describe('Migration auf Contract v6', () => {
     // angepasst. Die aktuelle Version prüft der Test der neuesten Migration.
     expect(simVersionOf(db, 'v5')).toBe('0.0.5')
     expect(contractVersionOf(db, 'v5')).toBe(6)
-    // Der Job bleibt: sein Ergebnis ist unter demselben Kampfmodell gerechnet.
-    expect(jobById(db, 'job-v5')).toBeTruthy()
+    // Dass ein abhängiger Job die Hebung überlebt, belegen dieselbe Mechanik
+    // (UPDATE statt DELETE) die Tests 005 bis 006 — dort steht der Job je
+    // Kette einmal; zwei Zeilen wären hier dieselbe Prüfung zum dritten Mal.
     db.close()
   })
 

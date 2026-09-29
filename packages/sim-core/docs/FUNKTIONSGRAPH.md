@@ -21,6 +21,8 @@ genome:mutation ───────▶ genome:baseGenome, genetisches Element 
 genome:stats ──────────▶ genome:resolve (Kopplung der Elemente zu Basiswerten)
 genome:effects ────────▶ genome:resolve (Traits und Boni, Reihenfolge)
 genome:resolve ────────▶ öffentliche Kampfwerte eines Genoms
+genome:behavior ───────▶ combat:rules (behaviorForTrait am Spec) ─▶ combat:state (chooseOpponent)
+genome:behavior ───────▶ @floor/contracts (MONSTER_BEHAVIORS: eine Liste, ein Besitzer)
 prng + hash ───────────▶ genome:mutation (einzige Zufallsquelle der Zucht)
 ```
 
@@ -32,8 +34,11 @@ ist die einzige Stelle, die einen Auftrag als Ganzes betrachtet.
 `replayCombat` auf dem Log allein lauffähig — die Kante `combat:replay`
 `──▶ combat:simulate` trägt keinen Grid-Zugriff.
 
-`combat` liest die Art des Verteidigers aus `genome/stats` und die Basiswerte
-aus `src/units.ts`; die Kante läuft in eine Richtung. `genome` liest selbst nur
-`math`, `prng`, `hash` und `units` und rechnet keine Kämpfe. `src/units.ts`
+`combat` liest die Art des Verteidigers aus `genome/stats`, ihr Verhaltensprofil
+aus `genome:behavior` und die Basiswerte
+aus `src/units.ts`; die Kante läuft in eine Richtung. `genome` liest selbst nur `math`, `prng`, `hash` und `units` — plus seit dem
+Verhaltens-Slice die Kanon-Liste `MONSTER_BEHAVIORS` aus `@floor/contracts`,
+einer reinen Datenkante ohne Rechnung, die nur nach außen zeigt: der Contract
+liest nie zurück. `genome` rechnet weiterhin keine Kämpfe. `src/units.ts`
 gehört keiner der beiden Domänen an und trägt genau diese eine Wahrheit, damit
 die Kante keine Schleife schließen kann.

@@ -83,6 +83,23 @@ describe('Strikter Combat-Log', () => {
     expect(CombatLogSchema.safeParse(log).success).toBe(true)
   })
 
+  it('verlangt ein Verhalten und nur die vier Profile', () => {
+    // Das Profil steht im Log, weil ein Replay ausschließlich den Log liest:
+    // fehlte es, müsste die Zielentscheidung im Replay neu erfunden werden,
+    // und ein erfundenes Profil wäre eine Entscheidung ohne Mechanik.
+    const log = combatLog()
+    const without = {
+      ...log,
+      units: log.units.map(({ behavior: _profil, ...unit }) => unit),
+    }
+    expect(CombatLogSchema.safeParse(without).success).toBe(false)
+    const invented = {
+      ...log,
+      units: log.units.map((unit) => ({ ...unit, behavior: 'swarm' })),
+    }
+    expect(CombatLogSchema.safeParse(invented).success).toBe(false)
+  })
+
   it('hält die Summary geschlossen und typisiert', () => {
     const summary = combatSummary()
     expect(

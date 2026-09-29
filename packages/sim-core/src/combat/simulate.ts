@@ -1,10 +1,10 @@
 import { applyAttack, applyMove } from './actions'
 import { fingerprintCombatLog } from './fingerprint'
 import {
+  chooseOpponent,
   createUnitStates,
   distanceBetween,
   evaluateStage,
-  nearestOpponent,
 } from './state'
 import type {
   CombatConfig,
@@ -34,7 +34,7 @@ export function simulateCombat(input: SimulateCombatInput): CombatLog {
     for (let index = 0; index < states.length; index += 1) {
       const actor = states[index]
       if (!actor.alive || actor.nextActionTick > tick) continue
-      const target = nearestOpponent(states, actor)
+      const target = chooseOpponent(states, actor)
       if (!target) continue
       if (distanceBetween(actor, target) <= input.config.attackRange) {
         applyAttack(actor, target, tick, events, input.seed, input.config)

@@ -27,6 +27,9 @@ export {
   CombatStageSchema,
   type CombatUnitSpec,
   CombatUnitSpecSchema,
+  MONSTER_BEHAVIORS,
+  type MonsterBehavior,
+  MonsterBehaviorSchema,
 } from './combat-log'
 export {
   type CombatSummary,

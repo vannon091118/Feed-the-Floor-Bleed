@@ -1,5 +1,15 @@
 # packages/server/docs/CHANGELOG.md
 
+## 2026-09-29 — Migration 006 zieht Contract v8 nach, ohne Daten zu verlieren
+
+**Scope:** neu `migrations/006_contract_v8.sql` und `src/db/raid-migration-v8.test.mjs`. Geändert `src/db/raid-migration-v7.test.mjs`. Keine Route, kein Schema, keine Spalte geändert.
+
+**Schreiben statt löschen, dieselbe Haltung wie in 004 und 005.** Ein v7-Snapshot ist die eingefrorene Eingabe; ihre Form ändert sich mit `behavior` am Log nicht. Die Migration hebt v7-Zeilen auf `sim_version 0.0.7` und `contractVersion 8` und nennt das Prädikat die abgelöste Version ausdrücklich (`sim_version IN ('0.0.6')`) — ein „alles außer der aktuellen"-Prädikat würde bei erneuter Ausführung still Daten verlieren, die eine spätere Codebasis geschrieben hat.
+
+**Der v7-Test wird zum Ära-Test, und das ist derselbe Zug wie beim v6-Test.** Seine Versionszusage vergleicht jetzt die Werte der abgelösten Ära (`0.0.6`/`7`) einzeln statt `sim_version` aus dem Contract — sonst hätte jeder folgende Sprung diesen Test rot gemacht. Den aktuellen Wert prüft ab jetzt `raid-migration-v8.test.mjs` über `versionsOf`; die Lesart der beiden Sichtweisen steht in `migration-fixtures.mjs`.
+
+**Gates:** typecheck 0, 500 Tests in 73 Dateien, Lint 0, LOC-Caps ok, Hygiene ok, Shinon PASS.
+
 ## 2026-09-29 — Migration 005 zieht Contract v7 nach, ohne Daten zu verlieren
 
 **Scope:** neu `migrations/005_contract_v7.sql` und `src/db/raid-migration-v7.test.mjs`. Geändert `src/db/migration-fixtures.mjs` (Migrationen als Kette, Versionsleser geteilt) und `src/db/raid-migration-v6.test.mjs`. Keine Route, kein Schema, keine Spalte geändert.

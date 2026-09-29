@@ -18,8 +18,9 @@ und feste Tick-Reihenfolge. Kein Zugriff auf Client, Server, `fs` oder Zeit.
   Platzierungsmarkierung kosten gleich viel, Wände sind unpassierbar — deshalb
   braucht die Suche weder Heap noch Umwegbudget; die gewichtete Suche mit
   Rückfallzweig ist mit der Falle am 2026-09-29 entfallen.
-- `combat` bounded Tick-Simulation (`simulateCombat`) mit deterministischer
-  Zielwahl, Seed-Varianz pro Angriff, Event-Log und kanonischem Log-Hash.
+- `combat` bounded Tick-Simulation (`simulateCombat`) mit deterministischer,
+  profilabhängiger Zielwahl (`chooseOpponent`), Seed-Varianz pro Angriff,
+  Event-Log und kanonischem Log-Hash.
 - `combat/boss.ts` besitzt den Boss: `isBoss`/`isBossAlive` als einzige
   Rollenerkennung, `BOSS_RULES` als seine Ausgangswerte und `bossSpec` als
   Spec-Bau. Boss-exklusive Verstärkungen gehören hierher.
@@ -67,6 +68,16 @@ gespeichert, sondern bei Bedarf aus den Elementen neu abgeleitet (`stats.ts`),
 damit die Ableitungsregel wachsen kann, ohne alte Genome eine eingefrorene
 Kopie zu tragen. `resolve.ts` hält die Reihenfolge fest: erst die Kopplung
 aus den Elementen, dann die Traits, dann die Boni.
+
+`behavior.ts` leitet aus dem Trait der Art das **Verhaltensprofil** ab
+(`behaviorForTrait`: `tank`, `hunter`, `control` oder den Grundfall `none`;
+`[K]` mit Vermerk an der Quelle). Das Profil ändert ausschließlich die
+Zielentscheidung im Kampf, nie eine Zahl — dieselbe Grenze wie die Effekt-
+dateien. Es steht am Spec und im Log, weil ein Replay nur den Log liest und die
+Zielwahl sonst neu erfinden müsste; `ambush`, `support` und `swarm` bleiben
+bewusst unbelegt, solange die Mechanik dahinter fehlt. Die Liste der Profile
+selbst gehört nach `@floor/contracts` und wird von dort re-exportiert — eine
+zweite Definition wäre eine zweite Wahrheit gegenüber dem `.strict()`-Schema.
 
 `src/genome/strength.ts` besitzt die **Stärke** eines Wesens, eine Stufe von 0
 bis 5, und ist die zweite Eingabe der Goldformel (`docs/GOLDFORMEL.md`). Sie

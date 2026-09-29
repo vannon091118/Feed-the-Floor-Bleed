@@ -4,10 +4,10 @@
 
 | Schlüssel | Wert | Bedeutung |
 |-----------|------|-----------|
-| `CONTRACT_VERSION` | `7` |major des Wire-Formats |
-| `sim_version` | `0.0.6` | exakt akzeptierte Simulationsversion |
+| `CONTRACT_VERSION` | `8` |major des Wire-Formats |
+| `sim_version` | `0.0.7` | exakt akzeptierte Simulationsversion |
 
-Jeder Raid-Snapshot, jedes Ergebnis, jeder Log und jeder Auftrag führt verpflichtend `contractVersion: 7` und `simVersion: "0.0.6"`.
+Jeder Raid-Snapshot, jedes Ergebnis, jeder Log und jeder Auftrag führt verpflichtend `contractVersion: 8` und `simVersion: "0.0.7"`.
 
 ## Raid-Freeze
 
@@ -18,7 +18,7 @@ Jeder Raid-Snapshot, jedes Ergebnis, jeder Log und jeder Auftrag führt verpflic
 | `snapshot.activeTeam` | 1..5 × `{ heroId: non-empty string, temporaryFatigue: safe integer, temporaryInjury: safe integer }` |
 | `snapshot.dungeon` | `DungeonGrid` mit 4096 Zellen und Koordinaten 0..63 |
 
-Keine weiteren Werte, Formeln oder Balancing-Regeln sind Teil des v7-Snapshotvertrags. Dieser Stand ist **privat**: Er geht an den Server, nicht an den Angreifer.
+Keine weiteren Werte, Formeln oder Balancing-Regeln sind Teil des v8-Snapshotvertrags. Dieser Stand ist **privat**: Er geht an den Server, nicht an den Angreifer.
 
 ## Ergebnislog und Auftrag
 
@@ -29,7 +29,7 @@ Keine weiteren Werte, Formeln oder Balancing-Regeln sind Teil des v7-Snapshotver
 | `log.events[].type` | `'move' \| 'attack' \| 'death' \| 'ambush' \| 'end'`; ein `ambush` trägt in `amount` die durchdrungene Rüstung |
 | `log.events[].stage` | obige drei oder `'running'` |
 | `log.trail[]` | `{ x: 0..63, y: 0..63, cell: 0..4, zoneId: ≥ -1 }`, jeder Schritt der Route in Reihenfolge; `-1` steht für „keine Zone“ |
-| `log.units[]` | `{ id, side, role, maxHp, attack, defense, initiative, moveCooldown, attackCooldown, routeIndex, ambushZoneId }`; `routeIndex` zeigt auf eine Trail-Zelle, `ambushZoneId` ist die Zone der Platzierungsgruppe (`-1` sonst) |
+| `log.units[]` | `{ id, side, role, behavior, maxHp, attack, defense, initiative, moveCooldown, attackCooldown, routeIndex, ambushZoneId }`; `behavior` ist das Verhaltensprofil (`'none' \| 'tank' \| 'hunter' \| 'control'`), `routeIndex` zeigt auf eine Trail-Zelle, `ambushZoneId` ist die Zone der Platzierungsgruppe (`-1` sonst) |
 
 ## Angreifer-Sicht
 
@@ -67,4 +67,4 @@ mit `result` sind nicht darstellbar.
 | Defender geschützt | `protected` |
 | Frist abgelaufen | `timeout` |
 
-Unbekannte Codes, fehlende Pflichtfelder und zusätzliche Felder werden durch `.strict()` abgewiesen. Die Contract-Stände v1 bis v6 werden von v7 nicht akzeptiert.
+Unbekannte Codes, fehlende Pflichtfelder und zusätzliche Felder werden durch `.strict()` abgewiesen. Die Contract-Stände v1 bis v7 werden von v8 nicht akzeptiert.

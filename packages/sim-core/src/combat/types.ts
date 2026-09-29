@@ -1,3 +1,6 @@
+import type { MonsterBehavior } from '../genome/behavior'
+
+export type { MonsterBehavior }
 export type CombatSide = 'heroes' | 'monsters'
 export type CombatRole = 'hero' | 'monster' | 'boss'
 export type CombatStage = 'heroes-win' | 'monsters-win' | 'timeout'
@@ -16,6 +19,15 @@ export interface CombatUnitSpec {
   id: string
   side: CombatSide
   role: CombatRole
+  /**
+   * Verhaltensprofil aus dem Genom der Art, abgeleitet über den Trait
+   * (`genome/behavior.ts`), bei Helden und Boss `none`.
+   *
+   * Es steht im Log, weil ein Replay nur den Log liest: Die Zielentscheidung
+   * müsste sonst aus Zahlen neu erraten werden, und das wäre eine zweite
+   * Wahrheit über denselben Zug.
+   */
+  behavior: MonsterBehavior
   maxHp: number
   attack: number
   defense: number

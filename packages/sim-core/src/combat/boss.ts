@@ -46,6 +46,9 @@ export function bossSpec(routeIndex: number): CombatUnitSpec {
     id: 'boss-0',
     side: 'monsters',
     role: BOSS_ROLE,
+    // Der Boss trägt kein Genom und damit kein Profil: er ist Bedingung des
+    // Heldensiegs und wählt wie zuvor das nächste Ziel.
+    behavior: 'none',
     maxHp: BOSS_RULES.maxHp,
     attack: BOSS_RULES.attack,
     defense: BOSS_RULES.defense,

@@ -12,6 +12,7 @@
 | `src/combat/trail-fixture.ts` | Gemeinsamer Trail ohne Grid für die Aufstellungs- und Schadenstests |
 | `src/combat/boss.ts` | Boss-Identität, Boss-Ausgangswerte und boss-exklusive Verstärkungen |
 | `src/combat/combat-pin.test.ts` | Golden-Pin des Kampf-Hashes: fester Seed, erwarteter Hash als Konstante |
+| `src/combat/behavior.test.ts` | Zielwahl je Profil: `none` wie früher, `tank`, `hunter` und `control` jeweils ein anderes Ziel, Gleichstand und Filter |
 | `src/combat/balance-report.test.ts` | Messwerkzeug: Stufenverteilung über Seeds und Verteidigerplätze |
 | `src/genome/` | Registry, 20 Basis-Monster, Traits/Boni, gekoppelte Mutation und Züchtung |
 | `src/genome/types.ts` | Genome-Datenvertrag: Basis-Monster, Genome, abgeleitete Werte, ID-Listen, Elementgrenzen |
@@ -21,6 +22,7 @@
 | `src/genome/stats.ts` | Ableitung der Kampfwerte aus den drei Elementen plus je Art abweichendem Bias |
 | `src/genome/effect-kit.ts` | Gemeinsame Effektform und die Grenzen für Initiative und Cooldowns |
 | `src/genome/effects.ts` | Bindung von Trait- und Bonus-ID an ihre Effektdatei; Ladefehler bei fehlender Logik |
+| `src/genome/behavior.ts` | Verhaltensprofil aus dem Trait: die Tabelle Trait → Profil und `behaviorForTrait`; Nahttest `behavior.test.ts` |
 | `src/genome/resolve.ts` | Feste Ableitungsreihenfolge: Kopplung, dann Traits, dann Boni |
 | `src/genome/trait-*.ts`, `src/genome/bonus-*.ts` | Je eine Datei pro Trait und pro Bonus: reine Werteänderung |
 | `src/genome/genome.test.ts`, `breeding.test.ts` | Registry-, Mutations- und Züchtungs-Invarianten |

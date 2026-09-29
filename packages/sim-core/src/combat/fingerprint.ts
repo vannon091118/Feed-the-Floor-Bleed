@@ -12,6 +12,7 @@ function specHash(spec: CombatUnitSpec): number {
   let hash = hashText(hashStart(), spec.id)
   hash = hashText(hash, spec.side)
   hash = hashText(hash, spec.role)
+  hash = hashText(hash, spec.behavior)
   hash = hashWords(hash, [
     spec.maxHp,
     spec.attack,

@@ -54,6 +54,23 @@ import { resolveCombat } from './index'
  *
  * `sim_version 0.0.5→0.0.6`, `CONTRACT_VERSION 6→7`, Migration
  * `005_contract_v7.sql`.
+ *
+ * **Dritte Verschiebung vom 2026-09-29 — das Verhalten steht im Log und
+ * ändert die Wahl.** Jeder Verteidiger trägt jetzt ein `behavior`, das aus dem
+ * Trait seiner Art entsteht (`genome/behavior.ts`), und das Feld gehört zum
+ * Hash, weil ein Replay nur den Log liest: wer das nächste Ziel wählt, steht
+ * damit nicht mehr im Speicher, sondern im Spec. Zwei Effekte liegen in den
+ * neuen Zahlen. Der erste ist rein rechnerisch — ein weiteres Pflichtfeld im
+ * `specHash` verschiebt beide Läufe. Der zweite ist eine echte Entscheidung:
+ * `tank`, `hunter` und `control` wählen ein anderes Ziel als die alte
+ * „nächstes Ziel"-Regel, und auf der Umweg-Route kostet die neue Wahl einen
+ * Tick mehr (165→166), während Ereigniszahl und Trail gleich bleiben. Auf dem
+ * offenen Fixture-Grid ändert sich nur der Hash — dort fiel die neue Wahl mit
+ * der alten zusammen, und das ist der Beleg, dass der Grundfall `none` die
+ * alte Regel ist.
+ *
+ * `sim_version 0.0.6→0.0.7`, `CONTRACT_VERSION 7→8`, Migration
+ * `006_contract_v8.sql`.
  */
 function observed(
   grid: ReturnType<typeof createDungeonGrid>,
@@ -83,7 +100,7 @@ function snakeGrid() {
 describe('Golden-Pin des Kampf-Hashes', () => {
   it('pinnt den Lauf auf dem offenen Fixture-Grid', () => {
     expect(observed(createDungeonGrid(), 2)).toEqual({
-      hash: '1e2b3767',
+      hash: '9f919007',
       stage: 'monsters-win',
       ticks: 216,
       events: 413,
@@ -93,9 +110,9 @@ describe('Golden-Pin des Kampf-Hashes', () => {
 
   it('pinnt den Lauf auf der Umweg-Route mit voller Belegung', () => {
     expect(observed(snakeGrid(), 5)).toEqual({
-      hash: '27826361',
+      hash: 'f93e3175',
       stage: 'monsters-win',
-      ticks: 165,
+      ticks: 166,
       events: 674,
       trail: 253,
     })

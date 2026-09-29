@@ -33,21 +33,73 @@ export function createUnitStates(
   }))
 }
 
-export function nearestOpponent(
+/**
+ * Das Ziel einer Einheit.
+ *
+ * Das ist die einzige Stelle, an der das Verhaltensprofil aus dem Genom wirkt
+ * (`genome/behavior.ts`). Es ändert ausschließlich die Wahl, nie eine Zahl:
+ * Helden und Monster mit `none` greifen wie zuvor das nächste Ziel an, der
+ * `tank` nimmt das vollste, der `hunter` das schwächste, der `control` das
+ * gefährlichste — die Initiative entscheidet darüber, wer am schnellen wieder
+ * zuschlägt.
+ *
+ * Die Schleife läuft in Einheitenreihenfolge und entscheidet mit striktem
+ * Ungleich: bei Gleichstand bleibt der zuerst gefundene stehen. Deshalb
+ * liefert derselbe Kampf dieselbe Wahl, ohne dass ein zweiter Zufall oder eine
+ * Division die Entscheidung tragen müsste.
+ */
+export function chooseOpponent(
   states: readonly CombatUnitState[],
   actor: CombatUnitState,
 ): CombatUnitState | undefined {
   let best: CombatUnitState | undefined
-  let bestDistance = Number.MAX_SAFE_INTEGER
   for (const candidate of states) {
     if (!candidate.alive || candidate.side === actor.side) continue
-    const distance = distanceBetween(actor, candidate)
-    if (distance < bestDistance) {
-      best = candidate
-      bestDistance = distance
-    }
+    if (!best || prefers(actor, candidate, best)) best = candidate
   }
   return best
+}
+
+/** Schlägt der Kandidat den bisher Gewählten für dieses Verhalten? */
+function prefers(
+  actor: CombatUnitState,
+  candidate: CombatUnitState,
+  best: CombatUnitState,
+): boolean {
+  switch (actor.behavior) {
+    case 'tank':
+      return livesAhead(candidate, best)
+    case 'hunter':
+      return livesBehind(candidate, best)
+    case 'control':
+      return candidate.initiative > best.initiative
+    default:
+      // `none` und jeder unbekannte Wert sind dieselbe Wahl: das nächste Ziel —
+      // die Regel, die vor diesem Slice für alle galt. Der Grundfall ist
+      // zugleich der Rückfall, damit ein unbekanntes Profil die Entscheidung
+      // nicht erfindet, sondern dieselbe trifft wie vorher.
+      return distanceBetween(actor, candidate) < distanceBetween(actor, best)
+  }
+}
+
+/**
+ * Höheres Lebensverhältnis. Der Vergleich läuft über Kreuzprodukt statt über
+ * Division: `hp / maxHp` würde Stellen runden und damit entscheiden, statt nur
+ * die beiden Werte zu vergleichen.
+ */
+function livesAhead(
+  candidate: CombatUnitState,
+  best: CombatUnitState,
+): boolean {
+  return candidate.hp * best.maxHp > best.hp * candidate.maxHp
+}
+
+/** Niedrigeres Lebensverhältnis — derselbe Vergleich, nur umgekehrt. */
+function livesBehind(
+  candidate: CombatUnitState,
+  best: CombatUnitState,
+): boolean {
+  return candidate.hp * best.maxHp < best.hp * candidate.maxHp
 }
 
 /** Abstand auf der Route, in Schritten. */

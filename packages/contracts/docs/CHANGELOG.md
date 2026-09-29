@@ -1,5 +1,13 @@
 # packages/contracts/docs/CHANGELOG.md
 
+## 2026-09-29 — Contract v8: das Verhaltensprofil steht im Log
+
+**Scope:** geändert `src/combat-log.ts`, `src/version.ts`, `src/index.ts` sowie `test/raid-fixtures.ts` und `test/combat-log.test.ts`. `CONTRACT_VERSION 7→8`, `sim_version 0.0.6→0.0.7`.
+
+**Ein neues Pflichtfeld, und der Grund ist der Replay.** `log.units[]` trägt `behavior` mit den vier Werten aus `MONSTER_BEHAVIORS` (`'none' \| 'tank' \| 'hunter' \| 'control'`). Das Profil entsteht aus dem Trait der Art (`sim-core/src/genome/behavior.ts`) und ändert ausschließlich die Zielentscheidung — aber genau die Entscheidung bestimmt Ereignisfolge und Hash. `replayCombat` und `verifyCombatLog` lesen ausschließlich den Log, und ein Profil, das nur im Speicher läge, müsste die Zielwahl im Replay neu erfinden. Deshalb ist das Feld Pflicht und das Schema `.strict()`: fehlt es, scheitert der Log; ein erfundenes Profil wie `'swarm'` scheitert ebenfalls, solange die Mechanik dahinter nicht gebaut ist.
+
+**Was der Sprung nicht anfasst.** Die eingefrorene Eingabe bleibt in ihrer Form unverändert, der Kampf wird beim Lesen neu gerechnet. `packages/server/migrations/006_contract_v8.sql` hebt v7-Zeilen auf `sim_version 0.0.7` und `contractVersion 8` an, statt sie zu löschen — dieselbe Haltung wie in v6 und v7, und dieselbe Begründung: die Epoche markiert das Versionsfeld, nicht die Löschung.
+
 ## 2026-09-29 — Contract v7: die Zone am Trail, der Hinterhalt am Verteidiger, die Summary in eigener Datei
 
 **Scope:** neu `src/combat-summary.ts`. Geändert `src/combat-log.ts`, `src/trail.ts`, `src/protocol.ts`, `src/version.ts`, `src/index.ts`, `test/raid-fixtures.ts` und `test/combat-log.test.ts`. `CONTRACT_VERSION 6→7`, `sim_version 0.0.5→0.0.6`.

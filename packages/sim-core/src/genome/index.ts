@@ -1,3 +1,8 @@
+export {
+  behaviorForTrait,
+  MONSTER_BEHAVIORS,
+  type MonsterBehavior,
+} from './behavior'
 export { baseGenome, breed, mutate } from './mutation'
 export { baseMonster, baseMonsterCount, baseMonsters } from './registry'
 export { resolveStats } from './resolve'

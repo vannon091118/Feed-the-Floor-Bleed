@@ -1,5 +1,17 @@
 # packages/sim-core/docs/CHANGELOG.md
 
+## 2026-09-29 — Das Verhalten kommt aus dem Genom und entscheidet das Ziel
+
+**Scope:** neu `src/genome/behavior.ts` mit `src/genome/behavior.test.ts` und `src/combat/behavior.test.ts`. Geändert `src/genome/index.ts`, `src/combat/types.ts`, `rules.ts`, `boss.ts`, `state.ts`, `simulate.ts`, `fingerprint.ts`, `ambush.test.ts` und `combat-pin.test.ts`.
+
+**Ein Profil, kein zweiter Zahlensatz.** Jeder Verteidiger trägt ein `behavior`, abgeleitet aus dem Trait seiner Art (`behaviorForTrait`): Zähigkeit und Schwertritt werden zum `tank`, der scharfe Angriff zum `hunter`, der ruhige Zug zum `control`, die Tempo-Traits bleiben beim Grundfall `none`. Die Zuordnung ist `[K]` und steht mit ihrem Vermerk in `genome/behavior.ts`. Die Profile ändern **keine einzige Kampfzahl** — dieselbe Grenze, die die Effektdateien halten: ein Trait, der gibt, nimmt dagegen. `ambush`, `support` und `swarm` bleiben bewusst unbelegt, solange die Mechanik dahinter fehlt (der Hinterhalt hängt an der Zone, `support` braucht T2.4, `swarm` braucht K4).
+
+**Genau eine Stelle liest das Profil.** `chooseOpponent` ersetzt `nearestOpponent` in `state.ts`: `none` wählt wie früher das Ziel mit dem kürzesten Route-Abstand, `tank` das höchste Lebensverhältnis, `hunter` das niedrigste, `control` die höchste Initiative. Der Lebensvergleich läuft über Kreuzprodukt statt Division, die Schleife in Einheitenreihenfolge mit striktem Ungleich — bei Gleichstand bleibt der zuerst gefundene Kandidat stehen, also liefert derselbe Kampf dieselbe Wahl, ohne dass ein zweiter Zufall die Entscheidung trüge. Das Feld steht am Spec und im Log (`CombatUnitSpec.behavior`), weil ein Replay nur den Log liest und die Zielwahl sonst neu erfunden wäre; Helden, Boss und unbekannte Arten bekommen `'none'`.
+
+**Der Hash verschiebt sich, und der Pin sagt warum.** `specHash` nimmt `behavior` auf, und auf der Umweg-Route wählen die neuen Profile ein anderes Ziel als die alte Regel: Der Golden-Pin steht jetzt auf `9f919007` (offenes Fixture-Grid, 413 Ereignisse, 216 Ticks — hier fiel die Wahl mit der alten zusammen) und `f93e3175` (Umweg-Route, 674 Ereignisse, 166 statt 165 Ticks). Beide Verschiebungen samt Grund stehen im Kopf der Pin-Datei. `sim_version 0.0.6→0.0.7`, `CONTRACT_VERSION 7→8`, Migration `006_contract_v8.sql`.
+
+**Gates:** typecheck 0, 500 Tests in 73 Dateien, Lint 0, LOC-Caps ok, Hygiene ok, Shinon PASS.
+
 ## 2026-09-29 — Die Bewegung läuft wieder auf der Route, und die Zonen tragen den Hinterhalt
 
 **Scope:** neu `src/grid/zones.ts`, `src/combat/ambush.test.ts` und `src/combat/trail-fixture.ts`. Geändert `src/combat/types.ts`, `actions.ts`, `state.ts`, `rules.ts`, `resolve.ts`, `simulate.ts`, `fingerprint.ts`, `boss.ts`, `combat.test.ts`, `species-wiring.test.ts`, `combat-pin.test.ts` und `src/grid/index.ts`.
