@@ -11,6 +11,7 @@ import {
   setCell,
 } from '@floor/sim-core'
 import { startDungeon } from '../src/dungeon-editor/model'
+import { fixtureTeamConditions } from '../src/raid/fixture-raid'
 
 /**
  * Auftrags-Literale für die Schleifentests.
@@ -90,6 +91,9 @@ export function fixtureRaidLog() {
     grid,
     seed: 4242,
     teamSize: 3,
+    // Aus derselben Ableitung wie der echte Upload: sonst vergliche dieser
+    // Test den Log der Timeline mit einem Lauf, den niemand spielt.
+    team: fixtureTeamConditions(),
     defenders: [{ baseId: 'frost-wolf' }, { baseId: 'stone-golem' }],
     floor: 1,
     token: 'fixture-raid-log',

@@ -9,12 +9,15 @@ import {
   sim_version,
 } from '@floor/contracts'
 import type { DungeonGrid } from '../grid'
+import type { TeamCondition } from './conditions'
 import { resolveCombat } from './resolve'
 import { summarizeCombat } from './summary'
 
 export interface SnapshotRaidInput {
   grid: DungeonGrid
   teamSize: number
+  /** Die Nachwirkung je Held aus `activeTeam`, in derselben Reihenfolge. */
+  team?: readonly TeamCondition[]
   /** Die Verteidiger in Slot-Reihenfolge; leere Plätze als `null`. */
   defenders: readonly { baseId: string | null }[]
   seed: number
@@ -46,6 +49,7 @@ export function resolveSnapshotRaid(input: SnapshotRaidInput): SnapshotRaid {
     seed: input.seed,
     grid: input.grid,
     teamSize: input.teamSize,
+    team: input.team,
     defenders: input.defenders,
     config: input.config,
   })

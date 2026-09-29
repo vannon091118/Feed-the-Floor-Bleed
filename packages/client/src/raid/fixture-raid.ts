@@ -8,12 +8,31 @@ import {
   type DungeonGrid,
   fromDungeonGrid,
   runFixtureRaid,
+  type TeamCondition,
 } from '@floor/sim-core'
 import { fixture, fixtureRaid } from '../fixture-data'
 import { dayNight } from '../village/state'
 
 /**
- * Contract-v4-Upload aus dem Editor-Grid und der Fixture-Aufstellung.
+ * Der Zustand des Teams, wie er in den Kampf reist.
+ *
+ * `activeTeam` im Upload und die Nachwirkung am Kampf-Spec sind dieselben zwei
+ * Zahlen aus derselben Fixture. Sie hier einmal abzuleiten und nicht an jedem
+ * Aufrufer erneut ist der Unterschied zwischen einer Quelle und dreien: die
+ * Timeline und der Auftrag müssen denselben Lauf zeigen, sonst rechnet das Dorf
+ * etwas anderes ab als der Spieler gesehen hat.
+ */
+export function fixtureTeamConditions(): TeamCondition[] {
+  return fixture.team.map((hero) => ({
+    temporaryFatigue: hero.fatigue,
+    temporaryInjury: hero.injury,
+  }))
+}
+
+/**
+ * Versionierter Upload aus dem Editor-Grid und der Fixture-Aufstellung.
+ * `contractVersion` und `simVersion` kommen aus `@floor/contracts` und werden
+ * hier nicht als Zahl abgeschrieben.
  *
  * Der Client *erfindet* hier nichts: Aufstellung und Taktiken kommen aus den
  * Fixture-Daten, der Bestand aus dem Dorf-Owner, das Grid aus dem Editor-State.
@@ -25,15 +44,15 @@ import { dayNight } from '../village/state'
  * einen Bestand, den es nicht gibt.
  */
 export function buildFixtureUpload(grid: DungeonGrid): UploadRequest {
+  const conditions = fixtureTeamConditions()
   return {
     contractVersion: CONTRACT_VERSION,
     simVersion: sim_version,
     resources: { ...dayNight.value.village.resources },
     monsterSlots: fixture.monsterSlots.map((slot) => ({ ...slot })),
-    activeTeam: fixture.team.map((hero) => ({
+    activeTeam: fixture.team.map((hero, index) => ({
       heroId: hero.id,
-      temporaryFatigue: hero.fatigue,
-      temporaryInjury: hero.injury,
+      ...conditions[index],
     })),
     dungeon: fromDungeonGrid(grid),
     tactics: fixture.team.map((hero) => [...hero.tactics]),

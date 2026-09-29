@@ -12,6 +12,8 @@
 | `src/combat/` | Tick-Simulation, Events, Log-Hash, Replay, Summary, Fixture-Auftrag |
 | `src/combat/ambush.test.ts` | Naht-Test des Hinterhalts: Durchdringungsrechnung an der Einheit, das Ausbleiben in der Lauerzone samt späterem Treffer und die Aufstellung aus der Platzierungsgruppe |
 | `src/combat/trail-fixture.ts` | Gemeinsamer Trail ohne Grid für die Aufstellungs- und Schadenstests |
+| `src/combat/conditions.ts` | Nachwirkung aus `activeTeam[].temporaryFatigue`/`temporaryInjury`: `TeamCondition`, `heroInitiative`, die `[K]`-Werte und die Stufenkappung; erster Leser dieser seit Contract v8 transportierten Felder, angeschlossen in `fixture-job.ts` |
+| `src/combat/conditions.test.ts` | Nahttest der Nachwirkung: Einzel- und Kettenrechnung, Kappung, Determinismus und die Initiativen im Log |
 | `src/combat/boss.ts` | Boss-Identität, Boss-Ausgangswerte und boss-exklusive Verstärkungen |
 | `src/combat/combat-pin.test.ts` | Golden-Pin des Kampf-Hashes: fester Seed, erwarteter Hash als Konstante |
 | `src/combat/behavior.test.ts` | Zielwahl je Profil: `none` wie früher, `tank`, `hunter` und `control` jeweils ein anderes Ziel, Gleichstand und Filter |

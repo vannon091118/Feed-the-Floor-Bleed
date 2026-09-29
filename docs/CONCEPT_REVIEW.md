@@ -68,6 +68,16 @@ Die vollständige Detail- und Sprintquelle ist `docs/VISUAL_GRUNDSATZ.md`; die f
 
 **Erledigt mit dem 2026-09-29:** Der `[K]`-Vorschlag „Falle kostet 3 Extrapunkte; Ausweichroute maximal 5 zusätzliche Bewegungspunkte" aus Abschnitt 4 ist gegenstandslos, ebenso „Gruppe läuft als ein Blob" für den Kampf — eine Gruppe läuft ihren Weg als Patrouille.
 
+## 0c. Nachwirkung, Erholung und Moral — Freigabe vom 2026-09-29
+
+- **Erschöpfung und Verletzung sind verkettete Multiplikatoren auf die Initiative.** Je Wunde ×0,8, je Stufe Erschöpfung ×0,9, nacheinander gerechnet und nicht addiert; je Nachwirkung zählen höchstens fünf Stufen. Die Wirkung steht am Kampf-Spec und damit im Log, weil ein Replay nur den Log liest. Gebaut am 2026-09-29 in `packages/sim-core/src/combat/conditions.ts` (Werte `[K]`, Vermerk an der Quelle); die Zahlen „z. B. 5" nennt die freigegebene Option selbst. `[N]`
+- **Dieselbe Einheit gilt in Dorf und Kampf.** Es gibt keine zweite, dorfinterne Skala für Erschöpfung und Verletzung; beide Seiten lesen denselben ganzzahligen Zustand. `[N]`
+- **Erholung im Dorf (freigegeben, ungebaut).** Regeneration von `5 + Anzahl Wohnhäuser` HP je Tag, Erschöpfung −1 je Tag, Verletzung −1 alle zwei Tage. Eine **Wunde** entsteht, wenn ein Held einen Kampf unter 30 % Restleben beendet. Diese Hälfte braucht die Naht `result → tag`, an der bisher nur `dailyYield` in den Materialbestand schreibt. `[N]`
+- **Gilde und Zucht (freigegeben, ungebaut).** Die Gilde ist auf Stufe 3 ausbaubar (Kostenkoeffizient 40); die Zuchtkapazität ist `Stufe − 1`, und die Rostergröße ist `floor(Arbeiterbasis / 2)`. `[N]`
+- **Auflösung eines Monsters (freigegeben, ungebaut).** Stärke 0 bis 1 ergibt ein Material je Stufe. `[N]`
+- **Monster-Moral (freigegeben, ungebaut).** Moral 0 bis 3; eine Niederlage erhöht sie um 1, ein Sieg senkt sie um 1; je Stufe +15 % Initiative und +10 % Angriff. Der Wert würde optional im `RaidSnapshot` reisen, und weil der v9-Stand bereits belegt ist, wäre das ein eigener Contract-Sprung mit eigener Migration. `[N]`
+- **Held-Heilung gehört nicht hierher, sondern ins Inventar.** Tränke in vier Stufen (K/M/G/XL), höchstens drei je Held, Preise 500/1200/2000 Gold in steigender Staffelung — das ist T2.5 und bleibt bis zur Drop-Freigabe gesperrt. `[N]`
+
 ## 1. Spielform und Kernloop `[N]`
 
 - Persistentes Webspiel, asynchroner Multiplayer, kein Echtzeit-MMO.

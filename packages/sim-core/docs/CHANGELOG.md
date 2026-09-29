@@ -1,5 +1,11 @@
 # packages/sim-core/docs/CHANGELOG.md
 
+## 2026-09-29 — Die Nachwirkung bekommt ihren ersten Leser, und sie steht im Spec
+
+**Scope:** neu `src/combat/conditions.ts` und `src/combat/conditions.test.ts`; geändert `src/combat/rules.ts` (`heroSpec` nimmt eine Bedingung, `BuildUnitsInput.team?`), `src/combat/resolve.ts` (`ResolveCombatInput.team?`), `src/combat/resolve-snapshot.ts` (`SnapshotRaidInput.team?`), `src/combat/fixture-job.ts` (`team: parsed.data.activeTeam`) und `src/combat/index.ts` (Barrel). Keine neue Kampfzahl, kein Contract, kein Hash.
+
+**Der Transport war geschlossen, der Konsument fehlte.** `temporaryFatigue` und `temporaryInjury` sind seit Contract v8 Pflichtfelder von `activeTeam`, und der Core hat sie bis hierhin nie gelesen. `fixture-job.ts` gibt sie jetzt an `resolveSnapshotRaid` weiter — es ist der erste Aufrufer im Repo, der dieses Feld überhaupt benutzt —, und `rules.ts` rechnet sie über `heroInitiative` in die Initiative: eine Wunde kostet 20 %, eine Stufe Erschöpfung 10 %, **verkettet** statt addiert (zwei Wunden 36 % statt 40 %), je Stufe gekappt bei fünf; die Werte sind `[K]` und stehen mit ihrem Vermerk an der Quelle in `conditions.ts`. Der Wert reist durch `heroSpec` in `CombatUnitSpec.initiative` und nicht in ein Feld daneben, weil `specHash` die Einheit vollständig hasht und ein Replay nur den Log liest: eine geminderte Initiative, die nur im Speicher läge, wäre im Replay nicht vorhanden. `team` ist durchweg optional und fehlt in den reinen Engine-Aufrufen (Golden-Pin, Balancemessung) — dort kämpft das Team unversehrt, und deshalb bleiben `98cd6dda` und `ebbe2010` Zeichen für Zeichen stehen. Belegt ist die Naht in `conditions.test.ts`: Einzel- und Kettenrechnung ((1,0) 400, (1,1) 360, (2,0) 320), die Kappung ((5,0) gleich (50,0)) und derselbe `resolveCombat`-Aufruf mit und ohne Bedingung, gefiltert auf `role === 'hero'`, weil der Boss auf Routenposition 0 sitzt. **Gates:** typecheck 0, 530 Tests in 78 Dateien, Lint 0, LOC-Caps ok, Hygiene ok.
+
 ## 2026-09-29 — Die Heldenklasse steht im Spec, ohne dass jemand sie liest
 
 **Scope:** geändert `src/combat/types.ts` (Feld `class`, Stufe `extracted`, Ereignisarten `ability`/`reveal`), `rules.ts` und `boss.ts` (`class: 'none'`), `fingerprint.ts` (`class` im `specHash`), `ambush.test.ts`, `behavior.test.ts` und `balance-report.test.ts`. Neue Mechanik: keine.
@@ -190,10 +196,4 @@ Die Domäne `genome` ist damit gebaut und nicht mehr offen: sie besitzt Zucht, S
 
 **Was sich nicht ändert.** Werte, IDs, Reihenfolge und Spec-Form sind unverändert; der Kampf-Hash bleibt gleich. `combat.test.ts` pinnt den neuen Fall mit abgeschaltetem Tick-Limit: zwei Monster, ein Boss, `monstersAlive === 2`, `bossAlive === true`.
 
-## 2026-09-27 — Die längste Route ist getestet, nicht nur kommentiert
-
-**Scope:** neu `carveFullWidthRoute` und ein Fall in `src/grid/path.test.ts`. Produktivcode, Contracts, Hashes und Simulationsverhalten unberührt.
-
-Die Annahme an `ROUTE_SLOTS` stand bisher nur als Kommentar: Eine Route betritt keine Zelle zweimal und hat damit höchstens so viele Schritte wie das Raster Zellen. `carveFullWidthRoute` baut den Korridor, der das prüft — alle geraden Zeilen offen, verbunden an abwechselnden Enden —, und weil jede weitere offene Zelle eine Abkürzung wäre, ist der vollständige Durchlauf die längste Route, die sich in einem 64×64-Raster erzwingen lässt: 32 Durchquerungen der vollen Breite, zusammen 2080 Zellen und 2079 Schritte. Der Test läuft sie ab und hält ihre Länge gegen `grid.cells.length`, womit auch der größte `routeIndex` von 2079 unter dem Trenner 4096 bleibt. Der Boss muss dafür ans linke untere Ende, weil der Zickzack nach 32 Verbindern dort ankommt; das Raster entsteht deshalb mit explizitem Spawn und Boss statt mit den Vorgaben (0|0) und (63|63).
-
-Der Eintrag vom 2026-09-27 zum Review der Kernannahmen steht wortgleich in `packages/sim-core/docs/historisch/2026-09-27_changelog-kernannahmen-review.md`; er ist unverändert erhalten.
+Die Einträge vom 2026-09-27 zur längsten Route und zum Review der Kernannahmen stehen wortgleich in `packages/sim-core/docs/historisch/2026-09-27_changelog-laengste-route.md` und `2026-09-27_changelog-kernannahmen-review.md`; sie sind unverändert erhalten.

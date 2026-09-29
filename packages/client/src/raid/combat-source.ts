@@ -9,6 +9,7 @@ import {
 import { effect } from '@preact/signals'
 import { grid, route } from '../dungeon-editor/state'
 import { fixture, fixtureRaid } from '../fixture-data'
+import { fixtureTeamConditions } from './fixture-raid'
 import { setPlaybackLog } from './playback'
 
 /**
@@ -44,6 +45,10 @@ export function buildCombatLog(
   return resolveSnapshotRaid({
     grid: current,
     teamSize: fixture.team.length,
+    // Dieselbe Nachwirkung wie im Upload, aus derselben Ableitung. Ohne sie
+    // zeigte die Timeline einen anderen Kampf als den Auftrag, den das Dorf
+    // abrechnet — zwei Rechnungen für denselben Lauf.
+    team: fixtureTeamConditions(),
     defenders: fixture.monsterSlots.map((slot) => ({
       baseId: slot.monsterId,
     })),

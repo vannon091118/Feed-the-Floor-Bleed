@@ -4,7 +4,7 @@
 
 | Schlüssel | Bedeutung |
 |-----------|-----------|
-| `db/raid_snapshots` | Unveränderlicher Contract-v4-Raid-Freeze als JSON: Ressourcen, fünf Monster-Slots, aktive Helden mit temporären Zuständen, Dungeon, `sim_version` |
+| `db/raid_snapshots` | Unveränderlicher Raid-Freeze als JSON: Ressourcen, fünf Monster-Slots, aktive Helden mit temporären Zuständen, Dungeon, `sim_version` |
 | `db/raid_jobs.snapshot_id` | Unveränderlicher Angreifer-Freeze des Jobs |
 | `db/raid_jobs.target_snapshot_id` | Nullable, eindeutiger Ziel-Freeze; nach einmaligem Setzen unveränderlich |
 | `db/one-open` | Partial Unique Index: höchstens ein `accepted|queued|running`-Job pro Angreifer |

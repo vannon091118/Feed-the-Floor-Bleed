@@ -15,6 +15,7 @@
 | `combat/class` | `none`, `vanguard`, `breaker`, `scout`, `medic`, `controller`, `guardian` — Vokabular aus `@floor/contracts/abilities.ts`, hier nur gelesen |
 | `combat/ability` | `shield`, `shatter`, `reveal`, `mend`, `frost`, `hold` — je eine pro Klasse, `reveal` gehört dem Späher |
 | `combat/tactic-when` | `immediate`, `allyBelow`, `selfBelow`, `bossNear`; `thresholdPermille` (0..1000) ist bei den beiden `Below`-Arten Pflicht und sonst verboten |
+| `combat/condition` | Nachwirkung eines Helden auf die Initiative: eine Wunde 20 %, eine Stufe Erschöpfung 10 %, verkettet gerechnet und bei fünf Stufen gekappt; die `[K]`-Werte stehen in `src/combat/conditions.ts` |
 | `combat/role` | `hero`, `monster`, `boss` |
 | `combat/side` | `heroes`, `monsters` |
 | `grid/64x64` | Etagen-Größe, Zellen-Array |

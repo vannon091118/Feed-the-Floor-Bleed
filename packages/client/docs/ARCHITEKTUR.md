@@ -89,7 +89,7 @@ Simulation bleibt der einzige Owner der Spielentscheidungen.
   aufklappt. `view.ts` hält den Blick auf die Bühne (`village | dungeon`) und
   ist bewusst kein Phasenzustand. `styles/` ist in Raster, Grundlage, Shell, Dorf, Panels,
   Fenster, Editor und Raid getrennt, eingebunden über `styles/index.css`.
-- `raid/` — bestehender Contract-v4-Upload und lokaler Fixture-Auftrag; dazu
+- `raid/` — versionierter Upload und lokaler Fixture-Auftrag; die Vertragsversion kommt aus `@floor/contracts` und steht hier nicht als Zahl; dazu
   die Raid-Timeline: `combat-source.ts` besitzt den Lauf und legt ihn über
   `setPlaybackLog` in den Store, `playback.ts` hält Log, Tick und Pause,
   `timeline-model.ts` die reinen Modelle (samt `ambushEvents`, das jedes Hinterhalt-Ereignis einzeln mit Tick und Ziel in Worten liefert), `raid-timeline.tsx`, `phase-nav.tsx`

@@ -5,6 +5,7 @@ import {
   GRID_SIZE,
   getCell,
 } from '../grid'
+import type { TeamCondition } from './conditions'
 import {
   buildCombatUnits,
   type DefenderSlot,
@@ -23,6 +24,13 @@ export interface ResolveCombatInput {
    * Kampf sie brauchen konnte — jeder Slot bekam dieselben Werte.
    */
   defenders: readonly DefenderSlot[]
+  /**
+   * Die Nachwirkung je Held, in Team-Reihenfolge. Sie kommt aus dem
+   * eingefrorenen Stand (`activeTeam`) und nicht aus einer zweiten Quelle.
+   * Ohne Angabe kämpft das Team unversehrt — der Zustand der reinen
+   * Engine-Aufrufe, die kein Dorf hinter sich haben.
+   */
+  team?: readonly TeamCondition[]
   config?: CombatConfig
 }
 
@@ -54,6 +62,7 @@ export function resolveCombat(input: ResolveCombatInput): CombatLog {
   const placements = zones.placements
   const units = buildCombatUnits({
     teamSize: input.teamSize,
+    team: input.team,
     defenders: input.defenders,
     trail,
     placements,

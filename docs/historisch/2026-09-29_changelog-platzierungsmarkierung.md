@@ -1,0 +1,15 @@
+# docs/historisch/2026-09-29_changelog-platzierungsmarkierung.md
+
+Aus `docs/CHANGELOG.md` ausgelagert am 2026-09-29, weil die aktive Datei an ihre 200-Zeilen-Grenze stiess. Wortgleich übernommen.
+
+## 2026-09-29 — Aus der Falle wird eine Platzierungsmarkierung, und der Angreifer bekommt eine eigene Fassade
+
+**Die Falle war nie im Scope, und der Code hat sie trotzdem gebaut.** Der `[K]`-Vorschlag „Falle kostet 3 Extrapunkte; Ausweichroute maximal 5 zusätzliche Bewegungspunkte" stand in `docs/CONCEPT_REVIEW.md` unter KI-Vorschlägen; `CellType.Trap = 2`, der Kostenzuschlag vier statt eins in `path-search.ts`, das Umwegbudget von fünf Punkten und der Rückfallzweig `trap-fallback` waren seine vollständige Umsetzung. Mit der Entscheidung vom 2026-09-29 ist die Zelle eine **Platzierungsmarkierung**: Sie markiert den Bereich, in dem eine Gruppe steht, macht keinen Schaden und kostet nichts.
+
+**Der Schnitt ist deshalb größer als eine Umbenennung, und das ist gewollt.** Ohne Kostenzuschlag ist die Suche gleichgewichtig: `grid/path.ts` fährt jetzt eine Breitensuche mit FIFO-Warteschlange, `path-search.ts` und `min-heap.ts` sind gelöscht, `PathResult` trägt nur noch `reachable`/`unreachable`, den Pfad und die Bewegungspunkte (`path.length - 1` — vorher zählten Spawn und Boss null). Der **Golden-Pin blieb dabei wortgleich grün** (`94ba1954`, `f85b31c0`), weil kein Fixture eine Platzierungszelle führt: Er belegt damit, dass die neue Suche für diese Raster denselben Weg wählt. Für die geänderte Regel steht ein eigener Test in `path.test.ts` — eine Platzierungszelle auf der Route wird durchschritten, eine Wand an derselben Stelle macht sie unerreichbar.
+
+**Und der Angreifer sieht nur, was er sehen darf.** Bestätigt am 2026-09-29: Maze-Weg und Bonus-Schätze sichtbar, sonst nichts — keine Monsterzahl, keine Platzierungen, keine Gruppen, keine Patrouillen. Neu `packages/contracts/src/raid-public.ts` mit `RaidPublicViewSchema` und `toPublicView` als einzigem Weg vom privaten Stand zur Angreifer-Sicht; die Maske tauscht ausschließlich Zellnummer 2 gegen Boden. `MatchResponseSchema.snapshot` ist auf diese Sicht umgestellt, und das Schema ist strikt: Eine Match-Antwort mit `monsterSlots` scheitert im Test. Der lokale Fixture-Lauf sendet weiter den vollen Stand — dort ist der Spieler Angreifer und Verteidiger in einer Person.
+
+**Ein Sprung statt zwei.** `CONTRACT_VERSION 4→5` deckt die Angreifer-Sicht und die kürzere `PathResultSchema`-Form, `sim_version 0.0.3→0.0.4` die geänderte Routenregel; `packages/server/migrations/003_contract_v5.sql` entfernt die `0.0.3`-Ära samt abhängigen Jobs und legt die Unveränderlichkeitstrigger wieder an. Das Prädikat nennt die abgelöste Version **ausdrücklich** — der Fix aus dem Audit vom 2026-09-28 —, und `raid-migration-v5.test.mjs` prüft zusätzlich, dass die älteren Bestände der Vorgängermigration überlassen bleiben und die Kette 001 → 002 → 003 einheitlich endet.
+
+**Gates:** typecheck 0, 360 Tests in 54 Dateien, Lint 0, LOC-Caps ok (246 Quellen), Hygiene ok, Shinon PASS.

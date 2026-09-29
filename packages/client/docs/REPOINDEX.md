@@ -126,7 +126,7 @@
 | `src/village/settlement.ts` | Dorfblick als reine Ableitung aus Phase-Owner und Fixture, ohne Wirtschaft |
 | `src/village/plot.ts` | Platzierungsgeometrie des Dorfes: Grundriss, Ganzzelligkeit, Rastergrenze, Überlappung, Kantennachbarn, horizontale Landerweiterung — reine Funktionen, keine Wirtschaftszahlen; Abnehmer ist die Kommandoschicht |
 | `src/village/index.ts` | Barrel der Schleifendomäne (Phase, Aktionen, Kommandos, Blick, Zustand); `plot` ist bewusst nicht enthalten, weil die Oberfläche es nicht aufruft |
-| `src/raid/fixture-raid.ts` | Contract-v4-Upload und lokaler Fixture-Auftrag |
+| `src/raid/fixture-raid.ts` | Versionierter Upload und lokaler Fixture-Auftrag; `fixtureTeamConditions` ist die eine Ableitung des Heldzustands für Upload und Timeline |
 | `src/raid/combat-source.ts` | Einziger Besitzer des Raid-Logs: Core-Aufruf, Lade-/Entlade-Pfad, Plan-Synchronisierung |
 | `src/raid/raid-panel.tsx` | Probelauf-Panel, reicht den terminalen Auftrag an die Schleife weiter |
 | `src/raid/panel.tsx` | Reine Ergebnis-Darstellung eines TerminalRaidJob; die Stufenworte liest sie als `STAGE_LABELS` aus `timeline-model.ts`, es gibt keinen zweiten Formulierer daneben |

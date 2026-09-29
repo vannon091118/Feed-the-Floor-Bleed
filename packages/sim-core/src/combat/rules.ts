@@ -5,6 +5,11 @@ import { GRID_SIZE } from '../grid'
 import { toFixed } from '../math'
 import { UNIT_BASE } from '../units'
 import { bossSpec } from './boss'
+import {
+  heroInitiative,
+  NEUTRAL_CONDITION,
+  type TeamCondition,
+} from './conditions'
 import type { CombatConfig, CombatTrailEntry, CombatUnitSpec } from './types'
 
 // Vorläufige, NICHT abgenommene Balancing-Werte (siehe docs/CONCEPT_REVIEW.md, [K]).
@@ -31,7 +36,11 @@ export function defaultCombatConfig(): CombatConfig {
   }
 }
 
-function heroSpec(index: number, trailIndex: number): CombatUnitSpec {
+function heroSpec(
+  index: number,
+  trailIndex: number,
+  condition: TeamCondition,
+): CombatUnitSpec {
   const base = UNIT_BASE.hero
   return {
     id: `hero-${index}`,
@@ -44,7 +53,10 @@ function heroSpec(index: number, trailIndex: number): CombatUnitSpec {
     maxHp: base.maxHp,
     attack: base.attack,
     defense: base.defense,
-    initiative: base.initiative,
+    // Die Nachwirkung steht im Spec und nicht daneben: `specHash` hasht die
+    // Einheit vollständig, und ein Replay liest nur den Log — eine geminderte
+    // Initiative, die nur im Speicher läge, wäre im Replay nicht vorhanden.
+    initiative: heroInitiative(base.initiative, condition),
     moveCooldown: base.moveCooldown,
     attackCooldown: base.attackCooldown,
     routeIndex: trailIndex,
@@ -95,6 +107,13 @@ function monsterSpec(
 
 export interface BuildUnitsInput {
   teamSize: number
+  /**
+   * Die Nachwirkung je Held, in derselben Reihenfolge wie das Team. Fehlt die
+   * Liste oder ist sie kürzer, kämpfen die betroffenen Helden unversehrt: die
+   * reinen Engine-Aufrufe (Golden-Pin, Balancemessung) haben kein Dorf hinter
+   * sich und geben gar keine mit.
+   */
+  team?: readonly TeamCondition[]
   defenders: readonly DefenderSlot[]
   trail: readonly CombatTrailEntry[]
   /**
@@ -152,7 +171,13 @@ export function buildCombatUnits(input: BuildUnitsInput): CombatUnitSpec[] {
   const lastIndex = input.trail.length - 1
   const units: CombatUnitSpec[] = []
   for (let index = 0; index < input.teamSize; index += 1) {
-    units.push(heroSpec(index, Math.min(index, lastIndex)))
+    units.push(
+      heroSpec(
+        index,
+        Math.min(index, lastIndex),
+        input.team?.[index] ?? NEUTRAL_CONDITION,
+      ),
+    )
   }
   const present = input.defenders.filter(
     (defender): defender is { baseId: string } => defender.baseId !== null,
