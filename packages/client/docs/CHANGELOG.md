@@ -1,5 +1,13 @@
 # packages/client/docs/CHANGELOG.md
 
+## 2026-09-29 — Die Dorfszene liegt in zwei Modulen, und der Untergrund ist das neue eine
+
+**Der Befund.** `src/render/village-scene.ts` stand bei 149 von 150 erlaubten Codelinien, und die Verdrahtung des Dorfbestands an die Szene — der nächste offene Punkt des Blocks T2.2 — hätte dort keinen Platz mehr gefunden. Die Datei führte außerdem zwei Jobs in einer: den unbeweglichen Untergrund und daneben die Gebäude, Bewohner und ihre Bewegung.
+
+**Der Schnitt trennt Bild von Bewegung.** Neu ist `src/render/village-ground.ts` mit `drawVillageGround(container, textures)` für Wiese, Bodenkacheln, Weg und Bäume sowie der gemeinsamen Sprite-Anlage `placeSprite`, die vorher in der Szene lag und die beide Teile brauchen; `VillageTextures` in `src/render/village-scene.ts` erweitert dafür `VillageGroundTextures`. Die Szene behält `VillageScene`, `WALKERS`, die Gebäudeschleife mit Klickverdrahtung, die Bewohner und `update`. Kein Verhalten hat sich verschoben: `createVillageScene(textures, onBuildingClick)` ist unverändert, die Zeichenreihenfolge bleibt Wiese, Boden, Weg, Bäume, Gebäude, Bewohner, und `test/world-presentation.test.ts` bleibt ohne eine Zeile Änderung grün.
+
+**Gates:** typecheck 0, 360 Tests in 54 Dateien, Lint 0, LOC-Caps ok (`village-scene.ts` 149 auf 75 Codelinien, `village-ground.ts` 88), Hygiene ok, Shinon PASS.
+
 ## 2026-09-29 — Der Editor markiert Platzierungen statt Fallen, und die Routenanzeige nennt keine Umwege mehr
 
 **Die Falle heißt jetzt Platzierung und tut nur noch eines: markieren.** `dungeon-editor/model.ts` kennt den Pinsel `placement` statt `trap`, `ui/editor-controls.tsx` beschriftet ihn mit `Platzierung`, `world/tiles.ts` führt den Deskriptor unter `CellType.Placement`, und die Trail-Marke in `raid/timeline-model.ts` heißt `placement` mit dem Label `Platzierung`; `raid/phases.tsx` nennt in seinem Hinweistext dieselben drei Marken. Die Optik bleibt vorerst die alte — der Pfeil, der die Patrouillenrichtung zeigt, kommt mit den Zonen.

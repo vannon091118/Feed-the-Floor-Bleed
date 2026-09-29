@@ -1,16 +1,23 @@
-import { Container, Sprite, type Texture, TilingSprite } from 'pixi.js'
+import { Container, type Texture } from 'pixi.js'
 import { villageTexture } from './village-atlas'
 import {
-  type BuildingKind,
-  VILLAGE_BUILDINGS,
-  VILLAGE_TREES,
-  VILLAGE_WORLD_HEIGHT,
-  VILLAGE_WORLD_WIDTH,
-} from './village-layout'
+  drawVillageGround,
+  placeSprite,
+  type VillageGroundTextures,
+} from './village-ground'
+import { type BuildingKind, VILLAGE_BUILDINGS } from './village-layout'
 
-export interface VillageTextures {
-  ground?: Texture
-  tree?: Texture
+/**
+ * Was sich im Dorf bewegt oder angeklickt werden kann.
+ *
+ * Der Untergrund liegt in `village-ground.ts`; hier bleiben die Gebäude mit
+ * ihrer Klickverdrahtung, die laufenden Bewohner und ihre Bewegung. Der
+ * Schnitt ist die Naht der künftigen Verdrahtung: Sobald die Szene den
+ * Dorfbestand des Stores statt der Präsentationsorte aus `village-layout.ts`
+ * liest, tauscht sie ihre Gebäudeschleife und lässt das Bild darunter
+ * unberührt.
+ */
+export interface VillageTextures extends VillageGroundTextures {
   resident?: Texture
   buildings?: Partial<Record<BuildingKind, Texture>>
 }
@@ -22,9 +29,6 @@ export interface VillageScene {
 
 export type { BuildingKind } from './village-layout'
 
-/** Wie weit die Wiese über das Weltrechteck hinausreicht. */
-const BACKDROP_SPAN = 4
-
 const WALKERS = [
   { from: 120, to: 820, y: 355, offset: 0 },
   { from: 165, to: 870, y: 510, offset: 0.38 },
@@ -32,26 +36,19 @@ const WALKERS = [
   { from: 260, to: 910, y: 575, offset: 0.2 },
 ] as const
 
-function placeSprite(
-  parent: Container,
-  texture: Texture,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  depth: number,
-): Sprite {
-  const sprite = new Sprite(texture)
-  sprite.anchor.set(0.5, 1)
-  sprite.position.set(x, y)
-  sprite.width = width
-  sprite.height = height
-  sprite.zIndex = depth
-  parent.addChild(sprite)
-  return sprite
-}
-
-/** Pixel-Dorf mit anklickbaren Gebäuden und deterministischer Bewohnerbewegung. */
+/**
+ * Pixel-Dorf mit anklickbaren Gebäuden und deterministischer Bewohnerbewegung.
+ *
+ * Der Aufbau ist zweigeteilt und in dieser Reihenfolge bindend: erst der
+ * unbewegliche Untergrund, dann die Gebäude, zuletzt die Bewohner. Die
+ * Bewohner sind damit die letzten Kinder des Containers, und die Tiefe jedes
+ * Sprites kommt aus seinem Fußpunkt, weil der Container sortiert.
+ *
+ * Ein fehlendes Bild ist kein Fehler: Für jede Textur gilt der Rückfall auf die
+ * prozedurale Fassung, und die Texturmenge darf leer bleiben. Ohne
+ * Klickempfänger sind die Gebäude sichtbar, aber nicht anklickbar — die
+ * Entscheidung liegt beim Aufrufer, hier gibt es keinen stillen Standard.
+ */
 export function createVillageScene(
   textures: VillageTextures = {},
   onBuildingClick?: (id: string) => void,
@@ -59,60 +56,7 @@ export function createVillageScene(
   const container = new Container()
   container.sortableChildren = true
 
-  // Die Wiese hinter dem Weltrechteck: breite Viewports sehen keinen schwarzen Rand.
-  const backdrop = new TilingSprite({
-    texture: textures.ground ?? villageTexture.ground(0),
-    width: VILLAGE_WORLD_WIDTH * BACKDROP_SPAN,
-    height: VILLAGE_WORLD_HEIGHT * BACKDROP_SPAN,
-    tileScale: { x: 0.5, y: 0.5 },
-  })
-  backdrop.anchor.set(0.5)
-  backdrop.position.set(VILLAGE_WORLD_WIDTH / 2, VILLAGE_WORLD_HEIGHT / 2)
-  backdrop.tint = 0x7c9a62
-  backdrop.zIndex = -100
-  container.addChild(backdrop)
-
-  for (let y = 0; y < VILLAGE_WORLD_HEIGHT; y += 32) {
-    for (let x = 0; x < VILLAGE_WORLD_WIDTH; x += 32) {
-      const variant = variantAt(x, y)
-      const tile = placeSprite(
-        container,
-        textures.ground ?? villageTexture.ground(variant),
-        x + 16,
-        y + 32,
-        32,
-        32,
-        y,
-      )
-      if (variant === 0) tile.tint = 0x9cbe78
-    }
-  }
-
-  const pathY = 345
-  for (let x = 80; x <= 920; x += 32) {
-    const path = placeSprite(
-      container,
-      textures.ground ?? villageTexture.ground(variantAt(x, pathY)),
-      x,
-      pathY,
-      32,
-      24,
-      pathY + 1,
-    )
-    path.tint = 0xc9ad77
-  }
-
-  for (const tree of VILLAGE_TREES) {
-    placeSprite(
-      container,
-      textures.tree ?? villageTexture.tree(),
-      tree.x,
-      tree.y,
-      32,
-      48,
-      tree.y,
-    )
-  }
+  drawVillageGround(container, textures)
 
   for (const building of VILLAGE_BUILDINGS) {
     const sprite = placeSprite(
@@ -160,8 +104,4 @@ export function createVillageScene(
       })
     },
   }
-}
-
-function variantAt(x: number, y: number): number {
-  return ((((x / 32) * 7 + (y / 32) * 11) % 8) + 8) % 8
 }

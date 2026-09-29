@@ -23,9 +23,10 @@ Simulation bleibt der einzige Owner der Spielentscheidungen.
 - `render/` — Pixi-Runtime. Besitzt `Application`, Ebenen, Ticker und Kamera.
   `camera.ts` enthält die einzige `worldToScreen`/`screenToWorld`-Implementierung
   und die Rahmung (`fitCamera`) für beide Welten. `village-layout.ts` hält die
-  Präsentationsorte, `village-atlas.ts` die Pixeltexturen, `village-scene.ts`
-  die Szene mit anklickbaren Gebäuden und `village-view.ts` deren Einbau in die
-  Runtime. `layer-sprite.ts` besitzt die Lebensdauer eines Sprites in einer
+  Präsentationsorte, `village-atlas.ts` die Pixeltexturen, `village-ground.ts`
+  der unbewegliche Untergrund samt der Sprite-Anlage und `village-scene.ts` die
+  beweglichen Teile mit anklickbaren Gebäuden; `village-view.ts` baut beides in
+  die Runtime ein. `layer-sprite.ts` besitzt die Lebensdauer eines Sprites in einer
   Ebene, `camera-controls.ts` den Pan/Zoom auf der Host-Fläche und
   `camera-keys.ts` den Tastenschritt samt der Props, die diese Fläche
   fokussierbar und für Vorlesehilfen benannt machen.

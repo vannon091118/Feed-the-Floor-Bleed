@@ -51,7 +51,8 @@
 | `src/render/editor-overlay.ts` | Pinselmarkierung und Lesemarken im Overlay |
 | `src/render/village-layout.ts` | Weltmaße, Dorforte und Baumstellen des Präsentationsdorfs; die Baugegenstand-Arten leiht es aus `village/balance` |
 | `src/render/village-atlas.ts` | Pixeltexturen für Boden, Bäume, Gebäude und Bewohner |
-| `src/render/village-scene.ts` | Dorfszene mit Wiesenhintergrund, anklickbaren Gebäuden, laufenden Bewohnern |
+| `src/render/village-ground.ts` | Unbeweglicher Dorfuntergrund aus Wiese, Bodenkacheln, Weg und Bäumen samt der gemeinsamen Sprite-Anlage `placeSprite` |
+| `src/render/village-scene.ts` | Bewegliche Teile der Dorfszene: anklickbare Gebäude, laufende Bewohner, `createVillageScene` und `update(ms)` |
 | `src/render/village-view.ts` | Einbau der Dorfszene in die geteilte Runtime, Kamera-Rahmung |
 | `src/input/pointer.ts` | Einheitlicher Pointer-Pfad für Maus und Touch |
 | `src/input/hit-test.ts` | Screen → Zelle und Actor-Treffer über die Kamera |

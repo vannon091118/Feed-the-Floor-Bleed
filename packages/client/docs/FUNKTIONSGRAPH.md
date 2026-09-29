@@ -32,6 +32,7 @@ render (Pixi)
   ├─ actor-atlas: Actor-Silhouetten
   ├─ atmosphere-atlas: Glow-/Vignette-Texturen
   ├─ village-layout / village-atlas: Dorforte und Pixeltexturen
+  ├─ village-ground: drawVillageGround(container, textures) + placeSprite(…)
   ├─ village-scene: createVillageScene(textures, onBuildingClick) + update(ms)
   ├─ village-view: createVillageView(runtime, onBuildingClick)
   ├─ terrain: createTerrainView(runtime).apply(patch)
