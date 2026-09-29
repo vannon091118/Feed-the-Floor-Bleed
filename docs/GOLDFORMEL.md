@@ -35,47 +35,67 @@ liefert `5 · 40 + 100 = 300` Gold.
 
 ## Die Datenlage, getrennt von der Formel
 
-Die Formel ist freigegeben und in `packages/client/src/village/loot.ts` als reine
-Funktion umgesetzt. Sie hat im heutigen Bestand aber **keine Eingabedaten**, und
-das ist eine Aussage über den Code, nicht eine Vermutung:
+**Stand 2026-09-29, nach der Definition: beide Eingaben existieren.** Dieser
+Abschnitt hat vorher das Gegenteil behauptet; die Korrektur folgt unten, weil
+der Fehler selbst eine Lehre trägt.
 
-- **Die Stärke-Skala existiert nicht.** `goldForOpponent` rechnet mit einer
-  ganzen Stärke ab 0. Die Genome-Registry liefert `monsterStats` mit `maxHp`,
-  `attack` und `defense` — kontinuierliche Werte aus Basiskurve plus Art-Bias
-  plus drei Elementen. Eine Abbildung von diesen Werten auf die Skala 0 bis 5,
-  die die Tabelle oben zugrunde legt, ist nirgends definiert. Die Zahlen 0 bis 5
-  stammen aus der Beispieltabelle, nicht aus einer Messung am Bestand.
-- **Die Generation existiert nicht.** `BaseMonster` führt eine Art, keinen
-  Zuchtstand. Die Mutation in `genome/mutation.ts` erzeugt ein verändertes
-  Genom, aber kein Feld, das als „diese Generation" ablesbar wäre.
+### Die Stärke: gemessen, nicht gesetzt
 
-Damit ist die Formel eine freigegebene **Regel ohne Abnehmer**, und ein Aufrufer
-gibt es bewusst noch nicht. `docs/CONCEPT_REVIEW.md` Abschnitt 0a nennt als Quelle
-„abhängig von Stärke/Generation"; die Quelle ist mit der Freigabe benannt, sie ist
-aber kein Nachweis, dass die Daten irgendwo entstehen. Vor der Verdrahtung ist zu
-entscheiden:
+`packages/sim-core/src/genome/strength.ts` liefert `strengthOfElements`, eine
+Stufe von 0 bis 5 je Wesen. Sie kommt aus dem **Elementbudget** — der Summe der
+drei Elemente —, nicht aus den abgeleiteten Kampfwerten. Der Grund ist
+gemessen: über alle zwanzig Basis-Arten liegt `maxHp + attack + defense`
+zwischen 51561 und 54816, also in gut sechs Prozent. Eine Skala aus diesen
+Werten würde Rauschen in Stufen gießen. Das Elementbudget liegt zwischen 9500
+und 21900 und trennt die Arten wirklich.
 
-1. **Stärke als eigene Größe am Monster.** Ein Feld in `BaseMonster`, gesetzt
-   aus der Art, wäre die ehrlichste Lösung: die Stärke ist dann eine Eigenschaft
-   der Art und keine Ableitung aus dem Endwert. Sie widerspricht aber der
-   bestehenden Zufallsquelle `speciesBias`, die jede Art bisher aus dem Hash
-   bekommt — eine zweite Artzahl wäre eine zweite Wahrheit.
-2. **Stärke aus dem Endwert ableiten.** Eine Schwellwertung über `maxHp` oder
-   `attack` braucht eine Grenze, und die Grenze ist eine `[K]`-Zahl. Sie fiele
-   außerdem unter das deterministische Raster, aber nicht darunter, dass sie
-   gewartet werden müsste: verschiebt sich `BASE.maxHp`, verschiebt sich die
-   Stärke jedes Wesens mit, ohne dass jemand es entschieden hätte.
-3. **Stärke aus der Besetzung ableiten** — etwa der Platznummer. Dann wäre die
-   Beute eine Funktion des Aufbaus statt des Wesens, und die Tabelle müsste neu
-   begründet werden.
+Die Schwellen 12000, 14000, 15000, 16500 und 18500 sind `[K]` und stehen an der
+Quelle. Sie sind keine Rundungszahlen, sondern die Lücken der gemessenen
+Verteilung — jede liegt zwischen zwei Arten, keine Art sitzt auf einer Schwelle,
+und drei Arten mit Budget 15400 landen garantiert zusammen. Die Verteilung über
+die zwanzig Arten ist 3/2/4/5/4/2; jede Stufe ist besetzt. `strength.test.ts`
+nennt jede Art mit ihrer Stufe, damit eine Änderung an einem Element sichtbar
+wird, statt still eine Art zu verschieben.
 
-Zusätzlich zur Frage der Herkunft bleibt die des Trägers: `CombatSummary` führt
-`defendersTotal`, `monstersAlive` und `bossAlive`, also Zählwerte ohne Zuordnung
-zu einzelnen Einheiten, und `monsterSlot` im eingefrorenen Snapshot trägt nur
-`monsterId`. Ob die Beute Stärke und Generation im Contract trägt (Sprung
-`CONTRACT_VERSION 5` auf 6 mit Migration) oder der Client sie über `monsterId`
-auflöst, ist die zweite offene Entscheidung — die erste ist die Herkunft der
-Zahlen.
+**Die zweite Wahrheit ist damit weg.** `speciesBias` kam vorher aus einem Hash
+der Basis-ID und war damit eine zweite Zahl für dieselbe Frage „wie ist diese
+Art". Eine Art mit Stärke 5, die zufällig 850 würfelte, wäre oben in der Beute
+und unten im Kampf gewesen. Jetzt kommt der Bias aus der Stärke selbst,
+`850 + Stärke · 60`, also demselben Band von 850 bis 1150 wie vorher. Was sich
+ändert, ist die Zuordnung, nicht die Größenordnung.
+
+### Die Generation: sie existierte und war übersehen
+
+`Genome` führt `generation` seit dem Bau der Domäne: 1 für ein Basis-Monster,
+`Math.max(a, b) + 1` in `breed`, `generation + 1` in `mutate`, geprüft in
+`breeding.test.ts` und `genome.test.ts`. Die frühere Fassung dieses Abschnitts
+behauptete, es gebe kein ablesbares Generationsfeld. Das war falsch — es stand
+im Quelltext. Die Aussage ist korrigiert, und `CODE IS TRUTH` gilt in beide
+Richtungen: nicht nur ein Kommentar, der mehr verspricht als der Code leistet,
+ist ein Blocker, sondern auch ein Dokument, das weniger behauptet als der Code
+bereits hergibt.
+
+### Die Brücke
+
+`lootProfile(genome)` in `strength.ts` liefert `{ strength, generation }` aus
+dem Genom — der Genom-Besitzer hat die Daten, niemand sonst. Die Formel
+rechnet weiterhin in `packages/client/src/village/loot.ts`, weil sie eine
+Dorfwirtschaftsfrage ist und kein Zuchtergebnis. `loot.test.ts` rechnet beide
+Seiten gegeneinander: Steingolem ergibt in Stärke 5 und Generation 1 genau 200
+Gold, Shadeprowler in Stärke 0 genau 0 und **ohne** Fehler.
+
+### Was offen bleibt: der Transport
+
+Die Formel hat ihre Eingaben, aber der **Kampfweg** führt sie noch nicht.
+`monsterSlot` im eingefrorenen Snapshot trägt nur `monsterId`, und
+`CombatSummary` führt `defendersTotal`, `monstersAlive` und `bossAlive` —
+Zählwerte ohne Zuordnung zu einzelnen Einheiten. Ein Ergebnis weiß also, *wie
+viele* Gegner gefallen sind, nicht *welche*. Die Stärke lässt sich über
+`monsterId` aus der Registry auflösen; die Generation nicht, weil sie im
+Snapshot nirgends steht. Die eine offene Entscheidung ist damit: trägt der
+Contract Stärke und Generation je Einheit (Sprung `CONTRACT_VERSION 5` auf 6
+mit Migration), oder wird die Generation Teil der `monsterId`? Beides ist
+entscheidbar, nichts davon ist ein Blocker für die Regel selbst.
 
 ## Rendite-Kontext
 

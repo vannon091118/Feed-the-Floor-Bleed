@@ -1,7 +1,7 @@
 import { PROVISIONAL_RULES } from '../combat/rules'
-import { hashStart, hashText } from '../hash'
 import { clampInt } from '../math'
-import type { BaseMonster, MonsterStats } from './types'
+import { strengthOfElements } from './strength'
+import type { MonsterStats } from './types'
 
 /**
  * Die Kopplung zwischen den drei Elementen und den Kampfwerten.
@@ -14,9 +14,10 @@ import type { BaseMonster, MonsterStats } from './types'
  * Jede Basisart übersetzt dasselbe Element anders. Das ist der Grund, warum aus
  * zwanzig Basis-Monstern ein breites Spektrum entsteht statt zwanzig Kopien:
  * Element 1 (Tempo) macht beim Frostwolf einen schnellen Jäger und beim
- * Glutkolos einen trägen Koloss. Der Bias je Art kommt aus einem Hash der
- * Basis-ID — stabil, ohne Tabelle, und ohne eine zweite Zahl, die gepflegt
- * werden müsste.
+ * Glutkolos einen trägen Koloss. Der Bias je Art kommt aus der **Stärke** der
+ * Art in `strength.ts` — derselben Größe, die die Goldformel abliest. Vorher
+ * stand hier ein Hash der Basis-ID; der ist weg, weil er eine zweite Zahl für
+ * dieselbe Frage war und der Beute widersprechen konnte.
  *
  * Der Nullpunkt kommt aus `PROVISIONAL_RULES.monster`, dem einzigen Ort, an
  * dem die Ausgangswerte stehen. `genome` rechnet keine Kämpfe, es liest nur
@@ -35,13 +36,20 @@ const DEFENSE_GAIN = 180
 /**
  * Der je Basisart abweichende Gewichtsfaktor, in Promille um 1000.
  *
- * Aus dem Hash der ID kommt ein Wert zwischen 850 und 1150: eine Art ist
- * spürbar zäh, eine andere spürbar schnell, ohne dass eine Tabelle mit
- * Handwerten gepflegt werden muss. Zwei Arten mit gleicher ID hätten denselben
- * Faktor — das ist gewollt, denn die ID ist die Identität.
+ * Er kommt aus der Stärke der Art und **nicht** aus einem Hash der ID. Das ist
+ * der einzige Ort, an dem eine Art von der anderen abweicht, und die Stärke
+ * ist derselbe Wert, den die Goldformel abliest. Ein Hash daneben wäre eine
+ * zweite Zahl für dieselbe Frage „wie ist diese Art", und die beiden könnten
+ * sich widersprechen: eine Art mit Stärke 5, die zufällig 850 würfelte, wäre
+ * oben in der Beute und unten im Kampf.
+ *
+ * Die Stufen 0 bis 5 ergeben 850 bis 1150 — genau das Band, das der Hash
+ * vorher geliefert hat. Die Kampfwerte bleiben damit in derselben Größenordnung;
+ * welche Art welchen Faktor bekommt, ändert sich, weil die Zuordnung jetzt aus
+ * den Elementen kommt und nicht aus dem Zufall.
  */
-function speciesBias(id: string): number {
-  return 850 + (hashText(hashStart(), id) % 301)
+function speciesBias(elements: readonly [number, number, number]): number {
+  return 850 + strengthOfElements(elements) * 60
 }
 
 function elementGain(element: number, perMille: number): number {
@@ -50,14 +58,16 @@ function elementGain(element: number, perMille: number): number {
 }
 
 export function monsterStats(
-  base: BaseMonster,
   elements: readonly [number, number, number],
 ): MonsterStats {
   const [mass, speed, hardness] = elements
   // Die Art verschiebt die Gewichte, nicht die Grundkurve: eine Art mit
   // Faktor 1150 gewinnt rund 15 % auf allen drei Achsen, eine mit 850 verliert
-  // ebenso. So bleibt der Vergleich zwischen Arten möglich.
-  const bias = speciesBias(base.id)
+  // ebenso. So bleibt der Vergleich zwischen Arten möglich. Der Faktor kommt
+  // aus den Elementen allein, deshalb steht hier keine Basis-Art mehr: sie
+  // würde nichts beitragen und die Signatur etwas versprechen, das sie nicht
+  // hält.
+  const bias = speciesBias(elements)
   const scaled = (value: number, perMille: number): number =>
     Math.trunc((elementGain(value, perMille) * bias) / 1000)
 

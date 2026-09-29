@@ -1,3 +1,4 @@
+import { baseGenome, lootProfile } from '@floor/sim-core'
 import { describe, expect, it } from 'vitest'
 import { BALANCE } from './balance'
 import { goldForOpponent, goldForRun } from './loot'
@@ -101,5 +102,41 @@ describe('goldForRun', () => {
       ok: false,
       reason: { ok: false, reason: 'below-first-generation', generation: 0 },
     })
+  })
+})
+
+/**
+ * Die Naht zwischen den beiden Domänen.
+ *
+ * Die Tabelle oben ist eine Rechnung über eingesetzte Zahlen. Dieser Block
+ * rechnet mit echten Genomen aus `@floor/sim-core`: `lootProfile` liest Stärke
+ * und Generation aus dem Genom, und `goldForOpponent` rechnet daraus. Damit ist
+ * belegt, dass die Formel nicht nur auf Zahlen funktioniert, die jemand
+ * passend eingesetzt hat, sondern auf dem Wesen, das tatsächlich im Bestand
+ * liegt. Fällt eine der beiden Seiten auseinander, fällt dieser Test.
+ */
+describe('Goldformel an echten Genomen', () => {
+  it('rechnet den Steingolem in Stärke 5 auf 200 Gold der ersten Generation', () => {
+    const profile = lootProfile(baseGenome('stone-golem'))
+    expect(profile).toEqual({ strength: 5, generation: 1 })
+    expect(goldForOpponent(profile, BALANCE)).toEqual({ ok: true, gold: 200 })
+  })
+
+  it('rechnet den Shadeprowler in Stärke 0 auf 0 Gold, ohne Fehler', () => {
+    const profile = lootProfile(baseGenome('shade-prowler'))
+    expect(profile).toEqual({ strength: 0, generation: 1 })
+    expect(goldForOpponent(profile, BALANCE)).toEqual({ ok: true, gold: 0 })
+  })
+
+  it('summiert einen gemischten Run echter Genome', () => {
+    const run = goldForRun(
+      [
+        lootProfile(baseGenome('frost-wolf')), // Stärke 2, Gen 1 → 80
+        lootProfile(baseGenome('ash-revenant')), // Stärke 3, Gen 1 → 120
+        lootProfile(baseGenome('shard-imp')), // Stärke 0, Gen 1 → 0
+      ],
+      BALANCE,
+    )
+    expect(run).toEqual({ ok: true, gold: 200 })
   })
 })

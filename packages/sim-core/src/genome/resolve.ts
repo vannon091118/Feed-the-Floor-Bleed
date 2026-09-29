@@ -1,5 +1,4 @@
 import { bonusEffect, traitEffect } from './effects'
-import { baseMonster } from './registry'
 import { monsterStats } from './stats'
 import type { Genome, MonsterStats } from './types'
 
@@ -16,8 +15,7 @@ import type { Genome, MonsterStats } from './types'
  * was der Trait bereits aufgebaut hat.
  */
 export function resolveStats(genome: Genome): MonsterStats {
-  const base = baseMonster(genome.baseId)
-  let stats = monsterStats(base, genome.elements)
+  let stats = monsterStats(genome.elements)
   for (const trait of genome.traits) {
     stats = traitEffect(trait).apply(stats, genome)
   }

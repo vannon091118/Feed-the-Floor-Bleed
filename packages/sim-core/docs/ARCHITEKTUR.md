@@ -60,6 +60,18 @@ damit die Ableitungsregel wachsen kann, ohne alte Genome eine eingefrorene
 Kopie zu tragen. `resolve.ts` hält die Reihenfolge fest: erst die Kopplung
 aus den Elementen, dann die Traits, dann die Boni.
 
+`src/genome/strength.ts` besitzt die **Stärke** eines Wesens, eine Stufe von 0
+bis 5, und ist die zweite Eingabe der Goldformel (`docs/GOLDFORMEL.md`). Sie
+kommt aus dem Elementbudget, der Summe der drei Elemente, nicht aus den
+abgeleiteten Kampfwerten: gemessen über die zwanzig Basis-Arten liegen die
+aggregierten Kampfwerte in gut sechs Prozent, das Elementbudget in gut
+zweieinhalbfach. Die Schwellen sind `[K]`, liegen in den Lücken der gemessenen
+Verteilung und stehen an der Quelle. `speciesBias` in `stats.ts` leitet sich
+aus dieser Stärke ab (`850 + Stärke · 60`) und nicht mehr aus einem Hash der
+Basis-ID — vorher standen zwei Zahlen für dieselbe Frage, und sie konnten sich
+widersprechen. `lootProfile` liefert `{ strength, generation }` aus einem Genom
+und ist die Brücke zur Dorfwirtschaft; die Formel selbst rechnet im Client.
+
 `registry.ts` ist der einzige Nachschlageort für ein Basis-Monster und prüft
 seine Invarianten beim Laden, nicht beim Aufruf. `mutation.ts` ist die einzige
 Stelle, die würfelt, und zwar ausschließlich über den internen PRNG. Die

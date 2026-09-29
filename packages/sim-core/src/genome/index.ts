@@ -3,6 +3,13 @@ export { baseMonster, baseMonsterCount, baseMonsters } from './registry'
 export { resolveStats } from './resolve'
 export { monsterStats } from './stats'
 export {
+  elementBudget,
+  lootProfile,
+  STRENGTH_STEPS,
+  strengthOfBase,
+  strengthOfElements,
+} from './strength'
+export {
   type BaseMonster,
   BONUS_IDS,
   type BonusId,
