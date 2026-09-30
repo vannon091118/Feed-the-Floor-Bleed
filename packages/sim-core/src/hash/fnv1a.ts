@@ -1,4 +1,4 @@
-export const HASH_OFFSET = 0x811c9dc5
+const HASH_OFFSET = 0x811c9dc5
 const HASH_PRIME = 0x01000193
 
 export function hashStart(): number {

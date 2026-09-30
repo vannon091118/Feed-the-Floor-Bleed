@@ -1,7 +1,7 @@
 import { grid, route } from '../dungeon-editor/state'
 import type { DragDropCommand } from '../input'
 import {
-  bindCameraControls,
+  bindViewportControls,
   type RenderMode,
   type VillagePlots,
   type VisualRuntime,
@@ -94,15 +94,17 @@ export function createSceneSwitch(
         village?.update(elapsedMs),
       )
       // Die Steuerung hängt an der Host-Fläche, nicht am Canvas: sie trägt
-      // Zeiger und Tastatur und ist das fokussierbare Element.
-      const unbind = bindCameraControls(
-        host,
-        'village',
-        () => runtime.camera,
-        (camera) => runtime.setCamera(camera),
-      )
+      // Zeiger und Tastatur und ist das fokussierbare Element. Es ist dieselbe
+      // Steuerung wie im Dungeon, nur ohne Trefferschicht — das Dorf hat keine
+      // Actors, aber dieselbe Geste.
+      const controls = bindViewportControls({
+        element: host,
+        world: 'village',
+        camera: () => runtime.camera,
+        setCamera: (camera) => runtime.setCamera(camera),
+      })
       release = () => {
-        unbind()
+        controls.dispose()
         stopTick()
       }
       return

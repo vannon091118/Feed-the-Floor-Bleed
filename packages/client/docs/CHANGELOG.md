@@ -1,5 +1,15 @@
 # packages/client/docs/CHANGELOG.md
 
+## 2026-09-30 — Zwei Kamerasysteme werden eines, und der Zug-Status bekommt seine Anzeige
+
+**Scope:** gelöscht `src/showcase/controls.ts` und `src/raid/timeline.tsx`; geändert `src/render/camera-controls.ts` (die eine Viewport-Steuerung für beide Welten), `src/render/camera.ts` (ein Zoomschritt), `src/render/camera-keys.ts` (liest ihn), `src/render/animation.ts` (`walkSway` entfällt), `src/input/pointer.ts` (der Capture ist abschaltbar, `PointerSample` trägt nur noch die gelesenen Felder), `src/showcase/scene.ts` und `src/ui/scene-switch.ts` (beide binden dieselbe Steuerung), `src/ui/phase-windows.tsx` und `test/window-routing.test.ts` (lesen `raid/raid-timeline` direkt), `src/ui/editor-controls.tsx` (zeigt `DropStatus`), `test/input-drag.test.ts` und `test/render-animation.test.ts`. Kein Contract, kein Hash, keine Zahl.
+
+**Zwei Systeme für eine Geste.** `showcase/controls.ts` (ältester Commit `9ef9b41`) hielt die Origin-Geste: nach dem Slop ein Drag auf einem Actor, sonst ein Pan, ohne Weg ein Klick. `render/camera-controls.ts` (`2297f8e`) war die spätere, schmalere Dorf-Fassung derselben Idee — mit eigener Schwelle (4 statt 5), eigener Zoomregel und einem zweiten `GRAB_RADIUS`. Der Origin-Pfad ist zurückgeführt: die eine Steuerung heißt `bindViewportControls`, nimmt die Welt als Parameter, holt Schwelle und Greifradius aus `input/drag-target` und bedient beide Blicke; die Dorffläche bindet sie ohne Trefferschicht. Auch der letzte Rest des zweiten Pfades fällt: das Dorf pannte in einer eigenen, nachgebauten DOM-Schleife; jetzt fährt dieselbe `bindPointer`-Bindung beide Welten, mit `capture: false` im Dorf — ein `setPointerCapture` auf der Fläche nähme der Leinwand die Zeigerereignisse, und die Dorfszene hängt ihre Gebäudeklicks als Pixi-`pointertap` an die Sprites. Der Zoomschritt (`ZOOM_STEP_IN`/`ZOOM_STEP_OUT`) steht einmal in `render/camera.ts` statt viermal als `1.1`/`0.9` in zwei Modulen.
+
+**Der Zug-Status hing an keiner Anzeige.** `recordDrop` schrieb in ein Signal, `DropStatus` las es, und kein Baum hängte die Komponente ein: die Rückmeldung entstand und verfiel unsichtbar. Sie steht jetzt im Werkzeugbereich (`ui/editor-controls.tsx`), wo ihr eigener Kommentar sie verortet. **Der leere Reexport fällt:** `raid/timeline.tsx` bestand aus einer Zeile und ist weg.
+
+**Was der Schnitt nicht beweist.** Für die eine Viewport-Geste gibt es keinen DOM-Test — in dieser Umgebung laufen weder Chrome noch ein jsdom-Aufbau —, sie ist also über Typecheck, Gates und die unveränderten Konsumenten belegt und nicht über ein gerendertes Bild; T2.6 bleibt dafür offen. Der Messlauf `packages/sim-core/src/combat/balance-report.test.ts` ist unabhängig davon lastempfindlich und kann unter parallelen Vitest-Workern die 30 Sekunden reissen; ohne ihn ist die Suite grün, und die betroffenen Client-Dateien liegen in dieser Umgebung außerhalb jeder Lastspitze.
+
 ## 2026-09-29 — Der Prüflauf endet jetzt auf der Gewinnerseite
 
 **Scope:** geändert `test/raid-loot-source.test.ts` (eine Voraussetzungszeile). Kein Produktivcode, keine Beuteformel, keine Zahl der Anzeige.

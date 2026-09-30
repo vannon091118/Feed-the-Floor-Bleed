@@ -1,70 +1,163 @@
+import { createDragController, type DragDropCommand } from '../input/drag'
+import { DRAG_SLOP, GRAB_RADIUS } from '../input/drag-target'
+import { actorAtWorld } from '../input/hit-test'
+import { bindPointer, type PointerSample } from '../input/pointer'
+import type { ActorDescriptor, ActorKind } from '../world'
 import {
   type CameraState,
   type CameraWorld,
   panCamera,
+  type ScreenPoint,
+  screenToWorld,
+  ZOOM_STEP_IN,
+  ZOOM_STEP_OUT,
   zoomCamera,
 } from './camera'
 import { bindCameraKeys } from './camera-keys'
 
-interface Point {
-  x: number
-  y: number
+export interface ViewportControlsDeps {
+  element: HTMLElement
+  world: CameraWorld
+  camera: () => CameraState
+  setCamera: (camera: CameraState) => void
+  /**
+   * Die Trefferschicht. Fehlt sie, ist die Fläche eine reine Kamera: Dorf und
+   * Dungeon teilen dieselbe Geste, aber nur der Dungeon hat Actors, die man
+   * greifen und fallen lassen kann.
+   */
+  actors?: () => readonly ActorDescriptor[]
+  onActorClick?: (actorId: string, kind: ActorKind) => void
+  onDrop?: (command: DragDropCommand) => void
 }
 
-const PAN_SLOP = 4
+export interface ViewportControls {
+  dispose(): void
+}
+
+/** Vor dem Slop ist noch offen, ob die Geste ein Drag oder ein Pan wird. */
+type GestureMode = 'undecided' | 'drag' | 'pan'
 
 /**
- * Weltkamera-Steuerung; DOM-Overlays bleiben scrollbar und Fenster draggable.
+ * Eine Viewport-Steuerung für Dorf und Dungeon.
  *
- * Zeiger und Tastatur liegen auf derselben Fläche: der Canvas füllt sie, und
- * eine Taste braucht ohnehin ein fokussierbares Element. Ein Zug auf einem
- * Fenster erreicht die Fläche nicht, weil die Fensterschicht darüber liegt.
+ * Treffer, Pan und Drag laufen über dieselbe Schwelle (`DRAG_SLOP` und
+ * `GRAB_RADIUS` aus `input/drag-target`): die Richtung steht erst nach dem Slop
+ * fest — auf einem Actor beginnt ein Drag, in der leeren Welt ein Pan. Ein Down
+ * ohne Weg bleibt ein Klick und öffnet ein Fenster. Die Steuerung entscheidet
+ * dabei keine Spielregel; sie übersetzt Zeiger und Tasten in Kamerazustand und
+ * Drop-Commands.
+ *
+ * Vorher lagen hier zwei Systeme: dieser Pfad im Dungeon und eine zweite,
+ * schmalere Fassung im Dorf mit eigener Schwelle (4 statt 5) und eigener
+ * Zoomregel. Eine Geste mit zwei Zahlen fühlt sich je nach Blick anders an; es
+ * gibt jetzt eine.
+ *
+ * **Warum die Trefferschicht freiwillig ist und woran der Capture hängt:** Die
+ * Dorfszene hängt ihre Gebäudeklicks als Pixi-`pointertap` an die Sprites.
+ * `setPointerCapture` richtet alle folgenden Zeigerereignisse an die Fläche
+ * selbst; die Leinwand als Kind bekäme sie nicht mehr, und der Klick auf ein
+ * Haus fiele aus. Nur die Welt mit Actors greift deshalb mit Capture; dieselbe
+ * Bindung fährt im Dorf ohne.
  */
-export function bindCameraControls(
-  surface: HTMLElement,
-  world: CameraWorld,
-  getCamera: () => CameraState,
-  setCamera: (camera: CameraState) => void,
-): () => void {
-  let previous: Point | null = null
+export function bindViewportControls(
+  deps: ViewportControlsDeps,
+): ViewportControls {
+  const { element, world } = deps
+  let downScreen: ScreenPoint | null = null
+  let mode: GestureMode = 'undecided'
+  const drag = deps.actors
+    ? createDragController({
+        actors: deps.actors,
+        camera: deps.camera,
+        onDrop: (command) => deps.onDrop?.(command),
+      })
+    : null
 
-  const pointOf = (event: PointerEvent): Point => ({
-    x: event.clientX,
-    y: event.clientY,
-  })
-  const down = (event: PointerEvent): void => {
-    if (event.button === 0) previous = pointOf(event)
+  const reset = (): void => {
+    downScreen = null
+    mode = 'undecided'
   }
-  const move = (event: PointerEvent): void => {
-    if (!previous || event.buttons === 0) return
-    const next = pointOf(event)
-    const dx = previous.x - next.x
-    const dy = previous.y - next.y
-    if (Math.hypot(dx, dy) >= PAN_SLOP) {
-      setCamera(panCamera(getCamera(), dx, dy, world))
-      previous = next
-    }
+
+  const panBy = (dx: number, dy: number): void => {
+    deps.setCamera(panCamera(deps.camera(), dx, dy, world))
   }
-  const up = (): void => {
-    previous = null
-  }
-  const wheel = (event: WheelEvent): void => {
+
+  const onWheel = (event: WheelEvent): void => {
     event.preventDefault()
-    setCamera(zoomCamera(getCamera(), event.deltaY < 0 ? 1.1 : 0.9, world))
+    const step = event.deltaY < 0 ? ZOOM_STEP_IN : ZOOM_STEP_OUT
+    deps.setCamera(zoomCamera(deps.camera(), step, world))
+  }
+  element.addEventListener('wheel', onWheel, { passive: false })
+
+  const onDown = (sample: PointerSample): void => {
+    downScreen = sample.screen
+    mode = 'undecided'
+    drag?.onDown(sample)
   }
 
-  surface.addEventListener('pointerdown', down)
-  surface.addEventListener('pointermove', move)
-  surface.addEventListener('pointerup', up)
-  surface.addEventListener('pointercancel', up)
-  surface.addEventListener('wheel', wheel, { passive: false })
-  const unbindKeys = bindCameraKeys(surface, world, getCamera, setCamera)
-  return () => {
-    unbindKeys()
-    surface.removeEventListener('pointerdown', down)
-    surface.removeEventListener('pointermove', move)
-    surface.removeEventListener('pointerup', up)
-    surface.removeEventListener('pointercancel', up)
-    surface.removeEventListener('wheel', wheel)
+  const onMove = (sample: PointerSample): void => {
+    const origin = downScreen
+    if (!origin) return
+    if (mode === 'undecided') {
+      if (
+        Math.hypot(sample.screen.x - origin.x, sample.screen.y - origin.y) <
+        DRAG_SLOP
+      )
+        return
+      mode = drag?.hasCandidate() ? 'drag' : 'pan'
+    }
+    if (mode === 'drag') {
+      drag?.onMove(sample)
+      return
+    }
+    panBy(origin.x - sample.screen.x, origin.y - sample.screen.y)
+    downScreen = sample.screen
+  }
+
+  const onUp = (sample: PointerSample): void => {
+    const ended = mode
+    reset()
+    if (ended === 'drag') {
+      drag?.onUp(sample)
+      return
+    }
+    if (ended === 'pan') {
+      drag?.cancel()
+      return
+    }
+    const actors = deps.actors?.() ?? []
+    const id = actorAtWorld(
+      actors,
+      screenToWorld(deps.camera(), sample.screen),
+      GRAB_RADIUS,
+    )
+    drag?.cancel()
+    if (!id) return
+    const actor = actors.find((entry) => entry.id === id)
+    if (actor) deps.onActorClick?.(id, actor.kind)
+  }
+
+  const unbindPointer = bindPointer(element, {
+    /** Ohne Actors gibt es nichts zu greifen; der Capture fiele nur dem Dorf ins Haus. */
+    capture: deps.actors !== undefined,
+    onDown,
+    onMove,
+    onUp,
+    onCancel() {
+      reset()
+      drag?.cancel()
+    },
+  })
+
+  const unbindKeys = bindCameraKeys(element, world, deps.camera, deps.setCamera)
+
+  return {
+    dispose() {
+      unbindPointer()
+      unbindKeys()
+      element.removeEventListener('wheel', onWheel)
+      drag?.cancel()
+      reset()
+    },
   }
 }

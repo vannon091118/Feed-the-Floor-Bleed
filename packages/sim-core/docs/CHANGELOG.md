@@ -1,5 +1,15 @@
 # packages/sim-core/docs/CHANGELOG.md
 
+## 2026-09-30 — Vier Funktionen mit nur einem Aufrufer fallen, und vier Exporte ziehen sich auf ihr Modul zurück
+
+**Scope:** geändert `src/math/fixed.ts` (`divFixed` entfällt), gelöscht `src/math/isqrt.ts` (mit `sqrtFixed` verliert `isqrt` seinen letzten Leser), `src/math/index.ts` (Barrel), `src/math/math.test.ts` (drei Fälle fallen mit ihnen), `src/grid/grid.ts` (`visibleTileCount` und `logicCellsPerVisibleTile` entfallen), `src/grid/types.ts` (`PathMode` intern), `src/grid/path.test.ts` (dieselbe Aussage hängt an den Konstanten), `src/hash/fnv1a.ts` (`HASH_OFFSET` intern), `src/genome/registry.ts` (`baseMonsterCount` entfällt), `src/genome/index.ts` und `src/genome/genome.test.ts` (dieselbe Aussage über `baseMonsters().length`), `src/combat/boss.ts` (`BOSS_ROLE` und `BOSS_RULES` intern, Werte unangetastet). Kein Contract, kein Log-Hash.
+
+**Der Befund war Reichweite, nicht Fehlerhaftigkeit.** `divFixed`, `sqrtFixed`, `isqrt`, `baseMonsterCount`, `visibleTileCount` und `logicCellsPerVisibleTile` hatten je genau einen Aufrufer: ihren eigenen Test. Die beiden Zählfunktionen waren zusätzlich eine zweite Zugriffsform auf `VISIBLE_TILE_SIZE` und `LOGIC_CELLS_PER_VISIBLE_TILE`, die beide schon exportiert sind. `HASH_OFFSET`, `PathMode`, `BOSS_ROLE` und `BOSS_RULES` sind weiter im Einsatz, aber nur im eigenen Modul: ihr `export` versprach einen Leser, den es nicht gab.
+
+**Der Nachscan nach dem Schnitt findet keinen weiteren Fall.** Ein Durchlauf über `src/` und `test/` beider Pakete sucht jeden exportierten Namen, der außerhalb seiner Datei keinen Leser hat; übrig bleiben ausschließlich Props- und Typdeklarationen, die strukturell benutzt werden, und `[K]`-Konstanten, die ihr eigenes Modul liest. Ein Export, dessen einziger Leser sein eigener Test ist, existiert danach nicht mehr.
+
+**Die Grenze, an der ein Export bleibt.** Ein Helfer bleibt exportiert, wenn sein Test eine Eigenschaft pinnt, die der exportierte Wrapper nicht ausdrücken kann. `mix32`, `nextUint32` und `FIXED_SCALE` sind deshalb unangetastet. Wo der Test dagegen nur die eigene Arithmetik wiederholte, ist er mit seiner Funktion gefallen; wo die Aussage auch über den verbleibenden Pfad zu haben war, ist sie dorthin gewandert.
+
 ## 2026-09-29 — Der Boss war die Wand, und der erste gewonnene Lauf
 
 **Scope:** geändert `src/combat/boss.ts` (`BOSS_RULES` 200000/16000/5000/700 → 132000/12000/1000/500) und `src/combat/combat-pin.test.ts` (beide Pins, plus der Vermerk zur fünften Verschiebung). Keine neue Mechanik, kein Contract.
@@ -179,18 +189,3 @@ Die Domäne `genome` ist damit gebaut und nicht mehr offen: sie besitzt Zucht, S
 
 **Auswertung:** Die Basis-Kampfwerte kommen aus `PROVISIONAL_RULES.monster` statt aus einer zweiten Kopie in `stats.ts`; `genome` liest damit dieselben Ausgangswerte, mit denen der Core rechnet. Der Redundancy-Gate hatte die Dublette zu Recht gemeldet. Der Import geht dabei an `../combat/rules` und nicht an den Barrel — der Barrel zieht den ganzen Kampfgraphen in die Abhängigkeiten, obwohl nur eine Konstante gebraucht wird.
 
-## 2026-09-29 — Placement Tile: der Kostenzuschlag fällt, die Suche wird gleichgewichtig
-
-**Ein KI-Vorschlag hatte eine Falle gebaut, die nie im Scope war.** `CellType.Trap = 2` kostete vier Punkte statt einen, `findPath` suchte mit einem Umwegbudget von fünf Punkten und fiel bei dessen Überschreitung auf den Weg mit den wenigsten Tiles zurück (`trap-fallback`), und der Client zeigte daneben `Umweg` an. Mit der Entscheidung vom 2026-09-29 ist die Zelle eine Platzierungsmarkierung: Sie markiert den Bereich einer Gruppe, macht keinen Schaden und kostet nichts.
-
-**Die Kosten waren der ganze Grund für die Maschinerie.** Ohne Zuschlag sind alle begehbaren Zellen gleich teuer, also ist die Suche eine Breitensuche: `grid/path.ts` hält sie jetzt selbst, mit fester Nachbarreihenfolge, FIFO-Warteschlange und `Int32Array`-Elternzeigern; `path-search.ts` und `min-heap.ts` sind gelöscht, ebenso `manhattan`, das nur Bezugsmaß des Budgets war. `PathMode` kennt nur noch `reachable` und `unreachable`, `PathResult.movementCost` ist `path.length - 1` — vorher zählten Spawn und Boss null, weshalb dieselbe Route 125 statt 126 Punkte meldete.
-
-**Der Golden-Pin blieb wortgleich grün** (`94ba1954`, `f85b31c0`). Das ist der Beleg, den dieser Umbau braucht: Kein Fixture führt eine Platzierungszelle, also musste die neue Suche für diese Raster denselben Weg wählen — und tat es. Für die geänderte Regel steht ein eigener Test in `grid/path.test.ts`: Eine Platzierungszelle auf der geraden Route wird durchschritten und die Route bleibt bei 126 Bewegungspunkten; eine Wand an derselben Stelle macht sie unerreichbar. Ein zweiter Test pinnt, dass zwei Läufe über dasselbe Raster denselben Weg liefern.
-
-**`sim_version 0.0.4`.** Der Pin bewegt sich nicht, weil kein Fixture die Zelle führt — die Regel tut es: Ein unter dem alten Kostenmodell gerechneter Log mit Platzierungszellen ist nicht reproduzierbar. Die drei Traptests in `path.test.ts` und die Fallback-Erwartung in `packages/contracts/test/contracts.test.ts` sind mit der Regel entfallen, `combat/actions.ts` nennt in seinem Kommentar jetzt die Breitensuche statt der gewichteten Suche.
-
-## 2026-09-28 — Die Summary trägt den Verteidiger-Roster
-
-**Scope:** geändert `src/combat/summary.ts` (neues Feld `defendersTotal`). Kein Hash, keine Regel und kein Verhalten geändert — der Golden-Pin bleibt wortgleich grün und belegt das.
-
-`summarizeCombat` füllt jetzt `defendersTotal` aus den Einheiten des Logs: alle Einheiten der Monster-Seite, den Boss eingeschlossen. Damit ist die Zahl der gefallenen Gegner aus einem abgelegten Ergebnis berechenbar, ohne den Kampflog zu laden — `monstersAlive` und `bossAlive` nennen nur die Überlebenden, und `ResultPayloadSchema` trägt den Log nicht. Die Zahl kommt aus derselben Einheitenliste wie die Überlebendenzahlen, es gibt also keine zweite Quelle. Der Anlass des Felds steht im Contract, gerechnet wird damit noch nichts. `combat.test.ts` prüft beide Zusagen gegen die Todesereignisse des Logs statt sie zu glauben: den Pin auf `defendersTotal` und die Identität `defendersTotal - monstersAlive - (bossAlive ? 1 : 0)` gleich der Zahl der gefallenen Verteidiger.

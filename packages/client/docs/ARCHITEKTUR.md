@@ -28,7 +28,7 @@ Simulation bleibt der einzige Owner der Spielentscheidungen.
   Untergrund samt der Sprite-Anlage und `village-scene.ts` die Gebäude des
   Dorfbestands an ihren Plot-Zellen mit ihrer Klickverdrahtung sowie die
   Bewohner; `village-view.ts` baut beides in die Runtime ein. `layer-sprite.ts` besitzt die Lebensdauer eines Sprites in einer
-  Ebene, `camera-controls.ts` den Pan/Zoom auf der Host-Fläche und
+  Ebene, `camera-controls.ts` die gemeinsame Viewport-Steuerung und
   `camera-keys.ts` den Tastenschritt samt der Props, die diese Fläche
   fokussierbar und für Vorlesehilfen benannt machen.
 - `input/` — Eingabepfade: Pointer, Hit-Test, Drag und die Pfeiltasten. `arrows.ts`

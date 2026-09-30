@@ -21,7 +21,7 @@ visual (ohne Pixi)
 render (Pixi)
   ├─ camera: worldToScreen / screenToWorld / fitCamera (einzige Quelle)
   ├─ runtime: createVisualRuntime(host) → Application, Ebenen, Ticker
-  ├─ camera-controls: bindCameraControls(surface, world, …) (Pan/Zoom auf der Host-Fläche)
+  ├─ camera-controls: bindViewportControls({ element, world, … }) (Pan/Zoom/Klick/Drag, Dorf ohne Trefferschicht)
   ├─ camera-keys: cameraAfterKey / bindCameraKeys / cameraSurfaceProps (Tastenschritt,
   │                Richtung aus input/arrows)
   ├─ layer-sprite: addLayerSprite(layer, texture) (Sichtbarkeit, Abbau)

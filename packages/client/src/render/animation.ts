@@ -30,10 +30,6 @@ export function squash(
   return { x: 1 + wave * 0.05, y: 1 - wave * 0.05 }
 }
 
-export function walkSway(clockMs: number, seed: number): number {
-  return periodicWave(clockMs, TAU * 90, seed) * 0.12
-}
-
 export function stepLift(clockMs: number, seed: number): number {
   return ((periodicWave(clockMs, Math.PI * 130, seed * 2) + 1) / 2) * 3
 }

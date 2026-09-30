@@ -4,7 +4,7 @@ export {
   type MonsterBehavior,
 } from './behavior'
 export { baseGenome, breed, mutate } from './mutation'
-export { baseMonster, baseMonsterCount, baseMonsters } from './registry'
+export { baseMonster, baseMonsters } from './registry'
 export { resolveStats } from './resolve'
 export { monsterStats } from './stats'
 export {

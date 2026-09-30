@@ -9,8 +9,8 @@ und feste Tick-Reihenfolge. Kein Zugriff auf Client, Server, `fs` oder Zeit.
 
 - `prng` Mulberry32 (`createRng`, `nextUint32`, `nextBelow`, `nextRange`) plus
   `deriveSeed(seed, index, salt)` für unabhängige Sub-Streams pro Aktion.
-- `math` Fixed-Point (Skala 1000) mit `mulFixed`, `divFixed`, `clampInt`, `absInt`
-  sowie `isqrt`/`sqrtFixed` ohne `Math.sqrt`.
+- `math` Fixed-Point (Skala 1000) mit `mulFixed`, `clampInt` und `absInt` — Wurzel
+  und Division hat kein Aufrufer gebraucht, sie sind mit ihren Tests entfallen.
 - `hash` FNV-1a-Kette über Wörter und Text (`hashStart`, `hashWord`, `hashText`,
   `hashFinish`, `hashToHex`).
 - `grid` 64x64, fünf Tile-Typen, Breitensuche in `grid/path.ts` mit fester

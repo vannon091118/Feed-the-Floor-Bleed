@@ -1,7 +1,7 @@
 import type { ComponentChildren, VNode } from 'preact'
 import { afterEach, describe, expect, it } from 'vitest'
 import { unloadRaidLog } from '../src/raid/combat-source'
-import { TimelineTransport } from '../src/raid/timeline'
+import { TimelineTransport } from '../src/raid/raid-timeline'
 import { BuildingPanel } from '../src/ui/panels'
 import { phaseWindowContent } from '../src/ui/phase-windows'
 import windowsCss from '../src/ui/styles/windows.css?raw'

@@ -15,7 +15,7 @@ import type { CombatLog, CombatUnitSpec } from './types'
  */
 
 /** Rolle des Bosses. Die einzige Stelle, die den Boss als Boss erkennt. */
-export const BOSS_ROLE = 'boss' as const
+const BOSS_ROLE = 'boss' as const
 
 /**
  * Ausgangswerte des Bosses. **Freigegeben am 2026-09-29** (`[N]`), gemessen
@@ -43,7 +43,7 @@ export const BOSS_ROLE = 'boss' as const
  * `combat-pin.test.ts` ist mit diesen Werten gewandert und trägt den Grund
  * dort.
  */
-export const BOSS_RULES = {
+const BOSS_RULES = {
   maxHp: toFixed(132),
   attack: toFixed(12),
   defense: toFixed(1),

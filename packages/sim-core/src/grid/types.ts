@@ -29,7 +29,7 @@ export interface DungeonGrid {
   boss: Point
 }
 
-export type PathMode = 'reachable' | 'unreachable'
+type PathMode = 'reachable' | 'unreachable'
 
 export interface PathResult {
   mode: PathMode

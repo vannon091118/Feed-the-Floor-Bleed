@@ -4,7 +4,6 @@
 prng:createRng ──▶ combat:actions (Seed-Varianz pro Angriff)
 prng:deriveSeed ─▶ combat:actions (Sub-Stream je Tick/Ziel)
 math:fixed ──────▶ combat:state (Schaden), combat:rules (Provisionals)
-math:isqrt ──────▶ public sqrtFixed
 hash:fnv1a ──────▶ combat:fingerprint ──▶ CombatLog.hash
 grid:serialize ───▶ combat:fixture-job (Upload → DungeonGrid)
 grid:findPath ───▶ combat:resolve (Trail mit x/y/cell) ──▶ combat:simulate

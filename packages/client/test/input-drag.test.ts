@@ -23,7 +23,7 @@ const actor: ActorDescriptor = {
 const start = worldToScreen(camera, actor.world)
 
 function sample(screen: ScreenPoint): PointerSample {
-  return { screen, pointerId: 1, buttons: 1, shiftKey: false }
+  return { screen, pointerId: 1 }
 }
 
 function controller() {

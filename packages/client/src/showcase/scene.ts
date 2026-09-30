@@ -8,6 +8,7 @@ import {
   createCamera,
   fitCamera,
 } from '../render/camera'
+import { bindViewportControls } from '../render/camera-controls'
 import { createDungeonScene } from '../render/dungeon-scene'
 import { createLightingView } from '../render/lighting'
 import type { DungeonRenderMode } from '../render/modes'
@@ -18,7 +19,6 @@ import {
   cellToWorld,
   WORLD_SIZE_PX,
 } from '../world'
-import { bindViewportControls } from './controls'
 
 export interface ShowcaseDeps {
   runtime: VisualRuntime
@@ -84,6 +84,7 @@ export function createShowcase(deps: ShowcaseDeps): Showcase {
 
   const controls = bindViewportControls({
     element,
+    world: 'dungeon',
     actors: () => visibleActors,
     camera: () => camera,
     setCamera(next) {

@@ -3,11 +3,15 @@ import type { ScreenPoint } from '../render/camera'
 export interface PointerSample {
   screen: ScreenPoint
   pointerId: number
-  buttons: number
-  shiftKey: boolean
 }
 
 export interface PointerHandlers {
+  /**
+   * `false` schaltet den Capture ab. Eine Fläche, deren Kinder selbst
+   * Zeigerereignisse brauchen (die Pixi-Sprites und Gebäudeklicks der
+   * Dorfszene), darf die folgenden Ereignisse nicht an sich ziehen.
+   */
+  capture?: boolean
   onDown?(sample: PointerSample): void
   onMove?(sample: PointerSample): void
   onUp?(sample: PointerSample): void
@@ -19,8 +23,6 @@ function sampleOf(target: HTMLElement, event: PointerEvent): PointerSample {
   return {
     screen: { x: event.clientX - rect.left, y: event.clientY - rect.top },
     pointerId: event.pointerId,
-    buttons: event.buttons,
-    shiftKey: event.shiftKey,
   }
 }
 
@@ -36,7 +38,7 @@ export function bindPointer(
   handlers: PointerHandlers,
 ): () => void {
   const down = (event: PointerEvent): void => {
-    target.setPointerCapture?.(event.pointerId)
+    if (handlers.capture !== false) target.setPointerCapture?.(event.pointerId)
     handlers.onDown?.(sampleOf(target, event))
   }
   const move = (event: PointerEvent): void => {

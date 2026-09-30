@@ -3,6 +3,8 @@ import {
   type CameraState,
   type CameraWorld,
   panCamera,
+  ZOOM_STEP_IN,
+  ZOOM_STEP_OUT,
   zoomCamera,
 } from './camera'
 
@@ -35,8 +37,9 @@ export function cameraAfterKey(
       direction.dy * CAMERA_PAN_STEP,
       world,
     )
-  if (key === '+' || key === '=') return zoomCamera(camera, 1.1, world)
-  if (key === '-' || key === '_') return zoomCamera(camera, 0.9, world)
+  if (key === '+' || key === '=') return zoomCamera(camera, ZOOM_STEP_IN, world)
+  if (key === '-' || key === '_')
+    return zoomCamera(camera, ZOOM_STEP_OUT, world)
   return null
 }
 

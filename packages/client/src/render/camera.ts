@@ -17,6 +17,13 @@ export interface ScreenPoint {
 
 export type CameraWorld = 'dungeon' | 'village'
 
+/**
+ * Eine Zoomstufe. Mausrad und Plus/Minus-Taste ziehen dieselbe Zahl; sie stand
+ * vorher dreimal in zwei Modulen und läuft getrennt auseinander.
+ */
+export const ZOOM_STEP_IN = 1.1
+export const ZOOM_STEP_OUT = 0.9
+
 function worldSize(world: CameraWorld): { width: number; height: number } {
   return world === 'village'
     ? { width: VILLAGE_WORLD_WIDTH, height: VILLAGE_WORLD_HEIGHT }

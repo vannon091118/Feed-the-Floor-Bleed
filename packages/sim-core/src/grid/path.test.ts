@@ -6,10 +6,10 @@ import {
   findPath,
   GRID_SIZE,
   hasValidRoute,
-  logicCellsPerVisibleTile,
+  LOGIC_CELLS_PER_VISIBLE_TILE,
   type Point,
   setCell,
-  visibleTileCount,
+  VISIBLE_TILE_SIZE,
 } from './index'
 
 function carveStraightRoute(grid: DungeonGrid): void {
@@ -53,9 +53,11 @@ describe('dungeon grid', () => {
   it('stores 64x64 logic cells and maps four-by-four cells to a visible tile', () => {
     const grid = createDungeonGrid()
     expect(grid.cells).toHaveLength(4096)
-    expect(visibleTileCount()).toBe(16)
-    expect(logicCellsPerVisibleTile()).toBe(4)
-    expect(16 * 16 * 4 * 4).toBe(grid.cells.length)
+    expect(VISIBLE_TILE_SIZE).toBe(16)
+    expect(LOGIC_CELLS_PER_VISIBLE_TILE).toBe(4)
+    expect(VISIBLE_TILE_SIZE ** 2 * LOGIC_CELLS_PER_VISIBLE_TILE ** 2).toBe(
+      grid.cells.length,
+    )
   })
 
   it('findet den direkten Weg durch das leere Raster', () => {

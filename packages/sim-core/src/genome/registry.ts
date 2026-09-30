@@ -65,8 +65,3 @@ export function baseMonster(id: string): BaseMonster {
   if (!monster) throw new Error(`genome: unbekanntes Basis-Monster ${id}`)
   return monster
 }
-
-/** Wie viele Basis-Monster der Pool führt. Für Tests und Anzeigen. */
-export function baseMonsterCount(): number {
-  return ROSTER.length
-}

@@ -1,4 +1,4 @@
-import { RaidTimeline, TimelineTransport } from '../raid/timeline'
+import { RaidTimeline, TimelineTransport } from '../raid/raid-timeline'
 import { dayNight } from '../village/state'
 import { EditorControls } from './editor-controls'
 import { EditorPanel } from './editor-panel'

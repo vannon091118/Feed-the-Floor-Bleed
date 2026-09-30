@@ -31,7 +31,7 @@
 | `src/visual/observer.ts` | Diffender Visual Observer, keine zweite Grid-Wahrheit |
 | `src/visual/daylight.ts` | Tönung der vier Schleifenphasen als Überzugsebenen, Ziele und komplementäre Blendenstartwerte |
 | `src/render/camera.ts` | Einzige World↔Screen-Transformation, Pan/Zoom/Clamp und Rahmung |
-| `src/render/camera-controls.ts` | Pan, Zoom und Tastenschritt auf der Host-Fläche, ohne Zeigereinfang |
+| `src/render/camera-controls.ts` | Eine Viewport-Steuerung für beide Welten: Pan, Zoom (eine Schrittweite aus `render/camera`), Tastenschritt, Treffer, Klick und Drag mit gemeinsamer Schwelle; das Dorf bindet sie ohne Trefferschicht und ohne Pointer-Capture |
 | `src/render/camera-keys.ts` | Tastenschritt der Kamera und die Props, die die Weltansicht fokussierbar machen |
 | `src/render/layer-sprite.ts` | Lebensdauer eines Sprites in einer Ebene (Sichtbarkeit, Abbau) |
 | `src/render/modes.ts` | Rendermodi `village \| editor \| raid` der Runtime |
@@ -66,7 +66,7 @@
 | `src/render/village-ground.ts` | Unbeweglicher Dorfuntergrund aus Wiese, Bodenkacheln, Weg und Bäumen samt der gemeinsamen Sprite-Anlage `placeSprite` |
 | `src/render/village-scene.ts` | Bewegliche Teile der Dorfszene: die Gebäude des Dorfbestands an ihren Plot-Zellen (der Klick meldet den Listenplatz), laufende Bewohner, `createVillageScene(textures, { plots, onBuildingClick })` und `update(ms)` |
 | `src/render/village-view.ts` | Einbau der Dorfszene in die geteilte Runtime, Kamera-Rahmung; reicht die Plotquelle und den Klickweg durch |
-| `src/input/pointer.ts` | Einheitlicher Pointer-Pfad für Maus und Touch |
+| `src/input/pointer.ts` | Einheitlicher Pointer-Pfad für Maus und Touch; `capture: false` lässt den Capture weg, wo Kinder eigene Zeigerereignisse brauchen |
 | `src/input/hit-test.ts` | Screen → Zelle und Actor-Treffer über die Kamera |
 | `src/input/drag.ts` | Drag-Lebenszyklus: Kandidat, Slop, Abschluss-Command |
 | `src/input/drag-target.ts` | Trefferauflösung und Zwischenzustand eines Drags |
@@ -77,7 +77,6 @@
 | `src/window/keys.ts` | Tastenschritt des Fensterrahmens (Pfeiltasten, Umschalt skaliert) und seine Tastatur-Props |
 | `src/window/window.tsx` | Verschiebbares und per Tastatur bewegbares Kontextfenster mit Resize-Griff, inhaltsangepasster Höhe und Inhaltsblock als Messstelle |
 | `src/window/window-layer.tsx` | Fensterschicht über der Welt, berechnet die Inhalts-Signatur |
-| `src/showcase/controls.ts` | Viewport-Steuerung: Pan, Zoom, Klick, Drag |
 | `src/showcase/scene.ts` | Treiber, der Observer, Views und Kamera schaltet |
 | `src/ui/shell.tsx` | Layout: Topbar und Bühne, setzt die Tagesstimmungsebenen auf den Überzug |
 | `src/ui/daylight-fade.ts` | Fährt die Blende auf den Überzugsebenen ein, ohne dass der Browser sie umkehrt |
@@ -95,14 +94,14 @@
 | `src/ui/phase-panels.tsx` | Phasen-Panels: Auftrag und Hauptaktion je Phase |
 | `src/ui/actor-label.ts` | Kennung → sprechender Name für Fenster und Werkzeugstatus |
 | `src/ui/building-label.ts` | `BuildingKind` → sprechender Ortsname, einzige Label-Quelle |
-| `src/ui/drop-status.tsx` | Rückmeldung über den letzten Zug im Editor |
+| `src/ui/drop-status.tsx` | Rückmeldung über den letzten Zug; gelesen wird sie im Werkzeugbereich (`editor-controls.tsx`) |
 | `src/ui/floor-purchase.tsx` | Etage-Kauf im Tag-Panel als reine Ableitung: Preisvorschau aus der Config, Knopf und Fehlbetrag aus dem Bestand gerechnet, das Kommando aus `village/floors`; kein eigener Zustand |
 | `src/ui/editor-panel.tsx` | DOM-Editorraster mit 16×16 sichtbaren Feldern |
 | `src/ui/settlement-toast.tsx` | Rückkehrbilanz als reine Ableitung aus dem Phase-Owner; sichtbar nur am Tag, kein Bedienelement und kein eigener Sichtbarkeitszustand; die Ansageregion steht dauerhaft und ist ohne Meldung leer |
 | `src/ui/phase-windows.tsx` | Fensterinhalt der Phase und des Editors hinter festen IDs |
 | `src/ui/window-content.tsx` | Fenster-ID → Inhalt, eine Quelle für die Fensterschicht |
 | `src/ui/world-host.tsx` | Stabiler DOM-Host und Lebenszyklus der Pixi-Runtime, zugleich fokussierbares Tastaturziel der Kamera |
-| `src/ui/editor-controls.tsx` | Pinselauswahl und Zurücksetzen |
+| `src/ui/editor-controls.tsx` | Pinselauswahl, Zurücksetzen und der Zug-Status |
 | `src/ui/panels.tsx` | Inhalte der Kontextfenster samt Steuerungslegende mit den Tastenhinweisen; das Gebäudefenster liest den Dorfbestand über den Listenplatz, Startbasis und Attraktivität kommen aus `village/balance`; die Routenanzeige nennt Modus, Schritte und Bewegungspunkte |
 | `src/icons/resource-icon.tsx` | SVG-Icons der Ressourcenwerte in der Topbar |
 | `src/resources/catalog.ts` | Feste Ressourcen-IDs, Labels und Icons |
@@ -134,7 +133,6 @@
 | `src/raid/panel.tsx` | Reine Ergebnis-Darstellung eines TerminalRaidJob; die Stufenworte liest sie als `STAGE_LABELS` aus `timeline-model.ts`, es gibt keinen zweiten Formulierer daneben |
 | `src/raid/playback.ts` | Playback-Store: Log, Tick, Pause, abgeleitete Routenposition |
 | `src/raid/timeline-model.ts` | Reine Abschnitts- und Phasenmodelle des Logs; die Überlebendenzahlen kommen aus `@floor/sim-core`; Trail-Marken sind Platzierung, Spawn und Boss; `ambushEvents` liefert jedes Hinterhalt-Ereignis einzeln mit Tick und Ziel |
-| `src/raid/timeline.tsx` | Re-Export von Timeline und Steuerung für die Shell |
 | `src/raid/raid-timeline.tsx` | `TimelineTransport` (Scrubber, Play/Pause) und die drei Phasenreihen |
 | `src/raid/phase-nav.tsx` | Drei Phasen-Knöpfe, setzen den Scrubber auf den Phasenbeginn |
 | `src/raid/phases.tsx` | Routen-, Kampf- und Ergebnisdarstellung der Timeline; die Ergebniszahlen liest sie über `summarizeCombat`, den Hinterhalt zeigt sie einzeln statt nur als Klassen-Zählung |

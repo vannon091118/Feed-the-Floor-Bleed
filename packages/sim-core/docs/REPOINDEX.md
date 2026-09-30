@@ -3,7 +3,7 @@
 | Pfad | Job |
 |------|-----|
 | `src/prng/` | Mulberry32, Seed-Ableitung |
-| `src/math/` | Fixed-Point, isqrt |
+| `src/math/` | Fixed-Point (Multiplikation, Klemmung) |
 | `src/hash/` | FNV-1a-Hash-Kette |
 | `src/grid/` | Grid, Breitensuche ohne Zusatzkosten, Hard-Block, Contract-Serialisierung |
 | `src/grid/grid.ts` | Raster, Zellgeometrie (`indexOf`, `pointOf`, `neighbors`) — die einzige Nachbarschaftsdefinition |

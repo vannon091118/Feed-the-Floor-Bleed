@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import {
   baseGenome,
   baseMonster,
-  baseMonsterCount,
   baseMonsters,
   ELEMENT_MAX,
   ELEMENT_MIN,
@@ -11,9 +10,9 @@ import {
 
 describe('genome registry', () => {
   it('führt genau zwanzig verschiedene Basis-Monster', () => {
-    expect(baseMonsterCount()).toBe(20)
     const ids = new Set(baseMonsters().map((monster) => monster.id))
     expect(ids.size).toBe(20)
+    expect(baseMonsters()).toHaveLength(20)
   })
 
   it('hält jedes Element zwischen 1,00 und 10,00', () => {

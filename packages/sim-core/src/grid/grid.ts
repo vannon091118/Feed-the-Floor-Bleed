@@ -3,9 +3,7 @@ import {
   type CellTypeValue,
   type DungeonGrid,
   GRID_SIZE,
-  LOGIC_CELLS_PER_VISIBLE_TILE,
   type Point,
-  VISIBLE_TILE_SIZE,
 } from './types'
 
 const CELL_COUNT = GRID_SIZE * GRID_SIZE
@@ -121,12 +119,4 @@ export function setCell(
     throw new Error('spawn and boss cells cannot be replaced')
   }
   grid.cells[index] = cell
-}
-
-export function visibleTileCount(): number {
-  return VISIBLE_TILE_SIZE
-}
-
-export function logicCellsPerVisibleTile(): number {
-  return LOGIC_CELLS_PER_VISIBLE_TILE
 }

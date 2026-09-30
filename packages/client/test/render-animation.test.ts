@@ -1,11 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  bob,
-  periodicWave,
-  squash,
-  stepLift,
-  walkSway,
-} from '../src/render/animation'
+import { bob, periodicWave, squash, stepLift } from '../src/render/animation'
 
 describe('Render-Animation', () => {
   it('ist für Uhrzeit und Seed deterministisch und periodisch', () => {
@@ -29,12 +23,11 @@ describe('Render-Animation', () => {
     expect(Math.abs(after - at)).toBeLessThan(1e-8)
   })
 
-  it('hält Bob, Schritt, Squash und Schwanken in ihren Amplituden', () => {
+  it('hält Bob, Schritt und Squash in ihren Amplituden', () => {
     for (let clock = 0; clock < 5000; clock += 17) {
       expect(Math.abs(bob(clock, 2))).toBeLessThanOrEqual(1.5)
       expect(stepLift(clock, 2)).toBeGreaterThanOrEqual(0)
       expect(stepLift(clock, 2)).toBeLessThanOrEqual(3)
-      expect(Math.abs(walkSway(clock, 2))).toBeLessThanOrEqual(0.12)
       const shape = squash(clock, 2)
       expect(shape.x).toBeGreaterThanOrEqual(0.95)
       expect(shape.x).toBeLessThanOrEqual(1.05)
