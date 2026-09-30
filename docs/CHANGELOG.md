@@ -1,5 +1,19 @@
 # docs/CHANGELOG.md — Global
 
+## 2026-09-30 — Die Erfahrung bekommt eine gemessene Größenordnung statt eines Platzhalters
+
+**Scope:** geändert `docs/PLAN_T2_3.md` (Abschnitt 5 neu, Abschnitt 2 aktualisiert, Abschnitte 5–7 neu nummeriert). Kein Code, kein Contract, kein Hash, keine Zahl im Spiel.
+
+**Der Block hatte eine Lücke, die als `[K]` durchging.** Slice B braucht die Zahl, wie viel Erfahrung ein Schaden wert. Sie stand als `[K]` **ohne jede Größenordnung** — das ist kein offener Wert, das ist ein Platzhalter, und ein Platzhalter wird geraten, sobald jemand baut.
+
+**Gemessen, nicht geraten.** Über 20 Seeds mit drei echten Basisarten auf dem Standardraster: 8 895 604 Schaden über 7 Einheiten, **Ø 1 270 801** je Einheit, Spanne 195 436 bis 2 977 794. Der auffälligste Wert ist nicht der Mittelwert, sondern der letzte: **keine Einheit blieb ohne Schaden.** Das stützt die Entscheidung, jede Einheit in die Bilanz aufzunehmen — die Null-Fälle gibt es, aber sie sind nicht der Normalfall.
+
+**Der Vorschlag 2 500 hat eine Begründung, keine Bauchentscheidung.** Die Kurve soll kallierend exponentiell beginnen. Bei Divisor 1 000 stünde ein Wesen nach dem ersten Kampf bei über 1 200 Erfahrung und damit weit vor der ersten Kurvenstufe — die exponentielle Form hätte nichts mehr zu leisten, weil der Startpunkt sie überholt. Bei 2 500 bleiben die ersten Stufen flach, und der Median von 1 156 010 liegt deutlich über dem Minimum, die Spanne ist also sichtbar.
+
+**Ein zweiter Vorschlag bleibt offen:** dieselbe Skalierung für Helden. Die Festlegung gilt für beide Seiten, aber gemessen wurde an der Monstersumme; der Held verursacht darin den kleineren Teil. Vorschlag ist derselbe Divisor, damit die Kurve auf beiden Seiten dieselbe Form hat. Auch das ist `[K]`.
+
+**Die Zahl bleibt `[K]`** und gehört an ihre Quelle in `sim-core/src/genome/balance.ts` **mit dem Messprotokoll im Kommentar** — sonst weiß in einem Jahr niemand mehr, woher sie kam. Die Messdatei selbst wurde nach dem Lauf gelöscht: Ein Wegwerf-Helfer, der bleibt, ist genau die Art Zettel, die hier nichts verloren hat.
+
 ## 2026-09-30 — Vier Unsicherheiten sind entschieden, und die Schadensbilanz ist gebaut
 
 **Scope:** geändert `docs/PLAN_T2_3.md` (Abschnitt 4 komplett neu), neu `packages/sim-core/src/combat/summary-damage.test.ts`, geändert `packages/sim-core/src/combat/summary.ts`, `packages/contracts/src/combat-summary.ts` und zwei Test-Fixtures. Ein Contract-Sprung steht **aus** — die Felder sind neu, aber kein Leser Existierte.
@@ -177,18 +191,6 @@
 **Ein Befund aus der Kontextsammlung, kein Feature.** Zwei Absätze im aktiven `packages/sim-core/docs/CHANGELOG.md` führen `genome` unter den leeren Namespaces, die nur `.gitkeep` enthielten. Das war am 2026-09-26 richtig und wurde am selben Tag später falsch, als die Domäne gebaut wurde. Historische Einträge sind append-only und werden nicht umgeschrieben, deshalb tragen beide Absätze jetzt einen Überholt-Vermerk mit Datum und dem, was tatsächlich noch leer ist: `ghost`, `items`, `client/net`, `storage`, `inventory`, `server/matchmaking` und `sync`.
 
 **Warum das ein Fund war und kein Zufall.** Die Aussage stand an zwei Stellen im *aktiven* Changelog, nicht im Archiv, und war durch keine Suche nach `genome` mehr auffindbar, weil sie nicht das Wort „offen" enthielt. Ein Agent, der `docs/CHANGELOG.md` als Beleg für den Domänenstand benutzt hätte, hätte eine leere Domäne gelesen. Das ist derselbe Fehlertyp wie eine veraltete Doku, nur ohne Warnwort.
-
-**Gates:** keine Quelldatei berührt, typecheck 0, Lint 0 über 305 Dateien, LOC-Caps ok, Hygiene ok, Shinon PASS.
-
-## 2026-09-29 — `Agents.md` sagt nicht mehr das Gegenteil vom Merge-Ablauf
-
-**Eine Doku-Korrektur an der Einstiegsdatei, ohne Code.** `Agents.md` trug den Satz „Der Nutzer merged parallel im GitHub-UI". Das ist falsch und war für einen Agenten schädlich: `docs/REGELWERK_GIT.md` und der Workflow-Kommentar in `.github/workflows/shinon.yml` sagen ausdrücklich das Gegenteil — `promote` schiebt den geprüften Kopf per Fast-Forward nach `main`, sobald das Gate grün ist, und wer nicht zusammenführen will, lässt den PR als Entwurf stehen. Am 2026-09-29 bestätigt: PR #62 wurde nach grünem Gate allein durch den `promote`-Job gemergt, ohne jede Hand im UI. Die Zeile ist durch die tatsächliche Regel ersetzt, inklusive der Warnung, dass wer auf einen Merge wartet, vergeblich wartet.
-
-**Zwei Doppelpunkte aus dem Weg.** Die Aussage zu Required Check und `PROMOTE_TOKEN` stand als zwei Zeilen und wiederholte, was das Git-Regelwerk ohnehin vollständig führt; sie ist auf die eine Regel zusammengezogen, die dort nicht steht — der Check muss auf **genau diesem** SHA grün sein, ein Lauf auf einem überholten Commit wird auch mit vorhandenem Fix nicht grün.
-
-**Neue Sektion „Fallstricke aus der Praxis"** mit vier belegten Fällen aus dem Genome-Slice: ein Kommentar, der etwas verspricht, das der Code nicht tut, ist ein Blocker und wird nicht durch Anpassen der Doku versteckt; ein `[K]`-Wert trägt seinen Vermerk an der Quelle, an der er gepflegt wird; ein Filter ändert die Position, nicht nur die Auswahl, weil die gefilterte Menge eine andere Indexbasis hat; und eine Änderung, die ein Gate verlangt, kann sichtbar sein und gehört ins Changelog statt unter „unverändert". Dazu ein Inhaltsverzeichnis und eine Lesereihenfolge, damit ein Agent die Datei in einem Durchgang erschließen kann.
-
-**Ein veralteter offener Punkt geschlossen.** `docs/ROADMAP.md` führte seit längerem, `Agents.md` und `docs/ARCHITEKTUR.md` beschrieben den Kritischen Reviewer noch als schreibgeschützt, während die Werkzeugliste `edit` enthielte. Geprüft: `edit` steht in **keiner** der beiden Listen; beide Profile sagen im Fließtext ausdrücklich, das Werkzeug fehle absichtlich, damit der Schreibschutz mechanisch gilt. `docs/ARCHITEKTUR.md` war die ganze Zeit richtig — veraltet war nur der Roadmap-Eintrag, der jetzt den Befund samt Beleg nennt.
 
 **Gates:** keine Quelldatei berührt, typecheck 0, Lint 0 über 305 Dateien, LOC-Caps ok, Hygiene ok, Shinon PASS.
 

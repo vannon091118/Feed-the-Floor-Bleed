@@ -33,16 +33,22 @@ Aus dem Chat vom 2026-09-30, hier festgehalten, weil sie nirgends im Repo stande
 |---|---|---|
 | Schaden pro Urheber | `sim-core/src/combat/actions.ts:109` schreibt `eventBase(actor, target, tick)` mit `amount` | ✅ **berechenbar** |
 | Sterbende werden identifiziert | `actions.ts:113` schreibt `type: 'death'` mit `targetId` | ✅ vorhanden |
-| Runde Schadensbilanz | `summary.ts:56` summiert `damage` **global**, nicht pro Einheit | ⚠️ muss pro Urheber |
+| **Bilanz je Einheit** | `summary.ts` führt `damageByHero` und `damageByMonster`, getrennt nach Seite, sortiert nach `unitId` | ✅ **gebaut** (Slice A) |
+| Größenordnung des Schadens | 20 Seeds, 7 Einheiten, Ø 1 270 801, **keine Einheit ohne Schaden** | ✅ **gemessen** (Abschnitt 5) |
 | Boss-Raum als Zone | `grid/zones.ts:4` kennt `'boss-chamber'`, vergibt in `:73/75` | ✅ erkannt, **niemand liest es** |
 | Boss als Platzhalter | `combat/rules.ts:196` `units.push(bossSpec(lastIndex))` | ✅ eine Einheit in derselben Liste |
 | Generation am Slot | `contracts/src/raid-snapshot.ts:29` `generation` (min 1, optional) | ✅ vorhanden |
-| EP, Level, Statuspunkte, Steine | Durchlauf über `packages/*/src` | ❌ **existieren nicht** |
+| Escrow-Schema | `raid-snapshot.ts:49` `escrowSchema` mit `gold` und `materials` | ✅ im Contract, **kein Leser** |
+| **Level am Slot** | `monsterSlotSchema` trägt **kein** Level | ❌ **fehlt** (4.2) |
+| EP, Statuspunkte, Steine | Durchlauf über `packages/*/src` | ❌ **existieren nicht** |
+| Moral | Durchlauf über `packages/*/src` | ❌ **nicht gebaut** (4.5) |
 
 **Der wichtigste Befund:** Das `attack`-Event trägt **bereits** `actorId` und
-`amount`. Eine Schadensbilanz pro Urheber braucht **keine** Änderung an der
-Simulation — sie ist eine Aggregation über den Log, wie `summarizeCombat` sie
-heute schon für die Gesamtzahl macht.
+`amount`. Eine Schadensbilanz pro Urheber brauchte **keine** Änderung an der
+Simulation — sie war eine Aggregation über den Log, wie `summarizeCombat` sie für
+die Gesamtzahl schon machte. Das ist getan, mit sechs Fällen in
+`sim-core/src/combat/summary-damage.test.ts` und ohne Hash-Sprung: der Golden Pin
+steht unverändert.
 
 ## 3. Die Slices in Reihenfolge
 
@@ -294,30 +300,85 @@ Plan, sondern eine Lücke im Bestand, und sie gehört zu einem anderen Block.
 `genome/strength.ts:39`, `[K]`. Sie liegen in den Lücken der gemessenen
 Verteilung. Bestätigen und auf `[N]` setzen, oder neu messen?
 
-## 5. Reihenfolge und Abhängigkeiten
+## 5. Die erarbeiteten Größen, damit Slice B nicht auf einer `[K]`-Zahl ruht
+
+Slice B braucht zwei Zahlen: **wieviel Erfahrung ein Schaden wert** und **wieviel
+Extraktionsmaterial 4 EP ergeben**. Die zweite ist `[N]` festgegeben. Die erste
+stand als `[K]` ohne jede Größenordnung — das ist keine Zahl, sondern ein Platzhalter.
+
+**Gemessen statt geraten.** Über 20 Seeds, 3 Helden gegen 3 echte Basisarten auf dem
+Standardraster, Summe des verursachten Schadens je Einheit:
+
+| Größe | Wert |
+|---|---|
+| Einheiten | 7 |
+| Summe über 20 Seeds | 8 895 604 |
+| **Ø je Einheit** | **1 270 801** |
+| Median | 1 156 010 |
+| Spanne | 195 436 … 2 977 794 |
+| Einheiten mit null Schaden | **0** |
+
+Der letzte Punkt ist der wichtigste: **keine Einheit blieb ohne Schaden**. Das stützt
+die Entscheidung aus 4.1, jede Einheit in die Bilanz aufzunehmen — die Null-Fälle
+gibt es im Bestand, aber sie sind nicht der Normalfall.
+
+**Die Größenordnung, die daraus folgt.** Ein Lauf bringt also gut eine Million
+Schaden je Einheit. Soll ein Wesen nach einem Kampf **im niedrigen dreistelligen
+Bereich** Erfahrung sammeln, liegt der Divisor bei etwa 2 500:
+
+| Divisor | EP je Einheit (Ø) | Material aus 20 Seeds |
+|---|---|---|
+| 1 000 | 1 271 | 2 223 |
+| **2 500** | **508** | **889** |
+
+**Warum 2 500 und nicht 1 000:** Die Kurve aus Slice C ist **kallierend
+exponentiell** und beginnt flach. Bei Divisor 1 000 stünde ein Wesen nach dem ersten
+Kampf bereits bei über 1 200 EP, also weit vor der ersten Kurvenstufe — die
+exponentielle Form hätte nichts mehr zu leisten, weil der Startpunkt sie schon
+überholt. Bei 2 500 bleiben die ersten Stufen wirklich flach, und die Trennung
+zwischen einem schwachen und einem starken Wesen ist sichtbar (Median 1 156 010
+liegt deutlich über dem Minimum 195 436).
+
+**`[K]`, nicht `[N]`:** Das ist ein Vorschlag mit Begründung, keine Freigabe. Die
+Zahl gehört an ihre Quelle, `sim-core/src/genome/balance.ts`, **mit diesem
+Messprotokoll im Kommentar** — so wie die Schwellen in `strength.ts` ihre
+Verteilung tragen. Ohne den Vermerk dort ist die Zahl ein nackter Wert, und in
+einem Jahr weiß niemand mehr, woher sie kam.
+
+**Eine Größenordnung ist noch offen:** Erfahrung für **Helden**. Die Festlegung
+gilt für beide Seiten, aber die Skalierung ist gemessen am Monster. Ein Held
+verursacht in derselben Summe den kleineren Teil; ob er denselben Divisor
+verträgt, ist erst nach dem Bau ablesbar. **Vorschlag: derselbe Divisor**, damit
+die Kurve auf beiden Seiten dieselbe Form hat. Auch das ist `[K]`.
+
+## 6. Reihenfolge und Abhängigkeiten
 
 ```
-A  Schadensbilanz pro Urheber     ─┐
-B  Erfahrung + Material          ─┴─→ braucht A
+A  Schadensbilanz pro Urheber     ─┐   ✅ gebaut (1a2caf2)
+B  Erfahrung + Material          ─┴─→ braucht A, Zahl aus Abschnitt 5
 
-C  Level-Kurven + HP-Skalierung   ────→ braucht B (EP speisen das Level)
+C  Level-Kurven + HP-Skalierung   ────→ braucht B; Level kommt in den
+                                    eingefrorenen Stand (4.2)
 
-D  Statuspunkte                   ────→ eigener Contract-Sprung, offen (4.3)
+D  Statuspunkte                   ────→ eigener Contract-Sprung, offen (4.1)
+                                    und 4.5 (Level-Cap)
 
 E  Bosskampf getrennt             ────→ eigener Contract-Sprung, unabhängig
                                     von A–D, aber derselbe Sprung wie T2.4
 ```
 
-**A ist der einzige Slice ohne offene Frage.** Er kann sofort gebaut werden und
-trägt alle anderen. B und C folgen paarweise. D und E brauchen jeweils einen
-eigenen Contract-Sprung und gehören in dieselbe Entscheidung.
+**A ist gebaut.** B ist der nächste und braucht nur die Freigabe der Zahl aus
+Abschnitt 5 — kein weiterer Konflikt. C folgt B und hängt an der Cap-Frage aus 4.5.
+D und E brauchen jeweils einen Contract-Sprung, und **C, D und die Level-Identität
+aus 4.2 teilen sich denselben**: ein Level am `monsterSlot` plus ein Statuspunkt am
+selben Ort. Das ist ein Sprung, nicht drei.
 
 **Nicht in diesem Block:** Monster-Steine. Sie sind `[N]` als späteres Ziel
 beschrieben, und der MVP soll beim Platzhalter-Boss bleiben. Der Tauschweg aus
-Slice B/4.1 ist derselbe, in dem sie später fließen — die Naht ist damit bereit,
-ohne dass etwas gebaut wird.
+Slice B ist derselbe, in dem sie später fließen — die Naht ist damit bereit, ohne
+dass etwas gebaut wird.
 
-## 6. Was mit `docs/LORE.md` geschieht
+## 7. Was mit `docs/LORE.md` geschieht
 
 `docs/LORE.md:39` beschreibt den Boss als Wesen **ohne** Genetik: *„Ein Boss
 entsteht so nicht. Er entsteht gar nicht. Er steht einfach da, seit jemand ihn
