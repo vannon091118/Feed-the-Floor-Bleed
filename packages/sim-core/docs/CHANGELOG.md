@@ -1,5 +1,17 @@
 # packages/sim-core/docs/CHANGELOG.md
 
+## 2026-09-30 — Die Wiederholbarkeit bekommt einen eigenen Beleg
+
+**Scope:** neu `src/combat/audit-determinismus.test.ts` (sechs Fälle). Kein Code, kein Contract, kein Hash, keine Zahl.
+
+**Die Lücke war im Beleg, nicht im Code.** `core-determinism` findet keine verbotenen Muster und die Golden Pins halten — beides sagt nichts über Verkettung, denn ein gewanderter Pin beweist, dass ein Lauf einmal so ausging. Der Anlass kam aus einer Absturzuntersuchung.
+
+**Vier der sechs Fälle liegen gegen dem Happy Path.** Fünf verkettete Läufe mit verschiedenen Seeds ergeben dieselben Hashes wie fünf einzeln ausgeführte; dieselben Seeds in umgekehrter Reihenfolge ebenso — ein Zustand, der den nächsten Lauf einfärbt, verschiebt sich sonst mit der Ausführungsreihenfolge. Fehler sind so reproduzierbar wie Erfolge: derselbe ungültige Auftrag liefert fünfmal dieselbe Meldung, eine unerreichbare Route ebenso. Ein Fehler, der beim ersten Mal auftritt und beim zweiten verschwindet, ist nicht zu debuggen.
+
+**Die Architektur trägt es, und der Nachweis macht es sichtbar.** In `src/prng/mulberry32.ts` ist der Zustand ein reiner Additionszähler, nach *n* Ziehungen exakt $(seed + n \cdot 0x6d2b79f5) \bmod 2^{32}$ — die Zufallsmenge hängt an der Ziehungsanzahl, nicht an der Aufrufstelle. Kein `Set`- oder `Map`-Durchlauf und kein `sort` in `src/`; die einzige Map ist die konstante Lookup-Tabelle in `genome/registry.ts`. `simulate.ts` bricht bei `maxTicks` ab, `resolve.ts` wirft statt weiterzurechnen.
+
+**Beleg:** 542 Tests in 81 Dateien (+8), typecheck 0, Lint 0, LOC-Caps ok, Hygiene ok, Shinon PASS.
+
 ## 2026-09-30 — Ein Kommentar versprach ein Bild, das kein Renderer kennt
 
 **Scope:** geändert `src/combat/rules.ts` (nur der Kommentar an `monsterSpec`). Kein Verhalten, kein Contract, kein Hash, keine Zahl. Quelle ist der Wahrheits-Audit-Commit `9394880`, der auf einem gelöschten Branch lag und nicht in `main` war.
@@ -176,24 +188,4 @@ Daten, die Dorfwirtschaft rechnet sie aus. **Beleg:** `strength.test.ts` nennt j
 der zwanzig Arten mit ihrer Stufe, prüft die Bandbesetzung und den Gleichstand
 gleicher Budgets; `village/loot.test.ts` rechnet echte Genome durch die Formel.
 **Gates:** typecheck 0, 423 Tests in 62 Dateien, Shinon PASS.
-
-## 2026-09-29 — Zwanzig Basis-Monster, Traits und Boni, und die Mutation über den PRNG
-
-**Scope:** neu `src/genome/` mit 22 Quellen und 2 Testdateien. Geändert `src/index.ts` (der Export der Domäne). **Nicht** geändert: die Kampfmechanik — `src/combat/rules.ts` bleibt unberührt, der Golden-Pin bleibt wortgleich grün.
-
-Die Domäne `genome` ist damit gebaut und nicht mehr offen: sie besitzt Zucht, Stats und Gen-Seed. Der Pool führt **zwanzig** Basis-Monster (`roster-a.ts`, `roster-b.ts`), jedes mit drei Elementen zwischen 1,00 und 10,00, einer Palette, einem Trait und einem Bonus. Die Zahl ist die aus der Spieldesign-Aussage vom 2026-09-29; `docs/CONCEPT_REVIEW.md` nannte zuvor „25" und hatte die Liste selbst als ungeprüft markiert — beide Stellen sind jetzt auf den offenen Widerspruch nachgezogen, statt ihn stillschweigend zu glätten.
-
-**Alle Zahlen sind `[K]`.** Die Elementwerte, Kopplungsstärke, Mutationsdrift, Effektprozente und die Gewichte in `stats.ts` sind nicht abgenommen; die Kampfbalance ist laut `docs/VISUAL_GRUNDSATZ.md` offen. Die Mechanik steht, die Werte nicht — jede Konstantengruppe trägt den Vermerk an der Quelle, an der sie gepflegt wird.
-
-**Der Grund für die Kopplung.** Drei Elemente allein wären drei unabhängige Würfe und damit Zufallsnebel statt Spektrum. In `mutation.ts` zieht jedes Element sein Gegenstück runter — Masse gegen Tempo, Tempo gegen Härte, Härte gegen Masse. Ein Kind kann deshalb nicht „alles stark" sein, und die Kopplung begrenzt sich selbst, weil jede Achse den Wert benutzt, den die vorherige Korrektur hinterlassen hat. `breeding.test.ts` pinnt das als feste Zusage: Über 200 Kinder aus zwei Eltern erreicht **keines** das Elternmaximum auf allen drei Achsen gleichzeitig.
-
-**Die Zuchtkette hat eine feste Reihenfolge und nur eine Zufallsquelle.** `breed` vererbt die Elemente Elternteil für Elternteil, wendet die Kopplung an, mutiert zuletzt und steigert die Generation. Der Seed kommt von außen in den internen PRNG (`deriveSeed` über `createRng`); die Basis-ID geht als Hash hinein, damit dieselbe Basisart gleich mutiert und zwei verschiedene nicht. **`mutate` ersetzt höchstens eine Eigenschaft, und zwar eine, die das Wesen noch nicht führt.** Die erste Fassung zog den Ersatz aus dem gesamten Pool; traf der Zufall den einen bereits vorhandenen Wert, verschwand die Eigenschaft dauerhaft, weil die Deduplizierung danach die Länge kürzte. Gemessen über 500 Seeds verlor ein Genom mit zwei Traits in 19 Fällen einen davon. Der Ersatz nimmt jetzt einen Kandidaten aus der Liste der noch nicht geführten Werte; trägt das Genom alle, wird nichts getauscht. Aus einem Austausch ist damit eine Änderung geworden und keine Reduktion.
-
-**Reihenfolge der Ableitung:** Kopplung aus den Elementen (`stats.ts`), dann Traits, dann Boni (`resolve.ts`). Dass die Boni zuletzt kommen, ist die Regel und kein Zufall: ein `bulwark` auf einem `toughHide`-Monster trägt mehr als auf einem nackten, weil er verstärkt, was der Trait aufgebaut hat.
-
-**Ein Effekt sieht das Genom, nicht nur die Zahlen.** Die Signatur ist `apply(stats, genome)`. `vitality` braucht das: der Bonus liest Element 0 und streckt seinen Zuschlag von 12 % bis 26 % über die Masse, sodass ein Glutkolos spürbar mehr bekommt als ein Schattenläufer. `endurance` bleibt der feste Faktor — genau darin unterscheiden sich die beiden. Vor dieser Änderung war beides ein flacher Multiplikator, während die Kommentare das andere behaupteten.
-
-**Jeder Trait und jeder Bonus ist eine eigene Datei** — `trait-tough-hide.ts` bis `trait-focused.ts`, `bonus-bulwark.ts` bis `bonus-vitality.ts`. Jeder Effekt gibt und nimmt: `keenEdge` schärfer den Angriff und kostet Gesundheit, `bulwark` ist dagegen der reine, schmalse Bonus. Ohne den Gegenwert wäre ein Zucht-Trait eine freie Verbesserung und der Stack beliebig groß. Die Initiative-Grenze und die Cooldown-Grenze stehen an einer Stelle (`effect-kit.ts`), damit nicht drei Effekte drei Schreibweisen derselben Klammermauer aufschreiben.
-
-**Auswertung:** Die Basis-Kampfwerte kommen aus `PROVISIONAL_RULES.monster` statt aus einer zweiten Kopie in `stats.ts`; `genome` liest damit dieselben Ausgangswerte, mit denen der Core rechnet. Der Redundancy-Gate hatte die Dublette zu Recht gemeldet. Der Import geht dabei an `../combat/rules` und nicht an den Barrel — der Barrel zieht den ganzen Kampfgraphen in die Abhängigkeiten, obwohl nur eine Konstante gebraucht wird.
 
