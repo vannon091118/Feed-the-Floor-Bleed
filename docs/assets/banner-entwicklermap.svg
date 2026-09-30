@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 660" width="100%" height="auto" role="img" aria-labelledby="rmTitle rmDesc">
+  <title id="rmTitle">Entwicklermap - visuelle Roadmap von 0.0.90 nach 0.1.0</title>
+  <desc id="rmDesc">Zwei Tracks. T1 Alltagstiefe: Visuals und Dorf gebaut, Etagen-Expedition aktiv, Faehigkeiten, Inventar und Abnahme geplant. T2 Autoritaet: Auth, Persistenz, Pool und Betrieb noch offen. Der Referenzkampf liegt bei 88 Prozent.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00141f"/>
+      <stop offset="50%" stop-color="#002a3d"/>
+      <stop offset="100%" stop-color="#00141f"/>
+    </linearGradient>
+    <filter id="neon" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="1000" height="660" fill="url(#bg)" rx="15" ry="15"/>
+  <rect width="1000" height="660" fill="none" stroke="#00b3c8" stroke-width="3" rx="15" ry="15"/>
+  <g font-family="'Courier New', monospace">
+    <text x="500" y="44" font-weight="900" font-size="29" fill="#4fe3f7" text-anchor="middle" letter-spacing="4" filter="url(#neon)">ENTWICKLERMAP · VON 0.0.90 NACH 0.1.0</text>
+    <text x="500" y="68" font-size="13" fill="#8a9aa8" text-anchor="middle" letter-spacing="1">rekursiv aus docs/ROADMAP.md — jeder Pfeil ist ein Slice, jeder Slice hat Prüfpunkte</text>
+    <g font-size="13" letter-spacing="1">
+      <rect x="60" y="86" width="15" height="15" rx="3" fill="#a8e063"/>
+      <text x="83" y="98" fill="#8a9aa8">gebaut</text>
+      <rect x="175" y="86" width="15" height="15" rx="3" fill="#ffd166" filter="url(#neon)"/>
+      <text x="198" y="98" fill="#ffd166">aktiv</text>
+      <rect x="280" y="86" width="15" height="15" rx="3" fill="none" stroke="#4fe3f7" stroke-width="2"/>
+      <text x="303" y="98" fill="#8a9aa8">geplant</text>
+      <rect x="405" y="86" width="15" height="15" rx="3" fill="none" stroke="#ff4444" stroke-width="2" stroke-dasharray="3 2"/>
+      <text x="428" y="98" fill="#ff8888">wartet auf Freigabe</text>
+    </g>
+    <g font-size="11" fill="#5d7382" letter-spacing="1" text-anchor="middle">
+      <text x="200" y="140">SLICE</text>
+      <text x="490" y="140">GERADE JETZT</text>
+      <text x="672" y="140">ALS NÄCHSTES</text>
+      <text x="800" y="140">SPÄTER</text>
+      <text x="925" y="140">SPERRE</text>
+    </g>
+    <line x1="60" y1="148" x2="960" y2="148" stroke="#2d5a6b" stroke-width="1" stroke-dasharray="4 4"/>
+
+    <text x="70" y="176" font-size="15" font-weight="900" fill="#4fe3f7" letter-spacing="2">T1 · ALLTAGSTIEFE</text>
+    <text x="276" y="176" font-size="12" fill="#8a9aa8">Dorf bewirtschaften, Expedition über Etagen, Fähigkeiten, Beute.</text>
+
+    <rect x="70" y="188" width="250" height="36" rx="6" fill="#0d2a1a" stroke="#a8e063" stroke-width="2"/>
+    <text x="86" y="211" fill="#a8e063" font-weight="700" font-size="14">T2.1 Visuals + Zugang</text>
+    <text x="330" y="211" fill="#5d7382" font-size="11">Renderer, Icons, Taste</text>
+    <circle cx="490" cy="206" r="4" fill="#a8e063"/>
+    <text x="504" y="210" fill="#5d7382" font-size="12">abgeschlossen</text>
+
+    <rect x="70" y="232" width="250" height="36" rx="6" fill="#0d2a1a" stroke="#a8e063" stroke-width="2"/>
+    <text x="86" y="255" fill="#a8e063" font-weight="700" font-size="14">T2.2 Das Dorf</text>
+    <text x="330" y="255" fill="#5d7382" font-size="11">Bau, Land, Rückkehr</text>
+    <circle cx="490" cy="250" r="4" fill="#a8e063"/>
+    <text x="504" y="254" fill="#5d7382" font-size="12">abgeschlossen</text>
+
+    <rect x="70" y="276" width="250" height="36" rx="6" fill="#2a2200" stroke="#ffd166" stroke-width="3" filter="url(#neon)"/>
+    <text x="86" y="299" fill="#ffd166" font-weight="900" font-size="14">T2.3 Etagen-Run</text>
+    <text x="330" y="299" fill="#ffd166" font-weight="700" font-size="11">◐ HIER WIRD GEARBEITET</text>
+    <circle cx="490" cy="294" r="6" fill="#ffd166" filter="url(#neon)"/>
+    <text x="504" y="298" fill="#ffd166" font-weight="700" font-size="12">Bedienung, Ausstieg, Escrow</text>
+
+    <rect x="70" y="320" width="250" height="36" rx="6" fill="none" stroke="#4fe3f7" stroke-width="1.5"/>
+    <text x="86" y="343" fill="#4fe3f7" font-weight="700" font-size="14">T2.4 Klassenfähigkeiten</text>
+    <text x="330" y="343" fill="#5d7382" font-size="11">Heal, Schaden, Buff</text>
+    <line x1="472" y1="338" x2="640" y2="338" stroke="#4fe3f7" stroke-width="2"/>
+    <circle cx="650" cy="338" r="4" fill="#00141f" stroke="#4fe3f7" stroke-width="2"/>
+    <text x="662" y="342" fill="#4fe3f7" font-size="11">Klasse + Zahlen</text>
+    <text x="890" y="342" fill="#ff8888" font-size="11">🔒 Zählregel</text>
+
+    <rect x="70" y="364" width="250" height="36" rx="6" fill="none" stroke="#4fe3f7" stroke-width="1.5"/>
+    <text x="86" y="387" fill="#4fe3f7" font-weight="700" font-size="14">T2.5 Inventar, Drops</text>
+    <text x="330" y="387" fill="#5d7382" font-size="11">9 Plätze, Bossdrop</text>
+    <line x1="472" y1="382" x2="790" y2="382" stroke="#2d5a6b" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <circle cx="800" cy="382" r="4" fill="#00141f" stroke="#4fe3f7" stroke-width="2"/>
+    <text x="890" y="386" fill="#ff8888" font-size="11">🔒 Pool</text>
+
+    <rect x="70" y="408" width="250" height="36" rx="6" fill="none" stroke="#4fe3f7" stroke-width="1.5"/>
+    <text x="86" y="431" fill="#4fe3f7" font-weight="700" font-size="14">T2.6 Abnahme</text>
+    <text x="330" y="431" fill="#5d7382" font-size="11">Browser, Tastatur</text>
+    <line x1="472" y1="426" x2="870" y2="426" stroke="#2d5a6b" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <circle cx="880" cy="426" r="4" fill="#00141f" stroke="#4fe3f7" stroke-width="2"/>
+    <text x="890" y="430" fill="#ff8888" font-size="11">🔒 Browser</text>
+
+    <line x1="60" y1="462" x2="960" y2="462" stroke="#2d5a6b" stroke-width="1"/>
+    <text x="70" y="490" font-size="15" font-weight="900" fill="#8a9aa8" letter-spacing="2">T2 · AUTORITÄT</text>
+    <text x="242" y="490" font-size="12" fill="#5d7382">Startet, wenn T1 durch ist. Bis dahin bleibt die Online-Belohnung gesperrt.</text>
+
+    <rect x="70" y="502" width="250" height="32" rx="6" fill="none" stroke="#5d7382" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text x="86" y="522" fill="#8a9aa8" font-weight="700" font-size="13">T3.1 Firebase-Auth</text>
+    <line x1="472" y1="518" x2="920" y2="518" stroke="#2d5a6b" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="890" y="522" fill="#ff8888" font-size="11">🔒 Projekt</text>
+
+    <rect x="70" y="542" width="250" height="32" rx="6" fill="none" stroke="#5d7382" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text x="86" y="562" fill="#8a9aa8" font-weight="700" font-size="13">T3.2 Persistenz + Replay</text>
+    <text x="330" y="562" fill="#5d7382" font-size="11">Gate vor Belohnung</text>
+    <line x1="472" y1="558" x2="920" y2="558" stroke="#2d5a6b" stroke-width="1.5" stroke-dasharray="5 4"/>
+
+    <rect x="70" y="582" width="250" height="32" rx="6" fill="none" stroke="#5d7382" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text x="86" y="602" fill="#8a9aa8" font-weight="700" font-size="13">T3.3 Pool + T3.4 Betrieb</text>
+    <line x1="472" y1="598" x2="920" y2="598" stroke="#2d5a6b" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="890" y="602" fill="#ff8888" font-size="11">🔒 MMR</text>
+
+    <line x1="60" y1="630" x2="960" y2="630" stroke="#2d5a6b" stroke-width="1"/>
+    <text x="500" y="650" font-size="11" fill="#5d7382" text-anchor="middle" letter-spacing="1">Wo eine Zeile 🔒 trägt, wartet sie auf eine Freigabe, die nicht im Repo steht — sie wird nicht geraten.</text>
+  </g>
+</svg>

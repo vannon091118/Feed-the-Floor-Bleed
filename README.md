@@ -140,7 +140,7 @@ Ich habe zu viele Spiele gesehen, die mich für meine Zeit bestrafen. Die mir sa
 
 ---
 
-### 🗺️ Was heute existiert — und was noch nicht
+### 📦 Was heute existiert — und was noch nicht
 
 Ich belüge dich nicht. Das Repo behauptet nie, geplante Systeme seien schon da.
 
@@ -148,27 +148,62 @@ Ich belüge dich nicht. Das Repo behauptet nie, geplante Systeme seien schon da.
 <summary><b>✅ Das steht. Das läuft. Das ist getestet.</b></summary>
 
 - **Deterministischer Kampf-Core** — Fixed-Point statt Float. Seed-PRNG (Mulberry32). A*-Pathfinding mit festem Tie-Break. Combat-Ticks. Kanonischer Log-Hash. Trail-Hash über den *kompletten* Pfad.
-- **Contract-v3** — Zod-Schemas, `sim_version`, Ergebnislog, Auftragsautomaten und TTL kommen aus `packages/contracts`. Der Code erfindet nichts.
+- **Die Kampfbalance ist freigegeben und gebaut** — Boss 132 000 / 12 000 / 1000 / 500, gemessen über 48 Seeds je Verteidigerplatz. Der Referenzkampf (3 Helden gegen Boss + 3 Platzmonster) liegt bei **88 %**. Der erste Golden-Pin des Repos steht damit auf `heroes-win`: **vorher konnte kein Lauf gewonnen werden**, jetzt schon.
+- **Contract v9** — Zod-Schemas, `sim_version 0.0.9`, Ergebnislog, Auftragsautomaten und TTL kommen aus `packages/contracts`. Der Code erfindet nichts. Führt Klassen-Vokabular, Fähigkeits-IDs, Verhaltensprofile und die reduzierte Angreifer-Sicht.
 - **Replay-Validierung** — Der Log wird nachgerechnet. Inklusive Trail-Prüfung. Wer schummelt, fliegt auf.
-- **Sichtbare Referenzszene** — PixiJS 8, Kamera, Ebenen, Depth, Occlusion, Actors, FX; DOM-basierter Dungeon-Editor; Preact-Fenster-Runtime. Der Client rendert — er entscheidet nie.
+- **Dorfwirtschaft** — Echte Zahlenquelle, echte Kommandos, echte Abrechnung. Gold kommt aus vergfallenen Gegnern, Material aus Werkstätten. Der Etage-Kauf feuert, der Rückkehr-Toast steht.
+- **Genom & Verhalten** — 20 Basisarten, sechs Archetypen, Verhaltensprofil aus dem Trait. Die Stärke ist gemessen und definiert, und sie ist dieselbe Zahl, aus der die Beute rechnet.
+- **Sichtbare Referenzszene** — PixiJS 8, Kamera, Ebenen, Depth, Occlusion, Actors, FX; DOM-basierter Dungeon-Editor; Preact-Fenster-Runtime. Der Client rendert — er entscheidet nie. Sechs selbst erzeugte Spritesheets, deterministisch reproduzierbar.
 - **Tag/Nacht/Raid-Schleife** — Funktioniert als lokaler Fixture-Loop. Browser-abgenommen.
 - **Raid-Playback** — Timeline-Modell, Routen-/Kampf-/Ergebnis-Zerlegung, visuelles Scrubbing.
-- **Shinon Gate-Engine** — 12 automatische Gates, die bei jedem Commit die Integrität prüfen.
+- **Shinon Gate-Engine** — 25 automatische Gates, die bei jedem Commit die Integrität prüfen.
 
 </details>
 
 <details>
 <summary><b>🚧 Das kommt — ist aber noch nicht da</b></summary>
 
-Alles hier steht in `docs/ROADMAP.md` und ist **noch nicht benutzbar**.
+Alles hier steht in `docs/ROADMAP.md` und `docs/ENTWICKLERMAP.md` und ist **noch
+nicht benutzbar**.
 
-- **Dorf-Ökonomie** — Arbeiter, Attraktivität, Materialbedarf, Landkauf, Beute-Verkauf.
-- **Inventar & Ausrüstung** — 9 Slots, 5 Seltenheitsstufen, Zerlegen, Phantom-Beute.
-- **Zucht-UI** — Generationen, Mutationen, Stammbäume, Monster-Seelen, Slot-Kauf.
+- **Die Bedienung des Dorfs** — Bauen, Ausbauen und Landerweiterung haben ein Kommando und keinen Aufrufer. Das ist der nächste Schritt und der billigste.
+- **Klassenfähigkeiten** — Heal, Direktschaden, Team-Buff. Erst nach der Entscheidung, ob „je Held einmal pro Expedition" oder „1/2/3 je Etage" gilt.
+- **Inventar & Ausrüstung** — 9 Slots, Unique-Slot je Held, Phantom-Beute.
+- **Zucht-UI** — Generationen, Mutationen, Monster-Seelen, Slot-Kauf.
 - **Echter Async-Multiplayer** — HTTP, Auth, Queue, D1-Jobstore, MMR-Matching, Ghost-Fallback.
 - **PWA & Deployment** — Offline-Editor, produktionsfähige Config.
 
+Und drei Dinge, die nicht im Spiel fehlen, sondern in der **Werkzeugkette**: kein
+Browser für die Abnahme, kein provisioniertes D1, und kein Gate, das prüft, ob ein
+`@floor/*`-Import überhaupt als Abhängigkeit deklariert ist.
+
 </details>
+
+---
+
+### 🕯️ Die Welt, kurz
+
+Unten gibt es eine Tiefe. Sie hat kein Ende, das jemand vermessen hätte. Oben gibt
+es ein Dorf mit Brot, Arbeit und einer Gilde, die Helden in die Tiefe schickt.
+Beides gehört derselben Person.
+
+*Wer unten ist, ist ein **Wächter**: gräbt, züchtet, stellt Wesen auf, baut
+Umwege. Wer angreift, ist ein **Fremder**: fünf Helden, ein Knopfdruck, und das
+Spiel sucht irgendwo ein Dungeon, das ungefähr passt. Man sieht den Weg. Nur den
+Weg.*
+
+*An der letzten Etage steht ein Wesen ohne Genetik. Es ist nicht gepanzert, es ist
+groß — seine Bedrohung kommt aus der Lebensleiste und nicht aus der Rüstung.*
+
+*Verlierende Monster sterben nicht. Sie verlieren Moral und leveln trotzdem. Das ist
+der unangenehmste Teil des Spiels aus Wächtersicht, und der Grund, warum ein
+scheiternder Angriff teuer ist: Er kostet nicht nur Beute, er macht die Verteidiger
+stärker.*
+
+> 🕯️ *Der Boden frisst. Er frisst Wächter, er frisst Fremde, und wenn er niemanden
+> frisst, dann frisst er das, was der Wächter selbst gebaut hat, Stück für Stück.*
+
+📖 Ganz lesen: [`docs/LORE.md`](docs/LORE.md)
 
 ---
 
@@ -177,6 +212,72 @@ Alles hier steht in `docs/ROADMAP.md` und ist **noch nicht benutzbar**.
 </div>
 
 <br/>
+
+---
+
+<div align="center">
+  <img src="./docs/assets/banner-entwicklermap.svg" width="100%"
+       alt="Entwicklermap als visuelle Roadmap: zwei Tracks in Zeilen. T1 Alltagstiefe mit T2.1 Visuals und T2.2 Dorf in Grün als gebaut, T2.3 Etagen-Run in Gelb als der aktive Slice, T2.4 bis T2.6 in Cyan als geplant und mit roten Sperrmarken für Zählregel, Drop-Pool und fehlenden Browser. Darunter T2 Autorität mit Auth, Persistenz, Pool und Betrieb vollständig gestrichelt und offen.">
+</div>
+
+<br/>
+
+### 🗺️ Die Entwicklermap — wo du stehst
+
+Die README ist Werbung. **Diese Karte ist der Stand.** Sie ist rekursiv aus
+`docs/ROADMAP.md` abgeleitet: Track → Slice → Prüfpunkt, mit Legende, mit
+Sperren und mit dem Ort jeder Zahl. Ein Schritt, der dort nicht steht, wird nicht
+gebaut.
+
+| | Track | Slice | Stand |
+|---|---|---|---|
+| ✅ | **T1** Alltagstiefe | T2.1 Visuals und Zugang | fertig |
+| ✅ | | T2.2 Dorf | fertig |
+| ◐ | | **T2.3 Etagen-Expedition** | **aktiv** — die Bedienung fehlt |
+| ○ | | T2.4 Klassenfähigkeiten | wartet auf die Zähl-Entscheidung |
+| ○ | | T2.5 Inventar und Drops | 🔒 Drop-Gewichte nicht freigegeben |
+| ○ | | T2.6 Browser-Abnahme | 🔒 kein Browser in der Umgebung |
+| ○ | **T2** Autorität | T3.1 Auth | 🔒 Projektwerte kommen vom Nutzer |
+| ○ | | T3.2 Persistenz und Replay-Gate | nach T1 |
+| ○ | | T3.3 Pool und Matching | 🔒 MMR-Band nicht freigegeben |
+| ○ | | T3.4 Betriebsabnahme | nach T3.1–T3.3 |
+
+**Der nächste Schritt, ganz konkret:** `buildBuilding`, `upgradeBuilding` und
+`extendLand` haben ein Kommando und keinen Aufrufer im Spielerpfad. Der Motor ist
+gebaut, die Bedienung nicht. Das ist keine Balancefrage, das ist eine fehlende Naht
+— und sie ist billiger zu schließen als jeder andere Punkt auf dieser Karte.
+
+> 📖 Die ganze Karte mit Prüfpunkten und Sperren: [`docs/ENTWICKLERMAP.md`](docs/ENTWICKLERMAP.md)
+
+---
+
+<div align="center">
+  <img src="./docs/assets/banner-zeitachse.svg" width="100%"
+       alt="Versionstimeline als Abtauchung in fünf Etagen. Etage 1 (25. September): Shinon-Initialstand, Fixture-Shell und der deterministische Kampf-Kern von 0.0.1 bis 0.0.10. Etage 2 (26. September): das Spiel wird sichtbar, der Trail-Hash wird Gesetz, grünes Gate bedeutet Landung. Etage 3 (27. September): Watchdog, Sync-Checkpoints, lebende Bühne. Etage 4 (28. September): Tastaturzugang und ein Dokumentationstag. Etage 5 (29. September): Boss-Modul, Etagen-Kauf, Goldformel, zwanzig Arten, neun Contract-Sprünge bis 0.0.90. Darunter JETZT bei 88 Prozent Kampfbalance und das offene Ende 0.1.0, das niemand vermessen hat.">
+</div>
+
+<br/>
+
+### ⏳ Die Zeitachse — wie du hierher gekommst
+
+Die Karte oben sagt, *wo du stehst*. Diese sagt, *wie du hierher gekommst* —
+und wie tief du schon unter dem Boden bist. Fünf Tage, neunzig Sprossen,
+fünf Etagen. Jede Sprosse ist ein gemessener Stand aus der Git-Historie,
+keine Behauptung: Version, Commit-Datum und Sprung stehen belegbar in
+`git log -- VERSION`.
+
+Was unten dunkler wird, ist nicht Zufall. Das Spiel wächst in die Tiefe, und
+diese Zeitachse tut dasselbe: die Oberfläche steht oben, das offene Ende
+unten. 0.1.0 trägt einen gestrichelten Faden — weil es ein Ende ist, das
+jemand noch messen muss. Der Boden frisst. In fünf Tagen hat er neunzig
+Sprossen genommen, und er hält nicht.
+
+> 🕳️ *Jede Etage dieser Liste ist eine Etage des Spiels: der Tag, an dem die
+> sichtbare Welt entstand, ist dieselbe Etage, die du im Dungeon grabst.
+> Du kannst die Zahlen nicht kaufen. Du kannst sie nur nacheinander bauen.*
+
+---
+
 
 ### 🏗️ Unter der Haube — für die, die es wissen wollen
 
@@ -243,7 +344,9 @@ Node ≥ 22. Nur pnpm. Alles andere ist Ketzerei.
 |---|---|
 | [`Agents.md`](Agents.md) | **Das Gesetz.** Sprache, Grenzen, Gates. |
 | [`docs/CONCEPT_REVIEW.md`](docs/CONCEPT_REVIEW.md) | **Die Spielregeln.** `[N]` fix, `[K]` Vorschlag, `[O]` offen. |
+| [`docs/ENTWICKLERMAP.md`](docs/ENTWICKLERMAP.md) | **Die Karte:** rekursiv aus der Roadmap, mit Position, Sperren und Ort jeder Zahl. |
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | Die einzige aktive Reihenfolge. |
+| [`docs/LORE.md`](docs/LORE.md) | Die Spielwelt in ein paar Sätzen. |
 | [`docs/ARCHITEKTUR.md`](docs/ARCHITEKTUR.md) | Schichten, Datenfluss, Owner-Grenzen. |
 
 > 📌 *Diese README ist die Verkaufsbühne. Die Technik lebt in `docs/`. Wer eine Spielregel ändern will, ändert `docs/CONCEPT_REVIEW.md` — nicht diese Datei.*
@@ -252,7 +355,7 @@ Node ≥ 22. Nur pnpm. Alles andere ist Ketzerei.
 
 ### ⚖️ Status & Lizenz
 
-- **Status:** Pre-Alpha. Der deterministische Core steht. Die Schleife läuft. Der Multiplayer-Stack kommt als Nächstes.
+- **Status:** Pre-Alpha, `0.0.90`. Der deterministische Core steht, die Schleife läuft, und Helden gewinnen. Nächster Schritt ist die Bedienung des Dorfs, danach die Klassenfähigkeiten. Der Multiplayer-Stack folgt.
 - **Lizenz:** Noch keine vergeben — proprietär bis auf Weiteres.
 - **Mitmachen:** Issues willkommen. Contributions nach den Regeln in [`Agents.md`](Agents.md).
 

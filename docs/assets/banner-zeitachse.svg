@@ -1,0 +1,222 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1150" width="100%" height="auto" role="img" aria-labelledby="ztTitle ztDesc">
+  <title id="ztTitle">Versionstimeline: Abtauchung von der Oberfläche in die Tiefe</title>
+  <desc id="ztDesc">Sechsundzwanzig Sprossen an fünf Etagen. Etage 1, 25. September: Shinon-Initialstand, Fixture-Shell, der deterministische Kern. Etage 2, 26. September: das Spiel wird sichtbar, der Trail-Hash wird Gesetz, ein grünes Gate landet automatisch. Etage 3, 27. September: Watchdog, Sync-Checkpoint, lebende Bühne. Etage 4, 28. September: Tastaturzugang, ein Dokumententag, an dem der Boden nichts frisst. Etage 5, 29. September: Boss, Etagen-Kauf, Goldformel, zwanzig Arten, neun Contract-Sprünge, Kampfbalance bei 88 Prozent. Darunter 0.0.90 als JETZT und 0.1.0 als offenes Ende ohne Vermessung.</desc>
+
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#002a3d"/>
+      <stop offset="55%" stop-color="#00141f"/>
+      <stop offset="100%" stop-color="#00080d"/>
+    </linearGradient>
+    <filter id="neon" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1000" height="1150" fill="url(#bg)" rx="15" ry="15"/>
+  <rect width="1000" height="1150" fill="none" stroke="#00b3c8" stroke-width="3" rx="15" ry="15"/>
+
+  <g font-family="'Courier New', monospace">
+    <!-- Kopf -->
+    <text x="500" y="46" font-weight="900" font-size="29" fill="#4fe3f7" text-anchor="middle" letter-spacing="4" filter="url(#neon)">ZEITACHSE · VON DER OBERFLÄCHE IN DIE TIEFE</text>
+    <text x="500" y="72" font-size="13" fill="#8a9aa8" text-anchor="middle" letter-spacing="1">0.0.1 → 0.0.90 in fünf Tagen · 25.–29. September · jede Sprosse ein gemessener Stand, keine Erfindung</text>
+
+    <!-- Legende -->
+    <g font-size="12" letter-spacing="1">
+      <circle cx="260" cy="96" r="4" fill="#a8e063"/>
+      <text x="272" y="100" fill="#8a9aa8">gebaut</text>
+      <circle cx="380" cy="96" r="4" fill="#4fe3f7"/>
+      <text x="392" y="100" fill="#8a9aa8">struktur</text>
+      <circle cx="500" cy="96" r="4" fill="#ffd166"/>
+      <text x="512" y="100" fill="#8a9aa8">jetzt</text>
+      <circle cx="600" cy="96" r="4" fill="none" stroke="#4fe3f7" stroke-width="1.5" stroke-dasharray="3 2"/>
+      <text x="612" y="100" fill="#8a9aa8">offen</text>
+    </g>
+
+    <!-- Spine: fest bis JETZT, gestrichelt weiter in die Tiefe -->
+    <line x1="500" y1="112" x2="500" y2="922" stroke="#4fe3f7" stroke-width="2"/>
+    <line x1="500" y1="922" x2="500" y2="1006" stroke="#4fe3f7" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <line x1="500" y1="1006" x2="500" y2="1070" stroke="#2d5a6b" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <polygon points="494,1070 506,1070 500,1082" fill="#2d5a6b"/>
+
+    <!-- ETAGE I -->
+    <text x="80" y="126" font-size="15" font-weight="900" fill="#a8e063" letter-spacing="2">ETAGE I — 25. SEPTEMBER</text>
+    <text x="920" y="126" font-size="12" fill="#5d7382" text-anchor="end" letter-spacing="1">Oberfläche: der Boden wird vermessen</text>
+
+    <g>
+      <line x1="474" y1="155" x2="492" y2="155" stroke="#a8e063" stroke-width="1.5"/>
+      <circle cx="500" cy="155" r="5" fill="#a8e063"/>
+      <text x="470" y="160" font-size="14" font-weight="700" fill="#a8e063" text-anchor="end">0.0.1</text>
+      <text x="470" y="177" font-size="11" fill="#8a9aa8" text-anchor="end">Shinon-Initialstand, raid_snapshots (C2)</text>
+
+      <line x1="508" y1="155" x2="526" y2="155" stroke="#a8e063" stroke-width="1.5"/>
+      <circle cx="500" cy="155" r="5" fill="#a8e063"/>
+      <text x="530" y="160" font-size="14" font-weight="700" fill="#a8e063">0.0.7</text>
+      <text x="530" y="177" font-size="11" fill="#8a9aa8">die Fixture-Shell: Tag, Nacht, Dorf, Editor</text>
+
+      <line x1="474" y1="197" x2="492" y2="197" stroke="#4fe3f7" stroke-width="1.5"/>
+      <circle cx="500" cy="197" r="5" fill="#4fe3f7"/>
+      <text x="470" y="202" font-size="14" font-weight="700" fill="#4fe3f7" text-anchor="end">0.0.10</text>
+      <text x="470" y="219" font-size="11" fill="#8a9aa8" text-anchor="end">der deterministische Kern: Kampf, Hash, Replay</text>
+    </g>
+
+    <!-- ETAGE II -->
+    <text x="80" y="250" font-size="15" font-weight="900" fill="#4fe3f7" letter-spacing="2">ETAGE II — 26. SEPTEMBER</text>
+    <text x="920" y="250" font-size="12" fill="#5d7382" text-anchor="end" letter-spacing="1">Das Sichtbare wird</text>
+
+    <g>
+      <line x1="474" y1="279" x2="492" y2="279" stroke="#a8e063" stroke-width="1.5"/>
+      <circle cx="500" cy="279" r="5" fill="#a8e063"/>
+      <text x="470" y="284" font-size="14" font-weight="700" fill="#a8e063" text-anchor="end">0.0.21</text>
+      <text x="470" y="301" font-size="11" fill="#8a9aa8" text-anchor="end">das Spiel wird sichtbar (Pixi)</text>
+
+      <line x1="508" y1="279" x2="526" y2="279" stroke="#4fe3f7" stroke-width="1.5"/>
+      <circle cx="500" cy="279" r="5" fill="#4fe3f7"/>
+      <text x="530" y="284" font-size="14" font-weight="700" fill="#4fe3f7">0.0.27</text>
+      <text x="530" y="301" font-size="11" fill="#8a9aa8">der Trail-Hash wird Gesetz (C3)</text>
+
+      <line x1="474" y1="321" x2="492" y2="321" stroke="#4fe3f7" stroke-width="1.5"/>
+      <circle cx="500" cy="321" r="5" fill="#4fe3f7"/>
+      <text x="470" y="326" font-size="14" font-weight="700" fill="#4fe3f7" text-anchor="end">0.0.33</text>
+      <text x="470" y="343" font-size="11" fill="#8a9aa8" text-anchor="end">grünes Gate = Landung, kein UI-Merge</text>
+
+      <line x1="508" y1="321" x2="526" y2="321" stroke="#a8e063" stroke-width="1.5"/>
+      <circle cx="500" cy="321" r="5" fill="#a8e063"/>
+      <text x="530" y="326" font-size="14" font-weight="700" fill="#a8e063">0.0.43</text>
+      <text x="530" y="343" font-size="11" fill="#8a9aa8">die Raid-Timeline läuft</text>
+
+      <line x1="474" y1="363" x2="492" y2="363" stroke="#a8e063" stroke-width="1.5"/>
+      <circle cx="500" cy="363" r="5" fill="#a8e063"/>
+      <text x="470" y="368" font-size="14" font-weight="700" fill="#a8e063" text-anchor="end">0.0.49</text>
+      <text x="470" y="385" font-size="11" fill="#8a9aa8" text-anchor="end">Gate-Parität und Windows-Signal</text>
+
+      <line x1="508" y1="363" x2="526" y2="363" stroke="#a8e063" stroke-width="1.5"/>
+      <circle cx="500" cy="363" r="5" fill="#a8e063"/>
+      <text x="530" y="368" font-size="14" font-weight="700" fill="#a8e063">0.0.51</text>
+      <text x="530" y="385" font-size="11" fill="#8a9aa8">Dorf als Ort, Bühne getrennt</text>
+    </g>
+
+    <!-- ETAGE III -->
+    <text x="80" y="416" font-size="15" font-weight="900" fill="#4fe3f7" letter-spacing="2">ETAGE III — 27. SEPTEMBER</text>
+    <text x="920" y="416" font-size="12" fill="#5d7382" text-anchor="end" letter-spacing="1">Die Welt läuft</text>
+
+    <g>
+      <line x1="474" y1="445" x2="492" y2="445" stroke="#a8e063" stroke-width="1.5"/>
+      <circle cx="500" cy="445" r="5" fill="#a8e063"/>
+      <text x="470" y="450" font-size="14" font-weight="700" fill="#a8e063" text-anchor="end">0.0.55</text>
+      <text x="470" y="467" font-size="11" fill="#8a9aa8" text-anchor="end">der Watchdog sieht den roten Lauf</text>
+
+      <line x1="508" y1="445" x2="526" y2="445" stroke="#a8e063" stroke-width="1.5"/>
+      <circle cx="500" cy="445" r="5" fill="#a8e063"/>
+      <text x="530" y="450" font-size="14" font-weight="700" fill="#a8e063">0.0.58</text>
+      <text x="530" y="467" font-size="11" fill="#8a9aa8">Sync-Checkpoints und Auslieferung</text>
+
+      <line x1="474" y1="487" x2="492" y2="487" stroke="#a8e063" stroke-width="1.5"/>
+      <circle cx="500" cy="487" r="5" fill="#a8e063"/>
+      <text x="470" y="492" font-size="14" font-weight="700" fill="#a8e063" text-anchor="end">0.0.63</text>
+      <text x="470" y="509" font-size="11" fill="#8a9aa8" text-anchor="end">lebende Bühne statt Dashboard</text>
+    </g>
+
+    <!-- ETAGE IV -->
+    <text x="80" y="540" font-size="15" font-weight="900" fill="#4fe3f7" letter-spacing="2">ETAGE IV — 28. SEPTEMBER</text>
+    <text x="920" y="540" font-size="12" fill="#5d7382" text-anchor="end" letter-spacing="1">Die Tastatur greift</text>
+
+    <g>
+      <line x1="474" y1="567" x2="492" y2="567" stroke="#a8e063" stroke-width="1.5"/>
+      <circle cx="500" cy="567" r="5" fill="#a8e063"/>
+      <text x="470" y="572" font-size="14" font-weight="700" fill="#a8e063" text-anchor="end">0.0.64</text>
+      <text x="470" y="589" font-size="11" fill="#8a9aa8" text-anchor="end">Tastaturzugang, Tageswechsel</text>
+
+      <line x1="508" y1="567" x2="526" y2="567" stroke="#5d7382" stroke-width="1.5"/>
+      <circle cx="500" cy="567" r="5" fill="#5d7382"/>
+      <text x="530" y="572" font-size="14" font-weight="700" fill="#8a9aa8">0.0.65</text>
+      <text x="530" y="589" font-size="11" fill="#5d7382">Dokumentationstag — der Boden frisst nichts</text>
+    </g>
+
+    <!-- ETAGE V -->
+    <text x="80" y="620" font-size="15" font-weight="900" fill="#ffd166" letter-spacing="2" filter="url(#neon)">ETAGE V — 29. SEPTEMBER</text>
+    <text x="920" y="620" font-size="12" fill="#ffd166" text-anchor="end" letter-spacing="1">der tiefste Grabtag: 25 Bumps an einem Tag</text>
+
+    <g>
+      <line x1="474" y1="649" x2="492" y2="649" stroke="#4fe3f7" stroke-width="1.5"/>
+      <circle cx="500" cy="649" r="5" fill="#4fe3f7"/>
+      <text x="470" y="654" font-size="14" font-weight="700" fill="#4fe3f7" text-anchor="end">0.0.66</text>
+      <text x="470" y="671" font-size="11" fill="#8a9aa8" text-anchor="end">Boss-Modul und Bau (C4)</text>
+
+      <line x1="508" y1="649" x2="526" y2="649" stroke="#4fe3f7" stroke-width="1.5"/>
+      <circle cx="500" cy="649" r="5" fill="#4fe3f7"/>
+      <text x="530" y="654" font-size="14" font-weight="700" fill="#4fe3f7">0.0.67</text>
+      <text x="530" y="671" font-size="11" fill="#8a9aa8">Platzierung-Fassade (C5)</text>
+
+      <line x1="474" y1="691" x2="492" y2="691" stroke="#a8e063" stroke-width="1.5"/>
+      <circle cx="500" cy="691" r="5" fill="#a8e063"/>
+      <text x="470" y="696" font-size="14" font-weight="700" fill="#a8e063" text-anchor="end">0.0.71</text>
+      <text x="470" y="713" font-size="11" fill="#8a9aa8" text-anchor="end">Rückkehr-Bilanz als Toast</text>
+
+      <line x1="508" y1="691" x2="526" y2="691" stroke="#a8e063" stroke-width="1.5"/>
+      <circle cx="500" cy="691" r="5" fill="#a8e063"/>
+      <text x="530" y="696" font-size="14" font-weight="700" fill="#a8e063">0.0.74</text>
+      <text x="530" y="713" font-size="11" fill="#8a9aa8">Etage-Kauf und Goldformel</text>
+
+      <line x1="474" y1="733" x2="492" y2="733" stroke="#a8e063" stroke-width="1.5"/>
+      <circle cx="500" cy="733" r="5" fill="#a8e063"/>
+      <text x="470" y="738" font-size="14" font-weight="700" fill="#a8e063" text-anchor="end">0.0.75</text>
+      <text x="470" y="755" font-size="11" fill="#8a9aa8" text-anchor="end">zwanzig züchtbare Arten</text>
+
+      <line x1="508" y1="733" x2="526" y2="733" stroke="#4fe3f7" stroke-width="1.5"/>
+      <circle cx="500" cy="733" r="5" fill="#4fe3f7"/>
+      <text x="530" y="738" font-size="14" font-weight="700" fill="#4fe3f7">0.0.79</text>
+      <text x="530" y="755" font-size="11" fill="#8a9aa8">die Generation steht am eingefrorenen Slot (C6)</text>
+
+      <line x1="474" y1="775" x2="492" y2="775" stroke="#a8e063" stroke-width="1.5"/>
+      <circle cx="500" cy="775" r="5" fill="#a8e063"/>
+      <text x="470" y="780" font-size="14" font-weight="700" fill="#a8e063" text-anchor="end">0.0.80</text>
+      <text x="470" y="797" font-size="11" fill="#8a9aa8" text-anchor="end">der Kampf kennt die Art des Wächters</text>
+
+      <line x1="508" y1="775" x2="526" y2="775" stroke="#4fe3f7" stroke-width="1.5"/>
+      <circle cx="500" cy="775" r="5" fill="#4fe3f7"/>
+      <text x="530" y="780" font-size="14" font-weight="700" fill="#4fe3f7">0.0.83</text>
+      <text x="530" y="797" font-size="11" fill="#8a9aa8">Hinterhalt und Spritesheets (C7)</text>
+
+      <line x1="474" y1="817" x2="492" y2="817" stroke="#a8e063" stroke-width="1.5"/>
+      <circle cx="500" cy="817" r="5" fill="#a8e063"/>
+      <text x="470" y="822" font-size="14" font-weight="700" fill="#a8e063" text-anchor="end">0.0.85</text>
+      <text x="470" y="839" font-size="11" fill="#8a9aa8" text-anchor="end">Verhaltensprofil aus dem Genom (C8)</text>
+
+      <line x1="508" y1="817" x2="526" y2="817" stroke="#4fe3f7" stroke-width="1.5"/>
+      <circle cx="500" cy="817" r="5" fill="#4fe3f7"/>
+      <text x="530" y="822" font-size="14" font-weight="700" fill="#4fe3f7">0.0.87</text>
+      <text x="530" y="839" font-size="11" fill="#8a9aa8">Klassen und Taktik (C9)</text>
+
+      <line x1="474" y1="859" x2="492" y2="859" stroke="#a8e063" stroke-width="1.5"/>
+      <circle cx="500" cy="859" r="5" fill="#a8e063"/>
+      <text x="470" y="864" font-size="14" font-weight="700" fill="#a8e063" text-anchor="end">0.0.89</text>
+      <text x="470" y="881" font-size="11" fill="#8a9aa8" text-anchor="end">die Beute erreicht den Dorfbestand</text>
+
+      <line x1="508" y1="859" x2="526" y2="859" stroke="#a8e063" stroke-width="1.5"/>
+      <circle cx="500" cy="859" r="5" fill="#a8e063"/>
+      <text x="530" y="864" font-size="14" font-weight="700" fill="#a8e063">0.0.90</text>
+      <text x="530" y="881" font-size="11" fill="#8a9aa8">die Anzeige spricht kein Paket aus</text>
+    </g>
+
+    <!-- JETZT -->
+    <circle cx="500" cy="922" r="9" fill="#ffd166" filter="url(#neon)"/>
+    <text x="500" y="900" font-size="15" font-weight="900" fill="#ffd166" text-anchor="middle" letter-spacing="2">JETZT · 0.0.90 · SIM 0.0.9</text>
+    <text x="500" y="946" font-size="11" fill="#ffd166" text-anchor="middle">Kampfbalance 88 % — der erste gewonnene Lauf</text>
+    <text x="500" y="962" font-size="10.5" fill="#5d7382" text-anchor="middle">vorher war kein Lauf zu gewinnen; das war keine Abstimmung, das war Arithmetik</text>
+
+    <!-- 0.1.0 -->
+    <circle cx="500" cy="1006" r="9" fill="#00141f" stroke="#4fe3f7" stroke-width="2"/>
+    <text x="500" y="1034" font-size="14" font-weight="900" fill="#4fe3f7" text-anchor="middle" letter-spacing="1">0.1.0 — KEIN ENDE, DAS JEMAND VERMESSEN HÄTTE</text>
+    <text x="500" y="1052" font-size="10.5" fill="#5d7382" text-anchor="middle">offen: Browser-Abnahme · Auth · Persistenz</text>
+
+    <!-- Fußnoten -->
+    <text x="500" y="1094" font-size="12" fill="#ffd166" text-anchor="middle" font-style="italic" letter-spacing="1">Der Boden frisst. In fünf Tagen sind neunzig Sprosse gewachsen — hier stehen die sechsundzwanzig, die etwas tragen. Und 0.1.0 spuckt er nicht aus.</text>
+    <text x="80" y="1122" font-size="10.5" fill="#5d7382" letter-spacing="1">Messungslücke: 0.0.15–0.0.20 und 0.0.22–0.0.24 tauchen in keinem Commit auf.</text>
+    <text x="80" y="1138" font-size="10.5" fill="#5d7382" letter-spacing="1">Die Kette ist lückenlos, die Zwischenstände nicht.</text>
+  </g>
+</svg>
