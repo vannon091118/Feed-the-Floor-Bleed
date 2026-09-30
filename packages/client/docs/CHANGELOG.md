@@ -1,5 +1,17 @@
 # packages/client/docs/CHANGELOG.md
 
+## 2026-09-30 — Die Kampfnaht bekommt ihre Quelle, und vier Kommentare sagen, was der Code tut
+
+**Scope:** neu `test/raid-combat-source.test.ts` (zwei Fälle); geändert `src/village/commands.ts` und `src/village/plot.ts` (nur Kommentar), `README.md`, `docs/ARCHITEKTUR.md`, `docs/FUNKTIONSGRAPH.md`, `docs/REGELWERK_ARCHITEKTUR.md`. Kein Contract, kein Hash, keine Zahl. Quelle ist der Wahrheits-Audit-Commit `9394880`, der auf einem gelöschten Branch lag und nicht in `main` war.
+
+**Die Naht zwischen den beiden Kampfwegen stand nirgends.** `combat-source.ts` hatte keine eigene Testdatei: `raid-timeline.test.ts` prüfte den Log, gerechnet wurde er in `fixture-raid.ts`. Damit stand nie die Frage, ob der Auftrag des Dorfes und die Timeline des Replays denselben Lauf rechnen. Zwei Fälle decken sie auf — gleicher Hash *und* gleiche Kurzfassung zwischen Auftrag und Replay, und die Gegenprobe, dass ein Lauf ohne Nachwirkung abweicht; ein Gleichheitstest, der auch dann grün bliebe, prüfte nichts.
+
+**Drei Kommentare versprachen eine Oberfläche, die es nicht gibt.** `village/commands.ts` und `village/plot.ts` begründeten ihre Rückgabefelder mit „die Oberfläche zeigen kann" und „damit die Oberfläche später sagen kann" — Bauen, Ausbauen und Landkauf haben keinen Aufrufer. Sie nennen jetzt den belegten Leser: `commands.ts` reicht den Grund unverändert weiter, `test/village-plot.test.ts` hält ihn fest.
+
+**Was der übernommene Test nicht mitbrachte.** Aus `9394880` stammend rief er `snapshotInput` auf, eine Funktion, die es in `main` nicht mehr gibt; die beiden Etagenfälle fielen mit `TypeError: snapshotInput is not a function`. Sie laufen heute über `buildFixtureUpload` und den Auftrag selbst. Der Fall „derselbe Log auf jeder Etage" war im übernommenen Stand zweimal gestellt und wurde auf einen Fall zusammengezogen — `redundancy-gate` meldete die Dublette.
+
+**Beleg:** typecheck 0, 534 Tests in 80 Dateien (+2), Lint 0, LOC-Caps ok (317 Quellen), Hygiene ok, Client-Build und Worker-Dry-Run ok.
+
 ## 2026-09-30 — Zwei Kamerasysteme werden eines, und der Zug-Status bekommt seine Anzeige
 
 **Scope:** gelöscht `src/showcase/controls.ts` und `src/raid/timeline.tsx`; geändert `src/render/camera-controls.ts` (die eine Viewport-Steuerung für beide Welten), `src/render/camera.ts` (ein Zoomschritt), `src/render/camera-keys.ts` (liest ihn), `src/render/animation.ts` (`walkSway` entfällt), `src/input/pointer.ts` (der Capture ist abschaltbar, `PointerSample` trägt nur noch die gelesenen Felder), `src/showcase/scene.ts` und `src/ui/scene-switch.ts` (beide binden dieselbe Steuerung), `src/ui/phase-windows.tsx` und `test/window-routing.test.ts` (lesen `raid/raid-timeline` direkt), `src/ui/editor-controls.tsx` (zeigt `DropStatus`), `test/input-drag.test.ts` und `test/render-animation.test.ts`. Kein Contract, kein Hash, keine Zahl.
@@ -182,12 +194,3 @@
 
 **Platz geschaffen.** Der aktive Changelog stand nach diesem Eintrag bei 204 Zeilen; der älteste Eintrag, der Tote-Code-Nachgang vom 2026-09-27, ist wortgleich nach `historisch/2026-09-27_client-tote-code-reste.md` gewandert.
 
-## 2026-09-28 — Die Timeline zählt nicht mehr selbst
-
-**Scope:** geändert `src/raid/phases.tsx` (Ergebnis-Phase liest `summarizeCombat`), `src/raid/timeline-model.ts` (`resultCard` und `ResultCardData` entfernt), `src/village/state.ts` (Doc-Kommentar) und `test/raid-timeline.test.ts`. Kein Contract, kein Log, kein Hash.
-
-**Der Befund stand im eigenen Code.** `timeline-model.ts` zählte Überlebende aus Todesereignissen selbst, mit einem eigenen Zweig für den Boss, während `packages/sim-core/src/combat/summary.ts` dieselbe Zahl über die Seite `monsters` bildete und den Boss mitzählte. Ergebnis-Panel (`summary.monstersAlive`) und Timeline (`card.monsters`) nannten damit für denselben Lauf verschiedene Monsterzahlen; `village/state.ts` führte den Widerspruch als Grund, warum die Beute nicht berechnet wird.
-
-**Die Korrektur.** `resultCard` und `ResultCardData` sind weg. `ResultPhase` liest `summarizeCombat(current.log)` — dieselbe Funktion, die die Summary des Auftrags und damit die Dorf-Bilanz erzeugt. `monstersAlive` zählt dort ohne den Boss, `bossAlive` ist sein eigenes Feld, und Panel, Timeline und Dorfblick nennen dieselbe Zahl. Der Client behält keine eigene Zählregel; dass die Timeline den Log und nicht den Auftrag hält, ist der Grund, warum sie die Kurzfassung aus dem Log ableitet statt sie zu kopieren.
-
-**Gates:** typecheck 0, 318 Tests, Lint 0.

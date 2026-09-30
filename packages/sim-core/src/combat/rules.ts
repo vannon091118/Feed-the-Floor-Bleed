@@ -74,8 +74,8 @@ export interface DefenderSlot {
  * `zoneId` ist die Zone der Platzierungsgruppe, zu der der Slot gehört, sonst
  * `-1`. Eine unbekannte Art darf den Lauf nicht töten: `baseMonster` würde
  * werfen. Der Platzhalter ist eine Formsache, keine Balanceentscheidung — er
- * trägt die Basiswerte und lässt eine veraltete Expedition als „Wesen
- * unbekannt“ im Bild stehen, statt sie abzubrechen.
+ * trägt die Basiswerte aus `UNIT_BASE.monster`, damit ein veralteter Snapshot
+ * die Expedition nicht abbricht.
  */
 function monsterSpec(
   slot: number,

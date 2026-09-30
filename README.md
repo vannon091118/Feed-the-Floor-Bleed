@@ -67,7 +67,7 @@ Jetzt bist du unten. Im Dungeon. **Deinem** Dungeon.
 
 Jede Etage ist ein 64×64-Logikraster. Du gräbst frei. Du setzt Wände. Du legst Fallen. Du platzierst deinen Boss. Du züchtest Monster und verteilst sie auf die Etagen. Du baust Umwege, Sackgassen und tödliche Korridore.
 
-Aber: Es muss **immer** eine Route vom Eingang zum Boss frei sein. Sonst → **Hard-Block**. Du kannst nicht mogeln. Die Helden, die dich angreifen, nehmen sowieso den kürzesten Weg (A*-Pathfinding, deterministisch, kein Zufall). Aber den *kürzesten* Weg bestimmst du.
+Aber: Es muss **immer** eine Route vom Eingang zum Boss frei sein. Sonst → **Hard-Block**. Du kannst nicht mogeln. Die Helden, die dich angreifen, nehmen sowieso den kürzesten Weg (Breitensuche, deterministisch, kein Zufall). Aber den *kürzesten* Weg bestimmst du.
 
 > 🕳️ *Du baust keinen Dungeon, um fair zu sein. Du baust einen Dungeon, um die Illusion von Fairness aufrechtzuerhalten, während du jeden einzelnen Tile so platzierst, dass der Held genau dort stirbt, wo dein stärkstes Monster wartet.*
 
@@ -147,16 +147,16 @@ Ich belüge dich nicht. Das Repo behauptet nie, geplante Systeme seien schon da.
 <details open>
 <summary><b>✅ Das steht. Das läuft. Das ist getestet.</b></summary>
 
-- **Deterministischer Kampf-Core** — Fixed-Point statt Float. Seed-PRNG (Mulberry32). A*-Pathfinding mit festem Tie-Break. Combat-Ticks. Kanonischer Log-Hash. Trail-Hash über den *kompletten* Pfad.
+- **Deterministischer Kampf-Core** — Fixed-Point statt Float. Seed-PRNG (Mulberry32). Breitensuche über ein Raster mit gleich teuren Zellen. Combat-Ticks. Kanonischer Log-Hash. Trail-Hash über den *kompletten* Pfad.
 - **Die Kampfbalance ist freigegeben und gebaut** — Boss 132 000 / 12 000 / 1000 / 500, gemessen über 48 Seeds je Verteidigerplatz. Der Referenzkampf (3 Helden gegen Boss + 3 Platzmonster) liegt bei **88 %**. Der erste Golden-Pin des Repos steht damit auf `heroes-win`: **vorher konnte kein Lauf gewonnen werden**, jetzt schon.
 - **Contract v9** — Zod-Schemas, `sim_version 0.0.9`, Ergebnislog, Auftragsautomaten und TTL kommen aus `packages/contracts`. Der Code erfindet nichts. Führt Klassen-Vokabular, Fähigkeits-IDs, Verhaltensprofile und die reduzierte Angreifer-Sicht.
-- **Replay-Validierung** — Der Log wird nachgerechnet. Inklusive Trail-Prüfung. Wer schummelt, fliegt auf.
+- **Replay-Selbstkonsistenz** — Der Kampf-Hash deckt Seed, Einheiten, jeden Tick und jeden Trail-Schritt ab. Das serverseitige Replay-Gate (T3.2) ist **nicht gebaut**; es ist als Zielmodul in `docs/CONCEPT_REVIEW.md` verzeichnet.
 - **Dorfwirtschaft** — Echte Zahlenquelle, echte Kommandos, echte Abrechnung. Gold kommt aus vergfallenen Gegnern, Material aus Werkstätten. Der Etage-Kauf feuert, der Rückkehr-Toast steht.
 - **Genom & Verhalten** — 20 Basisarten, sechs Archetypen, Verhaltensprofil aus dem Trait. Die Stärke ist gemessen und definiert, und sie ist dieselbe Zahl, aus der die Beute rechnet.
 - **Sichtbare Referenzszene** — PixiJS 8, Kamera, Ebenen, Depth, Occlusion, Actors, FX; DOM-basierter Dungeon-Editor; Preact-Fenster-Runtime. Der Client rendert — er entscheidet nie. Sechs selbst erzeugte Spritesheets, deterministisch reproduzierbar.
 - **Tag/Nacht/Raid-Schleife** — Funktioniert als lokaler Fixture-Loop. Browser-abgenommen.
 - **Raid-Playback** — Timeline-Modell, Routen-/Kampf-/Ergebnis-Zerlegung, visuelles Scrubbing.
-- **Shinon Gate-Engine** — 25 automatische Gates, die bei jedem Commit die Integrität prüfen.
+- **Shinon Gate-Engine** — 12 automatische Gates, die bei jedem Commit die Integrität prüfen.
 
 </details>
 

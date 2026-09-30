@@ -23,8 +23,8 @@ import {
  * die Entscheidungen in einer Reihenfolge fallen: erst die Phase, dann die
  * Regel, dann die Deckung, zuletzt die Geometrie. Getrennt von `state.ts`, weil
  * der Store die Zusagen hält (Phase, kein negativer Bestand), aber keine Preise
- * kennt. Kein Kommando wirft: eine Ablehnung ist ein Ergebnis mit Grund, den die
- * Oberfläche zeigen kann.
+ * kennt. Kein Kommando wirft: eine Ablehnung ist ein Ergebnis mit Grund statt
+ * eines Wurfs.
  *
  * Nichts hier rechnet mit einer eigenen Zahl. Jeder Preis kommt aus
  * `economy.ts`, jede Grenze aus der übergebenen Config, jede Zelle aus `plot`.
@@ -76,10 +76,10 @@ function bezahlt(cost: Cost, held: Resources): Resources {
 /**
  * Baut ein Gebäude der Art an die angegebene Zelle.
  *
- * Die Reihenfolge der Prüfungen ist die Reihenfolge der Absagen, die der
- * Spieler zu sehen bekommt: die Phase zuerst, weil sie den ganzen Vorgang
- * ausschließt, dann die Art, dann die Arbeiterkapazität als Dorfregel, dann die
- * Geometrie und zuletzt der Preis. Erst wenn alles steht, wird der Bestand
+ * Die Reihenfolge der Prüfungen ist die Reihenfolge der Absagen im
+ * Ergebnistyp: die Phase zuerst, weil sie den ganzen Vorgang ausschließt, dann
+ * die Art, dann die Arbeiterkapazität als Dorfregel, dann die Geometrie und
+ * zuletzt der Preis. Erst wenn alles steht, wird der Bestand
  * geschrieben — ein abgelehnter Bau kostet nichts und hinterlässt keine Spur.
  */
 export function buildBuilding(
@@ -125,7 +125,7 @@ export function buildBuilding(
  * Eine Stelle in der Liste und keine Kennung: In diesem Slice wird nichts
  * entfernt und nichts umsortiert, eine Kennung hätte also keinen Leser. Ein
  * Index außerhalb der Liste ist eine Ablehnung mit genanntem Wert und kein
- * Wurf — die Oberfläche entscheidet, worauf der Klick zeigte.
+ * Wurf.
  *
  * `below-first-level` steht im Ergebnistyp, weil eine Stufe, die keine ganze
  * Zahl ab 1 ist, aus keiner Zielstufe einen Preis machen kann. Ein korrekt

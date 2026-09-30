@@ -1,5 +1,13 @@
 # packages/sim-core/docs/CHANGELOG.md
 
+## 2026-09-30 — Ein Kommentar versprach ein Bild, das kein Renderer kennt
+
+**Scope:** geändert `src/combat/rules.ts` (nur der Kommentar an `monsterSpec`). Kein Verhalten, kein Contract, kein Hash, keine Zahl. Quelle ist der Wahrheits-Audit-Commit `9394880`, der auf einem gelöschten Branch lag und nicht in `main` war.
+
+**Der Kommentar behauptete mehr, als gebaut ist.** `monsterSpec` ließ eine unbekannte Art „als Wesen unbekannt im Bild stehen, statt sie abzubrechen". Kein Renderer kennt diese Zeichenfolge: ein Durchlauf über `packages/client/src` findet keinen Treffer, und `ui/actor-label.ts` fällt für eine unbekannte Art auf `${kind} ${index}` zurück. Der Platzhalter trägt die Basiswerte aus `UNIT_BASE.monster` und verhindert, dass ein veralteter Snapshot die Expedition abbricht — das ist der belegte Grund, und er steht jetzt da.
+
+**Beleg:** der Durchlauf über `packages/client/src` (kein Treffer für die Zeichenfolge) und `ui/actor-label.ts:13`; typecheck 0, 534 Tests in 80 Dateien, Lint 0.
+
 ## 2026-09-30 — Vier Funktionen mit nur einem Aufrufer fallen, und vier Exporte ziehen sich auf ihr Modul zurück
 
 **Scope:** geändert `src/math/fixed.ts` (`divFixed` entfällt), gelöscht `src/math/isqrt.ts` (mit `sqrtFixed` verliert `isqrt` seinen letzten Leser), `src/math/index.ts` (Barrel), `src/math/math.test.ts` (drei Fälle fallen mit ihnen), `src/grid/grid.ts` (`visibleTileCount` und `logicCellsPerVisibleTile` entfallen), `src/grid/types.ts` (`PathMode` intern), `src/grid/path.test.ts` (dieselbe Aussage hängt an den Konstanten), `src/hash/fnv1a.ts` (`HASH_OFFSET` intern), `src/genome/registry.ts` (`baseMonsterCount` entfällt), `src/genome/index.ts` und `src/genome/genome.test.ts` (dieselbe Aussage über `baseMonsters().length`), `src/combat/boss.ts` (`BOSS_ROLE` und `BOSS_RULES` intern, Werte unangetastet). Kein Contract, kein Log-Hash.
