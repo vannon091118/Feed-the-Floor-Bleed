@@ -34,7 +34,9 @@ Aus dem Chat vom 2026-09-30, hier festgehalten, weil sie nirgends im Repo stande
 | Schaden pro Urheber | `sim-core/src/combat/actions.ts:109` schreibt `eventBase(actor, target, tick)` mit `amount` | ✅ **berechenbar** |
 | Sterbende werden identifiziert | `actions.ts:113` schreibt `type: 'death'` mit `targetId` | ✅ vorhanden |
 | **Bilanz je Einheit** | `summary.ts` führt `damageByHero` und `damageByMonster`, getrennt nach Seite, sortiert nach `unitId` | ✅ **gebaut** (Slice A) |
-| Größenordnung des Schadens | 20 Seeds, 7 Einheiten, Ø 1 270 801, **keine Einheit ohne Schaden** | ✅ **gemessen** (Abschnitt 5) |
+| Größenordnung des Schadens | 20 Seeds, 7 Einheiten, **Ø 63 540** je Einheit und Lauf, **keine Einheit ohne Schaden** | ✅ **gemessen** (Abschnitt 5) |
+| Seite mit dem größeren Anteil | Helden 5 408 120 (60,8 %) gegen Monster 3 490 637 (39,2 %) | ✅ **gemessen** (Abschnitt 5) |
+| **Trail-Hash auf 32 Bit** | `hash/fnv1a.ts:8` `>>> 0`, `combat/fingerprint.ts:17-25` hasht Kampfzahlen | ❌ **Blocker** (Abschnitt 5a) |
 | Boss-Raum als Zone | `grid/zones.ts:4` kennt `'boss-chamber'`, vergibt in `:73/75` | ✅ erkannt, **niemand liest es** |
 | Boss als Platzhalter | `combat/rules.ts:196` `units.push(bossSpec(lastIndex))` | ✅ eine Einheit in derselben Liste |
 | Generation am Slot | `contracts/src/raid-snapshot.ts:29` `generation` (min 1, optional) | ✅ vorhanden |
@@ -300,56 +302,103 @@ Plan, sondern eine Lücke im Bestand, und sie gehört zu einem anderen Block.
 `genome/strength.ts:39`, `[K]`. Sie liegen in den Lücken der gemessenen
 Verteilung. Bestätigen und auf `[N]` setzen, oder neu messen?
 
-## 5. Die erarbeiteten Größen, damit Slice B nicht auf einer `[K]`-Zahl ruht
+## 5. Die erarbeiteten Größen — und ein Rechenfehler, den die Prüfung fand
 
 Slice B braucht zwei Zahlen: **wieviel Erfahrung ein Schaden wert** und **wieviel
-Extraktionsmaterial 4 EP ergeben**. Die zweite ist `[N]` festgegeben. Die erste
-stand als `[K]` ohne jede Größenordnung — das ist keine Zahl, sondern ein Platzhalter.
+Extraktionsmaterial 4 EP ergeben**. Die zweite ist `[N]` festgegeben.
 
-**Gemessen statt geraten.** Über 20 Seeds, 3 Helden gegen 3 echte Basisarten auf dem
-Standardraster, Summe des verursachten Schadens je Einheit:
+**Die erste Fassung dieser Zahlen war falsch, und zwar derselbe Fehlertyp, vor dem
+`Agents.md` warnt.** Der erste Entwurf teilte die Summe des Schadens **über 20
+Seeds** durch die Einheitenzahl **eines** Seeds. Das ergibt eine Zahl um das
+Zwanzigfache zu groß. Wer einer Menge einen Wert aus einer anderen Menge
+zurechnet, erhält eine Zahl, die größer aussieht als das Spiel.
+
+### Die Messung
+
+20 Seeds, 3 Helden gegen 3 echte Basisarten auf dem Standardraster, Summe des
+verursachten Schadens je Einheit und Lauf:
 
 | Größe | Wert |
 |---|---|
-| Einheiten | 7 |
-| Summe über 20 Seeds | 8 895 604 |
-| **Ø je Einheit** | **1 270 801** |
-| Median | 1 156 010 |
-| Spanne | 195 436 … 2 977 794 |
+| Einheiten je Lauf | 7 |
+| Läufe | 20 |
+| **Summe über alle Läufe** | **8 895 604** |
+| **Ø je Einheit und Lauf** | **63 540** |
 | Einheiten mit null Schaden | **0** |
 
-Der letzte Punkt ist der wichtigste: **keine Einheit blieb ohne Schaden**. Das stützt
-die Entscheidung aus 4.1, jede Einheit in die Bilanz aufzunehmen — die Null-Fälle
-gibt es im Bestand, aber sie sind nicht der Normalfall.
+Die Division lautet `8 895 604 / (7 × 20)`. Die erste Fassung hatte den Nenner `7`.
 
-**Die Größenordnung, die daraus folgt.** Ein Lauf bringt also gut eine Million
-Schaden je Einheit. Soll ein Wesen nach einem Kampf **im niedrigen dreistelligen
-Bereich** Erfahrung sammeln, liegt der Divisor bei etwa 2 500:
+**Keine Einheit blieb ohne Schaden.** Das stützt die Entscheidung aus 4.1, jede
+Einheit in die Bilanz aufzunehmen — die Null-Fälle gibt es im Bestand, aber sie
+sind nicht der Normalfall.
 
-| Divisor | EP je Einheit (Ø) | Material aus 20 Seeds |
-|---|---|---|
-| 1 000 | 1 271 | 2 223 |
-| **2 500** | **508** | **889** |
+### Was daran neu ist: Helden sind nicht die kleinere Seite
 
-**Warum 2 500 und nicht 1 000:** Die Kurve aus Slice C ist **kallierend
-exponentiell** und beginnt flach. Bei Divisor 1 000 stünde ein Wesen nach dem ersten
-Kampf bereits bei über 1 200 EP, also weit vor der ersten Kurvenstufe — die
-exponentielle Form hätte nichts mehr zu leisten, weil der Startpunkt sie schon
-überholt. Bei 2 500 bleiben die ersten Stufen wirklich flach, und die Trennung
-zwischen einem schwachen und einem starken Wesen ist sichtbar (Median 1 156 010
-liegt deutlich über dem Minimum 195 436).
+Die erste Fassung behauptete, ein Held verursache „in derselben Summe den kleineren
+Teil". Getrennt gemessen:
 
-**`[K]`, nicht `[N]`:** Das ist ein Vorschlag mit Begründung, keine Freigabe. Die
-Zahl gehört an ihre Quelle, `sim-core/src/genome/balance.ts`, **mit diesem
-Messprotokoll im Kommentar** — so wie die Schwellen in `strength.ts` ihre
-Verteilung tragen. Ohne den Vermerk dort ist die Zahl ein nackter Wert, und in
-einem Jahr weiß niemand mehr, woher sie kam.
+| Seite | Summe über 20 Seeds | Anteil | Ø je Einheit und Lauf |
+|---|---|---|---|
+| Helden | 5 408 120 | 60,8 % | 90 135 |
+| Monster | 3 490 637 | 39,2 % | 43 633 |
 
-**Eine Größenordnung ist noch offen:** Erfahrung für **Helden**. Die Festlegung
-gilt für beide Seiten, aber die Skalierung ist gemessen am Monster. Ein Held
-verursacht in derselben Summe den kleineren Teil; ob er denselben Divisor
-verträgt, ist erst nach dem Bau ablesbar. **Vorschlag: derselbe Divisor**, damit
-die Kurve auf beiden Seiten dieselbe Form hat. Auch das ist `[K]`.
+**Ein Held verursacht pro Einheit rund das Doppelte eines Monsters.** Die
+Begründung für einen gemeinsamen Divisor trug damit nicht in der Form, in der sie
+geschrieben war.
+
+**Nebenbefund mit eigener Sprengkraft:** Die drei Helden sind identisch
+(`class: 'none'`, `combat/rules.ts:46-68`), ihre Schadenssumme streut aber dennoch
+um den Faktor 4,6 — hero-2 Ø 148 907 gegen hero-0 Ø 32 554. Drei gleich
+aussehende Wesen im Parteibild, von denen eines den Lauf trägt. Das ist kein
+Balanceproblem, das ist fehlende Rückkopplung, und es gehört vor die Balance.
+
+### Der Divisor
+
+| Divisor | EP je Einheit und Lauf |
+|---|---|
+| 100 | 635 |
+| **125** | **508** |
+| 250 | 254 |
+
+**`[K]`, nicht `[N]`.** Der Vorschlag 125 stammt aus der Absicht, dass ein Wesen
+nach einem Kampf im niedrigen dreistelligen Bereich Erfahrung sammelt; die
+exponentielle Kurve aus Slice C soll danach noch etwas zu leisten haben, statt vom
+Startpunkt überholt zu werden. **Ob 125 die richtige Größenordnung ist, ist damit
+nicht entschieden** — die Kurvenform aus Slice C bestimmt sie, und die ist nicht
+gebaut. Die Zahl gehört an ihre Quelle, `sim-core/src/genome/balance.ts`, **mit
+diesem Messprotokoll im Kommentar**.
+
+## 5a. Der Blocker, den die zweite Messung fand: der Trail-Hash kappt auf 32 Bit
+
+**Das ist kein Zahlenthema, das ist eine Löfflichkeit im Replay.**
+
+`packages/sim-core/src/hash/fnv1a.ts:8` schneidet mit `>>> 0` auf 32 Bit. Alles
+oberhalb 2³² fällt auf denselben Wert zurück, und `combat/fingerprint.ts:17-25`
+hasht damit Zahlen aus dem Kampf. Ein `maxHp` von 60 000 und eines von
+4 295 027 296 erzeugen **denselben** Trail-Hash — zwei verschiedene Kämpfe, ein
+Hash. Der Server akzeptiert einen gefälschten Log, weil der Hash stimmt.
+
+Der Beweis steht in `packages/sim-core/src/hash/hash-kappung.test.ts`: Zwei Tests,
+deren erster fällt, sobald jemand den Schnitt entfernt.
+
+**Wie weit ist der Weg bis zur Kollision?** `packages/sim-core/src/combat/state.ts:94`
+und `:102` vergleichen das Kreuzprodukt `candidate.hp * best.maxHp`. Das bricht bei
+`maxHp ≈ 3 001 199` ganzen HP — Faktor 73 über einem heutigen Monster. Mit einem
+exponentiellen Faktor r = 1,2 ist Faktor 73 bei **Level 25** erreicht, bei r = 1,15
+bei 32.
+
+**Was das für die Level-Festlegung heißt.** „Kein Cap" ist inhaltlich haltbar — ein
+Cap nimmt dem Wächter genau das, was ihn zum Wächter macht. Aber es ist **keine
+Obergrenze auf das Level zu bauen, sondern eine Grenze darauf, was ein Level einer
+Zahl antun darf.** Diese Grenze existiert im Datenmodell nicht. Wer sie einführt,
+baut sie an den Feldern ein, die `specHash` und das Kreuzprodukt lesen — nicht am
+Level-Feld. **Das Level darf dieselben Felder nicht skalieren, die in den Hash
+gehen.**
+
+**Die Reihenfolge ändert sich damit:** Der 32-Bit-Schnitt kommt **vor** Slice C. Ein
+Level ohne Kappung auf einem Hash, der auf 32 Bit kollidiert, ist nicht „später
+sicher", sondern später wertlos.
+
 
 ## 6. Reihenfolge und Abhängigkeiten
 
@@ -357,7 +406,11 @@ die Kurve auf beiden Seiten dieselbe Form hat. Auch das ist `[K]`.
 A  Schadensbilanz pro Urheber     ─┐   ✅ gebaut (1a2caf2)
 B  Erfahrung + Material          ─┴─→ braucht A, Zahl aus Abschnitt 5
 
-C  Level-Kurven + HP-Skalierung   ────→ braucht B; Level kommt in den
+A0 Trail-Hash ohne 32-Bit-Schnitt  ────→ kommt VOR C; ohne ihn bricht die
+                                    Level-Kurve auf einem Hash, der
+                                    kollidieren kann
+
+C  Level-Kurven + HP-Skalierung   ────→ braucht B und A0; Level kommt in den
                                     eingefrorenen Stand (4.2)
 
 D  Statuspunkte                   ────→ eigener Contract-Sprung, offen (4.1)
@@ -368,10 +421,16 @@ E  Bosskampf getrennt             ────→ eigener Contract-Sprung, unabh
 ```
 
 **A ist gebaut.** B ist der nächste und braucht nur die Freigabe der Zahl aus
-Abschnitt 5 — kein weiterer Konflikt. C folgt B und hängt an der Cap-Frage aus 4.5.
+Abschnitt 5 — kein weiterer Konflikt.
+
+**A0 ist der Blocker aus Abschnitt 5a und gehört vor C, nicht danach.** Eine
+Level-Kurve auf einem 32-Bit-Hash ist nicht „später in Ordnung": sie ist wertlos,
+sobald zwei verschiedene Kämpfe denselben Fingerprint tragen.
+
 D und E brauchen jeweils einen Contract-Sprung, und **C, D und die Level-Identität
 aus 4.2 teilen sich denselben**: ein Level am `monsterSlot` plus ein Statuspunkt am
 selben Ort. Das ist ein Sprung, nicht drei.
+
 
 **Nicht in diesem Block:** Monster-Steine. Sie sind `[N]` als späteres Ziel
 beschrieben, und der MVP soll beim Platzhalter-Boss bleiben. Der Tauschweg aus
