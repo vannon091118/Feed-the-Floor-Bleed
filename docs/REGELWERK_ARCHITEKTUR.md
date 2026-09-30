@@ -7,7 +7,7 @@ Verbindlich für Änderungen an Architektur, Package-Grenzen und Quellcode-Struk
 ```text
 packages/
   contracts/   Zod-Schemas, Protokoll-Versionen, Owner-Contracts
-  sim-core/    PRNG, Math, Grid/A*, Combat, Genome, Items, Hash, Ghost
+  sim-core/    PRNG, Math, Grid (Breitensuche), Combat, Genome, Hash; Items und Ghost sind offen
   client/      World, Visual, Render, Input, Window, Showcase, UI und Spielfeatures
   server/      DB, Matchmaking und Sync
 scripts/       Shinon-Gates, Installations- und Versionswerkzeuge

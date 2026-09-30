@@ -41,9 +41,8 @@ describe('Die Art des Verteidigers im Kampf', () => {
   })
 
   it('überlebt eine Art, die es nicht gibt', () => {
-    // Ein veralteter Snapshot darf die Expedition nicht abbrechen. Der
-    // Platzhalter trägt die Basiswerte, damit ein unbekanntes Wesen sichtbar
-    // bleibt, statt den Lauf zu töten.
+    // Ein veralteter Snapshot darf die Expedition nicht abbrechen: eine
+    // unbekannte Art bekommt die Basiswerte, statt den Lauf zu töten.
     const monster = buildCombatUnits({
       ...placement,
       teamSize: 1,

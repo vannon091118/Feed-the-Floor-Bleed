@@ -11,7 +11,7 @@ import {
   setCell,
 } from '@floor/sim-core'
 import { startDungeon } from '../src/dungeon-editor/model'
-import { fixtureTeamConditions } from '../src/raid/fixture-raid'
+import { fixtureAufstellung } from '../src/raid/fixture-raid'
 
 /**
  * Auftrags-Literale für die Schleifentests.
@@ -78,11 +78,16 @@ export function blockedGrid() {
 /**
  * Deterministischer Core-Lauf als Timeline-Quelle.
  *
- * Grid, Route und Log kommen aus einem Aufruf: die Timeline- und die
- * Verdrahtungstests prüfen denselben Lauf, nicht zwei nachgebaute. Das Grid ist
- * der Startdungeon des Editors und damit derselbe Plan, den der Probelauf
- * rechnet — samt der beiden Platzierungsgruppen, ohne die kein Verteidiger eine
- * Aufstellungszone und kein `ambush`-Ereignis entstünde.
+ * Grid, Route und Log kommen aus einem Aufruf, damit die Timeline- und die
+ * Verdrahtungstests denselben Lauf prüfen statt zwei nachgebaute. Das Grid ist
+ * der Startdungeon des Editors — samt der beiden Platzierungsgruppen, ohne die
+ * kein Verteidiger eine Aufstellungszone und kein `ambush`-Ereignis entstünde.
+ *
+ * **Das ist nicht der Auftrag, den das Dorf abrechnet.** Hier stehen eigene
+ * Verteidiger und ein eigenes Token, damit der Test eine feste Erwartung hat. Ob
+ * der Auftragsweg denselben Lauf liefert, prüft `raid-timeline.test.ts` über
+ * `runLocalFixtureRaid` — diese Datei darf dafür nicht herangezogen werden,
+ * sonst vergleicht der Test wieder zwei Aufrufe derselben Form.
  */
 export function fixtureRaidLog() {
   const grid = startDungeon()
@@ -91,9 +96,9 @@ export function fixtureRaidLog() {
     grid,
     seed: 4242,
     teamSize: 3,
-    // Aus derselben Ableitung wie der echte Upload: sonst vergliche dieser
-    // Test den Log der Timeline mit einem Lauf, den niemand spielt.
-    team: fixtureTeamConditions(),
+    // Aus derselben Aufstellung wie der echte Upload: sonst rechnete dieser
+    // Test mit einem Heldzustand, den niemand spielt.
+    team: fixtureAufstellung().activeTeam,
     defenders: [{ baseId: 'frost-wolf' }, { baseId: 'stone-golem' }],
     floor: 1,
     token: 'fixture-raid-log',

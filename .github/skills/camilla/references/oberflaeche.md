@@ -33,10 +33,10 @@ Ein Label hat **eine** Quelle:
 |-----|--------|
 | Actor-Name | `ui/actor-label.ts` |
 | Gebäude-Name | `ui/building-label.ts` |
-| Ablehnungsgrund | `ui/command-reason.ts` |
+| Ablehnungsgrund | das Kommando, das die Absicht geprüft hat (`village/commands.ts`, `village/economy.ts`, `village/floors.ts`) |
 | Ressourcenname | `resources/catalog.ts` |
 
-`command-reason.ts` ist ein `Record` über alle benannten Gründe aus `village/plans.ts` — deshalb ist ein neuer Grund dort ein Typecheck-Fehler. Das ist Absicht. Ein Grund, den die Oberfläche selbst erfindet, ist eine Prüfung an der falschen Stelle.
+Jedes Kommando liefert seinen Ablehnungsgrund als unterscheidbares Ergebnis aus einer `reason`-Union im Owner; ein neuer Grund ist damit zuerst eine Änderung an dieser Union, keine erfundene Zeile in der Anzeige. Ein Grund, den die Oberfläche selbst formuliert, ist eine Prüfung an der falschen Stelle.
 
 **Sätze statt Codes.** Nicht `ERR_MATERIAL`, sondern „Zu wenig Material." Nicht `undefined`, sondern eine leere, korrekt gerahmte Zeile. Wenn eine Anzeige keinen sprechenden Text hat, ist nicht der Text das Problem, sondern die fehlende Regel dahinter.
 

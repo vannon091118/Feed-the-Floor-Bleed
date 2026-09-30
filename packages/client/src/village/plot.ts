@@ -98,8 +98,8 @@ export function footprintWithinBounds(
 /**
  * Die eine Platzierungsentscheidung: erst die Zelle, dann die Rastergrenze,
  * dann die Überlappung. Bei Ablehnung nennt das Ergebnis den Grund und im
- * Überlappungsfall den konkurrierenden Grundriss, damit die Oberfläche später
- * sagen kann, woran es lag.
+ * Überlappungsfall den konkurrierenden Grundriss; `commands.ts` reicht ihn
+ * unverändert in sein Ergebnis, und `test/village-plot.test.ts` hält ihn fest.
  */
 export function canPlace(
   candidate: Footprint,

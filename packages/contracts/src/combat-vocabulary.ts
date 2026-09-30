@@ -50,6 +50,12 @@ export const COMBAT_ROLES = ['hero', 'monster', 'boss'] as const
 /**
  * Verhaltensprofil des Verteidigers — abgeleitet aus dem Genom, nicht gesetzt.
  *
+ * **Das Verhalten sagt, wie das Wesen im Kampf sein Ziel wählt.** Sein
+ * Gegenstück ist der Archetyp an der Basis-Art (`genome/types.ts`): **was** das
+ * Wesen ist. Das sind zwei Begriffe und entschieden zwei, nicht zwei Namen für
+ * dieselbe Frage: `tank` steht in beiden Listen und beantwortet dort zwei
+ * verschiedene Dinge.
+ *
  * `none` ist der Grundfall (Helden, Boss, Arten ohne Profil): das nächste
  * Ziel. Die drei Profile ändern ausschließlich die Zielentscheidung und damit
  * keine Zahl — daran liegt es, warum sie im Log stehen und nicht nur im

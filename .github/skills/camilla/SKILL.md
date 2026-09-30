@@ -19,7 +19,7 @@ Praktisch heißt das:
 
 - Eine Anzeige liest ihren Zustand aus dem Owner und leitet daraus ab, was zu sehen ist. Sie speichert keine Kopie.
 - Was der Spieler auslöst, geht als **Kommando** an den Owner. Die Oberfläche hält die Absicht, nicht das Ergebnis.
-- Eine Regel, die nur an der Oberfläche geprüft wird, ist eine zweite Wahrheit. Sperr-Knopf, Fehlergrund und Kommandoentscheidung kommen aus derselben Quelle — so wie `ui/village-build.tsx` `plans.ts` fragt, statt selbst zu rechnen.
+- Eine Regel, die nur an der Oberfläche geprüft wird, ist eine zweite Wahrheit. Sperr-Knopf, Fehlergrund und Kommandoentscheidung kommen aus derselben Quelle — so wie `ui/floor-purchase.tsx` Preis und Fehlbetrag aus der Config ableitet, die `village/floors.ts` zum Kauf liest, statt selbst zu rechnen.
 - Willst du Zustand ändern und findest keinen Kommando, **fehlt dem Spiel ein Kommando**. Das ist ein Befund für den Auftraggeber, kein Anlass, in der Ansicht zu schreiben.
 
 ## Gesetz zwei: Der Spieler wird nie mit Technik belästigt

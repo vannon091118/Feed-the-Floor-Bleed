@@ -8,25 +8,61 @@ import {
   type DungeonGrid,
   fromDungeonGrid,
   runFixtureRaid,
-  type TeamCondition,
+  type SnapshotRaidInput,
 } from '@floor/sim-core'
 import { fixture, fixtureRaid } from '../fixture-data'
 import { dayNight } from '../village/state'
 
 /**
- * Der Zustand des Teams, wie er in den Kampf reist.
+ * Die Aufstellung, aus der **beide** Kampfwege ihren Lauf bauen.
  *
- * `activeTeam` im Upload und die Nachwirkung am Kampf-Spec sind dieselben zwei
- * Zahlen aus derselben Fixture. Sie hier einmal abzuleiten und nicht an jedem
- * Aufrufer erneut ist der Unterschied zwischen einer Quelle und dreien: die
- * Timeline und der Auftrag müssen denselben Lauf zeigen, sonst rechnet das Dorf
- * etwas anderes ab als der Spieler gesehen hat.
+ * Probelauf und Timeline gingen über zwei Aufrufe, die ihre Eingaben selbst
+ * zusammenbauten — Team, Verteidiger, Seed und Etage an zwei Stellen. Jede neue
+ * Kampf-Eingabe musste damit an beiden landen; am 2026-09-29 brauchte das erst
+ * eine eigene Ableitung, weil die Nachwirkung sonst nur im Auftrag angekommen
+ * wäre. Diese Funktion ist jetzt die einzige Ableitung, und
+ * `buildFixtureUpload` wie `snapshotInput` lesen beide hier.
  */
-export function fixtureTeamConditions(): TeamCondition[] {
-  return fixture.team.map((hero) => ({
-    temporaryFatigue: hero.fatigue,
-    temporaryInjury: hero.injury,
-  }))
+export function fixtureAufstellung(): Pick<
+  UploadRequest,
+  'activeTeam' | 'monsterSlots' | 'tactics'
+> {
+  return {
+    activeTeam: fixture.team.map((hero) => ({
+      heroId: hero.id,
+      temporaryFatigue: hero.fatigue,
+      temporaryInjury: hero.injury,
+    })),
+    monsterSlots: fixture.monsterSlots.map((slot) => ({ ...slot })),
+    tactics: fixture.team.map((hero) => [...hero.tactics]),
+  }
+}
+
+/**
+ * Dieselbe Aufstellung als Eingabe des Core-Aufrufs.
+ *
+ * `floor` ist ein Parameter und keine Konstante, weil genau hier die beiden Wege
+ * eine verschiedene Frage beantworten: Das Dorf zählt die Etage, die es in
+ * Besitz hält, ein eingefrorener Auftrag die Etage, unter der er entstanden ist.
+ * Ein Replay kauft keine Etage nach. Die Etage wandert in die Envelope und nicht
+ * in den Log — die Simulationslogik kennt sie nicht —, deshalb liefern beide
+ * Wege heute denselben Lauf. `test/raid-timeline.test.ts` pinnt genau das über
+ * beide Wege, damit diese Zeile nicht still falsch wird.
+ */
+export function snapshotInput(
+  grid: DungeonGrid,
+  floor: number,
+): SnapshotRaidInput {
+  const { activeTeam, monsterSlots } = fixtureAufstellung()
+  return {
+    grid,
+    teamSize: activeTeam.length,
+    team: activeTeam,
+    defenders: monsterSlots.map((slot) => ({ baseId: slot.monsterId })),
+    seed: fixtureRaid.seed,
+    floor,
+    token: fixtureRaid.jobId,
+  }
 }
 
 /**
@@ -34,9 +70,11 @@ export function fixtureTeamConditions(): TeamCondition[] {
  * `contractVersion` und `simVersion` kommen aus `@floor/contracts` und werden
  * hier nicht als Zahl abgeschrieben.
  *
- * Der Client *erfindet* hier nichts: Aufstellung und Taktiken kommen aus den
- * Fixture-Daten, der Bestand aus dem Dorf-Owner, das Grid aus dem Editor-State.
- * Der Core entscheidet anschließend allein, was daraus wird.
+ * Der Client *rechnet* hier nichts: Aufstellung und Taktiken kommen aus den
+ * Fixture-Daten, der Bestand aus dem Dorf-Owner, das Grid aus dem Editor-State;
+ * der Core entscheidet anschließend allein, was daraus wird. Die Aufstellung
+ * steht in einer Datei namens `fixture-data.ts` und ist trotzdem Produktstand:
+ * sie bestimmt, wer angreift und wer verteidigt.
  *
  * Der Bestand ist der des Dorfes und nicht der Startbestand der Config: Seit es
  * Bau- und Ausbaukommandos gibt, wäre ein fester Startwert eine Lüge — der
@@ -44,18 +82,12 @@ export function fixtureTeamConditions(): TeamCondition[] {
  * einen Bestand, den es nicht gibt.
  */
 export function buildFixtureUpload(grid: DungeonGrid): UploadRequest {
-  const conditions = fixtureTeamConditions()
   return {
     contractVersion: CONTRACT_VERSION,
     simVersion: sim_version,
     resources: { ...dayNight.value.village.resources },
-    monsterSlots: fixture.monsterSlots.map((slot) => ({ ...slot })),
-    activeTeam: fixture.team.map((hero, index) => ({
-      heroId: hero.id,
-      ...conditions[index],
-    })),
     dungeon: fromDungeonGrid(grid),
-    tactics: fixture.team.map((hero) => [...hero.tactics]),
+    ...fixtureAufstellung(),
   }
 }
 
@@ -64,11 +96,14 @@ export function buildFixtureUpload(grid: DungeonGrid): UploadRequest {
  * Auftrags-Timeout kommen als validierter Auftrag zurück.
  */
 export function runLocalFixtureRaid(grid: DungeonGrid): TerminalRaidJob {
+  // Seed, Token und Etage kommen aus derselben Ableitung wie die Timeline; der
+  // Auftrag fügt nur den Upload hinzu, den `runFixtureRaid` erst validiert.
+  const eingang = snapshotInput(grid, dayNight.value.village.floors)
   return runFixtureRaid({
     upload: buildFixtureUpload(grid),
-    jobId: fixtureRaid.jobId,
-    seed: fixtureRaid.seed,
-    floor: dayNight.value.village.floors,
+    jobId: eingang.token,
+    seed: eingang.seed,
+    floor: eingang.floor,
     createdAt: fixtureRaid.createdAt,
     observedAt: fixtureRaid.observedAt,
   })

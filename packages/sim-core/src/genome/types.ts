@@ -81,16 +81,17 @@ export const BONUS_IDS = [
 export type BonusId = (typeof BONUS_IDS)[number]
 
 /**
- * Die sechs Kampfrollen des Pools.
+ * Die sechs Kampfrollen des Pools — **der Archetyp sagt, was das Wesen ist**.
  *
- * Der Trait sagt, **wie** ein Wesen kämpft, und ist vererblich und veränderlich.
- * Die Rolle sagt, **wofür** es im Kampf da ist, und ist an die Basis-Art
- * gebunden. Genau diese Trennung ist der Grund, warum beides getrennte Felder
- * sind und nicht eines: ein gezüchteter Steingolem behält `tank`, aber nicht
- * zwingend `toughHide`.
+ * Er ist an die Basis-Art gebunden und damit fest: ein gezüchteter Steingolem
+ * behält `tank`. Vererblich und veränderlich ist der Trait, und aus ihm entsteht
+ * in `genome/behavior.ts` das Verhaltensprofil — **wie** das Wesen im Kampf sein
+ * Ziel wählt. Das sind zwei Begriffe und entschieden zwei, nicht zwei Namen für
+ * dieselbe Frage: `tank` steht in beiden Listen und beantwortet dort zwei
+ * verschiedene Dinge.
  *
- * Die Rollen selbst rechnen nichts — sie sind der Schlüssel, an dem Taktik und
- * die Balance-Messung hängen. Welche Rolle wie stark wiegt, ist `[K]`; die
+ * Die Archetypen selbst rechnen nichts — sie sind der Schlüssel, an dem Taktik
+ * und die Balance-Messung hängen. Welche Rolle wie stark wiegt, ist `[K]`; die
  * Kampfbalance ist laut `docs/VISUAL_GRUNDSATZ.md` offen.
  */
 export const ARCHETYPE_IDS = [

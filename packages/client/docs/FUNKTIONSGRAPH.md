@@ -120,18 +120,22 @@ Wirtschaftskette (nur in dieser Richtung):
     (Buchung im Übergang result → tag) → ui/topbar (Bestandsanzeige) und
     ui/settlement-toast (Rückkehrbilanz, nur am Tag; eine Ableitung ohne
     eigenen Sichtbarkeitszustand)
-  Verdrahtet sind Tagesertrag, Bauen, Ausbauen, Landkauf und seit dem
-  2026-09-29 der Etage-Kauf (village/floors, angezeigt über
-  ui/floor-purchase); der Slotpreis hat noch keinen Aufrufer.
+  Verdrahtet sind der Tagesertrag, die Beute (raid/loot-source über
+  goldForRun) und seit dem 2026-09-29 der Etage-Kauf (village/floors,
+  angezeigt über ui/floor-purchase); Bauen, Ausbauen, Landkauf und der
+  Slotpreis haben noch keinen Aufrufer in der Oberfläche.
   `raid/fixture-raid.ts` sendet den Bestand des Dorfes, nicht mehr den
   Startbestand der Balance.
 
 raid/fixture-raid
   ├─ buildFixtureUpload(grid) → @floor/contracts UploadRequest
+  ├─ snapshotInput(grid, floor) → @floor/sim-core SnapshotRaidInput
+  │   (dieselbe Ableitung wie der Upload: fixtureAufstellung)
   └─ runLocalFixtureRaid(grid) → @floor/sim-core runFixtureRaid
 
 raid (besitzt den Lauf; die Timeline liest ihn, rechnet nichts)
-  ├─ combat-source: buildCombatLog(current, path) → sim-core resolveSnapshotRaid,
+  ├─ combat-source: buildCombatLog(current, path) → sim-core resolveSnapshotRaid
+  │                 über snapshotInput, also denselben Aufbau wie der Auftrag;
   │                 loadRaidLog / unloadRaidLog → setPlaybackLog (einziger Schreibpfad)
   ├─ playback: playbackLog / playbackTick / playbackPaused, stepPlayback,
   │            setScrubTick, playbackRouteIndex

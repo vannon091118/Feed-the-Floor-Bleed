@@ -127,7 +127,7 @@
 | `src/village/loot.ts` | Die freigegebene Goldformel als reine Regel: `goldForOpponent` und `goldForRun` nehmen ihre Balance ausdrücklich entgegen, rechnen ganzzahlig und weisen einen ungültigen Gegner ab, statt eine halbe Beute zu zahlen |
 | `src/village/plot.ts` | Platzierungsgeometrie des Dorfes: Grundriss, Ganzzelligkeit, Rastergrenze, Überlappung, Kantennachbarn, horizontale Landerweiterung — reine Funktionen, keine Wirtschaftszahlen; Abnehmer ist die Kommandoschicht |
 | `src/village/index.ts` | Barrel der Schleifendomäne (Phase, Aktionen, Kommandos, Blick, Zustand); `plot` ist bewusst nicht enthalten, weil die Oberfläche es nicht aufruft |
-| `src/raid/fixture-raid.ts` | Versionierter Upload und lokaler Fixture-Auftrag; `fixtureTeamConditions` ist die eine Ableitung des Heldzustands für Upload und Timeline |
+| `src/raid/fixture-raid.ts` | Versionierter Upload und lokaler Fixture-Auftrag; `fixtureAufstellung` ist die eine Ableitung des Teams und der Verteidiger für Upload und Timeline, `snapshotInput(grid, floor)` daraus die Kampf-Eingaben beider Wege |
 | `src/raid/combat-source.ts` | Einziger Besitzer des Raid-Logs: Core-Aufruf, Lade-/Entlade-Pfad, Plan-Synchronisierung |
 | `src/raid/loot-source.ts` | Die Beute des geladenen Laufs: `fallenLootProfiles` ordnet die Todesereignisse über die **belegten** Plätze den eingefrorenen Slots zu und löst Stärke und Generation über `slotLootProfile` auf; der Boss trägt nichts bei. Erster Leser von `goldForRun` im Spielerpfad |
 | `src/raid/raid-panel.tsx` | Probelauf-Panel, reicht den terminalen Auftrag an die Schleife weiter |
@@ -142,6 +142,7 @@
 | `test/village-phase.test.ts` | Phase-Übergänge, Skip-Verbot und Store-Verhalten |
 | `test/day-night-loop.test.ts` | End-to-End-Loop mit Fake-Timern unter 5 s |
 | `test/raid-job.test.ts` | Upload-Gültigkeit, Hash und Auftragszustände |
+| `test/raid-combat-source.test.ts` | Die Naht beider Kampfwege: Auftrag und Timeline liefern Hash und Kurzfassung desselben Laufs, die Etage verändert den Log nicht, und die Gegenprobe stellt sicher, dass der Gleichheitstest ohne die Nachwirkung rot wird |
 | `test/visual-foundation.test.ts` | Tests für World-Definitionen, Kamera, Depth, Observer |
 | `test/asset-palette.test.ts` | Farbwerte und Determinismus der Generator-Werkzeuge: `shift`, `mix`, `saturate`, PRNG, Puffer und PNG-Encoder |
 | `test/asset-frames.test.ts` | Frame-Naht: Index aus `tile.variant` über alle 4096 Zellen, Frame-Anzahl gegen `materials.ts`, Wandhöhe gegen `tiles.ts`, Fallback ohne Textur |
@@ -182,9 +183,9 @@ Weltansicht sind fokussierbar, ihre Schrittlogik liegt in `window/keys.ts` und
 Die Wirtschaftskette läuft in eine Richtung: `village/balance.ts` (Zahlen) →
 `village/economy.ts` (Regeln, Config als Parameter) → `village/commands.ts`
 (Entscheidung und Schreiben) → `village/state.ts` (Bestand und Buchung) →
-Topbar und die Rückkehrbilanz (`ui/settlement-toast.tsx`). Verdrahtet sind jetzt der Tagesertrag,
-das Bauen, das Ausbauen und der Landkauf; Etagen- und Platzpreis haben noch
-keinen Aufrufer. Die Dorfszene auf der Bühne zeichnet dagegen den Store:
+Topbar und die Rückkehrbilanz (`ui/settlement-toast.tsx`). Verdrahtet sind der Tagesertrag, die Beute und der Etage-Kauf;
+Bauen, Ausbauen und Landerweiterung sind als Kommandos gebaut, haben aber noch
+keinen Aufrufer in der Oberfläche, und der Slotpreis hat ebenfalls noch keinen. Die Dorfszene auf der Bühne zeichnet dagegen den Store:
 `ui/scene-switch.ts` reicht den Bestand als `villagePlots()` hinein, und
 `render/village-layout.ts` projiziert die Zellen in Weltpixel.
 `raid/fixture-raid.ts` sendet inzwischen den Bestand des Dorfes statt des

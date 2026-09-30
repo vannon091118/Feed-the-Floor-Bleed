@@ -2,7 +2,7 @@ import { resolveSnapshotRaid } from '@floor/sim-core'
 import { afterEach, describe, expect, it } from 'vitest'
 import { startDungeon } from '../src/dungeon-editor/model'
 import { fixture } from '../src/fixture-data'
-import { fixtureTeamConditions } from '../src/raid/fixture-raid'
+import { fixtureAufstellung } from '../src/raid/fixture-raid'
 import { fallenLootProfiles } from '../src/raid/loot-source'
 import { setPlaybackLog } from '../src/raid/playback'
 import { fixtureRaidLog } from './raid-fixtures'
@@ -77,7 +77,7 @@ describe('Beutequelle des geladenen Laufs', () => {
       grid: startDungeon(),
       seed: 4242,
       teamSize: fixture.team.length,
-      team: fixtureTeamConditions(),
+      team: fixtureAufstellung().activeTeam,
       defenders: [],
       floor: 1,
       token: 'beute-ohne-verteidiger',

@@ -3,9 +3,9 @@
 ```
 contracts:ZodSchema → sim-core:prng/math/grid/combat/genome/items/hash/ghost
 sim-core:prng → sim-core:math/grid/combat/genome/ghost
-sim-core:grid → sim-core:combat (A* Pfad) + server:sync (Snapshot RLE+deflate)
+sim-core:grid → sim-core:combat (Breitensuche als Route)
 sim-core:grid:serialize → sim-core:combat:fixture-job (Upload → DungeonGrid)
-sim-core:combat:resolve → sim-core:combat:simulate (trail → fingerprint) → sim-core:hash (Kampf-Hash inkl. Trail) → server:sync (Replay-Validierung)
+sim-core:combat:resolve → sim-core:combat:simulate (trail → fingerprint) → sim-core:hash (Kampf-Hash inkl. Trail)
 sim-core:combat:resolve-snapshot → contracts:ResultPayload + contracts:RaidLogPayload (inkl. trail)
 sim-core:combat:fixture-job → contracts:RaidJob (validierter Auftrag, kein I/O)
 contracts:RaidJobSchema + RAID_JOB_TRANSITIONS → server:db:job-state → server:db:raid-store
@@ -43,5 +43,6 @@ push auf main → App cloudflare-workers-and-pages → Build command (pnpm insta
 .github/agents/berater → Code/Diff/Gate-Ausgabe + Agents.md → Urteil + Beleg + Fix, kurz (schreibgeschützt)
 ```
 
+- Noch nicht gebaute Domänen erscheinen oben nur als **geplante** Kanten: `sim-core:items`/`ghost` (nicht angelegt, u. a. Stein-Tier), `client:net`/`storage` (leer), `server:sync`/`matchmaking` (leer) sowie ein Tactic-Board im Client. `Snapshot RLE+deflate` und die serverseitige `Replay-Validierung` sind geplante Vorhaben und kein Bestand; gebaut sind heute nur die Client-Anzeige und die D1-Persistenz.
 - `sim-core` hat keine Kante zu `client`/`server` oder `fs`/`Date`. Zeit kommt als Parameter, nicht aus einer Uhr.
 - `contracts` hat keine Kante zu Logik — nur Typen/Schemas.

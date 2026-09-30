@@ -1,7 +1,6 @@
 import { RaidLogPayloadSchema } from '@floor/contracts'
-import { CellType, findPath, summarizeCombat } from '@floor/sim-core'
+import { CellType, summarizeCombat } from '@floor/sim-core'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { buildCombatLog } from '../src/raid/combat-source'
 import {
   playbackLog,
   playbackPaused,
@@ -19,7 +18,7 @@ import {
   phaseForTick,
   trailBadge,
 } from '../src/raid/timeline-model'
-import { blockedGrid, fixtureRaidLog } from './raid-fixtures'
+import { fixtureRaidLog } from './raid-fixtures'
 
 beforeEach(() => {
   setPlaybackLog(null)
@@ -194,20 +193,5 @@ describe('RaidTimeline-Ergebnis-Phase', () => {
     ).length
     expect(summary.monstersAlive).toBe(monstersOnly)
     expect(RaidLogPayloadSchema.safeParse(payload).success).toBe(true)
-  })
-})
-
-describe('Raid-Log aus dem Core', () => {
-  it('rechnet denselben Lauf wie die Route, ohne den Store anzufassen', () => {
-    const { grid, route, log } = fixtureRaidLog()
-    const combat = buildCombatLog(grid, route)
-    expect(combat).toEqual(log)
-    expect(combat?.trail.length).toBe(route.path.length)
-    expect(playbackLog.value).toBeNull()
-  })
-
-  it('liefert für eine blockierte Route null', () => {
-    const blocked = blockedGrid()
-    expect(buildCombatLog(blocked, findPath(blocked))).toBeNull()
   })
 })

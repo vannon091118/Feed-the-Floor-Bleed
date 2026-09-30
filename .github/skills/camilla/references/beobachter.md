@@ -18,7 +18,6 @@ Diese Regeln sind im Bestand bereits durchgezogen. Du baust auf ihnen, du wieder
 |----------|--------------------------|
 | `visual/observer.ts` | Nimmt Zustand als Eingabe und liefert einen `VisualDelta`. Er hält **keine zweite Grid-Wahrheit**: Terrain wird nur neu gelesen, wenn sich die Grid-Referenz ändert, sonst `null`. Ein kleines Ereignis bleibt ein Akteur-Update statt eines Welt-Neuaufbaus. |
 | `render/runtime.ts` | Besitzt Stage, Ebenen, Ticker und Kamera. Bekommt Daten als **Funktion** übergeben (`villagePlots`, `plots`) und liest sie pro Takt neu. Die Szene hält keinen Store. |
-| `ui/village-build.tsx` | Fragt `village/plans.ts`, ob die Absicht ginge, sperrt den Knopf am **benannten Grund** und schreibt beim Klick über `village/commands.ts`. Sie kennt keine Deckungsregel und keine Maximalstufe. |
 | `ui/floor-purchase.tsx` | Preisvorschau aus der Config, Knopf und Fehlbetrag aus dem Bestand, Kommando aus `village/floors`. Kein eigener Zustand, kein gemerkter Ablehnungstext. |
 | `ui/settlement-toast.tsx` | Reine Ableitung aus dem Phase-Owner. Sichtbar nur am Tag, kein Bedienelement, kein eigener Sichtbarkeitszustand; die Ansageregion steht dauerhaft und ist ohne Meldung leer. |
 | `ui/shell.tsx` | Einzige Ausnahme, explizit benannt: sie setzt die Tagesstimmung auf dem Überzug. Das ist Darstellung, keine Spielentscheidung — keine Phase-Aktion, kein Dorfzustand. |
@@ -30,9 +29,9 @@ Das Muster ist überall gleich: **der Owner entscheidet, die Oberfläche zeigt, 
 ## Die Kette, die du nicht aufbrichst
 
 ```text
-balance (Zahlen) → economy (Regeln) → plans (Entscheidung) → commands (Schreiben) → state (Bestand)
-                                                                          ↓
-                                          Anzeige liest state, fragt plans, schickt commands
+balance (Zahlen) → economy (Regeln) → commands (Entscheidung + Schreiben) → state (Bestand)
+                                                            ↓
+                          Anzeige liest state, holt Regeln aus economy, schickt commands
 ```
 
 Lies `packages/client/docs/REPOINDEX.md` für die vollständige Zuordnung je Datei. Wenn du an dieser Kette etwas ändern musst, ist das eine Architekturfrage und gehört in `docs/REGELWERK_ARCHITEKTUR.md` — nicht in einen Sprite.
@@ -42,7 +41,7 @@ Lies `packages/client/docs/REPOINDEX.md` für die vollständige Zuordnung je Dat
 Eingaben. Ein Klick, ein Tastendruck, ein Drag-Ende. Dort entsteht eine **Absicht**, keine Entscheidung:
 
 - `input/` übersetzt Pointer, Hit-Test und Drag in ein `DragDropCommand` — ein Kommando, keine Regel.
-- Ein UI-Klick ruft `buildBuilding(...)` auf. Die Regel hat das Kommando vorher schon geprüft; der Knopf hat sie nur angezeigt.
+- Ein UI-Klick ruft ein Kommando auf — `ui/floor-purchase.tsx` ruft `buyFloor(...)`. Die Regel hat das Kommando vorher schon geprüft; der Knopf hat sie nur angezeigt.
 - `window/store.ts` verwaltet Fensterzustand, Fokus und Z-Order. Das ist **Präsentationszustand**, kein Spielzustand: ein Fenster zu öffnen verändert nichts am Spiel. Diese Ausnahme ist echt und endet genau dort.
 
 Wenn du merkst, dass eine Anzeige direkt schreibt, um sich etwas zu merken, ist das fast immer eine fehlende Ableitung. Frage dich: Woher käme dieser Wert, wenn ich ihn nicht merken müsste? Die Antwort ist fast immer: aus dem Owner, den ich schon lese.

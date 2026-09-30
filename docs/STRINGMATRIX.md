@@ -5,10 +5,10 @@
 | `sim_version` | Version der Sim (Snapshot-Hash, Kampf-Hash) — in jedem Snapshot + Validierung | contracts |
 | `VERSION` | Repo-Version (X.Y.Z, PATCH 0..99 → MINOR 0..99 → MAJOR), Single Source of Truth | root |
 | `VERSION/bump` | Next-Bump-Zähler via `scripts/bump-version.mjs`, Basis aus `origin/main`, Kollision wird verweigert; + amend + auto-push | shinon |
-| `proto/upload` | Contract-v4-Upload: vollständiger `RaidSnapshot` plus `tactics` | sync/net |
+| `proto/upload` | Upload der laufenden Contract-Fassung: vollständiger `RaidSnapshot` plus `tactics` | sync/net |
 | `proto/results` | Results-Payload: `token`, `floor`, `hash`, typisierte `summary` | sync/net |
 | `proto/log` | Ergebnislog als eigenes Artefakt: `token`, `floor`, `hash`, `log` inkl. `trail` | sync/net |
-| `proto/match` | Match-Antwort: `seed`, `floor`, vollständiger `RaidSnapshot` als Ziel | matchmaking |
+| `proto/match` | Match-Antwort: `seed`, `floor`, `RaidPublicView` als öffentliche Sicht (nicht der volle Stand) | matchmaking |
 | `error/blocked` | Ziel lokal für den Angreifer gesperrt (Dauer offen) oder Route ohne Zugang | matchmaking/sync |
 | `error/invalid-hash` | Replay-Hash oder Trail weicht vom serialisierten Log ab | sync |
 | `error/invalid-request` | Snapshot, Taktiken oder Payload verletzen den Contract | sync |
@@ -33,11 +33,11 @@
 | `phase/day` | Zähler hoch bei `result→tag`, der Auftrag wird dabei gelöscht | client |
 | `phase/actions` | `startNight`, `triggerRaid`, `completeRaid`, `finishResult`, `retryAfterResult` | client |
 | `village/building-kind` | `'hall' \| 'guild' \| 'house' \| 'workshop'` — Union in `village/balance.ts`, von der Renderer-Seite entlehnt | client |
-| `village/day-settlement` | `daySettlement: DaySettlement \| null` — Tag und Materialgutschrift, gesetzt nur im Übergang `result → tag` | client |
+| `village/day-settlement` | `daySettlement: DaySettlement \| null` — Tag, Gold- und Materialgutschrift, gesetzt nur im Übergang `result → tag` | client |
 | `village/rejection` | `below-first-level`, `above-max-level`, `worker-capacity`, `not-wider`, `not-a-whole-step`, `below-start-columns`, `below-first-paid-floor`, `slot-out-of-range` — Regeln in `village/economy.ts` | client |
 | `village/command` | `not-day-phase`, `not-buildable`, `not-affordable`, `unknown-building`, `not-a-cell`, `out-of-bounds`, `overlaps` — Kommandos in `village/commands.ts`, Platzierung in `village/plot.ts`; der Etage-Kauf steht in `village/floors.ts` | client |
 | `balance/groups` | `start`, `buildings`, `workshop`, `workers`, `attraction`, `land`, `dungeon` — benannte Gruppen der eingefrorenen Dorfconfig | client |
 
-Die Fehlercodes und Auftragsstatus werden seit T1.3 von `packages/contracts` definiert. Server, D1, Client und lokale Fixture-Ausführung lesen dieselbe Quelle; freie Strings sind nicht mehr zulässig. `combat/trail` (x/y/cell je Schritt) fließt seit T1.1 in den Kampf-Hash.
+Die Fehlercodes und Auftragsstatus werden seit T1.3 von `packages/contracts` definiert. Server, D1, Client und lokale Fixture-Ausführung lesen dieselbe Quelle; freie Strings sind nicht mehr zulässig. `combat/trail` (x/y/cell/zoneId je Schritt) fließt seit T1.1 in den Kampf-Hash.
 
-Balancing ist getrennt zu lesen. Die Dorf- und Slot-Werte sind seit dem 2026-09-28 freigegeben und stehen ausschließlich in `packages/client/src/village/balance.ts`; die Tabelle mit einer Grenzfallzeile je Wert steht in `docs/VISUAL_GRUNDSATZ.md`. Weiterhin `[K]` und ohne Code sind der Unique-Pool, die Roll-Gewichte der Boss-Drops, der Match-Stärkewert samt Band, die Kampfbalance und die Stärke-/Generations-Goldformel — bei Letzterer steht seit Contract v4 die Zahl der belegten Verteidiger als `CombatSummary.defendersTotal` bereit (Boss inklusive, gefallene Gegner daraus berechenbar); Stärke und Generation je Gegner führt kein Schema, ihre Freigabe ist offen. Werte wie `MAX_FLOORS`, `RECOVERY_H`, `LOCK_DAYS` oder `WORKER_FACTOR` bleiben KI-Vorschläge und sind keine Festlegung.
+Balancing ist getrennt zu lesen. Die Dorf- und Slot-Werte sind seit dem 2026-09-28 freigegeben und stehen ausschließlich in `packages/client/src/village/balance.ts`; die Tabelle mit einer Grenzfallzeile je Wert steht in `docs/VISUAL_GRUNDSATZ.md`. Weiterhin `[K]` und ohne Code sind der Unique-Pool, die Roll-Gewichte der Boss-Drops, der Match-Stärkewert samt Band und die Kampfbalance. Die Stärke-/Generations-Goldformel ist seit dem 2026-09-29 freigegeben (`docs/GOLDFORMEL.md`); ihre Eingaben stehen bereit: die Zahl der belegten Verteidiger als `CombatSummary.defendersTotal` (Boss inklusive, gefallene Gegner daraus berechenbar), die Generation als `monsterSlots[i].generation` (seit Contract v6) und die Stärke aus der Genome-Registry. Werte wie `MAX_FLOORS`, `RECOVERY_H`, `LOCK_DAYS` oder `WORKER_FACTOR` bleiben KI-Vorschläge und sind keine Festlegung.

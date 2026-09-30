@@ -44,7 +44,7 @@ Er sieht Namen, Orte, Gold, Material, Schaden, Zeit — in den Worten des Spiels
 ## Der Stock, an dem du arbeitest
 
 - **PixiJS v8.** `new Application()` nimmt keine Optionen; die kommen in das asynchrone `app.init()`. Blätter (Sprite, Text, Graphics, Mesh) sind Blätter und nehmen keine Kinder. Text aktualisieren heißt Canvas neu rastern und GPU-Upload — für laufende Zahlen `BitmapText`. Texturen werden mit `Assets.load` geladen, `Texture.from` liest nur den Cache. `ParticleContainer` nimmt `Particle` über `addParticle`, keine Sprites. Ein `Application`-Abtau ohne `releaseGlobalResources` lässt gepoolte Ressourcen zurück. Draw-Calls entstehen durch Reihenfolge, nicht durch Anzahl — gleichartige Geschwister gruppieren. Wenn du an einer dieser Stellen hängst, lade den passenden `pixijs-*-Skill` (`pixijs-application`, `pixijs-scene-sprite`, `pixijs-scene-text`, `pixijs-scene-graphics`, `pixijs-performance`, `pixijs-scene-particle-container`, `pixijs-color`, `pixijs-filters`, `pixijs-custom-rendering`, `pixijs-scene-dom-container`, `pixijs-events`, `pixijs-accessibility`, `pixijs-blend-modes`, `pixijs-ticker`, `pixijs-assets`, `pixijs-core-concepts`) und lies die Regeln dort, statt sie zu erraten.
-- **Der Bestand dieses Repos.** Lies vor dem Bauen `Agents.md`, `docs/VISUAL_GRUNDSATZ.md` und `docs/REGELWERK_ARCHITEKTUR.md`. Die Werkzeuge, die du anfasst, sind bereits da und haben eine dokumentierte Absicht — `visual/observer.ts` hat bewusst keine zweite Grid-Wahrheit, `ui/village-build.tsx` fragt `plans.ts` statt selbst zu rechnen, `render/camera.ts` ist die einzige World↔Screen-Transformation, `ui/scene-switch.ts` hält genau eine lebende Szene. Bevor du etwas Neues erfindest: `rg`, und dann bauern.
+- **Der Bestand dieses Repos.** Lies vor dem Bauen `Agents.md`, `docs/VISUAL_GRUNDSATZ.md` und `docs/REGELWERK_ARCHITEKTUR.md`. Die Werkzeuge, die du anfasst, sind bereits da und haben eine dokumentierte Absicht — `visual/observer.ts` hat bewusst keine zweite Grid-Wahrheit, `ui/floor-purchase.tsx` leitet Preis und Fehlbetrag aus der Config ab statt selbst zu rechnen, `render/camera.ts` ist die einzige World↔Screen-Transformation, `ui/scene-switch.ts` hält genau eine lebende Szene. Bevor du etwas Neues erfindest: `rg`, und dann bauern.
 
 ## Wohin du schreiben darfst
 
@@ -52,7 +52,7 @@ Er sieht Namen, Orte, Gold, Material, Schaden, Zeit — in den Worten des Spiels
 
 ## Wohin du nicht schreiben darfst
 
-`sim-core`, `contracts`, `server`, `dungeon-editor/state.ts`, `village/state.ts`, `village/balance.ts`, `village/economy.ts`, `village/plans.ts`, `village/commands.ts`, `raid/playback.ts` — und alles, was Spielentscheidungen trägt. Braucht deine Grafik eine Zahl, die es noch nicht gibt, ist die Zahl eine offene Frage an den Auftraggeber, keine Konstante in deinem Modul. Braucht sie eine Regel, die es noch nicht gibt, ist die Regel kein `if` in einem Sprite.
+`sim-core`, `contracts`, `server`, `dungeon-editor/state.ts`, `village/state.ts`, `village/balance.ts`, `village/economy.ts`, `village/commands.ts`, `village/floors.ts`, `village/loot.ts`, `raid/playback.ts` — und alles, was Spielentscheidungen trägt. Braucht deine Grafik eine Zahl, die es noch nicht gibt, ist die Zahl eine offene Frage an den Auftraggeber, keine Konstante in deinem Modul. Braucht sie eine Regel, die es noch nicht gibt, ist die Regel kein `if` in einem Sprite.
 
 Fremde Änderungen im Working Tree bleiben unangetastet. Wenn dort bereits Arbeit liegt, die deinen Bereich berührt, sag es und arbeite drumherum, statt sie zu übernehmen.
 

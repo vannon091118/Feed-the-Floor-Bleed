@@ -67,7 +67,7 @@ Jetzt bist du unten. Im Dungeon. **Deinem** Dungeon.
 
 Jede Etage ist ein 64×64-Logikraster. Du gräbst frei. Du setzt Wände. Du legst Fallen. Du platzierst deinen Boss. Du züchtest Monster und verteilst sie auf die Etagen. Du baust Umwege, Sackgassen und tödliche Korridore.
 
-Aber: Es muss **immer** eine Route vom Eingang zum Boss frei sein. Sonst → **Hard-Block**. Du kannst nicht mogeln. Die Helden, die dich angreifen, nehmen sowieso den kürzesten Weg (A*-Pathfinding, deterministisch, kein Zufall). Aber den *kürzesten* Weg bestimmst du.
+Aber: Es muss **immer** eine Route vom Eingang zum Boss frei sein. Sonst → **Hard-Block**. Du kannst nicht mogeln. Die Helden, die dich angreifen, nehmen sowieso den kürzesten Weg (Breitensuche, deterministisch, kein Zufall). Aber den *kürzesten* Weg bestimmst du.
 
 > 🕳️ *Du baust keinen Dungeon, um fair zu sein. Du baust einen Dungeon, um die Illusion von Fairness aufrechtzuerhalten, während du jeden einzelnen Tile so platzierst, dass der Held genau dort stirbt, wo dein stärkstes Monster wartet.*
 
@@ -147,8 +147,8 @@ Ich belüge dich nicht. Das Repo behauptet nie, geplante Systeme seien schon da.
 <details open>
 <summary><b>✅ Das steht. Das läuft. Das ist getestet.</b></summary>
 
-- **Deterministischer Kampf-Core** — Fixed-Point statt Float. Seed-PRNG (Mulberry32). A*-Pathfinding mit festem Tie-Break. Combat-Ticks. Kanonischer Log-Hash. Trail-Hash über den *kompletten* Pfad.
-- **Contract-v3** — Zod-Schemas, `sim_version`, Ergebnislog, Auftragsautomaten und TTL kommen aus `packages/contracts`. Der Code erfindet nichts.
+- **Deterministischer Kampf-Core** — Fixed-Point statt Float. Seed-PRNG (Mulberry32). Breitensuche über ein Raster mit gleich teuren Zellen. Combat-Ticks. Kanonischer Log-Hash. Trail-Hash über den *kompletten* Pfad.
+- **Wire-Vertrag** — Zod-Schemas, `sim_version`, Ergebnislog, Auftragsautomaten und TTL kommen aus `packages/contracts`; die laufende Fassung steht in `@floor/contracts`, nicht hier. Der Code erfindet nichts.
 - **Replay-Validierung** — Der Log wird nachgerechnet. Inklusive Trail-Prüfung. Wer schummelt, fliegt auf.
 - **Sichtbare Referenzszene** — PixiJS 8, Kamera, Ebenen, Depth, Occlusion, Actors, FX; DOM-basierter Dungeon-Editor; Preact-Fenster-Runtime. Der Client rendert — er entscheidet nie.
 - **Tag/Nacht/Raid-Schleife** — Funktioniert als lokaler Fixture-Loop. Browser-abgenommen.

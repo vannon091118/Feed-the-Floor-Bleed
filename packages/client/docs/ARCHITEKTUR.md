@@ -145,13 +145,13 @@ und `ui/view.ts` hält diese Wahl ohne Spielregel. Im Dorf zeigt
 Verteidigerplätze und das Ergebnis des letzten Auftrags. Die Wirtschaft hängt
 dagegen am Bestand in `village/state.ts`: die Topbar zeigt den gehaltenen
 Bestand, und die Rückkehr schreibt Werkstattertrag und Beute gut, genau einmal je
-Expedition. Bauen, Ausbauen und Landkauf schreiben am Tag über dieselbe
-Oberfläche des Stores und kosten Gold und Material; die Dorfszene zeichnet
-diesen Bestand — `ui/scene-switch.ts` reicht ihn als `villagePlots()` hinein,
-`render/village-layout.ts` projiziert die Zellen, und der Klick kommt als
-Listenplatz zurück —, der Rückkehr-Toast fehlt.
-Gold aus besiegten Gegnern gibt es noch nicht — die Zahl der Gegner steht in
-keinem Contract-Feld, die Naht ist an `DaySettlement` dokumentiert.
+Expedition. Die Dorfszene zeichnet diesen Bestand (`ui/scene-switch.ts` reicht
+ihn als `villagePlots()` hinein, `render/village-layout.ts` projiziert die
+Zellen, der Klick kommt als Listenplatz zurück), und die Rückkehrbilanz steht
+als Toast in `ui/settlement-toast.tsx`. Bauen, Ausbauen und Landerweiterung
+sind als Kommandos in `village/commands.ts` gebaut, haben aber noch keinen
+Aufrufer in der Oberfläche; erreichbar sind Tagesertrag, Beute und Etage-Kauf
+(`ui/floor-purchase.tsx`).
 
 ## Grenzen
 

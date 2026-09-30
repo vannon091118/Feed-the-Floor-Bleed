@@ -9,7 +9,7 @@ import {
 import { effect } from '@preact/signals'
 import { grid, route } from '../dungeon-editor/state'
 import { fixture, fixtureRaid } from '../fixture-data'
-import { fixtureTeamConditions } from './fixture-raid'
+import { snapshotInput } from './fixture-raid'
 import { setPlaybackLog } from './playback'
 
 /**
@@ -31,31 +31,23 @@ export function baseIdsBySlot(): (string | undefined)[] {
 }
 
 /**
- * Rechnet denselben Core-Log, den der Fixture-Raid nutzt — rein, ohne Zustand.
+ * Rechnet denselben Core-Log, den der Probelauf nutzt — rein, ohne Zustand.
  *
  * Die Auftragsantwort trägt nur die Kurzfassung; die Timeline braucht Einheiten
- * und Ereignisse. Es entsteht kein zweiter Kampfpfad: derselbe Core-Aufruf,
- * dieselbe Quelle für `routeIndex`.
+ * und Ereignisse. Beide Wege holen ihre Eingaben aus `snapshotInput`, also aus
+ * derselben Aufstellung und demselben Seed: **ein Auftrag, zwei Aufrufer**, kein
+ * zweiter Kampf und keine zweite Wahrheit über den Lauf. Der einzige Unterschied
+ * ist die Etage — das Dorf zählt die gekaufte, ein eingefrorener Auftrag seine
+ * eigene. Die Etage steht in der Envelope und nicht im Log, deshalb liefern
+ * beide heute denselben Lauf; `test/raid-timeline.test.ts` fährt beide Wege
+ * gegeneinander, damit das nicht still auseinanderläuft.
  */
 export function buildCombatLog(
   current: DungeonGrid,
   path: PathResult,
 ): CombatLog | null {
   if (path.mode === 'unreachable' || !hasValidRoute(current)) return null
-  return resolveSnapshotRaid({
-    grid: current,
-    teamSize: fixture.team.length,
-    // Dieselbe Nachwirkung wie im Upload, aus derselben Ableitung. Ohne sie
-    // zeigte die Timeline einen anderen Kampf als den Auftrag, den das Dorf
-    // abrechnet — zwei Rechnungen für denselben Lauf.
-    team: fixtureTeamConditions(),
-    defenders: fixture.monsterSlots.map((slot) => ({
-      baseId: slot.monsterId,
-    })),
-    seed: fixtureRaid.seed,
-    floor: fixtureRaid.floor,
-    token: fixtureRaid.jobId,
-  }).log.log
+  return resolveSnapshotRaid(snapshotInput(current, fixtureRaid.floor)).log.log
 }
 
 /** Der Plan, aus dem der geladene Log stammt, plus ob ein Raid geladen ist. */
