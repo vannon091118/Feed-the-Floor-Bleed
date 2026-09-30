@@ -1,0 +1,13 @@
+]633;E;echo "# docs/CHANGELOG.md — historischer Eintrag";7bba11a0-b3d0-4563-9bf9-f00cb4ac1783]633;C# docs/CHANGELOG.md — historischer Eintrag
+
+Wortgleich aus dem aktiven Changelog übernommen, weil der Cap von 200 Zeilen
+das Neuhinzufügen verlangt hat. Der Stand ist unverändert.
+
+## 2026-09-29 — Die Rückkehrbilanz sitzt in einer Region, die schon da ist
+
+**Ein Nachzug am gemergten Toast-Slice, ohne neue Funktion.** Die Ansageregion der Meldung stand vorher erst mit ihrem Text im Baum; jetzt umschließt sie den Text dauerhaft und bleibt leer, wenn nichts abzurechnen ist — dasselbe Muster wie `ui/phase-badge.tsx` und `ui/village-host.tsx`. Damit wird die Meldung zuverlässig vorgelesen, während die abgeleitete Sichtbarkeit unverändert bleibt. Dazu zwei Kommentar- und Testkorrekturen: `ui/shell.tsx` nennt als tragenden Grund den `z-index 6` statt der DOM-Reihenfolge, die am Bild nichts entscheidet, und der Style-Test schneidet den Regelblock bis zur schließenden Klammer, weil er vorher den ganzen Dateirest mitlas und ein entferntes `pointer-events: none` nicht bemerkte. `docs/ROADMAP.md` führt T2.2 nicht mehr als Block mit zwei offenen Punkten, sondern nennt T2.3 als nächsten Schritt. **Gates:** typecheck 0, 376 Tests in 55 Dateien, Lint 0 (274 Dateien), LOC-Caps ok über 249 Quellen, Hygiene ok, Shinon PASS, Client-Build und Worker-Dry-Run 138,83 KiB.
+
+## 2026-09-29 — Die Rückkehrbilanz steht als Toast über der Bühne
+
+**T2.2 ist damit vollständig.** Die Dorfszene liest seit dem 2026-09-29 den Dorfbestand aus dem Store; offen war nur der Rückkehr-Toast über `daySettlement`. `packages/client/src/ui/settlement-toast.tsx` macht die Tagesabrechnung sichtbar, und zwar als reine Ableitung: Der Toast liefert seine Zeilen genau dann, wenn die Phase `tag` ist und der Store eine Buchung trägt. Ein „schon gezeigt"-Merker entfällt damit, ebenso Zeitgeber und Schließen-Knopf — die Meldung verschwindet mit der nächsten Nacht von selbst, und ihre Einmaligkeit hängt an derselben Phasenguarde, die den Tag bucht. `ui/shell.tsx` hängt sie zwischen Bühne und Tagesüberzug, `shell.css` hält sie mit `z-index 6`, `top: 72px` und `pointer-events: none` als Meldung ohne Klickfang. Eine Bilanz ohne Ertrag wird gezeigt statt verschwiegen. **Belegt** mit `packages/client/test/settlement-toast.test.ts` und im Browser: kein Toast vor der Rückkehr und keiner im Ergebnis, nach `result → tag` „Tag 18 abgerechnet / Werkstattertrag +0 Material" als `role="status"`, in der Nacht wieder fort bei unveränderter Buchung im Store. **Gates:** typecheck 0, 376 Tests in 55 Dateien, Lint 0, LOC-Caps ok, Hygiene ok, Shinon PASS, Client-Build und Worker-Dry-Run ok.
+

@@ -1,0 +1,15 @@
+]633;E;echo "# docs/CHANGELOG.md — historischer Eintrag";7bba11a0-b3d0-4563-9bf9-f00cb4ac1783]633;C# docs/CHANGELOG.md — historischer Eintrag
+
+Wortgleich aus dem aktiven Changelog übernommen, weil der Cap von 200 Zeilen
+das Neuhinzufügen verlangt hat. Der Stand ist unverändert.
+
+## 2026-09-29 — T2.3 beginnt mit dem Etage-Kauf
+
+**Der erste Schnitt des Blocks.** Der Etage-Kauf steht als `village/floors.ts` (`buyFloor`, quadratischer Preis aus `floorCost`, nur am Tag über `commitVillage`), der Bestand trägt `village.floors`, und das Tag-Panel zeigt den Kauf über `ui/floor-purchase.tsx` mit Preisvorschau und dem abgeleiteten Fehlbetrag. Damit bekommt `floorCost` seinen ersten Aufrufer im Spiel; der Slotpreis wartet weiter.
+
+**Die Goldformel liegt jetzt als entscheidbare Vorlage vor.** `docs/GOLDFORMEL_ENTWURF.md` ist eine aktive Doku und kein Historieneintrag: eine offene Entscheidung ist keine Vergangenheit, und eine Vorlage, nach der niemand greifen kann, ist keine Vorlage. Sie stellt zwei Varianten gegenüber (pauschal je Gegner ohne Contract-Sprung; je Gegner nach Stärke und Generation mit Sprung v5 auf v6), rechnet für beide Beispielzahlen durch — für die zweite als Tabelle über Stärke 0 bis 5 und Generation 1 bis 9, samt geräumtem Run aus fünf Gegnern und Boss —, benennt die Grenzfälle (Stärke 0, Generation unter 1, gebrochene Werte, `floor` auf ganze Goldstücke, kein gefallener Gegner ergibt 0) und gibt eine Empfehlung ab. Nichts davon ist festgelegt: der Status steht als offener `[K]`-Entwurf am Anfang der Datei, die Empfehlung ist als solche markiert, und `docs/ROADMAP.md` wie `docs/VISUAL_GRUNDSATZ.md` verweisen darauf, statt die Zahlen zu wiederholen. **Gates:** typecheck 0, 383 Tests in 57 Dateien, Lint 0 (278 Dateien), LOC-Caps ok (253 Quellen), Hygiene ok, Redundancy ok, Shinon PASS.
+
+## 2026-09-29 — Die Kostenfreigabe für T2.3 war nie offen
+
+**Eine Doku-Korrektur, kein Code.** `floorBase` 250 Gold und `slotBase` 40 Material sind seit dem 2026-09-28 freigegeben; `docs/VISUAL_GRUNDSATZ.md` nennt sie in Zeile 20 und führt sie in der Freigabetabelle bei 63/64 samt Grenzfällen (Etage 2 kostet `250 · 2² = 1000`, Etage 3 kostet 2250, Etage 0 und 1 werden abgewiesen; die fünf Plätze der Etage 2 kosten 160, 320, 480, 640 und 800 Material). Im Code liegen `floorCost` und `slotCost` fertig in `economy.ts` und haben bis heute nur Tests als Aufrufer. Trotzdem führte `docs/ROADMAP.md` die Kostenfreigabe in der Abhängigkeitsspalte von T2.3 ohne Haken und behauptete im Abschnitt „Nächster konkreter Schritt", der Block brauche sie — beides ist korrigiert; die Spalte trägt den Haken wie die T2.2-Zeile darüber, und die Zahl, die dort jetzt fehlt, ist die Goldformel der ungesicherten Run-Beute. `docs/CONCEPT_REVIEW.md` trägt bei den Basiswerten (Zeile 21) und bei der Aufzählung der gesperrten Werte (Zeile 27) den Vermerk der Freigabe statt „bis zur Freigabe `[K]`", und der Statusblock der Roadmap hält den Nachzug fest. **Gates:** keine Quelldatei berührt, Hygiene, LOC-Caps und Shinon unverändert grün.
+
