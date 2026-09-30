@@ -1,5 +1,17 @@
 # packages/contracts/docs/CHANGELOG.md
 
+## 2026-09-30 — Die Kurzfassung nennt, wer den Schaden verursacht hat
+
+**Scope:** geändert `src/combat-summary.ts` (zwei Felder und ihr Schema). Kein Versionssprung, kein Feld entfernt, keine bestehende Form geändert.
+
+**Die Gesamtzahl beantwortet die falsche Frage.** `damage` sagt, wie viel Schaden gefallen ist, nicht wer ihn verursacht hat. Für die Erfahrung zählt genau das — ein Wesen erfahrnt nach dem Schaden, den es angerichtet hat, auch dann, wenn es dabei stirbt. Ohne die Aufteilung müsste der Client den Log selbst auswerten, und damit eine zweite Wahrheit über denselben Lauf haben.
+
+**Zwei Felder statt einer Map.** `damageByHero` und `damageByMonster` sind Listen aus `unitId` und `damage`, getrennt nach Seite, weil beide Seiten derselben Regel folgen, aber getrennt gelesen werden: die Heldenseite in der Beschaedigung des Teams, die Monster-Seite in der Beute. Eine `z.record`-Map hätte beliebige Schlüssel erlaubt, und ein unbekannter Schlüssel wäre eine Einheit, die der Log nicht kennt.
+
+**Kein Sprung, weil nichts Bestehendes kippt.** Das Schema ist `.strict()`, beide Felder sind neu, und kein Leser existierte für die alte Form — sie kann nicht brechen, was es nicht gab. `sim_version` und `CONTRACT_VERSION` stehen unverändert.
+
+**Beleg:** 540 Tests in 81 Dateien, typecheck 0, Lint 0, der Golden Pin unangetastet (`261cd39a`, `ee21afc5`).
+
 ## 2026-09-29 — `sim_version 0.0.8→0.0.9`, ohne Contract-Sprung
 
 **Scope:** geändert `src/version.ts`. `CONTRACT_VERSION` bleibt 9. Keine Migration.

@@ -36,6 +36,31 @@ function fieldedDefenders(log: CombatLog): number {
 }
 
 /**
+ * Die verursachte Schadensmenge je Einheit, getrennt nach Seite.
+ *
+ * **Jede Einheit erscheint, auch die mit null.** Eine Liste nur der Treffer
+ * wäre kürzer, aber sie beantwortet die Frage nicht, die die Erfahrung braucht:
+ * Ein Wesen, das nichts ausrichteste, hat einen Eintrag mit null und damit den
+ * Beweis, dass es gerechnet hat.
+ *
+ * **Sortiert nach `unitId`, nicht nach Einfügereihenfolge.** Die Reihenfolge
+ * entsteht sonst aus der Event-Reihenfolge im Log; die ändert sich nicht, aber die
+ * Zusage „dieselbe Eingabe ergibt dieselbe Summary" wäre dann an eine
+ * Implementierungsentscheidung gebunden statt an die Daten. Die Sortierung kostet
+ * nichts und nimmt sie aus der Gleichung.
+ */
+function damageBySide(
+  log: CombatLog,
+  perUnit: ReadonlyMap<string, number>,
+  side: CombatSide,
+): { unitId: string; damage: number }[] {
+  return log.units
+    .filter((unit) => unit.side === side)
+    .map((unit) => ({ unitId: unit.id, damage: perUnit.get(unit.id) ?? 0 }))
+    .sort((a, b) => (a.unitId < b.unitId ? -1 : a.unitId > b.unitId ? 1 : 0))
+}
+
+/**
  * Typisierte Kurzfassung des Logs.
  *
  * Das Schema wird hier bewusst angewandt: Die Summary entsteht im Core, aber
@@ -48,12 +73,17 @@ function fieldedDefenders(log: CombatLog): number {
  */
 export function summarizeCombat(log: CombatLog): CombatSummary {
   const fallen = new Set<string>()
+  const perUnit = new Map<string, number>()
   let attacks = 0
   let damage = 0
   for (const event of log.events) {
     if (event.type === 'attack') {
       attacks += 1
       damage += event.amount
+      perUnit.set(
+        event.actorId,
+        (perUnit.get(event.actorId) ?? 0) + event.amount,
+      )
     }
     if (event.type === 'death') fallen.add(event.actorId)
   }
@@ -68,5 +98,7 @@ export function summarizeCombat(log: CombatLog): CombatSummary {
     heroesAlive: aliveOnSide(log, fallen, 'heroes'),
     monstersAlive: aliveMonsters(log, fallen),
     bossAlive: isBossAlive(log, fallen),
+    damageByHero: damageBySide(log, perUnit, 'heroes'),
+    damageByMonster: damageBySide(log, perUnit, 'monsters'),
   })
 }

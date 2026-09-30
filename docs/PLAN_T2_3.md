@@ -157,36 +157,138 @@ Ergebnis B entscheidet, ob die Etage gilt.
 vergeben. Die Trennstelle im Raster ist da — es fehlt nur, dass der Kampf sie
 benutzt.
 
-## 4. Offene Entscheidungen, die ich nicht treffen kann
+## 4. Die Entscheidungen vom 2026-09-30
 
-### 4.1 Was kostet das Opfern, und was kommt zurück?
+Diese vier Punkte sind entschieden. Sie wurden gegen den Code geprüft, nicht gegen
+eine Vermutung. Wo eine Zahl fehlt, steht sie weiter als `[K]` an ihrer Quelle.
 
-Du hast „Aussteigen bezahlt man durch Opfern gelevelter Monster" gesagt. Offen
-bleibt, **womit** und **wofür**:
+### 4.1 Der eine Statuspunkt: dauerhaft, am Wesen, nie am Helden
 
-- Wird ein Material pro Opfer gutgeschrieben, und das Material ist die Währung
-  für den Weg durch die Bosskammer?
-- Oder ist das Opfer selbst der Weg — es verändert den Kampf?
+**Entschieden:** ein dauerhafter Punkt am `monsterSlot`, ganzzahlig, als
+Attribut-Bonus, im eingefrorenen Stand und im Log sichtbar. Nicht temporär, nicht
+verbraucht.
 
-Beides ist baubar, aber es sind zwei verschiedene Mechaniken. Ich rate nicht.
+**Warum dauerhaft:** HP skaliert mit dem Level, die Stärke gehört der Art und kommt
+aus dem Elementbudget (`CONCEPT_REVIEW.md` 0b). Zwei der drei Achsen sind besetzt,
+bevor der Spieler wählt. Übrig bleibt genau eine Größe, die **nur dem Individuum
+gehört** — und das ist der einzige Ort, an dem der Spieler entscheidet, *woraus*
+ein Wesen wird. „Gilt nur für diese Expedition" wäre ein drittes temporäres Feld
+neben `temporaryFatigue` und `temporaryInjury` am `activeTeamMemberSchema`:
+dieselbe Funktion, zweite Wahrheit, und der Spieler verteilt vor jedem Lauf neu,
+weil nichts bleibt.
 
-### 4.2 Was zählt als „gelevelt"?
+**Warum am Wesen, nicht am Helden:** `activeTeam` trägt nur `heroId` und zwei
+temporäre Zahlen. Es gibt **keinen Heldenbestand**, der einen Punkt über den Lauf
+hinaus halten könnte — Helden sind Gäste (`LORE.md:63`). Der Ort, an dem der Punkt
+dauerhaft und nachrechenbar existiert, ist der Slot.
 
-`monsterSlotSchema` trägt `monsterId` und `generation` (min 1). **Level fehlt im
-Slot** — es existiert im Repo noch gar nicht (Slice C). Ohne Level im
-eingefrorenen Stand kann der Core **nicht prüfen**, ob ein Opfer wirklich ein
-geleveltes Monster war; das wäre eine Zahl, die der Client behauptet und der
-Server nicht nachrechnen kann. Determinismus verlangt hier eine **Identität**,
-nicht ein Gold.
+**Offen bleiben die Zahl und die achse.** Angriff ist die Achse, die mit dem Level
+mitwächst und den Bogen schließt (Level → Punkt → Schaden → EP → Level); Rüstung
+skaliert gegen eine Trefferverteilung, Initiative ist Timing, das der Spieler nicht
+liest. Das ist eine Begründung, **keine Freigabe** — Betrag und Kürzung sind `[K]`
+an `sim-core/src/genome/balance.ts`.
 
-Mein Vorschlag, als `[K]`: `generation ≥ 2` — nachweislich gezüchtet, nicht nur
-erzeugt. Sonst opfert man Wegwerf, und die Mechanik ist wertlos.
+### 4.2 „Gelevelt" heißt `level ≥ 2`, nicht `generation ≥ 2`
 
-### 4.3 Der eine Statuspunkt
+**Entschieden: nein zu `generation`.** Der Plan hatte `generation ≥ 2` vorgeschlagen;
+das ist **umgedreht** und wird hiermit verworfen.
 
-Siehe Slice D: Was er bewirkt, ist offen.
+**Der Beleg, der das kippt:** `CONCEPT_REVIEW.md:132` führt als `[N]`: *„Zucht
+kombiniert 2 Monster, verbraucht deren XP; das neue Monster startet auf Level
+1."* Ein Gezüchteter ist damit per Festlegung genau die Sorte Wesen, das **nicht**
+gelevelt ist. `generation ≥ 2` als Opferkriterium machte das billigste Wesen im
+Bestand zum opferbarsten: frisch gezüchtet, Level 1, keine Kampfep. Die Ausnutzung
+ist nicht „alle opfern dasselbe", sie ist „der Spieler opfert gezielt die
+schwächsten".
 
-### 4.4 Die Stärke-Schwellen (aus dem T2.3-Block)
+**Das Level ist auch keine Zutat.** Erfahrung entsteht aus verursachtem Schaden, auch
+im verlorenen Kampf — das Level ist damit ein Zustand, der sich **im Kampf**
+bewegt. Der Snapshot muss den Startlevel tragen und das Ergebnis den Endlevel,
+sonst ist das Level eine Zahl, die der Client behauptet.
+
+**Folge für den Plan:** Slice C verliert seine Unabhängigkeit. Das Level kann nicht
+rein lokal rechnen, es wird Teil des eingefrorenen Standes.
+
+### 4.3 Das Extraktionsmaterial ist eine dritte Ressource
+
+**Entschieden:** Escrow während der Expedition, eigene Dorf-Ressource bei Rückkehr.
+Nicht ins Materialfeld des Dorfs, nicht in den Rucksack.
+
+**Der stärkere Grund ist ein Festlegungskonflikt:** `CONCEPT_REVIEW.md` 0a setzt
+als `[N]`: *„Ressourcen im Epic sind nur Gold und Materialien. Material stammt aus
+ausgebauten Gebäuden/Werkstätten."* Extraktionsmaterial ins Materialfeld zu
+schreiben hieße, eine zweite Quelle in eine `[N]`-Festlegung zu ziehen, und die
+Werkstatt verlöre ihre Aussage — der Spieler könnte nicht mehr unterscheiden, ob
+er arbeitet oder gräbt.
+
+**Der Name ist der zweite Grund.** Die Festlegung heißt „**Extraktions**material",
+nicht „Material". Man hätte „Material" schreiben können. Ein eigener Stoff mit
+eigenem Namen ist eine eigene Sache.
+
+**Der Ort ist der Escrow, weil er die einzige Contract-Stelle ist, die dem
+Push-Your-Luck-Spiel entspricht.** `escrowSchema` (`raid-snapshot.ts:49`) trägt
+`gold` und `materials` und hat heute keinen Leser. Das Feld `escrow.materials` ist
+damit wörtlich „noch nicht gebuchtes Material aus der Tiefe" und kollidiert mit
+nichts, weil niemand liest.
+
+**Was die Regel aus einem Feld eine Mechanik macht:** die `[N]`-Festlegung aus 0a —
+gesicherte Etagenbeute bleibt beim Angreifer, ungesicherte geht bei Niederlage
+verloren. Genau das gibt dem Escrow seinen ersten Leser.
+
+**Der Rucksack ist keine Option:** neun globale Slots plus Unique-Slot je Held sind
+für Hero-Gegenstände. Ein zweiter Bestand mit eigener Zahl ohne Besitzer wäre eine
+zweite Wahrheit über Material.
+
+### 4.4 Lesart (b): der Boss ist ein einzigartiges Wesen, die Steine sind Währung **für** ihn
+
+**Entschieden: (b).** Die Brücke, die das mit „er entsteht gar nicht" zusammenhält,
+ist derselbe Satz aus `LORE.md`: *„so alt wie die Etage, auf der er steht"*. Die
+Identität des Bosses hängt an der **Etage im eingefrorenen Verteidigerstand**, nicht
+am Spieler. Er wird nicht gezüchtet und nicht erzeugt — er wird **gefunden**. Das
+ist mit einem deterministischen Snapshot vereinbar und der einzige Weg, auf dem
+„keine Genetik" und „individuelle Bosse" gleichzeitig wahr sind.
+
+**Lesart (a) löscht den stärksten Satz der Weltbeschreibung** — Vision Drift, und
+zwar die Sorte, die man später nicht mehr reparieren kann. **Lesart (c) ist kein
+Ergebnis, sondern ein Aufschub:** „`boss` ist Platzhalter" beschreibt den
+**heutigen Code** (`rules.ts:196`), nicht die Welt.
+
+**Drei Folgen für Slice E, nicht zwei:**
+
+1. Neben den zwei Logs braucht Slice E eine **Boss-Identität am eingefrorenen
+   Stand** (Id, Name, Werte). Ohne sie bleibt der Boss ein Platzhalter mit
+   Sonderregeln und (b) ist behauptet, nicht gebaut. Bewusst **nicht** in
+   `genome/` — dort wäre er ein Wesen mit Erbgut, das keines hat.
+2. Die Bosswerte dürfen **nicht** aus `BOSS_RULES` kommen, sonst ist jeder Boss
+   derselbe und „individuell" ist ein Wort ohne Deckung.
+3. Der getrennte Etagenraum ohne Boss lässt die gemessene Kurve aus 0b nicht mehr
+   für den Etagenraum gelten. Der 88-%-Pin gehört dann dem **Bosskampf**, nicht mehr
+   dem Run. Das gehört in denselben Commit, sonst behauptet die Doku etwas Falsches.
+
+**Noch offen:** die Quelle der Boss-Identität — aus Etage plus eingefrorenem Stand
+berechnet, oder vom Spieler beim Bauen gewählt. Das entscheidet die Boss-Domäne,
+nicht Slice E.
+
+### 4.5 Zwei weitere `[N]`-Festlegungen, die gegen den Plan stehen
+
+Beim Nachprüfen von `CONCEPT_REVIEW.md` Abschnitt 3 sind zwei Widersprüche
+aufgefallen. Beide brauchen eine Nutzerentscheidung.
+
+**Das Level-Cap.** `CONCEPT_REVIEW.md:131` führt als `[N]`: *„Monster leveln bei
+jedem Kampf, auch bei Niederlage; **das Level-Cap skaliert mit der Generation**."*
+Die Festlegung vom 2026-09-30 sagt **kein Cap**. Das ist ein direkter Widerspruch
+zwischen zwei `[N]`. **Offen.**
+
+**Moral statt Tod.** `CONCEPT_REVIEW.md:127` führt als `[N]`: *„Besiegte
+Dungeon-Monster sterben nicht permanent; sie verlieren Moral und werden inaktiv."*
+Die Festlegung vom 2026-09-30 zählt Erfahrung „auch wenn sie sterben". Beides ist
+vereinbar — ein Wesen mit aufgebrauchter Moral ist tot, bis es reaktiviert wird, und
+seine Erfahrung ist verbucht. **Aber:** Moral ist im Code **nicht gebaut** (ein
+Durchlauf über `packages/*/src` findet keinen Treffer). Die EP-Regel für die Toten
+ist damit heute vollständig, die Wiederbelebung ist es nicht. Kein Widerspruch im
+Plan, sondern eine Lücke im Bestand, und sie gehört zu einem anderen Block.
+
+### 4.6 Die Stärke-Schwellen (aus dem T2.3-Block, weiter offen)
 
 `BUDGET_THRESHOLDS = [12000, 14000, 15000, 16500, 18500]` in
 `genome/strength.ts:39`, `[K]`. Sie liegen in den Lücken der gemessenen
@@ -215,33 +317,15 @@ beschrieben, und der MVP soll beim Platzhalter-Boss bleiben. Der Tauschweg aus
 Slice B/4.1 ist derselbe, in dem sie später fließen — die Naht ist damit bereit,
 ohne dass etwas gebaut wird.
 
-## 6. Ein Widerspruch, der vor Slice E zu klären ist
+## 6. Was mit `docs/LORE.md` geschieht
 
 `docs/LORE.md:39` beschreibt den Boss als Wesen **ohne** Genetik: *„Ein Boss
 entsteht so nicht. Er entsteht gar nicht. Er steht einfach da, seit jemand ihn
-hingestellt hat, und er ist so alt wie die Etage, auf der er steht."*
+hingestellt hat."* Das stand gegen „individuelle Bosse" und „Steine aus Zucht" —
+die Frage ist in **4.4** zugunsten der mittleren Lesart entschieden: der Boss
+wird an der Etage **gefunden**, nicht gezüchtet.
 
-Das steht gegen zwei `[N]`-Entscheidungen aus diesem Plan:
-
-- **Individuelle Bosse** — mehr als eine Identität mit Namen, Werten und Bild.
-  Ein Wesen, das „gar nicht entsteht", hat keine.
-- **Monster-Steine zum Verstärken** — das setzt einen Tausch mit dem Wesen
-  voraus. Ein Wesen ohne Erbgut ist kein Zuchtprodukt.
-
-Die Frage ist nicht, welche Aussage schöner klingt, sondern welche das Spiel trägt.
-Drei Lesarten, jede mit einer echten Folge:
-
-| Lesart | Folge für Slice E | Folge für die Steine |
-|---|---|---|
-| **Der Boss ist ein Wesen wie jedes andere** | Zuchtsystem gilt auch für ihn; `genome/` bekommt Boss-Arten | Steine sind Zuchtmaterial, Passt zur Mechanik |
-| **Der Boss ist ein einzigartiges Wesen** | Eine Identität, kein Genom; Zucht betrifft nur die Wächter | Steine sind eine Opfer-Währung **für** ihn, nicht **von** ihm |
-| **Der Boss ist ein Platzhalter-Narrativ** | `BOSS_RULES` bleibt eine Konstante, Slice E nur Mechanik | Steine bleiben `[O]`, bis das geklärt ist |
-
-**Empfehlung: die mittlere Lesart.** Sie braucht kein Zuchtsystem für Bosse,
-passt zu „`boss` ist ein Platzhalter" und lässt die Steine als Währung zu. Sie
-ist mit dem geringsten Aufwand zu belegen, weil sie den bestehenden
-`BOSS_RULES`-Sonderfall nur um eine Identität ergänzt.
-
-`docs/LORE.md` wird **nicht** geändert, bis das entschieden ist: Die Datei
-beschreibt den heutigen Stand, und der heutige Stand ist ein Platzhalter. Sie
-wird erst mit dem Bau von Slice E angefasst, und dann im selben Commit.
+**Die Datei wird nicht geändert.** Sie beschreibt den heutigen Stand, und der
+heutige Stand ist ein Platzhalter. Sie wird erst mit dem Bau von Slice E
+angefasst, und dann im selben Commit, in dem die Boss-Identität entsteht — sonst
+würde die LORE eine Identität beschreiben, die es noch nicht gibt.
