@@ -148,8 +148,17 @@ import { resolveCombat } from './index'
  * Schleife terminiert bei `Infinity` garantiert.
  *
  * Der Lauf selbst ist derselbe: 196 Ticks, 396 Ereignisse, 127 Trail-Einträge,
- * `heroes-win` hier und `monsters-win` nach 166 Ticks auf der Umweg-Route. Nur
- * die beiden Hex-Werte gehen von `092932b7`/`a49899d7` auf `5e5c863b`/`273c19ae`.
+ * `heroes-win` hier und `monsters-win` nach 166 Ticks auf der Umweg-Route. Die
+ * beiden Hex-Werte gehen von `261cd39a`/`ee21afc5` auf `092932b7`/`a49899d7`.
+ *
+ * **Eine Zwischenstufe war falsch und ist hier nicht gelandet.** Ein `if (word === 0)`
+ * in `hashWord` übersprang die Mischung für die Null und schob damit jeden
+ * Fingerprint eines Laufs, in dem eine Zahl `0` ist — `death` und `move` schreiben
+ * `amount: 0`. Das ergab `5e5c863b`/`273c19ae`, verschob die Partikelstreuung im
+ * Client und wäre dem Spieler als anderer Wert im Raid-Panel begegnet, ohne dass
+ * sich ein Kampf entschieden hätte. Die Null läuft jetzt durch dieselbe Schleife
+ * wie jede andere Zahl, und der Pin steht damit auf dem Wert, den die sechste
+ * Verschiebung eigentlich meinte.
  *
  * `sim_version` und `CONTRACT_VERSION` bleiben unverändert: Es ändert sich kein
  * Feld und keine Zahl der Simulation, sondern was ein unzulässiger Wert mit dem
@@ -185,7 +194,7 @@ function snakeGrid() {
 describe('Golden-Pin des Kampf-Hashes', () => {
   it('pinnt den Lauf auf dem offenen Fixture-Grid', () => {
     expect(observed(createDungeonGrid(), 2)).toEqual({
-      hash: '5e5c863b',
+      hash: '092932b7',
       stage: 'heroes-win',
       ticks: 196,
       events: 396,
@@ -195,7 +204,7 @@ describe('Golden-Pin des Kampf-Hashes', () => {
 
   it('pinnt den Lauf auf der Umweg-Route mit voller Belegung', () => {
     expect(observed(snakeGrid(), 5)).toEqual({
-      hash: '273c19ae',
+      hash: 'a49899d7',
       stage: 'monsters-win',
       ticks: 166,
       events: 673,

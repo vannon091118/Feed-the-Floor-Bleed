@@ -30,6 +30,15 @@ export function hashStart(): number {
  * Geburtstagsangriff auf den Fingerprint bleibt möglich und ist keine Eigenschaft
  * dieser Änderung, sondern der Festlegung des Wire-Formats auf acht Hex-Stellen.
  * Beseitigt ist die rechnerische Vorschrift, die Formerlaubung trug.
+ *
+ * **Die Null ist kein Sonderfall, sie ist ein Byte.** Eine frühere Fassung gab sie
+ * mit `if (word === 0) return current` aus und übersprang damit die Mischung —
+ * die `do`-Schleife hatte sie noch getan, und genau daran hing ihr Beitrag. Das
+ * verschob jeden Fingerprint eines Laufs, in dem eine Zahl `0` ist: `death` und
+ * `move` schreiben `amount: 0`, der Client hasht das für den FX-Seed, und der
+ * Spieler hätte eine andere Partikelstreuung und einen anderen Wert im Raid-Panel
+ * gesehen, ohne dass sich der Kampf entschieden hätte. Jetzt läuft die Null durch
+ * dieselbe Schleife wie jede andere Zahl.
  */
 export function hashWord(hash: number, word: number): number {
   if (!Number.isFinite(word))
@@ -38,7 +47,6 @@ export function hashWord(hash: number, word: number): number {
     throw new RangeError(`hashWord erwartet eine ganze Zahl, bekam ${word}`)
   let current = Math.imul(hash >>> 0, HASH_PRIME) >>> 0
   current = Math.imul(current ^ (word < 0 ? 1 : 0), HASH_PRIME) >>> 0
-  if (word === 0) return current
   let remaining = Math.abs(word)
   for (;;) {
     current = Math.imul(current ^ (remaining % 256), HASH_PRIME) >>> 0
