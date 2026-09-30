@@ -1,12 +1,41 @@
 # docs/CHANGELOG.md — Global
 
+## 2026-09-30 — Eine Determinismus-Kette, die man umbrechen kann, und ein Kreuzprodukt, das nie kaputt war
+
+**Scope:** neu `packages/sim-core/src/combat/determinismus-kette.test.ts` (Stufe 1,
+vier Tests), `packages/sim-core/src/combat/determinismus-lauf.test.ts` (Stufe 2, drei
+Tests) und `packages/sim-core/src/prng/referenz-strom.ts` (die Herleitung).
+Geändert `packages/sim-core/src/combat/state.ts` (nur der Kommentar),
+`packages/sim-core/src/hash/fnv1a.ts` und `packages/sim-core/src/hash/hash-kappung.test.ts`.
+Angepasst `packages/sim-core/docs/CHANGELOG.md`, `docs/CHANGELOG.md` und
+`docs/PLAN_T2_3.md`. **Zwei Dateien wurden in diesem Block zurückgenommen**:
+`combat/behavior.test.ts` und `combat/trail-fixture.ts` — der dort eingezogene
+`unitState`-Helfer hatte nur einen Abnehmer und war eine Dublette ohne Zweck.
+**`sim_version` und `CONTRACT_VERSION` bleiben unverändert, und kein Pin wandert** —
+es ändert sich kein Feld und kein Lauf entscheidet sich anders.
+
+**Die erste Fassung der Kette war grün, während der PRNG kaputt war.** Sie verglich zwei Läufe desselben Seeds — und blieb grün, nachdem drei verschiedene Brüche eingebaut waren: `rng.state = value`, `return value + 1` und `let value = rng.state ^ 1`. Der Grund steht in `actions.ts:77`: Der Kampf legt **pro Wurf einen neuen Strom** an und zieht **genau einen** Wert daraus. Die Rückkopplung ist damit unerreichbar, und ein verfälschter Lieferwert verändert den Lauf zwar, wurde aber nur mit sich selbst verglichen. **Ein selbst erzeugter Vergleich kann Stabilität sehen, nie Korrektheit.**
+
+**Stufe 1 prüft deshalb die Vorschrift und nicht den Vergleich.** Der Zähler wird aus seiner Herleitung nachgerechnet — in BigInt, ohne einen Aufruf in `prng/`. Der Startseed darf sich dabei beliebig ändern; was gelten muss, ist die Vorschrift, nicht die Zahl. Die Nachrechnung war zweimal falsch, bevor sie stimmte: Sie schrieb in Stufe zwei `61` statt `value | 61`, und sie rechnete die Addition vorzeichenlos, obwohl `Math.imul` signed liefert. Beide Fehler fielen als roter Test auf, nicht als grüner.
+
+**Der Nachweis, dass Stufe 1 etwas prüft:** Drei Brüche am echten PRNG wurden eingebaut und **alle drei fielen** — die Rückkopplung, ein plus eins auf dem Lieferwert und ein falsches Inkrement (`0x6d2b79f6`). Der dritte blieb zunächst grün, weil das `sed` die Kommentarzeile statt der Codezeile traf; nach korrektem Einbau fiel auch er. Ein Test, der nie rot war, ist eine Behauptung.
+
+**Der Kreuzprodukt-Vergleich war nie das Problem, und meine Begründung dafür war es.** `state.ts` verglich `hp * maxHp` statt `hp / maxHp`, weil angeblich eine Division runde und damit entscheide. Gemessen über alle Zweierpotenzen von 2¹⁰ bis 2⁵⁰ mit `hp` und `maxHp` bis 4: **4428 Fälle, null Fehler in der Division; 864 Fälle, null Fehler im Kreuzprodukt.** Das gilt für den gemessenen Bereich, nicht für die ganze Zahl — der konstruierte Fehlerfall liegt mit `maxHp` 2⁵² oberhalb davon, und dort entscheidet die Division richtig: 2⁵³+1 ist durch 3 teilbar, also fallen 2⁵³+1 und 2⁵³ auf denselben Float, während die Division den Unterschied im sechzehnten Nachkommastellenbit sieht. **Erweitert man die Messung auf 2¹⁰ bis 2⁵⁶, findet sie 60 Fälle, in denen beide Formen von der BigInt-Wahrheit abweichen.** Die Division ist dort nicht generell richtig, sondern für diesen einen Fall. Die alte Notiz nannte `maxHp ≈ 3 001 199` und leitete daraus Level 25 ab; das war um 9 Größenordnungen daneben. Die Division bleibt, aber als Lesbarkeitsentscheidung, nicht als Reparatur.
+
+**Was die Kette über die Prüfgrenze sagt, steht im Test.** `replayCombat` liest `seed`, `units`, `config` und `trail` — nicht `log.events`. Ein Log mit verändertem `amount` und unverändertem Hash kommt deshalb durch, in **jedem** der 40 geprüften Seeds. Die Zahl im Spec fällt dagegen immer auf. Beides steht als Zusicherung in der Datei: fällt jemand die Prüfung einmal aus, ist das eine Änderung und soll auffallen.
+
+**Belegt durch** 555 Tests in 84 Dateien, typecheck 0, lint 0, LOC-Caps ok, Hygiene ok und Shinon PASS.
+
+
 ## 2026-09-30 — Der Trail-Hash hat den Kampf verkauft, und der Pin hat sich bewegt
 
 **Scope:** geändert `packages/sim-core/src/hash/fnv1a.ts`, `packages/sim-core/src/combat/state.ts`, `packages/sim-core/src/combat/combat-pin.test.ts`, `packages/sim-core/src/hash/hash-kappung.test.ts`, `packages/contracts/src/version.ts` und `packages/sim-core/docs/CHANGELOG.md`. `sim_version 0.0.9 → 0.0.10`, `CONTRACT_VERSION` bleibt 9. Kein Contract-Feld entsteht oder verschwindet, also kein Migration-SQL. Der ausgelagerte sim-core-Block liegt in `packages/sim-core/docs/historisch/2026-09-30_changelog-schadensbilanz.md`.
 
-**Der Blocker aus dem vorigen Eintrag ist behoben, und er war real.** `hashWord` in `packages/sim-core/src/hash/fnv1a.ts` nahm `>>> 0` und mischte danach vier feste Bytes. Zwei verschiedene Kämpfe konnten denselben Fingerprint tragen, und `verifyCombatLog` acceptierte den zweiten, weil der Hash stimmte. Jetzt wandert der Beitrag über alle Bytes der Zahl und trägt das Vorzeichen als eigenes Byte.
+**Der Blocker aus dem vorigen Eintrag ist behoben, und er war real.** `hashWord` in `packages/sim-core/src/hash/fnv1a.ts` nahm `>>> 0` und mischte danach vier feste Bytes. Zwei verschiedene Kämpfe konnten denselben Fingerprint tragen. Jetzt wandert der Beitrag über alle Bytes der Zahl und trägt das Vorzeichen als eigenes Byte.
 
-**Die zweite Bruchstelle kam im selben Zug.** `packages/sim-core/src/combat/state.ts` verglich das Lebensverhältnis über ein Kreuzprodukt, das ab `maxHp ≈ 3 001 199` nicht mehr das Leben, sondern die Rundung entschied.
+**Eine Zuschreibung in diesem Eintrag war falsch und ist korrigiert.** Er schrieb, „der Server akzeptierte einen gefälschten Log". Gemessen: `verifyCombatLog` und `replayCombat` werden nirgends vom Server gerufen. Die einzige Prüfung sitzt in `packages/sim-core/src/combat/fixture-job.ts` über `replayCombat` und läuft im Client-Pfad. Die Kollision war belegt, die Zuschreibung war es nicht.
+
+**Die zweite Bruchstelle kam im selben Zug.** `packages/sim-core/src/combat/state.ts` verglich das Lebensverhältnis über ein Kreuzprodukt, das nicht mehr das Leben, sondern die Rundung entschied, sobald `hp · maxHp` 2⁵³ überschreitet.
 
 **Der Pin ist der Zeuge, dass sonst nichts kaputt ging:** nur die Hash-Werte wandern von `261cd39a` auf `092932b7` und von `ee21afc5` auf `a49899d7`. Ticks, Ereignisse, Trail und Ausgang bleiben zeichengleich.
 
@@ -20,9 +49,9 @@
 
 **Die Begründung für den gemeinsamen Divisor war mit falsch.** Der erste Entwurf schrieb, ein Held verursache „den kleineren Teil". Getrennt gemessen: Helden 5 408 120 (60,8 %), Monster 3 490 637 (39,2 %). **Ein Held verursacht pro Einheit rund das Doppelte eines Monsters** (Ø 90 135 gegen 43 633).
 
-**Dabei kam etwas heraus, das größer ist als die Zahl: der Trail-Hash kappt auf 32 Bit.** `packages/sim-core/src/hash/fnv1a.ts:8` schneidet mit `>>> 0` auf 32 Bit, und `packages/sim-core/src/combat/fingerprint.ts:17-25` hasht damit Zahlen aus dem Kampf. Ein `maxHp` von 60 000 und eines von 4 295 027 296 erzeugen **denselben** Trail-Hash. Das ist keine Rundung und keine Abweichung, das ist eine **Kollision**: zwei verschiedene Kämpfe, ein Fingerprint — und ein Server, der einen gefälschten Log akzeptiert, weil der Hash stimmt. `packages/sim-core/src/hash/hash-kappung.test.ts` belegt das in zwei Tests; der erste fällt, sobald jemand den Schnitt entfernt.
+**Dabei kam etwas heraus, das größer ist als die Zahl: der Trail-Hash kappt auf 32 Bit.** `packages/sim-core/src/hash/fnv1a.ts:8` schneidet mit `>>> 0` auf 32 Bit, und `packages/sim-core/src/combat/fingerprint.ts:17-25` hasht damit Zahlen aus dem Kampf. Ein `maxHp` von 60 000 und eines von 4 295 027 296 erzeugen **denselben** Trail-Hash. Das ist keine Rundung und keine Abweichung, das ist eine **Kollision**: zwei verschiedene Kämpfe tragen denselben Fingerprint. **Ein Log mit veränderten Ereigniswerten fällt dabei durch jede heutige Prüfung** — `replayCombat` liest `seed`, `units`, `config` und `trail`, nicht `log.events`, und `verifyCombatLog` vergleicht `hash`, `stage`, `ticks` und `events.length`. Gemessen und festgehalten in `determinismus-kette.test.ts`. `packages/sim-core/src/hash/hash-kappung.test.ts` belegt die Kollision selbst; der erste Test fällt, sobald jemand den Schnitt entfernt.
 
-**Wie weit ist der Weg dorthin?** `packages/sim-core/src/combat/state.ts:94` und `:102` vergleichen das Kreuzprodukt `candidate.hp * best.maxHp`, das bricht bei `maxHp ≈ 3 001 199` — Faktor 73 über einem heutigen Monster. Mit exponentiellem Faktor r = 1,2 ist das bei **Level 25** erreicht, bei r = 1,15 bei 32.
+**Wie weit ist der Weg dorthin?** `packages/sim-core/src/combat/state.ts` verglich das Kreuzprodukt `candidate.hp * best.maxHp`, das bricht, sobald `hp · maxHp` 2⁵³ überschreitet. **Die damals genannte Schwelle `maxHp ≈ 3 001 199` war um 9 Größenordnungen falsch** — sie ist `√(2⁵³ / 1000)`, und `3001199²` ist eine sichere Zahl. Der Fehler braucht `maxHp` nahe 2⁵², weil 2⁵³+1 sonst auf denselben Float fällt wie 2⁵³; das sind `2⁵² / 3001199 ≈ 1,5 · 10⁹`. Die daraus abgeleitete Level-Angabe 25 ist damit ebenfalls hinfällig.
 
 **Was das für die noch offene Level-Festlegung heißt.** „Kein Cap" bleibt inhaltlich richtig — ein Cap nimmt dem Wächter genau das, was ihn zum Wächter macht. Zu bauen ist aber **keine Obergrenze auf das Level, sondern eine Grenze darauf, was ein Level einer Zahl antun darf**, und die existiert im Datenmodell nicht. Diese Grenze gehört an die Felder, die `specHash` und das Kreuzprodukt lesen — **das Level selbst darf sie nicht skalieren.** Deshalb steht der Hash-Fix als **A0 vor Slice C** in der Reihenfolge: eine Level-Kurve auf einem kollidierenden Hash ist nicht „später in Ordnung", sie ist dann wertlos.
 
@@ -160,40 +189,3 @@
 **Der Nahttest fehlte, und genau der hätte es gefunden.** `packages/sim-core/src/combat/species-wiring.test.ts` steht neu an der Verbindung von Snapshot und Kampf und prüft, dass zwei Arten verschiedene Werte bekommen, dass leere Plätze nicht zählen, dass eine unbekannte Art den Lauf nicht beendet und dass alle zwanzig Arten zu **verschiedenen** Wesen rechnen. Der LOC-Gate zwang diese Tests in eine eigene Datei, weil `combat.test.ts` sonst über 150 Zeilen gelandet wäre — die Trennung traf sich zufällig genau mit dem neuen Thema.
 
 **Gates:** typecheck 0, 435 Tests in 63 Dateien, Lint 0, LOC-Caps ok, Hygiene ok, Shinon PASS.
-
-## 2026-09-29 — Contract v6: die Generation steht am Slot, nicht im String
-
-**Die offene Transportfrage ist entschieden und gebaut.** `monsterSlots[i].generation` trägt seit `CONTRACT_VERSION 6` die Zuchtstufe des Verteidigers, `sim_version` steigt auf 0.0.5. Die Stärke ließ sich über `monsterId` aus der Registry auflösen, die Generation stand nirgends — sie musste an den eingefrorenen Verteidiger und nicht ins Ergebnis, weil ein Ergebnis, das sie nachzählte, sie erst dorthin kopieren müsste.
-
-**Die Alternative hätte den Zuchtverlauf verschoben.** Der Kandidat „Generation in die `monsterId`" schien zuerst billiger: ein Feld weniger, kein Versionssprung. Beim Nachverfolgen des Datenflusses kam die Kopplung ans Licht, die den Ausschlag gab — `genome/mutation.ts` salzt den Zucht-Seed mit `hashText(hashStart(), genome.baseId)`, und `baseGenome()` legt die geparzte ID als `baseId` ins Genom. Läge die Generation im String, ginge sie als Salz in den Seed ein, jeder Zuchtwurf hinge an der Beute-Kennzeichnung, und der Replay-Hash eines eingefrorenen Runs verschöbe sich mit ihr. Als eigenes Feld bleibt der Seed unberührt. Gezahlt wurde dafür ein Versionssprung plus Migration; die gekappte ID-Form mit einer Parse-Regel an drei Stellen wäre der teurere Preis gewesen.
-
-**Die Migration schreibt, sie löscht nicht — anders als `003`.** Das neue Feld ist optional, und ein fehlendes `generation` bedeutet Generation 1. Ein v5-Snapshot enthält zwangsläufig nur Basis-Monster, denn Gezüchtete waren vor v6 gar nicht darstellbar; jede v5-Zeile ist damit semantisch bereits eine v6-Zeile. Sie wird nicht unlesbar, sondern vollständig, und `004_contract_v6.sql` hebt deshalb nur die Versionsfelder an. Die Kampfregel ändert sich dabei nicht: dieselben Einheiten mit demselben Seed ergeben denselben Log und denselben Hash.
-
-**`slotLootProfile` schließt den Weg.** `monsterId` wird über die Registry zur Basisart, daraus die Stärke, die Generation steht am Slot. Ein leerer Platz und eine unbekannte Art ergeben beide `null` — es gibt kein Wesen, dessen Beute man rechnen könnte, und die Formel soll dafür keine Zahl erfinden.
-
-**Der Redundancy-Gate hat recht behalten.** Der neue Migrationstest kopierte sechs Zeilen aus dem v5-Test; statt die Dublette zu umgehen, liegen sie jetzt in `packages/server/src/db/migration-fixtures.mjs`, und v5 wie v6 holen ihre Helfer von dort. Nebenbei fiel der Unterschied zwischen „Migrationsname" und „Migrationsinhalt" auf — `databaseWith` nimmt den Text, weil ein Inhalt als Dateiname `ENAMETOOLONG` ergäbe.
-
-**Die Schwellen bleiben `[K]`, und die Tabelle, über die sie zu bestätigen sind, steht jetzt im Goldformel-Dokument.** Aus der Skala folgt, dass drei Arten — Grave-Moth, Shade-Prowler, Shard-Imp — in jeder Generation 0 Gold bringen. Das ist keine Rundung, sondern die unterste Stufe, und es stellt eine eigene Frage: ob die schwächsten Arten im Dungeon überhaupt Beute wert sein sollen. Neben „so lassen" gäbe es ein Minimum von 1 oder einen Basislohn je Gegner, und der letzte wäre eine Formeländerung mit eigener Freigabe. Nichts davon ist abgeleitbar; die Zuordnung bleibt gepinnt, damit eine spätere Entscheidung nicht durch eine nebenbei geänderte Zahl überschrieben wird.
-
-**Gates:** typecheck 0, 431 Tests in 63 Dateien, Lint 0, LOC-Caps ok, Hygiene ok, Shinon PASS.
-
-## 2026-09-29 — Die Stärke ist gemessen, und die Generation war die ganze Zeit da
-
-**Die letzte fehlende Eingabe der Goldformel ist definiert, aus gemessenen Daten.** Neu ist `packages/sim-core/src/genome/strength.ts` mit `strengthOfElements`: eine Stufe 0 bis 5 je Wesen, abgeleitet aus dem **Elementbudget**, der Summe der drei Elemente. Der Grund für diese Quelle ist gemessen und nicht behauptet: über alle zwanzig Basis-Arten liegt `maxHp + attack + defense` zwischen 51561 und 54816, also in gut sechs Prozent — eine Skala aus den Kampfwerten hätte Rauschen in Stufen gegossen. Das Elementbudget liegt zwischen 9500 und 21900 und trennt die Arten wirklich. Die Schwellen 12000, 14000, 15000, 16500 und 18500 stehen als `[K]` an der Quelle und liegen in den Lücken der gemessenen Verteilung, nicht auf den Werten selbst; die Verteilung über die Roster-Arten ist 3/2/4/5/4/2, keine Stufe bleibt leer, und die drei Arten mit Budget 15400 landen zusammen, weil eine aus dem Budget abgeleitete Stufe keine zwei gleichen Zahlen sortieren muss.
-
-**Mit der Stärke verschwindet die zweite Wahrheit.** `speciesBias` stand vorher als `850 + (hashText(hashStart(), id) % 301)` daneben — eine zweite, zufällige Zahl für dieselbe Frage „wie ist diese Art", die der Stärke widersprechen konnte: eine Art mit Stärke 5, die zufällig 850 würfelte, wäre oben in der Beute und unten im Kampf gewesen. Der Bias kommt jetzt aus der Stärke selbst, `850 + Stärke · 60`, also demselben Band von 850 bis 1150 wie vorher. Was sich ändert, ist die Zuordnung, nicht die Größenordnung. Weil die Ableitung die Basis-Art nicht mehr braucht, verlor `monsterStats` ihren `base`-Parameter — eine Signatur, die eine Art verspricht, wo sie nichts beiträgt, wäre eine Lüge gewesen, die der Dead-Code-Gate nicht zwingend findet.
-
-**Die Doku hatte unrecht und ist korrigiert.** Der vorige Changelog und `docs/GOLDFORMEL.md` behaupteten, eine Generation existiere nicht. Sie existiert: `Genome.generation` steht seit dem Bau der Domäne im Quelltext, startet bei 1, steigt in `breed` auf `max(a, b) + 1` und in `mutate` um eins, und ist in `breeding.test.ts` sowie `genome.test.ts` gepinnt. `CODE IS TRUTH` gilt in beide Richtungen — nicht nur ein Kommentar, der mehr verspricht als der Code leistet, ist ein Blocker, sondern auch ein Dokument, das weniger behauptet als der Code bereits hergibt. Der Fehler steht als Korrektur im Goldformel-Dokument, nicht als stillschweigende Angabe.
-
-**Die Brücke ist gezogen, der Transport bleibt offen.** `lootProfile(genome)` liefert `{ strength, generation }` aus dem Genom — der Genom-Besitzer hat die Daten, und die Dorfwirtschaft rechnet sie in `village/loot.ts` aus, weil Beute eine Wirtschaftsfrage ist und kein Zuchtergebnis. `village/loot.test.ts` rechnet echte Genome durch die freigegebene Formel: Steingolem ergibt 200 Gold, Shadeprowler 0 und ohne Fehler. Nicht gelöst ist der Weg aus dem Kampf: `monsterSlot` trägt je Slot nur eine `monsterId`, und ein Ergebnis zählt die gefallenen Gegner, ohne sie zu benennen, sodass die Stärke über `monsterId` auflösbar wäre, die Generation aber nicht. Die Entscheidung dafür steht als offen in `docs/GOLDFORMEL.md`.
-
-**Gates:** typecheck 0, 423 Tests in 62 Dateien, Lint 0 über 309 Dateien, LOC-Caps ok, Hygiene ok, Shinon PASS, Client-Build grün. Der Golden-Pin blieb unverändert, und das ist selbst ein Befund: die Kampfbalance-Messung benutzt nicht das Genome, sondern `defaultCombatConfig` — Kampfbalance und Zucht sind noch zwei unverbundene Systeme.
-
-## 2026-09-29 — Zwei Changelog-Einträge behaupteten eine leere Domäne, die inzwischen gebaut ist
-
-**Ein Befund aus der Kontextsammlung, kein Feature.** Zwei Absätze im aktiven `packages/sim-core/docs/CHANGELOG.md` führen `genome` unter den leeren Namespaces, die nur `.gitkeep` enthielten. Das war am 2026-09-26 richtig und wurde am selben Tag später falsch, als die Domäne gebaut wurde. Historische Einträge sind append-only und werden nicht umgeschrieben, deshalb tragen beide Absätze jetzt einen Überholt-Vermerk mit Datum und dem, was tatsächlich noch leer ist: `ghost`, `items`, `client/net`, `storage`, `inventory`, `server/matchmaking` und `sync`.
-
-**Warum das ein Fund war und kein Zufall.** Die Aussage stand an zwei Stellen im *aktiven* Changelog, nicht im Archiv, und war durch keine Suche nach `genome` mehr auffindbar, weil sie nicht das Wort „offen" enthielt. Ein Agent, der `docs/CHANGELOG.md` als Beleg für den Domänenstand benutzt hätte, hätte eine leere Domäne gelesen. Das ist derselbe Fehlertyp wie eine veraltete Doku, nur ohne Warnwort.
-
-**Gates:** keine Quelldatei berührt, typecheck 0, Lint 0 über 305 Dateien, LOC-Caps ok, Hygiene ok, Shinon PASS.
-

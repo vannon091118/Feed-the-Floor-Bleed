@@ -1,16 +1,46 @@
 # packages/sim-core/docs/CHANGELOG.md
 
+## 2026-09-30 — Die Determinismus-Kette sah drei PRNG-Brüche nicht, und ein Kommentar log
+
+**Scope:** neu `src/combat/determinismus-kette.test.ts` (Stufe 1, vier Tests),
+`src/combat/determinismus-lauf.test.ts` (Stufe 2, drei Tests) und
+`src/prng/referenz-strom.ts` (die Herleitung). Geändert `src/combat/state.ts`
+(nur der Kommentar an `livesAhead`/`livesBehind`) und `src/hash/fnv1a.ts`.
+Angepasst `docs/CHANGELOG.md` hier und im globalen Changelog sowie
+`docs/PLAN_T2_3.md`. **Zwei Dateien wurden in diesem Block zurückgenommen**:
+`src/combat/behavior.test.ts` und `src/combat/trail-fixture.ts` — der dort
+eingezogene `unitState`-Helfer hatte nur einen Abnehmer und war eine Dublette
+ohne Zweck. **`sim_version` und `CONTRACT_VERSION` bleiben unverändert, und
+kein Pin wandert.**
+
+**Der Kern des Befunds: ein selbst erzeugter Vergleich kann Stabilität sehen, nie Korrektheit.** Die erste Fassung der Kette verglich zwei Läufe desselben Seeds und blieb grün, nachdem `rng.state = value`, `return value + 1` und `let value = rng.state ^ 1` eingebaut waren. Der Grund steht in `src/combat/actions.ts:77` — der Kampf legt **pro Wurf einen neuen Strom** an (`createRng(deriveSeed(...))`) und zieht **genau einen** Wert daraus. Die Rückkopplung im Zustand ist damit unerreichbar. Der Golden Pin hätte denselben Brüchen zugesehen, ohne zu fallen.
+
+**Stufe 1 rechnet den Zähler aus seiner Herleitung nach** — BigInt, ohne einen Aufruf in `prng/`. Damit gilt die Zusicherung bei jedem Startseed, nicht bei zweien. Die Nachrechnung war zweimal falsch, bevor sie stimmte, und beide Fehler fielen als **roter** Test auf: Sie schrieb in der zweiten Mischstufe `61` statt `value | 61`, und sie rechnete die Addition vorzeichenlos, obwohl `Math.imul` signed liefert. Wer eine Vorschrift nachrechnet, prüft sonst die eigene Abschrift.
+
+**Der Nachweis, dass Stufe 1 etwas prüft:** am echten PRNG wurden drei Brüche eingebaut — Rückkopplung, plus eins auf dem Lieferwert, falsches Inkrement — und **alle drei fielen**. Der dritte blieb zunächst grün, weil das Suchmuster die Kommentarzeile statt der Codezeile traf. Genau darin liegt der Unterschied zu einem Test, der nie rot war.
+
+**Der Kommentar an `livesAhead` war falsch, und das ist die eigentliche Korrektur.** Er behauptete, die Division runde Stellen und entscheide damit, während das Kreuzprodukt nicht. Gemessen über alle Zweierpotenzen von 2¹⁰ bis 2⁵⁰, `hp` und `maxHp` bis 4, Versätze bis 3: **4428 Fälle mit null Fehlern in der Division, 864 Fälle mit null Fehlern im Kreuzprodukt.** Auch der konstruierte Extremfall entscheidet richtig: 2⁵³+1 ist durch 3 teilbar, also `maxHp` 2⁵² mit `hp` 3 gegen `maxHp` 3002399751580331 mit `hp` 2 — dort fallen 2⁵³+1 und 2⁵³ auf denselben Float, die Division sieht den Unterschied im sechzehnten Nachkommastellenbit. Die genannte Schwelle `maxHp ≈ 3 001 199` war um Größenordnungen daneben. Die Division bleibt als Lesbarkeitsentscheidung; als Reparatur war sie nicht belegt.
+
+**Was die Kette über die Prüfgrenze sagt, steht als Zusicherung im Test.** `replayCombat` liest `seed`, `units`, `config` und `trail`, **nicht** `log.events`. Ein Log mit verändertem `amount` und stehendem Hash kommt in allen 40 geprüften Seeds durch; die Zahl im Spec fällt in allen 40 auf. Fällt jemand die Prüfung aus, fällt dieser Test.
+
+**Belegt durch** 555 Tests in 84 Dateien, typecheck 0, lint 0, LOC-Caps ok, Hygiene ok und Shinon PASS.
+
+
 ## 2026-09-30 — Der Trail-Hash hat den Kampf verkauft, und der Lebensvergleich hat gerundet
 
 **Scope:** geändert `src/hash/fnv1a.ts` (`hashWord`), `src/combat/state.ts` (`livesAhead`, `livesBehind`), `src/combat/combat-pin.test.ts` (sechste Verschiebung, zwei Hash-Werte) und `src/hash/hash-kappung.test.ts` (aus einem Beweis für den Fehler zu vier Fällen dagegen). Geändert `src/version.ts` in `contracts`, dort `sim_version 0.0.9 → 0.0.10`. `CONTRACT_VERSION` bleibt 9 — die Form des Wire-Formats ändert sich nicht, nur der Wert des Hash-Feldes. Kein Migration-SQL, weil kein Feld entsteht oder verschwindet.
 
-**`hashWord` nahm `>>> 0` und mischte danach vier feste Bytes.** Eine Zahl und dieselbe Zahl plus 2³² lieferten denselben Beitrag, also denselben Hash. Da `specHash` und `eventHash` genau das mit `maxHp`, `attack`, `amount` und den übrigen Kampfzahlen tun, konnten **zwei verschiedene Kämpfe denselben Fingerprint tragen** — und `verifyCombatLog` acceptierte den zweiten, weil der Hash stimmte. Das war Formerlaubnis mit Maske, kein Rundungsfehler.
+**`hashWord` nahm `>>> 0` und mischte danach vier feste Bytes.** Eine Zahl und dieselbe Zahl plus 2³² lieferten denselben Beitrag, also denselben Hash. Da `specHash` und `eventHash` genau das mit `maxHp`, `attack`, `amount` und den übrigen Kampfzahlen tun, konnten **zwei verschiedene Kämpfe denselben Fingerprint tragen**. Das war Formerlaubnis mit Maske, kein Rundungsfehler.
+
+**Wo das geprüft wird, steht hier richtig — eine frühere Fassung dieses Eintrags nicht.** Sie schrieb, „der Server akzeptierte einen gefälschten Log". Gemessen: `verifyCombatLog` und `replayCombat` werden **nirgends vom Server gerufen**; `grep` findet nur die Definition und Testaufrufe. Die einzige Prüfung im Bestand sitzt in `src/combat/fixture-job.ts` und läuft über `replayCombat` — im Client-Pfad (`client/src/raid/fixture-raid.ts`), nicht in `packages/server`. Die Kollision ist damit belegt, die Zuschreibung an einen Server war es nicht.
 
 **Der Beitrag wandert jetzt über alle Bytes der Zahl**, mit dem Vorzeichen als eigenem Byte, damit `-1` nicht wie `0` auf derselben Bahn läuft. Vier Tests in `hash-kappung.test.ts` verbieten die Kollision jetzt; der wichtigste fiel vorher **grün** und fällt erst seit diesem Commit.
 
 **Was das nicht behebt, gehört in denselben Satz:** Der Zustand bleibt 32 Bit, und das Wire-Format bleibt bei acht Hex-Stellen. Ein Geburtstagsangriff auf den Fingerprint bleibt damit möglich. Beseitigt ist die rechnerische Vorschrift, die Formerlaubnis trug — nicht die Wahl der Länge.
 
-**Der Lebensvergleich lief über ein Kreuzprodukt.** `livesAhead` und `livesBehind` verglichen `candidate.hp * best.maxHp > best.hp * candidate.maxHp`. Das ist mathematisch richtig und praktisch eine Zeitbombe: `Number` verliert ab 2⁵³ genau, zwei Werte um je 9 007 199 254 740 992 gelten als gleich groß. **Ab `maxHp ≈ 3 001 199` entschied der Kampf in diesem Vergleich nicht mehr das Leben, sondern die Rundung** — bei exponentiellem Levelwachstum also rund bei Level 25. Geteilt wird jetzt durch das jeweilige `maxHp`. Die alte Fassung wollte die Rundung vermeiden und hat sie nur verlegt.
+**Der Lebensvergleich lief über ein Kreuzprodukt.** `livesAhead` und `livesBehind` verglichen `candidate.hp * best.maxHp > best.hp * candidate.maxHp`. `Number` verliert ab 2⁵³ genau, und die Produkte `hp · maxHp` erreichen diese Größe sooner, als die Zahl `maxHp` für sich genommen vermuten lässt. Geteilt wird jetzt durch das jeweilige `maxHp`. Die alte Fassung wollte die Rundung vermeiden und hat sie nur verlegt.
+
+**Die Schwelle, die dieser Vergleich im Kopf hatte, war um 9 Größenordnungen falsch.** Genannt war `maxHp ≈ 3 001 199` mit der daraus abgeleiteten Level-Angabe 25. Das ist `√(2⁵³ / 1000)`; `3001199²` ist eine sichere Zahl, und eine Suche über Millionen von Paare in dieser Größenordnung fand keine Divergenz. Der Fehler braucht `maxHp` nahe 2⁵², weil 2⁵³+1 sonst auf denselben Float fällt wie 2⁵³ — das sind `2⁵² / 3001199 ≈ 1,5 · 10⁹`, also neun Größenordnungen.
 
 **Der Pin ist der Zeuge, dass sonst nichts kaputt ging.** Nur die Hash-Werte wandern: `261cd39a → 092932b7` und `ee21afc5 → a49899d7`. Ticks 196, 396 Ereignisse, 127 Trail-Einträge, `heroes-win` auf dem offenen Grid und `monsters-win` nach 166 Ticks auf der Umweg-Route bleiben zeichengleich wie am 2026-09-29. Wäre auch nur ein Tick gefallen, hätte der Eingriff den Kampf berührt statt nur seine Unterschrift.
 
@@ -140,35 +170,3 @@ Der Referenzkampf aus `docs/CONCEPT_REVIEW.md` Abschnitt 0b — drei Helden gege
 **Der Hash verschiebt sich, und der Pin sagt warum.** `fingerprintCombatLog` hasht jetzt auch `trail[].zoneId` und `spec.ambushZoneId`; die Bewegung ist kürzer und die Verteidiger stehen an anderen Orten. Der Golden-Pin steht auf `1e2b3767` (offenes Fixture-Grid, 413 Ereignisse) und `27826361` (Umweg-Route, 165 Ticks, 674 Ereignisse); die drei Gründe und der Versionszug stehen im Kopf der Pin-Datei. `sim_version 0.0.5→0.0.6`, `CONTRACT_VERSION 6→7`.
 
 **Gates:** typecheck 0, 474 Tests in 69 Dateien, Lint 0, LOC-Caps ok (304 Quellen), Hygiene ok, Shinon PASS, Client-Build 425,01 kB.
-
-## 2026-09-29 — Der Kampf kennt die Art des Verteidigers
-
-**Scope:** neu `src/units.ts` und `src/combat/species-wiring.test.ts`. Geändert `src/combat/rules.ts`, `resolve.ts`, `resolve-snapshot.ts`, `fixture-job.ts`, `balance-report.test.ts`, `combat.test.ts`, `combat-pin.test.ts` und `src/genome/stats.ts`.
-
-`resolveCombat` nahm bis hier nur die **Anzahl** belegter Plätze entgegen, und
-`fixture-job.ts` zählte die `monsterId` vorher zu dieser Anzahl zusammen. Damit
-war die Identität jedes Wesens auf dem Weg vom Snapshot bis `buildCombatUnits`
-verloren, und `monsterSpec` gab jedem Slot dieselben Werte aus
-`PROVISIONAL_RULES.monster` — fünf Slots waren fünf Kopien. Jetzt nimmt
-`resolveCombat` `defenders` entgegen, eine Liste mit `baseId` je Slot und `null`
-für leere Plätze, und die Werte kommen aus `monsterStats` der Art. Eine unbekannte
-Art bekommt den generischen Platzhalter statt einen Abbruch, damit ein veralteter
-Snapshot die Expedition nicht beendet.
-
-**Ein Importkreis musste aufgelöst werden.** Als `combat/rules.ts` anfing, über
-`genome` die Art zu holen, schloss sich `combat/rules` → `genome/stats` →
-`combat/rules`, und der erste Zugriff auf `PROVISIONAL_RULES.monster` warf
-`Cannot read properties of undefined`. Die Ausgangswerte der Einheiten liegen
-jetzt in `src/units.ts`, das keine der beiden Domänen besitzt; beide lesen
-`UNIT_BASE` direkt, damit es keine zweite Wahrheit gibt.
-
-**Der Golden-Pin ist gewandert, und der Grund steht nicht im Test.** `94ba1954`
-wurde zu `97907d56` (225 → 216 Ticks), `f85b31c0` zu `2759f7d8` (401 → **180**
-Ticks). Der zweite Lauf ist der Beleg für einen Größenordnungsfehler: fünf echte
-Monster mit je rund 41000 Gesundheit beenden den Kampf in 180 statt 401 Ticks
-gegen Helden mit je 60000. Vorher liefen dort fünf Kopien mit 40000. **Die Zahl,
-die das richtet, ist eine `[K]`-Größe und wird nicht hier erfunden** — siehe
-`docs/CONCEPT_REVIEW.md` Abschnitt 0b. `balance-report.test.ts` misst jetzt mit
-echten Arten und meldet 0 % Helden-Siegquote ab **einem** Monster, vorher 0 % ab drei.
-
-**Gates:** typecheck 0, 435 Tests in 63 Dateien, Shinon PASS.

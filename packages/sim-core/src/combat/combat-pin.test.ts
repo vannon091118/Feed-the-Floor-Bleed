@@ -113,8 +113,8 @@ import { resolveCombat } from './index'
  * Eine Zahl und dieselbe Zahl plus 2³² lieferten damit denselben Beitrag. Da
  * `specHash` und `eventHash` genau das mit `maxHp`, `attack`, `amount` und den
  * übrigen Kampfzahlen tun, konnten zwei verschiedene Kämpfe denselben
- * Fingerprint tragen — und `verifyCombatLog` acceptierte den zweiten, weil der
- * Hash stimmte. Das war Formerlaubnis, kein Rundungsfehler.
+ * Fingerprint tragen — und eine Prüfung, die nur den Hash rechnet, hätte den
+ * zweiten genommen. Das war Formerlaubnis, kein Rundungsfehler.
  *
  * Der Beitrag wandert jetzt über alle Bytes der Zahl und trägt das Vorzeichen
  * als eigenes Byte, damit `-1` nicht wie `0` auf derselben Bahn läuft. Der
@@ -132,6 +132,30 @@ import { resolveCombat } from './index'
  * `sim_version 0.0.9→0.0.10`: gespeicherte Läufe mit altem Hash gelten seither
  * als fremd. `CONTRACT_VERSION` bleibt 9 — die Form des Wire-Formats ändert
  * sich nicht, nur der Wert des Hash-Feldes.
+ *
+ * **Nachtrag vom selben Tag, nach dem Red Team: der Hash-Teil dieser
+ * Verschiebung trug, zwei Nebensätze nicht.** Richtig ist, dass `hashWord` die
+ * Formerlaubnis trug und dass dieser Lauf der Zeuge dafür ist, dass sonst nichts
+ * mitwanderte. Falsch waren die Zahlen zum Kreuzprodukt in `state.ts`, die in
+ * dieser Verschiebung gar nicht stehen, aber in zwei anderen Dokumenten schon: die
+ * Grenze liegt beim Produkt `hp · maxHp` und braucht `maxHp` nahe 2⁵².
+ *
+ * **Siebte Verschiebung vom 2026-09-30 — die Härtung, nicht der Kampf.** `hashWord`
+ * prüft jetzt `Number.isFinite` und `Number.isInteger` und wirft, wo es vorher
+ * still schluckte: `Math.trunc` führte `1.9`, `1.1` und `1` auf denselben Beitrag,
+ * und `NaN`, `undefined` und `null` hashten wie eine echte `0`. Damit ändert sich
+ * die Hashbildung für alle Werte, die nicht ohnehin Ganzzahlen waren, und die
+ * Schleife terminiert bei `Infinity` garantiert.
+ *
+ * Der Lauf selbst ist derselbe: 196 Ticks, 396 Ereignisse, 127 Trail-Einträge,
+ * `heroes-win` hier und `monsters-win` nach 166 Ticks auf der Umweg-Route. Nur
+ * die beiden Hex-Werte gehen von `092932b7`/`a49899d7` auf `5e5c863b`/`273c19ae`.
+ *
+ * `sim_version` und `CONTRACT_VERSION` bleiben unverändert: Es ändert sich kein
+ * Feld und keine Zahl der Simulation, sondern was ein unzulässiger Wert mit dem
+ * Hash macht. Ein Lauf, der mit einer Nicht-Ganzzahl entstanden wäre, existierte
+ * vorher gar nicht — es gibt also nichts, dem diese Änderung einen alten Stand
+ * entzieht.
  */
 function observed(
   grid: ReturnType<typeof createDungeonGrid>,
@@ -161,7 +185,7 @@ function snakeGrid() {
 describe('Golden-Pin des Kampf-Hashes', () => {
   it('pinnt den Lauf auf dem offenen Fixture-Grid', () => {
     expect(observed(createDungeonGrid(), 2)).toEqual({
-      hash: '092932b7',
+      hash: '5e5c863b',
       stage: 'heroes-win',
       ticks: 196,
       events: 396,
@@ -171,7 +195,7 @@ describe('Golden-Pin des Kampf-Hashes', () => {
 
   it('pinnt den Lauf auf der Umweg-Route mit voller Belegung', () => {
     expect(observed(snakeGrid(), 5)).toEqual({
-      hash: 'a49899d7',
+      hash: '273c19ae',
       stage: 'monsters-win',
       ticks: 166,
       events: 673,

@@ -29,3 +29,37 @@ Daten, die Dorfwirtschaft rechnet sie aus. **Beleg:** `strength.test.ts` nennt j
 der zwanzig Arten mit ihrer Stufe, prüft die Bandbesetzung und den Gleichstand
 gleicher Budgets; `village/loot.test.ts` rechnet echte Genome durch die Formel.
 **Gates:** typecheck 0, 423 Tests in 62 Dateien, Shinon PASS.
+
+---
+
+## 2026-09-29 — Der Kampf kennt die Art des Verteidigers
+
+**Scope:** neu `src/units.ts` und `src/combat/species-wiring.test.ts`. Geändert `src/combat/rules.ts`, `resolve.ts`, `resolve-snapshot.ts`, `fixture-job.ts`, `balance-report.test.ts`, `combat.test.ts`, `combat-pin.test.ts` und `src/genome/stats.ts`.
+
+`resolveCombat` nahm bis hier nur die **Anzahl** belegter Plätze entgegen, und
+`fixture-job.ts` zählte die `monsterId` vorher zu dieser Anzahl zusammen. Damit
+war die Identität jedes Wesens auf dem Weg vom Snapshot bis `buildCombatUnits`
+verloren, und `monsterSpec` gab jedem Slot dieselben Werte aus
+`PROVISIONAL_RULES.monster` — fünf Slots waren fünf Kopien. Jetzt nimmt
+`resolveCombat` `defenders` entgegen, eine Liste mit `baseId` je Slot und `null`
+für leere Plätze, und die Werte kommen aus `monsterStats` der Art. Eine unbekannte
+Art bekommt den generischen Platzhalter statt einen Abbruch, damit ein veralteter
+Snapshot die Expedition nicht beendet.
+
+**Ein Importkreis musste aufgelöst werden.** Als `combat/rules.ts` anfing, über
+`genome` die Art zu holen, schloss sich `combat/rules` → `genome/stats` →
+`combat/rules`, und der erste Zugriff auf `PROVISIONAL_RULES.monster` warf
+`Cannot read properties of undefined`. Die Ausgangswerte der Einheiten liegen
+jetzt in `src/units.ts`, das keine der beiden Domänen besitzt; beide lesen
+`UNIT_BASE` direkt, damit es keine zweite Wahrheit gibt.
+
+**Der Golden-Pin ist gewandert, und der Grund steht nicht im Test.** `94ba1954`
+wurde zu `97907d56` (225 → 216 Ticks), `f85b31c0` zu `2759f7d8` (401 → **180**
+Ticks). Der zweite Lauf ist der Beleg für einen Größenordnungsfehler: fünf echte
+Monster mit je rund 41000 Gesundheit beenden den Kampf in 180 statt 401 Ticks
+gegen Helden mit je 60000. Vorher liefen dort fünf Kopien mit 40000. **Die Zahl,
+die das richtet, ist eine `[K]`-Größe und wird nicht hier erfunden** — siehe
+`docs/CONCEPT_REVIEW.md` Abschnitt 0b. `balance-report.test.ts` misst jetzt mit
+echten Arten und meldet 0 % Helden-Siegquote ab **einem** Monster, vorher 0 % ab drei.
+
+**Gates:** typecheck 0, 435 Tests in 63 Dateien, Shinon PASS.

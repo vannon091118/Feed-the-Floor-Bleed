@@ -6,33 +6,45 @@ export function hashStart(): number {
 }
 
 /**
- * **Der Zustand bleibt 32 Bit, der Beitrag nicht.**
+ * **Zwei Fehler hat diese Funktion schon getragen, und beide waren still.**
  *
- * Früher stand hier `let remaining = word >>> 0` und danach vier feste Bytes.
- * Das war kein Detail, das war eine Löfflichkeit: eine Zahl und dieselbe Zahl
- * plus 2³² lieferten denselben Beitrag, also denselben Hash. Wer einen
- * gespeicherten Log hatte, konnte jedes Feld um 2³² heben, und die Prüfung
- * blieb grün — ohne Sprung, ohne Version, ohne Spuren. `hash-kappung.test.ts`
- * pinnt den Fehler.
+ * Der erste war `let remaining = word >>> 0` und danach vier feste Bytes: eine
+ * Zahl und dieselbe Zahl plus 2³² lieferten denselben Beitrag, also denselben
+ * Hash. Da `specHash` und `eventHash` genau das mit `maxHp`, `attack` und `amount`
+ * tun, konnten zwei verschiedene Kämpfe denselben Fingerprint tragen. `hash-kappung.test.ts`
+ * verbietet das heute.
  *
- * Jetzt wandert die Byte-Zahl mit der Größe der Zahl, bis alle 53 sicheren
- * Bits im Spiel sind. Das Vorzeichen kommt als eigenes Byte voran, damit `-1`
- * nicht als „0 mit implicitem Minus" in dieselbe Bahn läuft wie `0`.
+ * Der zweite kam mit der Reparatur dazu und war schlimmer, weil er nicht still
+ * blieb: eine `do`-Schleife mit `while (remaining > 0)` terminiert bei `Infinity`
+ * nie, denn `Math.floor(Infinity / 256)` bleibt `Infinity`. Genau eine Zahl (`0`)
+ * braucht die `do`-Form, damit sie nicht leer bliebe; diese eine wird jetzt vorher
+ * entschieden, und die Schleife läuft `for`.
  *
- * Was das **nicht** macht: 32 Bit Zustand bleiben 32 Bit. Ein Geburtstagsangriff
- * auf den Fingerprint bleibt möglich und ist keine Eigenschaft dieser Änderung,
- * sondern der Festlegung des Wire-Formats auf acht Hex-Stellen. Beseitigt ist
- * die rechnerische Vorschrift, die Formerlaubung trug.
+ * **Was als Zahl gilt, ist jetzt eine Entscheidung und keine Nebenwirkung.**
+ * `Math.trunc` schnitt still nach unten: `1.9`, `1.1` und `1` lieferten denselben
+ * Beitrag, und `NaN`, `undefined` und `null` wie eine echte `0`. Eine Zahl, die
+ * keine ist, wirft jetzt, statt sich als etwas anderes auszugeben.
+ *
+ * Der Beitrag wandert über alle Bytes der Zahl, das Vorzeichen kommt als eigenes
+ * Byte voran. Was das **nicht** macht: Der Zustand bleibt 32 Bit. Ein
+ * Geburtstagsangriff auf den Fingerprint bleibt möglich und ist keine Eigenschaft
+ * dieser Änderung, sondern der Festlegung des Wire-Formats auf acht Hex-Stellen.
+ * Beseitigt ist die rechnerische Vorschrift, die Formerlaubung trug.
  */
 export function hashWord(hash: number, word: number): number {
+  if (!Number.isFinite(word))
+    throw new RangeError(`hashWord erwartet eine endliche Zahl, bekam ${word}`)
+  if (!Number.isInteger(word))
+    throw new RangeError(`hashWord erwartet eine ganze Zahl, bekam ${word}`)
   let current = Math.imul(hash >>> 0, HASH_PRIME) >>> 0
   current = Math.imul(current ^ (word < 0 ? 1 : 0), HASH_PRIME) >>> 0
-  let remaining = Math.abs(Math.trunc(word))
-  do {
+  if (word === 0) return current
+  let remaining = Math.abs(word)
+  for (;;) {
     current = Math.imul(current ^ (remaining % 256), HASH_PRIME) >>> 0
     remaining = Math.floor(remaining / 256)
-  } while (remaining > 0)
-  return current
+    if (remaining === 0) return current
+  }
 }
 
 export function hashWords(hash: number, words: readonly number[]): number {

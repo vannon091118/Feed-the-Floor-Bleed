@@ -376,7 +376,12 @@ diesem Messprotokoll im Kommentar**.
 oberhalb 2³² fällt auf denselben Wert zurück, und `combat/fingerprint.ts:17-25`
 hasht damit Zahlen aus dem Kampf. Ein `maxHp` von 60 000 und eines von
 4 295 027 296 erzeugen **denselben** Trail-Hash — zwei verschiedene Kämpfe, ein
-Hash. Der Server akzeptiert einen gefälschten Log, weil der Hash stimmt.
+Hash. **Ein Log mit veränderten Ereigniswerten fällt dabei durch die heutige
+Prüfung** — `replayCombat` rechnet die Ereignisse neu, statt die gelieferten zu
+lesen, und `verifyCombatLog` vergleicht nur `hash`, `stage`, `ticks` und
+`events.length`. Die Zahl im Spec (`maxHp`, `attack`) fällt dagegen in **jedem**
+Seed auf, weil sie in die Rechnung eingeht. Beides ist gemessen und in
+`determinismus-kette.test.ts` festgehalten.
 
 **BEHOBEN am 2026-09-30.** `hashWord` in `packages/sim-core/src/hash/fnv1a.ts`
 mischt jetzt über alle Bytes der Zahl und trägt das Vorzeichen als eigenes Byte;
@@ -398,10 +403,14 @@ Kollision jetzt. Der erste davon war vor der Behebung **grün**, weil er die
 Kollision erwartete — ein Beleg, der den Fehler festgeschrieben hätte.
 
 **Wie weit war der Weg bis zur Kollision?** `packages/sim-core/src/combat/state.ts`
-verglich das Kreuzprodukt `candidate.hp * best.maxHp`. Das bricht bei
-`maxHp ≈ 3 001 199` ganzen HP — Faktor 73 über einem heutigen Monster. Mit einem
-exponentiellen Faktor r = 1,2 ist Faktor 73 bei **Level 25** erreicht, bei r = 1,15
-bei 32. Auch diese Stelle ist mitbehoben.
+verglich das Kreuzprodukt `candidate.hp * best.maxHp`. Das bricht, sobald
+`hp · maxHp` 2⁵³ überschreitet — und **nicht** bei einem `maxHp` von 3 · 10⁶,
+wie eine frühere Fassung dieses Plans behauptete und daraus die Level-Angabe 25
+ableitete. Das ist `√(2⁵³ / 1000)`, und `3001199²` ist eine sichere Zahl; eine
+Suche über Millionen von Paare in dieser Größenordnung fand keine Divergenz.
+Der Fehler braucht `maxHp` nahe **2⁵²**, weil 2⁵³+1 sonst auf denselben Float
+fällt wie 2⁵³ — das sind `2⁵² / 3001199 ≈ 1,5 · 10⁹`, also neun Größenordnungen.
+Auch diese Stelle ist mitbehoben.
 
 **Was das für die Level-Festlegung heißt — und was jetzt noch offen ist.** „Kein
 Cap" ist inhaltlich haltbar, ein Cap nimmt dem Wächter genau das, was ihn zum

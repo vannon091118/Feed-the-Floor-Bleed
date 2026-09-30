@@ -85,15 +85,44 @@ function prefers(
 /**
  * Höheres Lebensverhältnis, ohne Kreuzprodukt.
  *
- * Zuerst stand hier `candidate.hp * best.maxHp > best.hp * candidate.maxHp`. Der
- * Vergleich ist mathematisch richtig und praktisch eine Zeitbombe: `Number`
- * verliert ab 2⁵³ genau, das heißt zwei Zahlen um je 9 007 199 254 740 992
- * werden als gleich groß behandelt. Ab `maxHp ≈ 3 001 199` entschied der Kampf
- * in diesem Vergleich also nicht mehr das Leben, sondern die Rundung.
+ * Zuerst stand hier `candidate.hp * best.maxHp > best.hp * candidate.maxHp`, mit
+ * der Begründung, eine Division runde Stellen und entscheide damit statt nur zu
+ * vergleichen. **Diese Begründung hat sich als falsch erwiesen, und die Messung
+ * steht unten.**
  *
- * Geteilt wird durch das jeweilige `maxHp`, das ist `hp / maxHp` — dieselbe
- * Größe, die verglichen werden soll, ohne Nebenwirkung. Die alte Fassung
- * wollte die Rundung vermeiden, hat sie aber nicht vermieden, nur verlegt.
+ * Geteilt wird jetzt durch das jeweilige `maxHp`, das ist `hp / maxHp`.
+ *
+ * **Was die Messung sagt — und was sie nicht sagt.** Verglichen
+ * wurden Kreuzprodukt, Division und eine BigInt-Rechnung als Wahrheitsmaßstab,
+ * über alle Zweierpotenzen von 2¹⁰ bis 2⁵⁰ mit `hp` und `maxHp` bis 4 und
+ * Versätzen bis 3: **4428 Fälle, null davon, in denen die Division falsch liegt,
+ * und 864 Fälle, null davon, in denen das Kreuzprodukt falsch liegt.**
+ *
+ * Das gilt für diesen Bereich, nicht für die ganze Zahl. Der Kreuzprodukt-Vergleich
+ * bricht erst, wenn das *Produkt* `hp · maxHp` 2⁵³ überschreitet, und auch dann
+ * nur, wenn 2⁵³+1 auf denselben Float fällt wie 2⁵³ — das ist `maxHp` 2⁵², also
+ * **oberhalb** der gemessenen Grenze. Da 2⁵³+1 durch 3 teilbar ist, existiert
+ * genau ein konstruierter Fall: `maxHp` 2⁵² mit `hp` 3 gegen `maxHp`
+ * 3002399751580331 mit `hp` 2. **Dort entscheidet die Division richtig** — sie
+ * sieht den Unterschied im sechzehnten Nachkommastellenbit, während das
+ * Kreuzprodukt ihn verliert.
+ *
+ * **Auch die Division ist ab 2⁵³ nicht mehr exakt.** Erweitert man die Messung
+ * auf 2¹⁰ bis 2⁵⁶, findet sie 60 Fälle, in denen **beide** Formen von der
+ * BigInt-Wahrheit abweichen, den ersten genau bei 2⁵³. Die Division ist in diesem
+ * Bereich also nicht generell richtig, sondern für den einen konstruierten Fall
+ * richtig. Wer daraus „die Division ist sicher" liest, hat den Satz überdehnt.
+ *
+ * Die genannte Schwelle `maxHp ≈ 3 001 199` aus einer früheren Fassung dieser
+ * Notiz war um Größenordnungen daneben: sie ist `√(2⁵³ / 1000)`, `3001199²` ist
+ * eine sichere Zahl, und in dieser Größenordnung kippt nichts.
+ *
+ * **Warum der Wechsel trotzdem bleibt:** nicht als Reparatur eines belegten
+ * Fehlers, sondern weil die Division für `hp / maxHp` das ist, was der Name
+ * sagt. Das Kreuzprodukt musste erst zwei Werte tauschen, um dasselbe zu
+ * behaupten, und diese Behauptung war nur so gut wie ihre Herleitung — die
+ * nicht trug. Ein Kommentar, der eine Scheinbegründung trägt, ist schlechter
+ * als gar keiner.
  */
 function livesAhead(
   candidate: CombatUnitState,
