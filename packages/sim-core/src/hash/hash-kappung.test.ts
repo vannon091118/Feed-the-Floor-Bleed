@@ -2,24 +2,25 @@ import { describe, expect, it } from 'vitest'
 import { hashStart, hashWord } from './fnv1a'
 
 /**
- * Zwei verschiedene Zahlen, ein Hash.
+ * Zwei verschiedene Zahlen dürfen sich nicht denselben Hash teilen.
  *
- * `hashWord` schneidet mit `>>> 0` auf 32 Bit. Alles oberhalb 2³² fällt auf
- * denselben Wert zurück — und `fingerprint.ts` hasht damit Zahlen aus dem Kampf.
- * Zwei verschiedene Kämpfe können so denselben Trail-Hash tragen, und der Server
- * akzeptiert einen gefälschten Log, weil der Hash stimmt.
+ * Bis zum 2026-09-30 stand in `hashWord` ein `>>> 0` und danach vier feste
+ * Bytes. Eine Zahl und dieselbe Zahl plus 2³² lieferten damit denselben
+ * Beitrag, also denselben Hash — und `fingerprint.ts` hasht damit Kampfzahlen.
+ * Zwei verschiedene Kämpfe konnten denselben Trail-Hash tragen, und der Server
+ * akzeptierte einen gefälschten Log, weil der Hash stimmte.
  *
- * Dieser Test ist der Beweis, nicht der Bericht über einen Beweis: Er fällt bei
- * einem ungekürzten Hash nicht aus, sondern zeigt die Kollision direkt.
+ * Dieser Test stand anfangs **umgekehrt**: Er erwartete die Kollision und war
+ * deshalb grün, solange der Fehler da war. Seit dem Fix verbietet er sie. Der
+ * erste Test fällt wieder, sobald jemand den Beitrag auf 32 Bit zurückkappt —
+ * nur jetzt ist das ein Fehler und kein Beweis.
  */
-describe('32-Bit-Kappung im Trail-Hash', () => {
-  it('bildet eine Zahl und ihre Entsprechung modulo 2^32 auf denselben Hash ab', () => {
+describe('Beitrag einer Zahl zum Trail-Hash', () => {
+  it('unterscheidet eine Zahl von ihrer Entsprechung modulo 2^32', () => {
     const klein = 60_000
     const gross = klein + 2 ** 32
-    expect(gross).toBeGreaterThan(klein)
     expect(gross).not.toBe(klein)
-    // Die Zahlen sind verschieden — der Hash ist es nicht.
-    expect(hashWord(hashStart(), gross)).toBe(hashWord(hashStart(), klein))
+    expect(hashWord(hashStart(), gross)).not.toBe(hashWord(hashStart(), klein))
   })
 
   it('unterscheidet zwei Werte unterhalb der Kappung', () => {
@@ -27,5 +28,18 @@ describe('32-Bit-Kappung im Trail-Hash', () => {
     expect(hashWord(hashStart(), 60_000)).not.toBe(
       hashWord(hashStart(), 61_000),
     )
+  })
+
+  it('unterscheidet Zahlen, die sich nur im Vorzeichen unterscheiden', () => {
+    // Ohne das Vorzeichenbyte liefen -1 und 0 auf derselben Bahn.
+    expect(hashWord(hashStart(), -1)).not.toBe(hashWord(hashStart(), 0))
+    expect(hashWord(hashStart(), -1)).not.toBe(hashWord(hashStart(), 1))
+  })
+
+  it('trägt die oberen Bits einer Zahl statt nur vier Bytes', () => {
+    // Zwei Zahlen, die sich erst weit oben im Wertbereich trennen.
+    const tief = 2 ** 45
+    const hoch = 2 ** 45 + 1
+    expect(hashWord(hashStart(), tief)).not.toBe(hashWord(hashStart(), hoch))
   })
 })

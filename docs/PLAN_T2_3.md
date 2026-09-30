@@ -36,7 +36,7 @@ Aus dem Chat vom 2026-09-30, hier festgehalten, weil sie nirgends im Repo stande
 | **Bilanz je Einheit** | `summary.ts` führt `damageByHero` und `damageByMonster`, getrennt nach Seite, sortiert nach `unitId` | ✅ **gebaut** (Slice A) |
 | Größenordnung des Schadens | 20 Seeds, 7 Einheiten, **Ø 63 540** je Einheit und Lauf, **keine Einheit ohne Schaden** | ✅ **gemessen** (Abschnitt 5) |
 | Seite mit dem größeren Anteil | Helden 5 408 120 (60,8 %) gegen Monster 3 490 637 (39,2 %) | ✅ **gemessen** (Abschnitt 5) |
-| **Trail-Hash auf 32 Bit** | `hash/fnv1a.ts:8` `>>> 0`, `combat/fingerprint.ts:17-25` hasht Kampfzahlen | ❌ **Blocker** (Abschnitt 5a) |
+| Trail-Hash auf 32 Bit | `hash/fnv1a.ts:8` `>>> 0` war Formerlaubnis | ✅ **behoben**, `sim_version 0.0.10` |
 | Boss-Raum als Zone | `grid/zones.ts:4` kennt `'boss-chamber'`, vergibt in `:73/75` | ✅ erkannt, **niemand liest es** |
 | Boss als Platzhalter | `combat/rules.ts:196` `units.push(bossSpec(lastIndex))` | ✅ eine Einheit in derselben Liste |
 | Generation am Slot | `contracts/src/raid-snapshot.ts:29` `generation` (min 1, optional) | ✅ vorhanden |
@@ -368,7 +368,7 @@ nicht entschieden** — die Kurvenform aus Slice C bestimmt sie, und die ist nic
 gebaut. Die Zahl gehört an ihre Quelle, `sim-core/src/genome/balance.ts`, **mit
 diesem Messprotokoll im Kommentar**.
 
-## 5a. Der Blocker, den die zweite Messung fand: der Trail-Hash kappt auf 32 Bit
+## 5a. Der Blocker, den die zweite Messung fand — und was die Behebung offen lässt
 
 **Das ist kein Zahlenthema, das ist eine Löfflichkeit im Replay.**
 
@@ -378,26 +378,43 @@ hasht damit Zahlen aus dem Kampf. Ein `maxHp` von 60 000 und eines von
 4 295 027 296 erzeugen **denselben** Trail-Hash — zwei verschiedene Kämpfe, ein
 Hash. Der Server akzeptiert einen gefälschten Log, weil der Hash stimmt.
 
-Der Beweis steht in `packages/sim-core/src/hash/hash-kappung.test.ts`: Zwei Tests,
-deren erster fällt, sobald jemand den Schnitt entfernt.
+**BEHOBEN am 2026-09-30.** `hashWord` in `packages/sim-core/src/hash/fnv1a.ts`
+mischt jetzt über alle Bytes der Zahl und trägt das Vorzeichen als eigenes Byte;
+der Vergleich in `packages/sim-core/src/combat/state.ts` teilt durch das jeweilige
+`maxHp` statt zu kreuzen. `sim_version 0.0.9 → 0.0.10`, `CONTRACT_VERSION` bleibt 9,
+weil kein Feld entsteht oder verschwindet. Der Beleg ist der Golden Pin: **nur die
+Hash-Werte wanderten** von `261cd39a` auf `092932b7` und von `ee21afc5` auf
+`a49899d7`, während 196 Ticks, 396 Ereignisse, 127 Trail-Einträge und beide
+Ausgänge zeichengleich blieben.
 
-**Wie weit ist der Weg bis zur Kollision?** `packages/sim-core/src/combat/state.ts:94`
-und `:102` vergleichen das Kreuzprodukt `candidate.hp * best.maxHp`. Das bricht bei
+**Was die Behebung offen lässt, gehört daneben:** Der Hashzustand bleibt 32 Bit und
+das Wire-Format bei acht Hex-Stellen. Ein Geburtstagsangriff auf den Fingerprint
+bleibt damit möglich; beseitigt ist die rechnerische Vorschrift, nicht die Wahl der
+Länge. Ob daraus später 16 Hex-Stellen werden, ist eine eigene Entscheidung mit
+eigenem Contract-Sprung.
+
+Die vier Tests in `packages/sim-core/src/hash/hash-kappung.test.ts` verbieten die
+Kollision jetzt. Der erste davon war vor der Behebung **grün**, weil er die
+Kollision erwartete — ein Beleg, der den Fehler festgeschrieben hätte.
+
+**Wie weit war der Weg bis zur Kollision?** `packages/sim-core/src/combat/state.ts`
+verglich das Kreuzprodukt `candidate.hp * best.maxHp`. Das bricht bei
 `maxHp ≈ 3 001 199` ganzen HP — Faktor 73 über einem heutigen Monster. Mit einem
 exponentiellen Faktor r = 1,2 ist Faktor 73 bei **Level 25** erreicht, bei r = 1,15
-bei 32.
+bei 32. Auch diese Stelle ist mitbehoben.
 
-**Was das für die Level-Festlegung heißt.** „Kein Cap" ist inhaltlich haltbar — ein
-Cap nimmt dem Wächter genau das, was ihn zum Wächter macht. Aber es ist **keine
-Obergrenze auf das Level zu bauen, sondern eine Grenze darauf, was ein Level einer
-Zahl antun darf.** Diese Grenze existiert im Datenmodell nicht. Wer sie einführt,
-baut sie an den Feldern ein, die `specHash` und das Kreuzprodukt lesen — nicht am
-Level-Feld. **Das Level darf dieselben Felder nicht skalieren, die in den Hash
-gehen.**
+**Was das für die Level-Festlegung heißt — und was jetzt noch offen ist.** „Kein
+Cap" ist inhaltlich haltbar, ein Cap nimmt dem Wächter genau das, was ihn zum
+Wächter macht. Zu bauen ist aber **keine Obergrenze auf das Level, sondern eine
+Grenze darauf, was ein Level einer Zahl antun darf**, und die existiert im
+Datenmodell nicht.
 
-**Die Reihenfolge ändert sich damit:** Der 32-Bit-Schnitt kommt **vor** Slice C. Ein
-Level ohne Kappung auf einem Hash, der auf 32 Bit kollidiert, ist nicht „später
-sicher", sondern später wertlos.
+Die Behebung von heute nimmt Druck aus dieser Frage, aber sie beantwortet sie
+nicht: Sie hat die rechnerische Vorschrift entfernt, die ein Level gefährlich
+machte, nicht das Level selbst. Wie weit ein Level eine Zahl skalieren darf, ist
+weiterhin `[N]` oder `[K]` offen und gehört an den Feldern entschieden, die
+`specHash` liest — nicht am Level-Feld. **Das Level darf dieselben Felder nicht
+skalieren, die in den Hash gehen.**
 
 
 ## 6. Reihenfolge und Abhängigkeiten
@@ -406,11 +423,11 @@ sicher", sondern später wertlos.
 A  Schadensbilanz pro Urheber     ─┐   ✅ gebaut (1a2caf2)
 B  Erfahrung + Material          ─┴─→ braucht A, Zahl aus Abschnitt 5
 
-A0 Trail-Hash ohne 32-Bit-Schnitt  ────→ kommt VOR C; ohne ihn bricht die
-                                    Level-Kurve auf einem Hash, der
-                                    kollidieren kann
+A0 Trail-Hash ohne 32-Bit-Schnitt  ────→ ✅ BEHOBEN, sim_version 0.0.10;
+                                    nur die Hash-Werte wandern
+C  Level-Kurven + HP-Skalierung   ────→ braucht jetzt nur noch B; Level
 
-C  Level-Kurven + HP-Skalierung   ────→ braucht B und A0; Level kommt in den
+C  Level-Kurven + HP-Skalierung   ────→ braucht jetzt nur noch B; Level
                                     eingefrorenen Stand (4.2)
 
 D  Statuspunkte                   ────→ eigener Contract-Sprung, offen (4.1)
@@ -423,9 +440,9 @@ E  Bosskampf getrennt             ────→ eigener Contract-Sprung, unabh
 **A ist gebaut.** B ist der nächste und braucht nur die Freigabe der Zahl aus
 Abschnitt 5 — kein weiterer Konflikt.
 
-**A0 ist der Blocker aus Abschnitt 5a und gehört vor C, nicht danach.** Eine
-Level-Kurve auf einem 32-Bit-Hash ist nicht „später in Ordnung": sie ist wertlos,
-sobald zwei verschiedene Kämpfe denselben Fingerprint tragen.
+**A0 ist behoben.** Der 32-Bit-Schnitt ist weg und das Kreuzprodukt in
+`combat/state.ts` auch; `sim_version` 0.0.9→0.0.10. C hängt damit nur
+noch an B und an der Cap-Frage aus 4.5.
 
 D und E brauchen jeweils einen Contract-Sprung, und **C, D und die Level-Identität
 aus 4.2 teilen sich denselben**: ein Level am `monsterSlot` plus ein Statuspunkt am

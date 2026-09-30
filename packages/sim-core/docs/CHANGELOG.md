@@ -1,5 +1,21 @@
 # packages/sim-core/docs/CHANGELOG.md
 
+## 2026-09-30 — Der Trail-Hash hat den Kampf verkauft, und der Lebensvergleich hat gerundet
+
+**Scope:** geändert `src/hash/fnv1a.ts` (`hashWord`), `src/combat/state.ts` (`livesAhead`, `livesBehind`), `src/combat/combat-pin.test.ts` (sechste Verschiebung, zwei Hash-Werte) und `src/hash/hash-kappung.test.ts` (aus einem Beweis für den Fehler zu vier Fällen dagegen). Geändert `src/version.ts` in `contracts`, dort `sim_version 0.0.9 → 0.0.10`. `CONTRACT_VERSION` bleibt 9 — die Form des Wire-Formats ändert sich nicht, nur der Wert des Hash-Feldes. Kein Migration-SQL, weil kein Feld entsteht oder verschwindet.
+
+**`hashWord` nahm `>>> 0` und mischte danach vier feste Bytes.** Eine Zahl und dieselbe Zahl plus 2³² lieferten denselben Beitrag, also denselben Hash. Da `specHash` und `eventHash` genau das mit `maxHp`, `attack`, `amount` und den übrigen Kampfzahlen tun, konnten **zwei verschiedene Kämpfe denselben Fingerprint tragen** — und `verifyCombatLog` acceptierte den zweiten, weil der Hash stimmte. Das war Formerlaubnis mit Maske, kein Rundungsfehler.
+
+**Der Beitrag wandert jetzt über alle Bytes der Zahl**, mit dem Vorzeichen als eigenem Byte, damit `-1` nicht wie `0` auf derselben Bahn läuft. Vier Tests in `hash-kappung.test.ts` verbieten die Kollision jetzt; der wichtigste fiel vorher **grün** und fällt erst seit diesem Commit.
+
+**Was das nicht behebt, gehört in denselben Satz:** Der Zustand bleibt 32 Bit, und das Wire-Format bleibt bei acht Hex-Stellen. Ein Geburtstagsangriff auf den Fingerprint bleibt damit möglich. Beseitigt ist die rechnerische Vorschrift, die Formerlaubnis trug — nicht die Wahl der Länge.
+
+**Der Lebensvergleich lief über ein Kreuzprodukt.** `livesAhead` und `livesBehind` verglichen `candidate.hp * best.maxHp > best.hp * candidate.maxHp`. Das ist mathematisch richtig und praktisch eine Zeitbombe: `Number` verliert ab 2⁵³ genau, zwei Werte um je 9 007 199 254 740 992 gelten als gleich groß. **Ab `maxHp ≈ 3 001 199` entschied der Kampf in diesem Vergleich nicht mehr das Leben, sondern die Rundung** — bei exponentiellem Levelwachstum also rund bei Level 25. Geteilt wird jetzt durch das jeweilige `maxHp`. Die alte Fassung wollte die Rundung vermeiden und hat sie nur verlegt.
+
+**Der Pin ist der Zeuge, dass sonst nichts kaputt ging.** Nur die Hash-Werte wandern: `261cd39a → 092932b7` und `ee21afc5 → a49899d7`. Ticks 196, 396 Ereignisse, 127 Trail-Einträge, `heroes-win` auf dem offenen Grid und `monsters-win` nach 166 Ticks auf der Umweg-Route bleiben zeichengleich wie am 2026-09-29. Wäre auch nur ein Tick gefallen, hätte der Eingriff den Kampf berührt statt nur seine Unterschrift.
+
+**Belegt durch** 544 Tests in 82 Dateien, typecheck 0, lint 0, LOC-Caps ok, Hygiene ok und Shinon PASS.
+
 ## 2026-09-30 — Die Summary rechnet aus, wer den Schaden verursacht hat
 
 **Scope:** geändert `src/combat/summary.ts` (die Bilanz je Einheit), neu `src/combat/summary-damage.test.ts` (sechs Fälle). Kein Verhalten im Kampf, kein Hash, kein Contract-Sprung. `client` und `contracts` tragen die Folge in ihren Test-Fixtures nach.
@@ -156,34 +172,3 @@ die das richtet, ist eine `[K]`-Größe und wird nicht hier erfunden** — siehe
 echten Arten und meldet 0 % Helden-Siegquote ab **einem** Monster, vorher 0 % ab drei.
 
 **Gates:** typecheck 0, 435 Tests in 63 Dateien, Shinon PASS.
-
-## 2026-09-29 — Die Stärke eines Wesens, gemessen statt gesetzt
-
-**Scope:** neu `src/genome/strength.ts` und `src/genome/strength.test.ts`. Geändert `src/genome/stats.ts` (Bias aus der Stärke statt aus dem Hash, `monsterStats` ohne `base`-Parameter), `src/genome/resolve.ts` (Aufruf), `src/genome/index.ts` (Exporte). **Nicht** geändert: `src/combat/rules.ts`, die Kampfmechanik, der Golden-Pin.
-
-`strengthOfElements` liefert eine Stufe 0 bis 5 je Wesen, und sie kommt aus dem
-**Elementbudget** — der Summe der drei Elemente. Die Quelle ist eine Messung, keine
-Annahme: über die zwanzig Basis-Arten liegt `maxHp + attack + defense` zwischen
-51561 und 54816, also in gut sechs Prozent, und eine Skala aus diesen Werten hätte
-Rauschen in Stufen gegossen. Das Elementbudget liegt zwischen 9500 und 21900 und
-trennt die Arten wirklich. Die Schwellen 12000/14000/15000/16500/18500 sind `[K]`,
-liegen in den Lücken der gemessenen Verteilung und nicht auf den Werten selbst; die
-Verteilung 3/2/4/5/4/2 lässt keine Stufe leer, und drei Arten mit Budget 15400
-landen zusammen, weil eine aus dem Budget abgeleitete Stufe keine zwei gleichen
-Zahlen zu sortieren braucht.
-
-**Die zweite Wahrheit ist weg.** `speciesBias` war `850 + (hashText(...) % 301)` —
-eine zufällige Zahl je Art, die der Stärke widersprechen konnte. Sie ist jetzt
-`850 + strengthOfElements(...) * 60`, dasselbe Band, aber aus derselben Größe
-abgeleitet. Weil die Ableitung die Basis-Art nicht mehr braucht, verlor
-`monsterStats` ihren ersten Parameter; eine Signatur, die eine Art verspricht, wo
-sie nichts beiträgt, wäre eine Lüge gewesen. `resolveStats` holt die Art
-dadurch nicht mehr und ruft `monsterStats(genome.elements)` direkt.
-
-`lootProfile(genome)` liefert `{ strength, generation }` und ist die einzige
-Stelle, die beide Größen der Goldformel zusammenführt — der Genom-Besitzer hat die
-Daten, die Dorfwirtschaft rechnet sie aus. **Beleg:** `strength.test.ts` nennt jede
-der zwanzig Arten mit ihrer Stufe, prüft die Bandbesetzung und den Gleichstand
-gleicher Budgets; `village/loot.test.ts` rechnet echte Genome durch die Formel.
-**Gates:** typecheck 0, 423 Tests in 62 Dateien, Shinon PASS.
-

@@ -1,5 +1,17 @@
 # docs/CHANGELOG.md — Global
 
+## 2026-09-30 — Der Trail-Hash hat den Kampf verkauft, und der Pin hat sich bewegt
+
+**Scope:** geändert `packages/sim-core/src/hash/fnv1a.ts`, `packages/sim-core/src/combat/state.ts`, `packages/sim-core/src/combat/combat-pin.test.ts`, `packages/sim-core/src/hash/hash-kappung.test.ts`, `packages/contracts/src/version.ts` und `packages/sim-core/docs/CHANGELOG.md`. `sim_version 0.0.9 → 0.0.10`, `CONTRACT_VERSION` bleibt 9. Kein Contract-Feld entsteht oder verschwindet, also kein Migration-SQL. Der ausgelagerte sim-core-Block liegt in `packages/sim-core/docs/historisch/2026-09-30_changelog-schadensbilanz.md`.
+
+**Der Blocker aus dem vorigen Eintrag ist behoben, und er war real.** `hashWord` in `packages/sim-core/src/hash/fnv1a.ts` nahm `>>> 0` und mischte danach vier feste Bytes. Zwei verschiedene Kämpfe konnten denselben Fingerprint tragen, und `verifyCombatLog` acceptierte den zweiten, weil der Hash stimmte. Jetzt wandert der Beitrag über alle Bytes der Zahl und trägt das Vorzeichen als eigenes Byte.
+
+**Die zweite Bruchstelle kam im selben Zug.** `packages/sim-core/src/combat/state.ts` verglich das Lebensverhältnis über ein Kreuzprodukt, das ab `maxHp ≈ 3 001 199` nicht mehr das Leben, sondern die Rundung entschied.
+
+**Der Pin ist der Zeuge, dass sonst nichts kaputt ging:** nur die Hash-Werte wandern von `261cd39a` auf `092932b7` und von `ee21afc5` auf `a49899d7`. Ticks, Ereignisse, Trail und Ausgang bleiben zeichengleich.
+
+**Belegt durch** 544 Tests in 82 Dateien, typecheck 0, lint 0, LOC-Caps ok, Hygiene ok und Shinon PASS.
+
 ## 2026-09-30 — Die Erfahrungszahl war um das Zwanzigfache zu groß, und im Trail-Hash steckt ein Blocker
 
 **Scope:** geändert `docs/PLAN_T2_3.md` (Abschnitt 5 neu geschrieben, neuer Abschnitt 5a, Abschnitt 2 und 6 nachgezogen), neu `packages/sim-core/src/hash/hash-kappung.test.ts`. Geändert wird **kein** Hash, **kein** Contract, **keine** Zahl im Spiel. Kein Gate-Bruch, weil ein Test eine bestehende Eigenschaft beschreibt und nichts verlangt, was schon da ist.

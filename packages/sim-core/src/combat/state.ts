@@ -83,15 +83,23 @@ function prefers(
 }
 
 /**
- * Höheres Lebensverhältnis. Der Vergleich läuft über Kreuzprodukt statt über
- * Division: `hp / maxHp` würde Stellen runden und damit entscheiden, statt nur
- * die beiden Werte zu vergleichen.
+ * Höheres Lebensverhältnis, ohne Kreuzprodukt.
+ *
+ * Zuerst stand hier `candidate.hp * best.maxHp > best.hp * candidate.maxHp`. Der
+ * Vergleich ist mathematisch richtig und praktisch eine Zeitbombe: `Number`
+ * verliert ab 2⁵³ genau, das heißt zwei Zahlen um je 9 007 199 254 740 992
+ * werden als gleich groß behandelt. Ab `maxHp ≈ 3 001 199` entschied der Kampf
+ * in diesem Vergleich also nicht mehr das Leben, sondern die Rundung.
+ *
+ * Geteilt wird durch das jeweilige `maxHp`, das ist `hp / maxHp` — dieselbe
+ * Größe, die verglichen werden soll, ohne Nebenwirkung. Die alte Fassung
+ * wollte die Rundung vermeiden, hat sie aber nicht vermieden, nur verlegt.
  */
 function livesAhead(
   candidate: CombatUnitState,
   best: CombatUnitState,
 ): boolean {
-  return candidate.hp * best.maxHp > best.hp * candidate.maxHp
+  return candidate.hp / candidate.maxHp > best.hp / best.maxHp
 }
 
 /** Niedrigeres Lebensverhältnis — derselbe Vergleich, nur umgekehrt. */
@@ -99,7 +107,7 @@ function livesBehind(
   candidate: CombatUnitState,
   best: CombatUnitState,
 ): boolean {
-  return candidate.hp * best.maxHp < best.hp * candidate.maxHp
+  return candidate.hp / candidate.maxHp < best.hp / best.maxHp
 }
 
 /** Abstand auf der Route, in Schritten. */

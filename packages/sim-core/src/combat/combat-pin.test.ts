@@ -106,6 +106,32 @@ import { resolveCombat } from './index'
  * weiter, und genau deshalb muss der alte Stand als fremd erkannt werden.
  * `CONTRACT_VERSION` bleibt 9 und es gibt keine Migration — die Form des
  * Wire-Formats ändert sich nicht, nur eine Zahl der Simulation.
+ *
+ * **Sechste Verschiebung vom 2026-09-30 — der Hash hat den Kampf verkauft, und
+ * dieser Lauf ist der Beleg dafür, dass sonst nichts kaputt ging.** `hashWord`
+ * in `hash/fnv1a.ts` nahm `word >>> 0` und mischte danach vier feste Bytes.
+ * Eine Zahl und dieselbe Zahl plus 2³² lieferten damit denselben Beitrag. Da
+ * `specHash` und `eventHash` genau das mit `maxHp`, `attack`, `amount` und den
+ * übrigen Kampfzahlen tun, konnten zwei verschiedene Kämpfe denselben
+ * Fingerprint tragen — und `verifyCombatLog` acceptierte den zweiten, weil der
+ * Hash stimmte. Das war Formerlaubnis, kein Rundungsfehler.
+ *
+ * Der Beitrag wandert jetzt über alle Bytes der Zahl und trägt das Vorzeichen
+ * als eigenes Byte, damit `-1` nicht wie `0` auf derselben Bahn läuft. Der
+ * Zustand bleibt 32 Bit; eine Geburtstagskollision bleibt möglich und ist keine
+ * Eigenschaft dieser Änderung, sondern der Festlegung des Wire-Formats auf acht
+ * Hex-Stellen. Beseitigt ist die rechnerische Vorschrift.
+ *
+ * **Warum dieser Lauf der richtige Zeuge ist:** Nur die Hash-Werte wandern.
+ * Ticks 196, 396 Ereignisse, 127 Trail-Einträge, `heroes-win` auf dem offenen
+ * Grid und `monsters-win` nach 166 Ticks auf der Umweg-Route bleiben zeichengleich
+ * wie am 2026-09-29. Wäre hier auch nur ein Tick gefallen, hätte der Eingriff
+ * den Kampf berührt statt nur seine Unterschrift. Genau das trennt die beiden
+ * Fälle, und deshalb stehen hier fünf Zahlen und nicht nur ein Hex-Wert.
+ *
+ * `sim_version 0.0.9→0.0.10`: gespeicherte Läufe mit altem Hash gelten seither
+ * als fremd. `CONTRACT_VERSION` bleibt 9 — die Form des Wire-Formats ändert
+ * sich nicht, nur der Wert des Hash-Feldes.
  */
 function observed(
   grid: ReturnType<typeof createDungeonGrid>,
@@ -135,7 +161,7 @@ function snakeGrid() {
 describe('Golden-Pin des Kampf-Hashes', () => {
   it('pinnt den Lauf auf dem offenen Fixture-Grid', () => {
     expect(observed(createDungeonGrid(), 2)).toEqual({
-      hash: '261cd39a',
+      hash: '092932b7',
       stage: 'heroes-win',
       ticks: 196,
       events: 396,
@@ -145,7 +171,7 @@ describe('Golden-Pin des Kampf-Hashes', () => {
 
   it('pinnt den Lauf auf der Umweg-Route mit voller Belegung', () => {
     expect(observed(snakeGrid(), 5)).toEqual({
-      hash: 'ee21afc5',
+      hash: 'a49899d7',
       stage: 'monsters-win',
       ticks: 166,
       events: 673,
