@@ -29,7 +29,8 @@
 | `docs/ENTWICKLERMAP.md` | **Entwicklermap:** rekursiv aus der Roadmap abgeleiteter Baum aus Track, Slice und Pruefpunkt mit aktueller Position, Legende, Freigabe-Sperren und Ort jeder Zahl |
 | `docs/LORE.md` | **Die Spielwelt in ein paar Saetzen:** Boden, Wächter und Fremder, der Boss als einziges Wesen ohne Genetik, Moral, Zucht — erklärt die vorhandene Mechanik, erfindet keine |
 | `docs/assets/banner-zeitachse.svg` | **Versionstimeline als Abtauchung:** 26 Sprossen an fuenf Etagen, von 0.0.1 auf der Oberflaeche bis 0.0.90 als JETZT, mit den neun Contract- und Sim-Spruengen an der Achse; die offene Etage 0.1.0 als gestricheltes Ende. Abgeleitet aus `git log -- VERSION` und `docs/ENTWICKLERMAP.md`; jede Sprosse steht belegbar im Commit-Log, keine ist erfunden |
-| `docs/CONCEPT_REVIEW.md` | Kanonische ODT-Festlegungen (`[N]`/`[K]`/`[O]`) zu Sync, Snapshot, Matching, Beute und Pathfinding |
+| `docs/CONCEPT_REVIEW.md` | Kanonische ODT-Festlegungen (`[N]`/`[N-del]`/`[K]`/`[O]`) zu Sync, Snapshot, Matching, Beute und Pathfinding |
+| `docs/ENTSCHEIDUNGEN.md` | Die siebzehn delegiert entschiedenen Fragen D1–D17 mit Kennzeichnung `[N-del]`, Messwächter und Fundstelle im Konzeptreview |
 | `docs/CONCEPT_REVIEW_SECURITY.md` | Abgegrenzte manuelle Invalid-Request-/Account-Prüfmarke |
 | `docs/ROADMAP.md` | Aktives Fenster der Produkt- und Technik-Roadmap: offene Blöcke, offene Punkte mit Besitzer, Prioritätsregel; seit dem 2026-09-29 ist der bisherige T2-Track der aktive T1-Track |
 | `docs/VISUAL_GRUNDSATZ.md` | Freigegebene E1–E6-Visual-/Asset-Grundsätze, Expeditionsregeln, Balancefreigaben und serielle Sprintfolge |

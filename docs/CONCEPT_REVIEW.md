@@ -3,13 +3,13 @@
 > Einzige kanonische Quelle für allgemeine Spiel-, Sync-, Snapshot-, Matching-, Beute- und Pathfinding-Regeln.
 > Sicherheits-/Prüfmarkensemantik: `docs/CONCEPT_REVIEW_SECURITY.md`.
 > Quellen: ODT `Unbenannt_2` (Gemini-Export plus eingeschobene Nutzerkorrekturen) und die drei Festlegungen der Session vom 2026-09-25.
-> Status: `[N]` = Nutzerfestlegung (im ODT belegt oder in dieser Session bestätigt). `[K]` = KI-/Assistentenvorschlag, nicht abgenickt. `[O]` = offen.
+> Status: `[N]` = Nutzerfestlegung (im ODT belegt oder in dieser Session bestätigt). `[N-del]` = delegiert entschieden; die Fragen und Antworten stehen in `docs/ENTSCHEIDUNGEN.md`. `[K]` = KI-/Assistentenvorschlag, nicht abgenickt. `[O]` = offen.
 > Nur `[N]` ist fix. Technische Umsetzung, Stack und Detailzahlen sind niemals Spielregeln.
 
 ## 0. In dieser Session bestätigt
 
 - Grid: 64×64 Logikzellen, sichtbar 16×16, also 4×4 Logikzellen pro sichtbarem Tile. Die ODT-Formulierung „4 Logiken pro sichtbarem Tile“ ist damit **SUPERSEDIERT**. `[N]`
-- Beute: Phantom-Kopie. Der Angreifer erhält System-Loot, der Verteidiger verliert keine Live-Ressourcen. `[N]`
+- Beute: Phantom-Kopie; der Verteidiger verliert keine Live-Ressourcen. `[N]`
 - Doku-Regel: KI-Vorschläge dürfen nicht mehr als bestätigte Regeln geführt werden. `[N]`
 
 ## 0a. Visual- und Expeditionsentscheidungen vom 2026-09-27
@@ -121,7 +121,7 @@ Die vollständige Detail- und Sprintquelle ist `docs/VISUAL_GRUNDSATZ.md`; die f
 - ±10-%-MMR-Band, 2-Sekunden-Query, Ghost-Seed = MMR + UTC-Tag, 15-Minuten-Job-TTL.
 - Genau ein offener Angriffs-Slot, D1 als Job-Store, Queues zum Headless-Worker.
 - Reihenfolge „erst eigener Freeze, dann Ziel-Matching“; Taktiken nicht im Freeze.
-- Globaler Vier-Stunden-Shield als Standardantwort sowie ein Bau-/Raid-Session-Lock nur für den Angreifer. Das ODT nennt stattdessen lokale Sperre plus Moral-Schutz; beides bleibt `[O]`.
+- **Der globale Vier-Stunden-Shield entfällt** (D11). Es bleiben lokale Sperre je Angreifer-Verteidiger-Paar und der Moral-Schutz. `[N-del]`
 
 ## 3. Moral, Rotation und Zucht `[N]`
 
@@ -183,7 +183,7 @@ Die vollständige Detail- und Sprintquelle ist `docs/VISUAL_GRUNDSATZ.md`; die f
 - Der Client rendert und zeigt nur; Fortschritt entsteht ausschließlich nach serverseitigem Gate/Replay. `[N]`
 - Schlanker Headless-Worker rechnet den Trail mit demselben Seed nach. `[N]`
 - Seeds/Präfixe für prozedurale Heldendaten, Ausrüstung, Monsterstats und Events. `[N]`
-- Stack, Hosting, DB, Queue und Protokollversionen. `[O/K]` — der Stack ist nicht entschieden.
+- Stack, Hosting, DB, Queue und Protokollversionen. `[N-del]` — **entschieden** nach D13: Cloudflare Worker, D1, Queues, Firebase Auth. Die frühere Aussage „nicht entschieden" ist überholt.
 
 ## 8. Arbeitsregel `[N]`
 
@@ -192,6 +192,6 @@ Die vollständige Detail- und Sprintquelle ist `docs/VISUAL_GRUNDSATZ.md`; die f
 
 ## 9. Abnahmegrenze
 
-- Implementiert: 64×64-Grid, Pathfinding ohne Zusatzkosten, Placement Tile, Contract v5 mit öffentlicher Angreifer-Sicht (`toPublicView`) und privatem Stand, D1-Jobstatus, Trail-Hash, deterministischer Combat- und Replay-Core, lokale Tag/Nacht/Raid-Schleife (T1 abgeschlossen) sowie seit dem 2026-09-29 die Core-Seite der Zucht: 20 Basis-Monster mit je drei Elementen, Trait und Bonus, gekoppelte Mutation und Kreuzung über den internen PRNG (`packages/sim-core/src/genome/`). Nicht implementiert: echtes HTTP-Netzwerk/Auth, Queue, Remote-Matching, Ghost-Fallback, Moral-Verlustfolgen, Zucht-UI, Items und Dorf-Ökonomie (T2/T3).
-- Die Monsterzahl ist entschieden: **20 Basis-Monster**, bestätigt am 2026-09-29. Der Code führt sie in `packages/sim-core/src/genome/`, geteilt auf `roster-a.ts` und `roster-b.ts`; dieser Abschnitt führte zuvor „Startpool: 25" und die Zahl ist ersetzt. Offen bleiben die **Werte**: Elementzahlen, Kopplungsstärke, Mutationsdrift und Effektprozente sind `[K]` und nicht abgenommen.
-- Alle `[K]`-Punkte sind keine Implementierungsfreigabe.
+- Implementiert: 64×64-Grid, Pathfinding ohne Zusatzkosten, Placement Tile, Contract **v9** mit öffentlicher Angreifer-Sicht (`toPublicView`) und privatem Stand, D1-Jobstatus, Trail-Hash, deterministischer Combat- und Replay-Core, lokale Tag/Nacht/Raid-Schleife sowie die Core-Seite der Zucht mit 20 Basis-Monstern, gekoppelter Mutation und Kreuzung über den internen PRNG (`packages/sim-core/src/genome/`). Nicht implementiert: echtes HTTP-Netzwerk/Auth, Queue, Remote-Matching, Ghost-Fallback, Moral-Verlustfolgen, Zucht-UI, Items und Dorf-Ökonomie (T2/T3).
+- Die Monsterzahl ist entschieden (**20**); dieser Abschnitt führte zuvor „Startpool: 25" und die Zahl ist ersetzt. Offen bleiben die **Werte**: Elementzahlen, Kopplungsstärke, Mutationsdrift und Effektprozente sind `[K]` und nicht abgenommen.
+- Kein `[K]`- oder `[O]`-Punkt ist eine Implementierungsfreigabe.

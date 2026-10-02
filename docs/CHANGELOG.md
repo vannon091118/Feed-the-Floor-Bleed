@@ -1,5 +1,17 @@
 # docs/CHANGELOG.md — Global
 
+## 2026-10-02 — Die offenen Fragen sind entschieden, und jede Antwort steht da, wo die Frage stand
+
+**Neu** `docs/ENTSCHEIDUNGEN.md` mit den siebzehn delegiert entschiedenen Fragen D1 bis D17. Der Nutzer hat die Entscheidung über alle offenen `[K]`- und `[O]`-Punkte abgegeben und den Auftrag dazu erteilt; jede Antwort trägt `[N-del]` und nennt ihre Fundstelle im Konzeptreview.
+
+**Die Kennzeichnung steht neben `[N]` und nicht darin.** Abschnitt 8 trennt Nutzeraussagen von Assistentenvorschlägen, weil ein Vorschlag ohne Freigabe keine Regel ist. `[N-del]` ist freigegeben, aber nicht vom Nutzer formuliert.
+
+**Vier Stellen im Review tragen die Entscheidung an der alten Fundstelle.** Der globale Vier-Stunden-Shield ist als entfallen markiert und durch lokale Sperre plus Moral-Schutz ersetzt (D11). Der Stack gilt nicht mehr als offen (D13). Die Abnahmegrenze nennt Contract **v9** statt v5, gemessen an `packages/contracts/src/version.ts`. D5 übernimmt die Schwellen aus `packages/sim-core/src/genome/strength.ts` als abgenommen.
+
+**Nichts wurde erfunden.** Zwei gemeldete Widersprüche halten auf diesem Stand nicht: Der Wert 88 Prozent steht in Abschnitt 0b, und die README nennt keine Versionsnummer. Beide Stellen blieben unverändert.
+
+**Gates:** typecheck 0, Lint 0, LOC-Caps ok, Hygiene ok.
+
 ## 2026-09-30 — Vier Behauptungen sagen, was der Code tut
 
 **Scope:** geändert `README.md` (drei Stellen), `docs/ARCHITEKTUR.md`, `docs/FUNKTIONSGRAPH.md`, `docs/REGELWERK_ARCHITEKTUR.md`. Kein Code, kein Contract, kein Hash, keine Zahl. Quelle ist der Wahrheits-Audit-Commit `9394880`, der auf einem gelöschten Branch lag und nicht in `main` war.
@@ -181,16 +193,4 @@
 **Der erste Schnitt des Blocks.** Der Etage-Kauf steht als `village/floors.ts` (`buyFloor`, quadratischer Preis aus `floorCost`, nur am Tag über `commitVillage`), der Bestand trägt `village.floors`, und das Tag-Panel zeigt den Kauf über `ui/floor-purchase.tsx` mit Preisvorschau und dem abgeleiteten Fehlbetrag. Damit bekommt `floorCost` seinen ersten Aufrufer im Spiel; der Slotpreis wartet weiter.
 
 **Die Goldformel liegt jetzt als entscheidbare Vorlage vor.** `docs/GOLDFORMEL_ENTWURF.md` ist eine aktive Doku und kein Historieneintrag: eine offene Entscheidung ist keine Vergangenheit, und eine Vorlage, nach der niemand greifen kann, ist keine Vorlage. Sie stellt zwei Varianten gegenüber (pauschal je Gegner ohne Contract-Sprung; je Gegner nach Stärke und Generation mit Sprung v5 auf v6), rechnet für beide Beispielzahlen durch — für die zweite als Tabelle über Stärke 0 bis 5 und Generation 1 bis 9, samt geräumtem Run aus fünf Gegnern und Boss —, benennt die Grenzfälle (Stärke 0, Generation unter 1, gebrochene Werte, `floor` auf ganze Goldstücke, kein gefallener Gegner ergibt 0) und gibt eine Empfehlung ab. Nichts davon ist festgelegt: der Status steht als offener `[K]`-Entwurf am Anfang der Datei, die Empfehlung ist als solche markiert, und `docs/ROADMAP.md` wie `docs/VISUAL_GRUNDSATZ.md` verweisen darauf, statt die Zahlen zu wiederholen. **Gates:** typecheck 0, 383 Tests in 57 Dateien, Lint 0 (278 Dateien), LOC-Caps ok (253 Quellen), Hygiene ok, Redundancy ok, Shinon PASS.
-
-## 2026-09-29 — Die Kostenfreigabe für T2.3 war nie offen
-
-**Eine Doku-Korrektur, kein Code.** `floorBase` 250 Gold und `slotBase` 40 Material sind seit dem 2026-09-28 freigegeben; `docs/VISUAL_GRUNDSATZ.md` nennt sie in Zeile 20 und führt sie in der Freigabetabelle bei 63/64 samt Grenzfällen (Etage 2 kostet `250 · 2² = 1000`, Etage 3 kostet 2250, Etage 0 und 1 werden abgewiesen; die fünf Plätze der Etage 2 kosten 160, 320, 480, 640 und 800 Material). Im Code liegen `floorCost` und `slotCost` fertig in `economy.ts` und haben bis heute nur Tests als Aufrufer. Trotzdem führte `docs/ROADMAP.md` die Kostenfreigabe in der Abhängigkeitsspalte von T2.3 ohne Haken und behauptete im Abschnitt „Nächster konkreter Schritt", der Block brauche sie — beides ist korrigiert; die Spalte trägt den Haken wie die T2.2-Zeile darüber, und die Zahl, die dort jetzt fehlt, ist die Goldformel der ungesicherten Run-Beute. `docs/CONCEPT_REVIEW.md` trägt bei den Basiswerten (Zeile 21) und bei der Aufzählung der gesperrten Werte (Zeile 27) den Vermerk der Freigabe statt „bis zur Freigabe `[K]`", und der Statusblock der Roadmap hält den Nachzug fest. **Gates:** keine Quelldatei berührt, Hygiene, LOC-Caps und Shinon unverändert grün.
-
-## 2026-09-29 — Die Rückkehrbilanz sitzt in einer Region, die schon da ist
-
-**Ein Nachzug am gemergten Toast-Slice, ohne neue Funktion.** Die Ansageregion der Meldung stand vorher erst mit ihrem Text im Baum; jetzt umschließt sie den Text dauerhaft und bleibt leer, wenn nichts abzurechnen ist — dasselbe Muster wie `ui/phase-badge.tsx` und `ui/village-host.tsx`. Damit wird die Meldung zuverlässig vorgelesen, während die abgeleitete Sichtbarkeit unverändert bleibt. Dazu zwei Kommentar- und Testkorrekturen: `ui/shell.tsx` nennt als tragenden Grund den `z-index 6` statt der DOM-Reihenfolge, die am Bild nichts entscheidet, und der Style-Test schneidet den Regelblock bis zur schließenden Klammer, weil er vorher den ganzen Dateirest mitlas und ein entferntes `pointer-events: none` nicht bemerkte. `docs/ROADMAP.md` führt T2.2 nicht mehr als Block mit zwei offenen Punkten, sondern nennt T2.3 als nächsten Schritt. **Gates:** typecheck 0, 376 Tests in 55 Dateien, Lint 0 (274 Dateien), LOC-Caps ok über 249 Quellen, Hygiene ok, Shinon PASS, Client-Build und Worker-Dry-Run 138,83 KiB.
-
-## 2026-09-29 — Die Rückkehrbilanz steht als Toast über der Bühne
-
-**T2.2 ist damit vollständig.** Die Dorfszene liest seit dem 2026-09-29 den Dorfbestand aus dem Store; offen war nur der Rückkehr-Toast über `daySettlement`. `packages/client/src/ui/settlement-toast.tsx` macht die Tagesabrechnung sichtbar, und zwar als reine Ableitung: Der Toast liefert seine Zeilen genau dann, wenn die Phase `tag` ist und der Store eine Buchung trägt. Ein „schon gezeigt"-Merker entfällt damit, ebenso Zeitgeber und Schließen-Knopf — die Meldung verschwindet mit der nächsten Nacht von selbst, und ihre Einmaligkeit hängt an derselben Phasenguarde, die den Tag bucht. `ui/shell.tsx` hängt sie zwischen Bühne und Tagesüberzug, `shell.css` hält sie mit `z-index 6`, `top: 72px` und `pointer-events: none` als Meldung ohne Klickfang. Eine Bilanz ohne Ertrag wird gezeigt statt verschwiegen. **Belegt** mit `packages/client/test/settlement-toast.test.ts` und im Browser: kein Toast vor der Rückkehr und keiner im Ergebnis, nach `result → tag` „Tag 18 abgerechnet / Werkstattertrag +0 Material" als `role="status"`, in der Nacht wieder fort bei unveränderter Buchung im Store. **Gates:** typecheck 0, 376 Tests in 55 Dateien, Lint 0, LOC-Caps ok, Hygiene ok, Shinon PASS, Client-Build und Worker-Dry-Run ok.
 
