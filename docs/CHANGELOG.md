@@ -1,16 +1,14 @@
 # docs/CHANGELOG.md — Global
 
-## 2026-10-02 — Die offenen Fragen sind entschieden, und jede Antwort steht da, wo die Frage stand
+## 2026-10-02 — Der V1-Auftrag steht jetzt im Papier statt nur in einer Tabellenzeile
 
-**Neu** `docs/ENTSCHEIDUNGEN.md` mit den siebzehn delegiert entschiedenen Fragen D1 bis D17. Der Nutzer hat die Entscheidung über alle offenen `[K]`- und `[O]`-Punkte abgegeben und den Auftrag dazu erteilt; jede Antwort trägt `[N-del]` und nennt ihre Fundstelle im Konzeptreview.
+**Neu** `docs/AUFTRAG_V1.md` mit Erlaubt, Verboten und Stoppregel. In der Blocktabelle stand V1 als eine Zeile ohne Auftrag; wer das Dokument las, konnte nicht wissen, dass dort eine Regel fehlt. Genau daran ist ein Zweig gescheitert: Er hat das gebaut, was im Papier stand, und die Lücke mit Dorfrendering gefüllt.
 
-**Die Kennzeichnung steht neben `[N]` und nicht darin.** Abschnitt 8 trennt Nutzeraussagen von Assistentenvorschlägen, weil ein Vorschlag ohne Freigabe keine Regel ist. `[N-del]` ist freigegeben, aber nicht vom Nutzer formuliert.
+**Die Vorgeschichte steht als Beleg drin.** `git merge-base` ist `979abf9`; 12 Commits liegen auf `main` nach der Basis, 6 auf dem Zweig, die `VERSION` sagt 0.0.93 gegen 0.0.94. `main` ist Wahrheit für `sim-core` und `contracts`.
 
-**Vier Stellen im Review tragen die Entscheidung an der alten Fundstelle.** Der globale Vier-Stunden-Shield ist als entfallen markiert und durch lokale Sperre plus Moral-Schutz ersetzt (D11). Der Stack gilt nicht mehr als offen (D13). Die Abnahmegrenze nennt Contract **v9** statt v5, gemessen an `packages/contracts/src/version.ts`. D5 übernimmt die Schwellen aus `packages/sim-core/src/genome/strength.ts` als abgenommen.
+**Der Boss-Fix ist als nicht verhandelbar vermerkt.** `main` führt 132/12/1, der Zweig 200/16/5 — den Stand mit 0 Siegen in 32 Seeds. Jede Änderung an der Datei ist verboten; zwei Gegenproben stehen daneben: Der Diff gegen die Basis muss leer sein, der Referenzkampf im Band 80 bis 95 Prozent.
 
-**Nichts wurde erfunden.** Zwei gemeldete Widersprüche halten auf diesem Stand nicht: Der Wert 88 Prozent steht in Abschnitt 0b, und die README nennt keine Versionsnummer. Beide Stellen blieben unverändert.
-
-**Gates:** typecheck 0, Lint 0, LOC-Caps ok, Hygiene ok.
+**Geparkt ist benannt:** Dorfrendering und `player-path` des Zweigs verschieben Pfade, an denen `main` weitergebaut hat. **Gates:** typecheck 0, LOC-Caps ok, Hygiene ok.
 
 ## 2026-09-30 — Vier Behauptungen sagen, was der Code tut
 
