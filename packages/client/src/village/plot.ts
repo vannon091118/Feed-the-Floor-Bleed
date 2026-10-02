@@ -154,3 +154,29 @@ export function expandHorizontally(
     throw new Error('Landerweiterung verkleinert die Spaltenzahl nicht')
   return { columns: nextColumns, rows }
 }
+
+/**
+ * Die erste Zelle links oben, auf der ein Gebäude der Größe Platz fände.
+ *
+ * Die Oberfläche braucht eine Stelle, an der sie einen Bau-Befehl absetzen
+ * kann, ohne den Spieler eine Zelle wählen zu lassen. Diese Funktion ist genau
+ * diese Stelle und keine: Sie sucht zeilenweise von oben links, prüft jede
+ * Zelle mit `canPlace` und liefert die erste freie. Damit kann die Suche nicht
+ * eine Belegung übersehen, die `canPlace` als Konflikt melden würde.
+ *
+ * `undefined` heißt: Das Dorf ist voll. Der Aufrufer sagt das dem Spieler,
+ * er wirft nicht.
+ */
+export function firstFreeSite(
+  size: { width: number; height: number },
+  occupied: readonly Footprint[],
+  bounds: GridBounds,
+): { x: number; y: number } | undefined {
+  for (let y = 0; y < bounds.rows; y += 1) {
+    for (let x = 0; x < bounds.columns; x += 1) {
+      const site = { x, y, ...size }
+      if (canPlace(site, occupied, bounds).ok) return { x, y }
+    }
+  }
+  return undefined
+}

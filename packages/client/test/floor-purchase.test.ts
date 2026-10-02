@@ -4,6 +4,7 @@ import { FloorPurchase, floorPurchaseView } from '../src/ui/floor-purchase'
 import { BALANCE } from '../src/village/balance'
 import { buyFloor } from '../src/village/floors'
 import { dayNight, resetDayNight } from '../src/village/state'
+import { textContent } from './vnode-text'
 
 /**
  * Der Etage-Kauf ist eine Ableitung, kein zweiter Zustand.
@@ -14,28 +15,6 @@ import { dayNight, resetDayNight } from '../src/village/state'
  * gemerkter Ablehnungstext — der alte Bau — hätte hier nach dem Auffüllen des
  * Goldes weiter „es fehlen\" gemeldet.
  */
-
-/**
- * Alle Texte eines Baums, Komponenten mit aufgerufen und Weißraum normiert —
- * JSX setzt zwischen Ausdruck und Wortlaut eigene Textknoten, sonst passt
- * keine zusammenhängende Zusage.
- */
-function textContent(node: ComponentChildren): string {
-  return rohText(node).replace(/\s+/g, ' ').trim()
-}
-
-function rohText(node: ComponentChildren): string {
-  if (typeof node === 'string' || typeof node === 'number') return String(node)
-  if (Array.isArray(node)) return node.map(rohText).join(' ')
-  if (node && typeof node === 'object' && 'props' in node) {
-    const vnode = node as VNode<{ children?: ComponentChildren }>
-    const render = vnode.type as (props: never) => ComponentChildren
-    if (typeof render === 'function')
-      return rohText(render(vnode.props as never))
-    return rohText(vnode.props.children)
-  }
-  return ''
-}
 
 interface KnopfProps {
   children?: ComponentChildren

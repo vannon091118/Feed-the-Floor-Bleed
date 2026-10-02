@@ -8,7 +8,9 @@ import {
 } from '@floor/sim-core'
 import { effect } from '@preact/signals'
 import { grid, route } from '../dungeon-editor/state'
+import type { MonsterSlot } from '../fixture-data'
 import { fixture, fixtureRaid } from '../fixture-data'
+import { dayNight } from '../village/state'
 import { fixtureTeamConditions } from './fixture-raid'
 import { setPlaybackLog } from './playback'
 
@@ -22,8 +24,10 @@ import { setPlaybackLog } from './playback'
  * `undefined` — die Einheit fällt dann auf die generische Rollentextur zurück,
  * statt eine erfundene Art zu zeigen.
  */
-export function baseIdsBySlot(): (string | undefined)[] {
-  return fixture.monsterSlots.map((slot) =>
+export function baseIdsBySlot(
+  slots: readonly MonsterSlot[] = dayNight.value.village.monsterSlots,
+): (string | undefined)[] {
+  return slots.map((slot) =>
     slot.monsterId && baseMonsters().some((m) => m.id === slot.monsterId)
       ? slot.monsterId
       : undefined,
@@ -47,7 +51,10 @@ export function buildCombatLog(
     teamSize: fixture.team.length,
     // Dieselbe Nachwirkung wie im Upload, aus derselben Ableitung.
     team: fixtureTeamConditions(),
-    defenders: fixture.monsterSlots.map((slot) => ({
+    // Die Belegung kommt aus dem Dorfbestand, nicht aus dem Fixture: Der
+    // Spieler wählt seine Gegner, und dieser Aufruf ist der Ort, an dem die
+    // Wahl in den Kampf einfließt.
+    defenders: dayNight.value.village.monsterSlots.map((slot) => ({
       baseId: slot.monsterId,
     })),
     seed: fixtureRaid.seed,

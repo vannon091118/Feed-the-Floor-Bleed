@@ -120,7 +120,7 @@ export function findDeadModules(srcDir = SRC) {
   })
 }
 
-if (process.argv[1] && process.argv[1].endsWith('check-reachability.mjs')) {
+if (process.argv[1]?.endsWith('check-reachability.mjs')) {
   const dead = findDeadModules()
   if (dead.length > 0) {
     for (const file of dead) {

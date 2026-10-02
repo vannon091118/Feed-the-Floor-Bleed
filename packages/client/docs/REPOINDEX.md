@@ -102,7 +102,8 @@
 | `src/ui/window-content.tsx` | Fenster-ID → Inhalt, eine Quelle für die Fensterschicht |
 | `src/ui/world-host.tsx` | Stabiler DOM-Host und Lebenszyklus der Pixi-Runtime, zugleich fokussierbares Tastaturziel der Kamera |
 | `src/ui/editor-controls.tsx` | Pinselauswahl, Zurücksetzen und der Zug-Status |
-| `src/ui/panels.tsx` | Inhalte der Kontextfenster samt Steuerungslegende mit den Tastenhinweisen; das Gebäudefenster liest den Dorfbestand über den Listenplatz, Startbasis und Attraktivität kommen aus `village/balance`; die Routenanzeige nennt Modus, Schritte und Bewegungspunkte |
+| `src/ui/panels.tsx` | Inhalte der Kontextfenster samt Steuerungslegende mit den Tastenhinweisen; das Gebäudefenster liest den Dorfbestand über den Listenplatz, nennt Stufe und Höchststufe und hängt die Dorf-Befehle aus `ui/village-actions.tsx` ein; Startbasis und Attraktivität kommen aus `village/balance`; die Routenanzeige nennt Modus, Schritte und Bewegungspunkte |
+| `src/ui/village-actions.tsx` | Befehlsleiste des Gebäudefensters: „Haus bauen", „Land kaufen" und „Ausbauen" als Aufrufer von `village/commands`; Bauort über `firstFreeSite`, Landpreis über `balance`, Ausbaubarkeit über einen Probeaufruf von `upgradeBuilding`; Dorforte (Coefficient 0, `maxLevel` 1) zeigen keine Ausbauzusage |
 | `src/icons/resource-icon.tsx` | SVG-Icons der Ressourcenwerte in der Topbar |
 | `src/resources/catalog.ts` | Feste Ressourcen-IDs, Labels und Icons |
 | `src/ui/styles/index.css` | Einstiegspunkt der Oberflächen-Styles mit fester Importreihenfolge |
@@ -124,10 +125,11 @@
 | `src/village/phase-actions.ts` | Schleifen-Kommandos: Nacht starten, Raid auslösen (lädt den Log), Ergebnis abschließen — ein abgeschlossener Auftrag reicht die Beute aus `raid/loot-source.ts` an den Tagesabschluss und räumt den Log danach auf |
 | `src/village/settlement.ts` | Dorfblick als reine Ableitung aus Phase-Owner und Fixture, ohne Wirtschaft |
 | `src/village/loot.ts` | Die freigegebene Goldformel als reine Regel: `goldForOpponent` und `goldForRun` nehmen ihre Balance ausdrücklich entgegen, rechnen ganzzahlig und weisen einen ungültigen Gegner ab, statt eine halbe Beute zu zahlen |
-| `src/village/plot.ts` | Platzierungsgeometrie des Dorfes: Grundriss, Ganzzelligkeit, Rastergrenze, Überlappung, Kantennachbarn, horizontale Landerweiterung — reine Funktionen, keine Wirtschaftszahlen; Abnehmer ist die Kommandoschicht |
+| `src/village/plot.ts` | Platzierungsgeometrie des Dorfes: Grundriss, Ganzzelligkeit, Rastergrenze, Überlappung, Kantennachbarn, horizontale Landerweiterung, dazu `firstFreeSite` für die Oberfläche — reine Funktionen, keine Wirtschaftszahlen; Abnehmer sind die Kommandoschicht und `ui/village-actions.tsx` |
+| `src/village/monster-slots.ts` | Slot-Belegung des Dorfes: `placeMonster` prüft freien Platz und eine Basisart aus `@floor/sim-core` und schreibt über `commitVillage`; jede Ablehnung ein `SlotResult` mit Grund |
 | `src/village/index.ts` | Barrel der Schleifendomäne (Phase, Aktionen, Kommandos, Blick, Zustand); `plot` ist bewusst nicht enthalten, weil die Oberfläche es nicht aufruft |
 | `src/raid/fixture-raid.ts` | Versionierter Upload und lokaler Fixture-Auftrag; `fixtureTeamConditions` ist die eine Ableitung des Heldzustands für Upload und Timeline |
-| `src/raid/combat-source.ts` | Einziger Besitzer des Raid-Logs: Core-Aufruf, Lade-/Entlade-Pfad, Plan-Synchronisierung |
+| `src/raid/combat-source.ts` | Einziger Besitzer des Raid-Logs: Core-Aufruf, Lade-/Entlade-Pfad, Plan-Synchronisierung; die Basisart je Verteidiger-Slot kommt aus `village.monsterSlots` des Dorfbestands, nicht aus dem Fixture |
 | `src/raid/loot-source.ts` | Die Beute des geladenen Laufs: `fallenLootProfiles` ordnet die Todesereignisse über die **belegten** Plätze den eingefrorenen Slots zu und löst Stärke und Generation über `slotLootProfile` auf; der Boss trägt nichts bei. Erster Leser von `goldForRun` im Spielerpfad |
 | `src/raid/raid-panel.tsx` | Probelauf-Panel, reicht den terminalen Auftrag an die Schleife weiter |
 | `src/raid/panel.tsx` | Reine Ergebnis-Darstellung eines TerminalRaidJob; die Stufenworte liest sie als `STAGE_LABELS` aus `timeline-model.ts`, es gibt keinen zweiten Formulierer daneben |
@@ -151,6 +153,9 @@
 | `test/village-plot.test.ts` | Platzierungsinvarianten: Überlappung, Rastergrenze mit Begründung, Kantennachbarschaft ohne Diagonalen, Landerweiterung, Determinismus |
 | `test/village-economy.test.ts` | Regelinvarianten: Wachstum und Ganzzahligkeit jeder Kostenfunktion, die Grenzfälle (Maximalstufe, Etage, Platznummer, Land-Schritt), Werkstattkapazität, Ertragssumme, bezahlbarer Startbestand |
 | `test/floor-purchase.test.ts` | Die Kaufanzeige als Ableitung: Preis und Fehlbetrag aus dem Bestand, kein gemerkter Ablehnungstext, und der Knopf zahlt über denselben Store |
+| `test/building-panel.test.tsx` | Die Naht zwischen Oberfläche und Dorfbestand: das Gebäudefenster zeigt Stufe und Höchststufe, trägt die drei Dorf-Befehle, und ein ausgelöster Klick verändert den Bestand (Bestand +1, Landbreite, Ausbaustufe) |
+| `test/monster-slots.test.ts` | Die Slot-Belegung: freier Platz und Basisart werden geprüft, jede Ablehnung nennt ihren Grund und lässt den Bestand unberührt |
+| `test/vnode-text.ts` | Texte aus einem Preact-Baum lesen, ohne eine DOM zu brauchen; gemeinsamer Helfer der drei Tests, die Panel-Beschriftungen prüfen |
 | `test/village-balance-guards.test.ts` | Eingabewächter: NaN, Unendlichkeit, gebrochene und negative Werte als Stufe, Etage, Platz und Landausgang mit dem erwarteten Ablehnungsgrund, die Baupreis-Kopie und drei absolute Werte aus der Freigabetabelle |
 | `test/village-day-close.test.ts` | Tagesabrechnung am Store: genau einmal je Rückkehr, auch nach Niederlage, kein Doppelbuch auf dem Retry-Weg |
 | `test/village-commands.test.ts` | Die drei Dorf-Kommandos: Preisabbuchung, Phasengrenze, Gangbarkeit, Kapazität, Ausbaustufen, Landschritt — jeweils mit dem Bestand vor und nach dem Befehl |
@@ -180,10 +185,13 @@ Weltansicht sind fokussierbar, ihre Schrittlogik liegt in `window/keys.ts` und
 Die Wirtschaftskette läuft in eine Richtung: `village/balance.ts` (Zahlen) →
 `village/economy.ts` (Regeln, Config als Parameter) → `village/commands.ts`
 (Entscheidung und Schreiben) → `village/state.ts` (Bestand und Buchung) →
-Topbar und die Rückkehrbilanz (`ui/settlement-toast.tsx`). Verdrahtet sind jetzt der Tagesertrag,
-das Bauen, das Ausbauen und der Landkauf; Etagen- und Platzpreis haben noch
-keinen Aufrufer. Die Dorfszene auf der Bühne zeichnet dagegen den Store:
+Topbar und die Rückkehrbilanz (`ui/settlement-toast.tsx`). Verdrahtet sind der
+Tagesertrag, das Bauen, das Ausbauen und der Landkauf — die drei Dorf-Befehle
+über `ui/village-actions.tsx` im Gebäudefenster; Etagen- und Platzpreis haben
+noch keinen Aufrufer. Die Dorfszene auf der Bühne zeichnet dagegen den Store:
 `ui/scene-switch.ts` reicht den Bestand als `villagePlots()` hinein, und
 `render/village-layout.ts` projiziert die Zellen in Weltpixel.
 `raid/fixture-raid.ts` sendet inzwischen den Bestand des Dorfes statt des
-Startbestands.
+Startbestands, und `raid/combat-source.ts` liest die Basisart je Slot aus
+`village.monsterSlots` statt aus dem Fixture; belegt wird das über
+`village/monster-slots.ts`.

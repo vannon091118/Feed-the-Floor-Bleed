@@ -1,6 +1,6 @@
 import type { TerminalRaidJob } from '@floor/contracts'
 import { signal } from '@preact/signals'
-import type { Resources } from '../fixture-data'
+import type { MonsterSlot, Resources } from '../fixture-data'
 import { fixture } from '../fixture-data'
 import { BALANCE } from './balance'
 import { dailyYield, type PlacedBuilding } from './economy'
@@ -61,6 +61,16 @@ export interface VillageHoldings {
    * ein Zählungsbeginn und keine Balancegröße.
    */
   floors: number
+  /**
+   * Die Monster, die der Spieler auf die Plätze gestellt hat.
+   *
+   * Das Feld trug keinen Platz im Bestand, obwohl der Wunsch im Datenmodell
+   * stand: `MonsterSlot` und `slotBase` gaben die Form vor, der Spielerpfad las
+   * aber `fixture.monsterSlots`, also eine Konstante. Damit war die Wahl eine
+   * Eingabe ohne Ausgabe. Ein `null` ist ein freier Platz und kein leerer
+   * Platz: Die Zahl der Plätze kommt aus der Etage, nicht aus diesem Feld.
+   */
+  monsterSlots: MonsterSlot[]
 }
 
 /**
@@ -108,6 +118,7 @@ export interface DaySettlement {
  */
 function startVillage(): VillageHoldings {
   return {
+    monsterSlots: fixture.monsterSlots.map((slot) => ({ ...slot })),
     resources: { ...BALANCE.start.resources },
     buildings: BALANCE.start.fixedSites.map((site) => ({
       kind: site.kind,
