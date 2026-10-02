@@ -7,6 +7,12 @@
 # Hinweis: Dependabot-PRs sind kurz und englisch; sie erfüllen die
 # Commit-Regeln aus `docs/REGELWERK_GIT.md` nicht und brauchen vor dem Merge
 # einen gate-konformen Commit.
+#
+# `ignore` ist eine Festlegung, keine Vorsicht (D16, `[N-del]` in
+# `docs/CONCEPT_REVIEW.md` Abschnitt 0c): Werkzeug-Updates laufen über einen
+# eigenen, gemessenen Schnitt und nicht als nebenbei einspielter PR. Vitest
+# und Biome sind gepinnt; eine Änderung an ihnen ist ein eigener Block mit
+# roten Zeilen gegen das neue Verhalten, nicht ein Merge von heute auf morgen.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -14,6 +20,9 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: vitest
+      - dependency-name: @biomejs/biome
   - package-ecosystem: devcontainers
     directory: /
     schedule:
