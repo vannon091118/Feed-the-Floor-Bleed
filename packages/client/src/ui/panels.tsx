@@ -7,6 +7,7 @@ import { WINDOW_KEY_HINT } from '../window/keys'
 import { buildingLabel } from './building-label'
 import { RosterList } from './roster-list'
 import { Stats } from './stats'
+import { VillageActionsBar } from './village-actions'
 
 function finite(value: number): string {
   return Number.isFinite(value) ? String(value) : '∞'
@@ -43,15 +44,16 @@ export function RoutePanel() {
 export function BuildingPanel({ buildingId }: { buildingId: string }) {
   // Die Kennung im Fenster ist der Listenplatz im Dorfbestand; ein Platz, der
   // dort nicht steht, ist ein Ort, den es nicht (mehr) gibt.
-  const building = dayNight.value.village.buildings[Number(buildingId)]
+  const index = Number(buildingId)
+  const building = dayNight.value.village.buildings[index]
   if (!building) return <p class="raid-note">Ort nicht gefunden.</p>
   return (
     <div class="context-details">
       <strong>{buildingLabel(building.kind)}</strong>
       <p>
         {building.kind === 'workshop'
-          ? 'Materialproduktion · Noch nicht freigeschaltet'
-          : 'Dorfort · Noch nicht ausbaubar'}
+          ? `Materialproduktion · Stufe ${building.level}`
+          : `Dorfort · Stufe ${building.level} von ${BALANCE.buildings[building.kind].maxLevel}`}
       </p>
       {building.kind === 'house' && (
         <p>
@@ -59,6 +61,7 @@ export function BuildingPanel({ buildingId }: { buildingId: string }) {
           {BALANCE.attraction.base}
         </p>
       )}
+      <VillageActionsBar index={index} />
     </div>
   )
 }

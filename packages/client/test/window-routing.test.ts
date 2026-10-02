@@ -1,4 +1,4 @@
-import type { ComponentChildren, VNode } from 'preact'
+import type { VNode } from 'preact'
 import { afterEach, describe, expect, it } from 'vitest'
 import { unloadRaidLog } from '../src/raid/combat-source'
 import { TimelineTransport } from '../src/raid/raid-timeline'
@@ -29,27 +29,13 @@ import {
   windows,
 } from '../src/window/store'
 import { contentSignature } from '../src/window/window-layer'
+import { rohText as textContent } from './vnode-text'
 
 afterEach(() => {
   resetWindows()
   resetDayNight()
   unloadRaidLog()
 })
-
-function textContent(node: ComponentChildren): string {
-  if (typeof node === 'string' || typeof node === 'number') return String(node)
-  if (Array.isArray(node)) return node.map(textContent).join(' ')
-  if (node && typeof node === 'object' && 'props' in node) {
-    const vnode = node as VNode<{ children?: ComponentChildren }>
-    // Panels sind zustandsfrei; sie lassen sich hier direkt aufrufen. Der Cast
-    // nimmt die Klassenkomponente aus `ComponentType`, die nicht aufrufbar ist.
-    const render = vnode.type as (props: never) => ComponentChildren
-    if (typeof render === 'function')
-      return textContent(render(vnode.props as never))
-    return textContent(vnode.props.children)
-  }
-  return ''
-}
 
 describe('Welt-Kontextfenster', () => {
   it('öffnet einen Ortskontext ohne ein zweites Dorf-Dashboard', () => {

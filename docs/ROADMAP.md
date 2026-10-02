@@ -1,5 +1,7 @@
 # docs/ROADMAP.md — Audit- und Produkt-Roadmap
 
+AKTIV: V1 — die Dorf-Befehle bekommen einen Aufrufer. Alles andere ist eingefroren. Der volle Auftrag mit Erlaubt, Verboten und Stoppregel steht in `docs/AUFTRAG_V1.md`.
+
 ## Zweck
 
 Diese Roadmap ist die einzige aktive Reihenfolge für Produkt- und Technikarbeit. Sie trennt den belegten Ist-Stand von der geplanten Zielarchitektur und verhindert, dass unimplementierte Systeme als bereits vorhanden behandelt werden. Die vollständige Fassung bis zum 2026-09-28 liegt wortgleich in `docs/historisch/2026-09-29_roadmap-altfassung.md`; dieses Fenster führt den laufenden Stand, die offenen Blöcke und die offenen Prüfpunkte.

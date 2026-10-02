@@ -22,6 +22,8 @@
 | `plugins/modularity-gate.mjs` | Domain-Grenzen und Import-Zyklen-Gate (Base) |
 | `plugins/dead-code-gate.mjs` | Der einzige Compilerlauf (`tsc -p tsconfig.json`) und das Dead-Code-Gate (Base) |
 | `plugins/redundancy-gate.mjs` | Redundanz-Gate für Package-Code (Base) |
+| `plugins/reachability-gate.mjs` | Dünner `spawnSync`-Wrapper um `scripts/check-reachability.mjs` (Base) |
+| `tests/reachability-gate.test.mjs` | Der Reichweiten-Zaun gegen den belegten Fundfall: toter Zweig, Freigabe durch Importierer, Ausnahmen, verschachtelter Pfad, echtes Repository |
 | `plugins/core-determinism.mjs` | Determinismus Scan (Core, crypto+Math Ban) |
 | `plugins/false-positive.mjs` | Dead-Lock Smoke (Core) |
 | `tests/gates.test.mjs` | Positive und negative Governance-Gate-Fixtures |

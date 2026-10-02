@@ -1,5 +1,17 @@
 # packages/client/docs/CHANGELOG.md
 
+## 2026-10-02 — Die Dorf-Kommandos bekommen ihren Aufrufer, und die Kampfquelle liest den Bestand
+
+**Scope:** neu `src/ui/village-actions.tsx`, `src/village/monster-slots.ts`, `test/building-panel.test.tsx`, `test/monster-slots.test.ts` und `test/vnode-text.ts`; geändert `src/village/plot.ts` (`firstFreeSite`), `src/village/state.ts` (`VillageHoldings.monsterSlots`), `src/ui/panels.tsx`, `src/raid/combat-source.ts`, `test/floor-purchase.test.ts` und `test/window-routing.test.ts`. Kein Contract, kein Hash, keine Balancezahl — `sim-core` und `contracts` bleiben unangetastet, der Boss-Fix (132/12/1) bleibt die Wahrheit von `main`.
+
+**Drei Kommandos ohne Bedienung.** `buildBuilding`, `upgradeBuilding` und `extendLand` waren implementiert, geprüft und hatten keinen Aufrufer; das Gebäudefenster sagte daraufhin „Noch nicht ausbaubar", was sich wie ein fehlender Weg las. Neu ist `src/ui/village-actions.tsx` als einziger Owner der drei Befehle: Der Bauort kommt aus dem neuen `firstFreeSite` in `village/plot.ts`, der Landpreis aus `village/balance.ts`, und die Ausbaubarkeit wird über einen Probeaufruf von `upgradeBuilding` festgestellt — Rathaus und Gilde tragen Coefficient 0 und `maxLevel` 1, zeigen deshalb keine Ausbauzusage, sondern `Dorfort`. Die Zusage hängt am Aufruf, nicht an einer Anzeige-Tabelle daneben.
+
+**Die Slots waren Anzeige, jetzt sind sie Bestand.** `combat-source.ts` las `fixture.monsterSlots` — der Kampf lief also gegen eine Liste, die der Spieler nicht verändern konnte. `VillageHoldings` trägt jetzt `monsterSlots`, `src/village/monster-slots.ts` belegt einen Platz über `placeMonster` (Kapazität und Basisart aus `@floor/sim-core` geprüft, geschrieben über `commitVillage`, jede Ablehnung ein `SlotResult` mit Grund), und der Kampfpfad liest `dayNight.value.village.monsterSlots`. Der Gegenbeweis steht in `test/monster-slots.test.ts`: bliebe das Fixture im Kampf-Pfad, färbte genau der Fall „liest im Kampf die Wahl" rot.
+
+**Der Helfer stand dreimal.** `redundancy-gate` meldete den `textContent`-Weg durch den Preact-Baum in `building-panel.test.tsx` und `window-routing.test.ts` als sechs identische Zeilen; `floor-purchase.test.ts` trug dieselbe Funktion in einer zweiten Fassung. Er steht jetzt einmal in `test/vnode-text.ts` (`rohText` und die normalisierte Fassung).
+
+**Beleg:** typecheck 0, 550 Tests in 83 Dateien (+3), Lint 0, Redundancy-Gate ok, LOC-Caps ok (325 Quellen), Reichweiten-Gate ok, Hygiene ok. Platz geschaffen: der Eintrag zu Contract v4 ist wortgleich nach `historisch/2026-09-28_changelog-contract-v4-roster.md` gewandert.
+
 ## 2026-09-30 — Die Kampfnaht bekommt ihre Quelle, und vier Kommentare sagen, was der Code tut
 
 **Scope:** neu `test/raid-combat-source.test.ts` (zwei Fälle); geändert `src/village/commands.ts` und `src/village/plot.ts` (nur Kommentar), `README.md`, `docs/ARCHITEKTUR.md`, `docs/FUNKTIONSGRAPH.md`, `docs/REGELWERK_ARCHITEKTUR.md`. Kein Contract, kein Hash, keine Zahl. Quelle ist der Wahrheits-Audit-Commit `9394880`, der auf einem gelöschten Branch lag und nicht in `main` war.
@@ -183,14 +195,4 @@
 **Scope:** neu `src/village/commands.ts`, `test/village-commands.test.ts` und `test/village-command-guards.test.ts`; geändert `src/village/state.ts` (Grundriss am Gebäude, `commitVillage`), `src/village/balance.ts` (`buildable`, `start.landRows`), `src/village/plot.ts` (Ganzzellprüfung), `src/village/index.ts`, `src/raid/fixture-raid.ts` (Upload liest den Bestand) sowie `test/{village-day-close,raid-job,village-plot}.test.ts`. Kein Contract, kein Hash und keine freigegebene Zahl geändert.
 
 **Die vier Zusagen und ihr Beleg.** Gebaut, ausgebaut und Land gekauft wird nur am Tag (`villageEditable`), nur mit gedecktem Preis, nur auf ganzen Rasterzellen und ohne Überlappung (`canPlace`), und der Store nimmt einen Bestand nur an, wenn Phase, Ganzzahligkeit und Landuntergrenze stimmen — `commitVillage` ist der Schreibpfad der Kommandos, `setPhase` bleibt der der Tagesabrechnung, und über die Phase schließen sie sich gegenseitig aus. Der Upload sendet seither `dayNight.village.resources` statt des Startbestands der Config; nach dem ersten Bau war das eine Lüge gegenüber dem eigenen Dorf. **Gates:** typecheck 0, 348 Tests in 51 Dateien, Lint 0, LOC-Caps ok (244 Quellen), Hygiene ok, Shinon PASS, Client-Build und Worker-Dry-Run ok.
-
-## 2026-09-28 — Contract v4: die Summary trägt den Verteidiger-Roster
-
-**Scope:** Fixture-Summary in `test/raid-fixtures.ts` um `defendersTotal` ergänzt; Kommentare in `src/raid/fixture-raid.ts`, `src/raid/raid-panel.tsx` und `src/village/state.ts` sowie der Testname in `test/raid-job.test.ts` auf Contract v4 gezogen. `package.json` führt `@floor/contracts` und `@floor/sim-core` jetzt als `workspace:*`; die Importe in `src/` lösten bis dahin nur über `tsconfig`-Pfade und den Vite-Alias auf, `node_modules/@floor` gab es im Client nicht. Kein Clientverhalten geändert.
-
-**Was der Sprung für den Client bedeutet.** `CONTRACT_VERSION 3→4` und `sim_version 0.0.2→0.0.3`; Upload und Ergebnis des Fixture-Laufs tragen die neuen Werte von selbst, weil beide aus den Contract-Konstanten kommen. Neu ist `summary.defendersTotal` — die Zahl der Verteidiger im eingefrorenen Snapshot, Boss inklusive. Der Client liest sie noch nicht; der Dorf-Abrechnung fehlt weiterhin die freigegebene Goldformel. Belegt ist damit die Zahl der Gefallenen, nicht mehr: E1 verlangt „abhängig von Stärke/Generation", und beides je Gegner führt kein Feld — `monsterSlot` trägt nur `monsterId`.
-
-**Der Dorf-Kommentar ist korrigiert.** `village/state.ts` führte das fehlende Rosterfeld als Grund, warum `DaySettlement` nur Materialien nennt. Das Feld existiert jetzt. Geblieben sind zwei echte Gründe: Die Formel ist nicht freigegeben, und das einzige lokal verfügbare Roster wäre das eigene Fixture. **Korrigierte Aussage:** Eine frühere Fassung dieses Eintrags und die Kommentare nannten die Datenlage der Formel „geschlossen". Belegt ist nur die Zahl der Gefallenen; ob die Formel nach E1 zusätzlich Stärke und Generation je Gegner braucht, ist offen. Zwei Kommentare waren zudem auf einem alten Stand und nannten den Upload noch „Contract-v2" beziehungsweise die Payloads „Contract-v3".
-
-**Platz geschaffen.** Der aktive Changelog stand nach diesem Eintrag bei 204 Zeilen; der älteste Eintrag, der Tote-Code-Nachgang vom 2026-09-27, ist wortgleich nach `historisch/2026-09-27_client-tote-code-reste.md` gewandert.
 

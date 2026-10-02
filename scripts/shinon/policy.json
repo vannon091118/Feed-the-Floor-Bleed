@@ -8,6 +8,7 @@
       "modularity-gate",
       "dead-code-gate",
       "redundancy-gate",
+      "reachability-gate",
       "schema-contract",
       "version-gate",
       "commit-gate",
@@ -122,7 +123,12 @@
       "owner": "tooling/version"
     },
     { "prefix": "scripts/check-loc.mjs", "cap": 200, "owner": "tooling" },
-    { "prefix": "scripts/check-hygiene.mjs", "cap": 200, "owner": "tooling" }
+    { "prefix": "scripts/check-hygiene.mjs", "cap": 200, "owner": "tooling" },
+    {
+      "prefix": "scripts/check-reachability.mjs",
+      "cap": 200,
+      "owner": "tooling/reachability"
+    }
   ],
   "deadCode": { "roots": ["packages", "scripts"] },
   "coreDeterminism": {
