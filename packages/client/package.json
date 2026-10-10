@@ -6,7 +6,7 @@
   "dependencies": {
     "@floor/contracts": "workspace:*",
     "@floor/sim-core": "workspace:*",
-    "@preact/signals": "^2.11.2",
+    "@preact/signals": "^2.11.3",
     "pixi.js": "^8",
     "preact": "^10.29.8",
     "zod": "3.23.8"
